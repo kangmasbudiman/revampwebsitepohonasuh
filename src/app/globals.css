@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+/* Dark mode hanya aktif di rute admin (class .dark di <html> digerakkan
+   oleh script no-flash + ThemeToggle, gated pathname /admin). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #18181b;
 }
 
 @theme inline {
@@ -10,17 +14,272 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-night-950: #0a1f17;
+  --color-night-900: #0d241b;
+  --color-night-800: #1e3a2c;
+  --color-night-700: #2a4a39;
+  --color-gold-400: #d9b84a;
+  --color-gold-500: #c9a227;
+  --color-gold-600: #a8861d;
+  --color-ivory: #f4efe6;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@media print {
+  header, footer, .no-print {
+    display: none !important;
+  }
+}
+
+/* --- Sertifikat adopsi: cetak satu halaman A4 landscape --- */
+@page sertifikat {
+  size: A4 landscape;
+  margin: 0;
+}
+
+@media print {
+  .pa-sertifikat {
+    page: sertifikat;
+    max-width: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .pa-sertifikat,
+  .pa-sertifikat * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/* --- Cetak QR label pohon (panel QR admin Data Adopsi) --- */
+@media print {
+  body.pa-printing > *:not(.pa-qr-overlay) {
+    display: none !important;
+  }
+  .pa-qr-overlay {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+}
+
+/* --- Cetak papan taging (/admin/tagging/[id]/papan; rasio template
+     2382×1684 ≈ A4 lanskap) --- */
+@page papan {
+  size: A4 landscape;
+  margin: 0;
+}
+@media print {
+  .pa-papan-wrap {
+    page: papan;
+    width: 297mm !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .pa-papan,
+  .pa-papan * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/* --- Animasi halaman awal --- */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes kenburns {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.hero-anim {
+  animation: fade-up 0.8s ease-out both;
+}
+
+.animate-kenburns {
+  animation: kenburns 7s ease-out forwards;
+}
+
+.marquee-track {
+  animation: marquee 60s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.animate-float-soft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+.gold-shimmer-text {
+  background: linear-gradient(
+    110deg,
+    #c9a227 20%,
+    #f0dc8a 40%,
+    #c9a227 60%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* --- Loader berlogo --- */
+
+@keyframes pa-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10%) scale(1.06); }
+}
+
+@keyframes pa-ring {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.animate-pa-bounce {
+  animation: pa-bounce 1.2s ease-in-out infinite;
+}
+
+.animate-pa-ring {
+  animation: pa-ring 1.6s ease-out infinite;
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-menu {
+  animation: menu-in 0.25s ease-out both;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  will-change: opacity, transform;
+}
+
+.reveal.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-anim,
+  .animate-kenburns,
+  .marquee-track,
+  .animate-float-soft,
+  .gold-shimmer-text,
+  .animate-pa-bounce,
+  .animate-pa-ring {
+    animation: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* --- Tema panel admin: gradasi & kartu berwarna.
+       Kelas ini TIDAK berada dalam @layer sehingga selalu menang atas
+       utility Tailwind (termasuk state hover) — dipakai bersama class
+       lama yang tersisa tanpa konflik visual. --- */
+
+/* Latar halaman: sapuan radial emerald→teal yang lembut. */
+.pa-page {
+  background-image:
+    radial-gradient(1100px 480px at 88% -12%, rgba(13, 148, 136, 0.1), transparent 60%),
+    radial-gradient(900px 460px at -8% 2%, rgba(5, 150, 105, 0.1), transparent 55%),
+    linear-gradient(180deg, #ffffff 0%, #f6fcf8 100%);
+}
+.dark .pa-page {
+  background-image:
+    radial-gradient(1100px 480px at 88% -12%, rgba(45, 212, 191, 0.07), transparent 60%),
+    radial-gradient(900px 460px at -8% 2%, rgba(16, 185, 129, 0.06), transparent 55%),
+    linear-gradient(180deg, #0a1f17 0%, #0d241b 100%);
+}
+
+/* Kartu dasar: putih dengan sapuan hijau; versi gelap mem dalam. */
+.pa-card {
+  background-image: linear-gradient(160deg, #ffffff 30%, #ecfdf5 135%);
+}
+.dark .pa-card {
+  background-image: linear-gradient(160deg, #122e23 0%, #0d241b 70%, #0a1f17 100%);
+}
+
+/* Kartu panel lembut (info/highlight). */
+.pa-card-soft {
+  background-image: linear-gradient(150deg, #ecfdf5 0%, #f0fdfa 100%);
+}
+.dark .pa-card-soft {
+  background-image: linear-gradient(150deg, #1e3a2c 0%, #122e23 100%);
+}
+
+/* Kepala tabel: gradasi emerald→teal, teks putih. */
+.pa-thead {
+  background-image: linear-gradient(120deg, #047857 0%, #0f766e 55%, #0d9488 100%);
+  color: #ffffff;
+}
+.dark .pa-thead {
+  background-image: linear-gradient(120deg, #064e3b 0%, #134e4a 60%, #115e59 100%);
+  color: #ccfbf1;
+}
+
+/* Tombol utama: gradasi emerald→teal + bayangan berwarna. */
+.pa-btn-primary {
+  background-image: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+  box-shadow: 0 8px 18px -8px rgba(13, 148, 136, 0.55);
+}
+.pa-btn-primary:hover {
+  background-image: linear-gradient(135deg, #047857 0%, #0f766e 100%);
+}
+.pa-btn-primary:active {
+  transform: translateY(1px);
+}
+.dark .pa-btn-primary {
+  box-shadow: 0 8px 18px -8px rgba(13, 148, 136, 0.35);
+}
+
+/* Judul halaman/bagian: teks gradasi emerald→teal. */
+.pa-hgrad {
+  background-image: linear-gradient(95deg, #065f46 0%, #0f766e 55%, #0d9488 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.dark .pa-hgrad {
+  background-image: linear-gradient(95deg, #a7f3d0 0%, #5eead4 55%, #99f6e4 100%);
 }

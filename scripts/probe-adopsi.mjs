@@ -1,0 +1,23 @@
+import { chromium } from "playwright";
+import fs from "node:fs";
+const BASE = "http://localhost:3000";
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const page = await ctx.newPage();
+page.on("console", (m) => m.type() === "error" && console.log("CONSOLE:", m.text().slice(0, 300)));
+page.on("response", (r) => r.status() >= 400 && console.log("HTTP", r.status(), r.url().slice(0, 120)));
+// login member uji tadi
+await page.goto(`${BASE}/masuk`, { waitUntil: "networkidle" });
+await page.fill("#email", "e2e_1790467337564@test.local");
+await page.fill("#password", "rahasia123");
+await page.click("button[type=submit]");
+await page.waitForURL(`${BASE}/dashboard`, { timeout: 15000 });
+console.log("login OK");
+await page.goto(`${BASE}/pohon/A116`, { waitUntil: "networkidle" });
+const btn = page.locator("button", { hasText: "Adopsi" });
+console.log("tombol adopsi:", await btn.allTextContents());
+await page.locator("button:text-is('Adopsi Sekarang')").click();
+await page.waitForTimeout(4000);
+console.log("URL sekarang:", page.url());
+console.log("pesan halaman:", (await page.locator("main").textContent()).slice(0, 400));
+await browser.close();
