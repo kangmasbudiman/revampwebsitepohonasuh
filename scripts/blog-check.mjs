@@ -134,35 +134,55 @@ ap.on("dialog", (d) => d.accept());
 await ap.goto(`${BASE}/admin/blog`, { waitUntil: "networkidle" });
 await ap.click("summary:has-text('Tambah Artikel')");
 
-// a) 4MB → diblokir di browser (setCustomValidity; tidak sampai server)
-await ap.setInputFiles('input[name="cover"]', "/tmp/upload-huge-4.jpg");
-const val4mb = await ap.evaluate(() => {
-  const i = document.querySelector('input[name="cover"]');
-  return { valid: i.checkValidity(), msg: i.validationMessage };
-});
-assert(!val4mb.valid && /maksimal/i.test(val4mb.msg), `browser memblokir file 4MB ("${val4mb.msg}")`);
-
-// b) 2,5MB → lolos ke server (noValidate bypass) → pesan ramah + row tak tersimpan
+// a) 4MB → kartu error inline custom + input dikosongkan + submit diblokir (client-side)
 const judulBesar = `E2E Besar ${Date.now()}`;
 await ap.fill('input[name="title"]', judulBesar);
 await ap.selectOption('select[name="category"]', "berita");
 await ap.fill('textarea[name="description"]', "tes ukuran");
-await ap.setInputFiles('input[name="cover"]', "/tmp/upload-big-2_5.jpg");
-await ap.evaluate(() => (document.querySelector('input[name="cover"]').closest("form").noValidate = true));
+await ap.setInputFiles('input[name="cover"]', "/tmp/upload-huge-4.jpg");
+const val4mb = await ap.evaluate(() => {
+  const i = document.querySelector('input[name="cover"]');
+  return {
+    error: !!document.querySelector("[data-testid=file-error]"),
+    teks: document.querySelector("[data-testid=file-error]")?.textContent ?? "",
+    files: i.files.length,
+    native: i.validationMessage,
+  };
+});
+assert(val4mb.error, "kartu error inline muncul untuk file 4MB");
+assert(
+  /terlalu besar/.test(val4mb.teks) && /4\.0 MB/.test(val4mb.teks),
+  `kartu memuat judul + nama file + ukuran ("${val4mb.teks.replace(/\s+/g, " ").slice(0, 90)}")`,
+);
+assert(val4mb.files === 0, "file 4MB dikosongkan dari input (tak pernah terkirim ke server)");
+assert(val4mb.native === "", "tanpa bubble validasi native (validationMessage kosong)");
+await ap.screenshot({ path: "/tmp/file-input-error.png" });
 await ap.click('form:has(input[name="title"]) button[type=submit]');
-await ap.waitForSelector("text=Ukuran cover maksimal 2MB", { timeout: 15000 });
-assert(true, "file 2,5MB → pesan 'Ukuran cover maksimal 2MB' (bukan error mentah Next)");
+await ap.waitForTimeout(1500);
+assert((await ap.locator("[data-testid=file-error]").count()) === 1, "submit saat error diblokir komponen (kartu tetap)");
 assert(
   rows(`SELECT COUNT(*) FROM blog WHERE name='${judulBesar}'`)[0][0] === "0",
-  "artikel ber-cover 2,5MB tidak tersimpan ke DB",
+  "artikel ber-cover 4MB tidak tersimpan ke DB",
 );
 
-// c) 1,5MB → SUKSES (dulu mustahil: bodySizeLimit Server Action 1MB)
+// b) 2,5MB → juga diblokir client-side (server 2MB kini cuma defense-in-depth)
+await ap.setInputFiles('input[name="cover"]', "/tmp/upload-big-2_5.jpg");
+const val2_5 = await ap.evaluate(() => ({
+  error: !!document.querySelector("[data-testid=file-error]"),
+  files: document.querySelector('input[name="cover"]').files.length,
+}));
+assert(val2_5.error && val2_5.files === 0, "file 2,5MB juga diblokir client-side (kartu error + input kosong)");
+
+// c) 1,5MB → SUKSES + hint hijau (dulu mustahil: bodySizeLimit Server Action 1MB)
 const judulSedang = `E2E Sedang ${Date.now()}`;
 await ap.fill('input[name="title"]', judulSedang);
 await ap.fill('textarea[name="description"]', "tes ukuran ok");
 await ap.setInputFiles('input[name="cover"]', "/tmp/upload-ok-1_5.jpg");
-await ap.evaluate(() => (document.querySelector('input[name="cover"]').closest("form").noValidate = true));
+const valOk = await ap.evaluate(() => ({
+  hint: !!document.querySelector("[data-testid=file-ok]"),
+  error: !!document.querySelector("[data-testid=file-error]"),
+}));
+assert(valOk.hint && !valOk.error, "file valid 1,5MB → hint hijau nama+ukuran, tanpa error");
 await ap.click('form:has(input[name="title"]) button[type=submit]');
 await ap.waitForSelector("text=Artikel tersimpan", { timeout: 30000 });
 const [idSedang, coverSedang] = rows(`SELECT id, cover FROM blog WHERE name='${judulSedang}'`)[0];
