@@ -117,5 +117,65 @@ await page.goto(`${BASE}/blog/999`);
 const judul404 = await page.title();
 assert(judul404.includes("tidak ditemukan"), `/blog/999 menampilkan halaman tidak ditemukan (${judul404})`);
 
+// ===== 7. Validasi ukuran upload admin (batas 2MB) =====
+import fs from "node:fs";
+import { SignJWT } from "jose";
+execSync(`head -c 4194304 /dev/urandom > /tmp/upload-huge-4.jpg`);
+execSync(`head -c 2621440 /dev/urandom > /tmp/upload-big-2_5.jpg`);
+execSync(`head -c 1572864 /dev/urandom > /tmp/upload-ok-1_5.jpg`);
+
+const secret = new TextEncoder().encode(fs.readFileSync(".env", "utf8").match(/AUTH_SECRET="(.+)"/)[1]);
+const adminToken = await new SignJWT({ userId: 2682, name: "Admin Pohon Asuh", role: "ADMIN", level: 1 })
+  .setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime("1h").sign(secret);
+const adminCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+await adminCtx.addCookies([{ name: "pa_session", value: adminToken, url: BASE }]);
+const ap = await adminCtx.newPage();
+ap.on("dialog", (d) => d.accept());
+await ap.goto(`${BASE}/admin/blog`, { waitUntil: "networkidle" });
+await ap.click("summary:has-text('Tambah Artikel')");
+
+// a) 4MB → diblokir di browser (setCustomValidity; tidak sampai server)
+await ap.setInputFiles('input[name="cover"]', "/tmp/upload-huge-4.jpg");
+const val4mb = await ap.evaluate(() => {
+  const i = document.querySelector('input[name="cover"]');
+  return { valid: i.checkValidity(), msg: i.validationMessage };
+});
+assert(!val4mb.valid && /maksimal/i.test(val4mb.msg), `browser memblokir file 4MB ("${val4mb.msg}")`);
+
+// b) 2,5MB → lolos ke server (noValidate bypass) → pesan ramah + row tak tersimpan
+const judulBesar = `E2E Besar ${Date.now()}`;
+await ap.fill('input[name="title"]', judulBesar);
+await ap.selectOption('select[name="category"]', "berita");
+await ap.fill('textarea[name="description"]', "tes ukuran");
+await ap.setInputFiles('input[name="cover"]', "/tmp/upload-big-2_5.jpg");
+await ap.evaluate(() => (document.querySelector('input[name="cover"]').closest("form").noValidate = true));
+await ap.click('form:has(input[name="title"]) button[type=submit]');
+await ap.waitForSelector("text=Ukuran cover maksimal 2MB", { timeout: 15000 });
+assert(true, "file 2,5MB → pesan 'Ukuran cover maksimal 2MB' (bukan error mentah Next)");
+assert(
+  rows(`SELECT COUNT(*) FROM blog WHERE name='${judulBesar}'`)[0][0] === "0",
+  "artikel ber-cover 2,5MB tidak tersimpan ke DB",
+);
+
+// c) 1,5MB → SUKSES (dulu mustahil: bodySizeLimit Server Action 1MB)
+const judulSedang = `E2E Sedang ${Date.now()}`;
+await ap.fill('input[name="title"]', judulSedang);
+await ap.fill('textarea[name="description"]', "tes ukuran ok");
+await ap.setInputFiles('input[name="cover"]', "/tmp/upload-ok-1_5.jpg");
+await ap.evaluate(() => (document.querySelector('input[name="cover"]').closest("form").noValidate = true));
+await ap.click('form:has(input[name="title"]) button[type=submit]');
+await ap.waitForSelector("text=Artikel tersimpan", { timeout: 30000 });
+const [idSedang, coverSedang] = rows(`SELECT id, cover FROM blog WHERE name='${judulSedang}'`)[0];
+const ukuranCover = fs.statSync(`/opt/homebrew/var/www/restApiPohonasuh/public/assets/${coverSedang}`).size;
+assert(ukuranCover > 1500000, `cover 1,5MB tersimpan utuh di server (${(ukuranCover / 1048576).toFixed(1)}MB)`);
+
+// bersihkan fixture (row + file cover)
+await ap.click(`tr:has-text("${judulSedang}") button:has-text("Hapus")`);
+await ap.waitForURL("**/admin/blog?deleted=1", { timeout: 30000 });
+rows(`DELETE FROM blog WHERE id=${idSedang}`)[0];
+execSync(`rm -f /opt/homebrew/var/www/restApiPohonasuh/public/assets/${coverSedang} /tmp/upload-huge-4.jpg /tmp/upload-big-2_5.jpg /tmp/upload-ok-1_5.jpg`);
+assert(true, "fixture dibersihkan (row + file cover)");
+await adminCtx.close();
+
 await browser.close();
 console.log("\n=== SEMUA TAHAP E2E BLOG LULUS ===");

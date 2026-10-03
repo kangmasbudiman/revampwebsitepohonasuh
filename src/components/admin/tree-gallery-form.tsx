@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { uploadTreePhoto } from "@/lib/actions/tree";
 import type { AdminState } from "@/lib/actions/admin";
+import { cekUkuranFile } from "@/lib/file-guard";
 
 export default function TreeGalleryForm({ code }: { code: string }) {
   const [state, action, pending] = useActionState<AdminState, FormData>(uploadTreePhoto, {});
@@ -13,6 +14,7 @@ export default function TreeGalleryForm({ code }: { code: string }) {
       <input
         name="foto"
         type="file"
+        onChange={cekUkuranFile}
         accept="image/jpeg,image/png,image/webp"
         required
         className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"

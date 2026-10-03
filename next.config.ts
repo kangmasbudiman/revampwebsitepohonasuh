@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Default 1mb menolak upload 1-2MB yang sebenarnya sah (batas app 2MB).
+      // 3mb: file >2MB tetap sampai ke action agar validasi server yang
+      // membalas pesan ramah; file >3mb disaring di browser (file-guard).
+      bodySizeLimit: "3mb",
+    },
+  },
   images: {
     // Next 16 memblokir optimizer dari mengambil image di IP privat
     // (SSRF guard) — API dev lokal berjalan di 127.0.0.1:8000.

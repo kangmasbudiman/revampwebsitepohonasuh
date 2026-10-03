@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { markComplete, markInProgress, uploadTaggingPhoto } from "@/lib/actions/tagging";
 import type { AdminState } from "@/lib/actions/admin";
+import { cekUkuranFile } from "@/lib/file-guard";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40";
@@ -30,6 +31,7 @@ export default function TaggingForm({
           <input
             name="foto"
             type="file"
+            onChange={cekUkuranFile}
             accept="image/jpeg,image/png,image/webp"
             required
             className={inputClass}

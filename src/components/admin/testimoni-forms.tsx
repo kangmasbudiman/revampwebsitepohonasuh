@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { savePartner, saveTestimoni } from "@/lib/actions/testimoni";
 import type { AdminState } from "@/lib/actions/admin";
 import type { ApiPartner, ApiTestimoni } from "@/lib/api";
+import { cekUkuranFile } from "@/lib/file-guard";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40";
@@ -102,6 +103,7 @@ export function PartnerForm({ row }: { row?: ApiPartner }) {
         <input
           name="logo"
           type="file"
+          onChange={cekUkuranFile}
           accept="image/jpeg,image/png,image/webp"
           className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-emerald-700 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:file:bg-night-800 dark:file:text-emerald-300"
         />
