@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { Bell, Trash2 } from "lucide-react";
+import { Bell } from "lucide-react";
 import {
   getUnreadPesan,
   hapusPesan,
@@ -10,6 +9,7 @@ import {
   markPesanRead,
   type PesanRow,
 } from "@/lib/actions/pesan";
+import NotifPopup from "@/components/notif-popup";
 
 const MAX_TAMPIL = 8;
 
@@ -97,71 +97,14 @@ export default function NotificationBell({
       </button>
 
       {open && (
-        <div className="animate-menu absolute top-full right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-xl dark:border-night-700 dark:bg-night-900">
-          <p className="border-b border-emerald-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-emerald-600/70 dark:border-night-700 dark:text-emerald-400/70">
-            Notifikasi {unread > 0 && <span className="text-red-500">({unread} baru)</span>}
-          </p>
-          <div className="max-h-80 overflow-y-auto">
-            {loading ? (
-              <p className="px-4 py-6 text-center text-sm text-zinc-400 dark:text-zinc-500">
-                Memuat…
-              </p>
-            ) : !items || items.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-zinc-400 dark:text-zinc-500">
-                Tidak ada notifikasi.
-              </p>
-            ) : (
-              items.map((row) => (
-                <div
-                  key={row.id}
-                  className="group/item flex items-start border-b border-emerald-50 last:border-b-0 dark:border-night-800"
-                >
-                  <button
-                    type="button"
-                    onClick={() => tandaiDibaca(row)}
-                    className="min-w-0 flex-1 px-4 py-3 text-left transition-colors hover:bg-emerald-50/70 dark:hover:bg-night-800/60"
-                  >
-                    <span className="flex items-start gap-2">
-                      {row.status === "noread" && (
-                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
-                      )}
-                      <span className="min-w-0">
-                        <span
-                          className={`line-clamp-2 text-sm ${
-                            row.status === "noread"
-                              ? "font-medium text-zinc-800 dark:text-zinc-100"
-                              : "text-zinc-500 dark:text-zinc-400"
-                          }`}
-                        >
-                          {row.pesan}
-                        </span>
-                        <span className="mt-0.5 block text-[11px] text-zinc-400 dark:text-zinc-500">
-                          {row.tanggal ?? ""}
-                        </span>
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Hapus notifikasi ${row.id}`}
-                    title="Hapus notifikasi"
-                    onClick={() => hapus(row)}
-                    className="mr-2 mt-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-zinc-500 dark:hover:bg-night-700 dark:hover:text-red-400"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-          <Link
-            href="/dashboard/notifikasi"
-            onClick={() => onOpenChange(false)}
-            className="block border-t border-emerald-100 px-4 py-2.5 text-center text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
-          >
-            Lihat semua notifikasi →
-          </Link>
-        </div>
+        <NotifPopup
+          unread={unread}
+          loading={loading}
+          items={items}
+          onRead={tandaiDibaca}
+          onDelete={hapus}
+          onClose={() => onOpenChange(false)}
+        />
       )}
     </div>
   );
