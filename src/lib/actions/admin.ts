@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/prisma";
 import { requireAdminLevel } from "@/lib/guard";
-import { apiPost } from "@/lib/api";
+import { apiPost, apiPostForm } from "@/lib/api";
+import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
 
 export type AdminState = { error?: string; saved?: boolean };
 
@@ -71,18 +72,33 @@ export async function createTree(_prev: AdminState, formData: FormData): Promise
   const heightM = Number(formData.get("heightM"));
   const photoUrl = String(formData.get("photoUrl") ?? "").trim();
 
+  // File foto opsional: unggahan menimpa kolom URL.
+  const foto = formData.get("foto");
+  if (foto instanceof File && foto.size > 0 && foto.size > MAX_UPLOAD_BYTES) {
+    return { error: "Ukuran foto maksimal 2MB." };
+  }
+
+  const payload: Record<string, string | number> = {
+    idpohon,
+    localname: localName,
+    species: String(formData.get("species") ?? "").trim(),
+    desa,
+    harga,
+    diameter: Number.isNaN(diameter) || !diameter ? 0 : diameter,
+    tinggi: Number.isNaN(heightM) || !heightM ? 0 : heightM,
+    foto_pohon: photoUrl,
+  };
+
   let res: { value?: string | number; pesan?: string };
   try {
-    res = await apiPost<{ value?: string | number; pesan?: string }>("tambahpohon", {
-      idpohon,
-      localname: localName,
-      species: String(formData.get("species") ?? "").trim(),
-      desa,
-      harga,
-      diameter: Number.isNaN(diameter) || !diameter ? 0 : diameter,
-      tinggi: Number.isNaN(heightM) || !heightM ? 0 : heightM,
-      foto_pohon: photoUrl,
-    });
+    if (foto instanceof File && foto.size > 0) {
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(payload)) fd.append(k, String(v));
+      fd.append("foto", foto);
+      res = await apiPostForm<{ value?: string | number; pesan?: string }>("tambahpohon", fd);
+    } else {
+      res = await apiPost<{ value?: string | number; pesan?: string }>("tambahpohon", payload);
+    }
   } catch (e) {
     return { error: e instanceof Error && e.message ? e.message : "Gagal menambah pohon." };
   }

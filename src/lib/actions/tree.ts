@@ -23,18 +23,33 @@ export async function updateTree(_prev: AdminState, formData: FormData): Promise
   const diameter = Number(formData.get("diameterCm"));
   const heightM = Number(formData.get("heightM"));
 
+  // File foto opsional: unggahan menimpa kolom URL.
+  const foto = formData.get("foto");
+  if (foto instanceof File && foto.size > 0 && foto.size > MAX_FOTO_BYTES) {
+    return { error: "Ukuran foto maksimal 2MB." };
+  }
+
+  const payload: Record<string, string | number> = {
+    idpohon: code,
+    localname: localName,
+    species: String(formData.get("species") ?? "").trim(),
+    ...(desa ? { desa } : {}),
+    harga,
+    diameter: Number.isNaN(diameter) || !diameter ? 0 : diameter,
+    tinggi: Number.isNaN(heightM) || !heightM ? 0 : heightM,
+    foto_pohon: String(formData.get("photoUrl") ?? "").trim(),
+  };
+
   let res: { value?: string | number; pesan?: string };
   try {
-    res = await apiPost<{ value?: string | number; pesan?: string }>("editpohon", {
-      idpohon: code,
-      localname: localName,
-      species: String(formData.get("species") ?? "").trim(),
-      ...(desa ? { desa } : {}),
-      harga,
-      diameter: Number.isNaN(diameter) || !diameter ? 0 : diameter,
-      tinggi: Number.isNaN(heightM) || !heightM ? 0 : heightM,
-      foto_pohon: String(formData.get("photoUrl") ?? "").trim(),
-    });
+    if (foto instanceof File && foto.size > 0) {
+      const fd = new FormData();
+      for (const [k, v] of Object.entries(payload)) fd.append(k, String(v));
+      fd.append("foto", foto);
+      res = await apiPostForm<{ value?: string | number; pesan?: string }>("editpohon", fd);
+    } else {
+      res = await apiPost<{ value?: string | number; pesan?: string }>("editpohon", payload);
+    }
   } catch (e) {
     return { error: e instanceof Error && e.message ? e.message : "Gagal menyimpan pohon." };
   }

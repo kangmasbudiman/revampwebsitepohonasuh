@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { apiGet, mapDesa, mapTrees, type ApiDesa, type ApiTree } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
 import { rupiah, TREE_STATUS } from "@/lib/format";
@@ -84,8 +85,21 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
                   {tree.code}
                 </td>
                 <td className="px-4 py-3">
-                  <p className="font-medium text-zinc-800 dark:text-zinc-100">{tree.localName}</p>
-                  <p className="text-xs italic text-zinc-500 dark:text-zinc-400">{tree.species}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="relative block h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-emerald-50 dark:bg-night-800">
+                      <Image
+                        src={tree.photoUrl}
+                        alt={tree.localName}
+                        fill
+                        sizes="44px"
+                        className="object-cover"
+                      />
+                    </span>
+                    <span className="min-w-0">
+                      <p className="font-medium text-zinc-800 dark:text-zinc-100">{tree.localName}</p>
+                      <p className="text-xs italic text-zinc-500 dark:text-zinc-400">{tree.species}</p>
+                    </span>
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{tree.desa}</td>
                 <td className="px-4 py-3">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { apiGet, apiPost, mapDesa, mapTree, type ApiDesa, type ApiTree } from "@/lib/api";
+import { apiGet, apiPost, isDefaultTreePhoto, mapDesa, mapTree, type ApiDesa, type ApiTree } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
 import { TREE_STATUS } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
@@ -70,7 +70,14 @@ export default async function EditTreePage(props: PageProps<"/admin/pohon/[code]
       )}
 
       <div className="mt-6 max-w-3xl rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">
-        <TreeForm desas={desaList.map((d) => ({ name: d.name }))} tree={tree} />
+        <TreeForm
+          desas={desaList.map((d) => ({ name: d.name }))}
+          tree={{
+            ...tree,
+            // kolom URL menampilkan URL asli — bukan URL gambar default
+            photoUrl: isDefaultTreePhoto(tree.photoUrl) ? "" : tree.photoUrl,
+          }}
+        />
       </div>
     </main>
   );

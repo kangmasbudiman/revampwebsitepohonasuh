@@ -92,6 +92,18 @@ export function assetUrl(file?: string | null): string | null {
   return `${ASSET_ORIGIN}/${f.replace(/^\//, "")}`;
 }
 
+// Foto utama pohon: baris tanpa foto otomatis memakai gambar default
+// dari aset backend (konsisten dengan fallback aplikasi mobile).
+export function treePhotoUrl(file?: string | null): string {
+  return assetUrl(file) ?? `${ASSET_ORIGIN}/assets/no-image-icon-23483.png`;
+}
+
+// Deteksi URL foto = gambar default backend (form edit menampilkan kolom
+// kosong, bukan URL default).
+export function isDefaultTreePhoto(url?: string | null): boolean {
+  return !!url && /\/no-image-icon-23483\.png(\?.*)?$/.test(url);
+}
+
 // URL absolut dari API kadang menyimpan host emulator (10.0.2.2) dari saat
 // foto di-upload lewat mobile — tulis-ulang origin IP/localhost ke origin
 // API agar lolos remotePatterns next/image; domain publik dibiarkan.
@@ -124,7 +136,7 @@ export type ApiTree = {
   heightM: number | null;
   kelilingCm: number | null;
   priceIdr: number; // harga
-  photoUrl: string | null;
+  photoUrl: string; // treePhotoUrl — selalu terisi (fallback gambar default)
   lat: number | null;
   lng: number | null;
   status: TreeStatus;
@@ -157,7 +169,7 @@ export function mapTree(r: Record<string, unknown>): ApiTree {
     heightM: num(r.tinggi),
     kelilingCm: num(r.keliling),
     priceIdr: Number(r.harga) || 0,
-    photoUrl: assetUrl(r.foto_pohon as string | null),
+    photoUrl: treePhotoUrl(r.foto_pohon as string | null),
     lat: num(r.latitude),
     lng: num(r.longitude),
     status: TREE_STATUS_MAP[String(r.adopted ?? "")] ?? "ADOPTED",
@@ -332,7 +344,7 @@ export type ApiAdopsiPohon = {
   invoice: string;
   idpohon: string;
   localName: string;
-  photoUrl: string | null;
+  photoUrl: string;
   desa: string;
   price: number;
   proses: number;
@@ -350,7 +362,7 @@ export function mapAdopsiPohon(r: Record<string, unknown>): ApiAdopsiPohon {
     invoice: String(r.invoice ?? ""),
     idpohon: String(r.idpohon ?? ""),
     localName: String(r.localname ?? ""),
-    photoUrl: assetUrl(r.foto_pohon as string | null),
+    photoUrl: treePhotoUrl(r.foto_pohon as string | null),
     desa: String(r.desa ?? ""),
     price: Number(r.price) || 0,
     proses: Number(r.proses) || 0,
@@ -374,7 +386,7 @@ export type ApiOrderRow = {
   id: number; // id data_adopsi
   idpohon: string;
   localName: string;
-  photoUrl: string | null;
+  photoUrl: string;
   invoice: string;
   nama: string;
   pengasuh: number;
@@ -407,7 +419,7 @@ export function mapOrderRow(r: Record<string, unknown>): ApiOrderRow {
     id: Number(r.id),
     idpohon: String(r.idpohon ?? ""),
     localName: String(r.localname ?? ""),
-    photoUrl: assetUrl(r.foto_pohon as string | null),
+    photoUrl: treePhotoUrl(r.foto_pohon as string | null),
     invoice: String(r.invoice ?? ""),
     nama: String(r.nama ?? ""),
     pengasuh: Number(r.pengasuh) || 0,
@@ -926,7 +938,7 @@ export type ApiSpeciesDetail = ApiSpecies & {
     species: string | null;
     desa: string;
     priceIdr: number;
-    photoUrl: string | null;
+    photoUrl: string;
   }[];
   desaTerkait: { nama: string; jml: number }[];
 };
@@ -943,7 +955,7 @@ export function mapSpeciesDetail(r: Record<string, unknown>): ApiSpeciesDetail {
       species: p.species ? String(p.species) : null,
       desa: String(p.desa ?? ""),
       priceIdr: Number(p.harga) || 0,
-      photoUrl: assetUrl(p.foto_pohon as string | null),
+      photoUrl: treePhotoUrl(p.foto_pohon as string | null),
     })),
     desaTerkait: desa.map((d) => ({
       nama: String(d.nama ?? ""),
