@@ -118,8 +118,42 @@ await page.waitForTimeout(400);
 const srcBaru = await page.locator(`table tbody tr:has-text("${KODE}") img`).first().getAttribute("src");
 ok("thumbnail tabel = foto baru", !!srcBaru && !srcBaru.includes("no-image-icon"), String(srcBaru)?.slice(0, 80));
 
-// 6) cleanup: hapus pohon uji via UI
+// 5b) tambah pohon DENGAN foto langsung → DB foto_pohon = URL upload
+const KODE2 = "UJF002";
+try { sql(`DELETE FROM data_pohon WHERE idpohon='${KODE2}'`); } catch {}
+execSync(`rm -f /opt/homebrew/var/www/restApiPohonasuh/public/upload/pohon/pohon_${KODE2}_*.jpg`);
+await page.goto(`${BASE}/admin/pohon`, { waitUntil: "networkidle" });
+await page.click("summary:has-text('Tambah Pohon Baru')");
+await page.fill('input[name="idpohon"]', KODE2);
+await page.fill('input[name="localName"]', "Uji Tambah Berfoto");
+await page.selectOption('select[name="desa"]', { label: "rantaukermas" });
+await page.fill('input[name="priceIdr"]', "150000");
+await page.setInputFiles('input[name="foto"]', FOTO);
+await page.click('button[type=submit]:has-text("Tambah Pohon")');
+const masuk2 = await tungguDb(`SELECT COUNT(*) FROM data_pohon WHERE idpohon='${KODE2}'`, "1");
+ok("tambah berfoto → pohon masuk DB", masuk2);
+const naik2 = await tungguDb(
+  `SELECT COUNT(*) FROM data_pohon WHERE idpohon='${KODE2}' AND foto_pohon LIKE 'http://127.0.0.1:8000/upload/pohon/%'`,
+  "1",
+  20000,
+);
+ok("tambah + upload → DB foto_pohon = URL upload", naik2);
+const foto2 = sql(`SELECT foto_pohon FROM data_pohon WHERE idpohon='${KODE2}'`);
+const curl2 = execSync(`curl -s -o /dev/null -w "%{http_code}" "${foto2}"`).toString().trim();
+ok("URL foto tambah bisa diakses (200)", curl2 === "200", curl2);
 page.on("dialog", (d) => d.accept());
+await page.goto(`${BASE}/admin/pohon`, { waitUntil: "networkidle" });
+await page.fill('input[aria-label="Cari pohon"]', KODE2);
+await page.waitForTimeout(400);
+await page.click(`table tbody tr:has-text("${KODE2}") button:has-text("Hapus")`);
+await page.waitForURL("**/admin/pohon?deleted=1", { timeout: 20000 });
+ok("pohon berfoto terhapus", sql(`SELECT COUNT(*) FROM data_pohon WHERE idpohon='${KODE2}'`) === "0");
+execSync(`rm -f /opt/homebrew/var/www/restApiPohonasuh/public/upload/pohon/pohon_${KODE2}_*.jpg`);
+
+// 6) cleanup: hapus pohon uji via UI
+await page.goto(`${BASE}/admin/pohon`, { waitUntil: "networkidle" });
+await page.fill('input[aria-label="Cari pohon"]', KODE);
+await page.waitForTimeout(400);
 await page.locator(`table tbody tr:has-text("${KODE}") button:has-text("Hapus")`).click();
 await page.waitForURL("**/admin/pohon?deleted=1", { timeout: 20000 });
 const sisa = sql(`SELECT COUNT(*) FROM data_pohon WHERE idpohon='${KODE}'`);
