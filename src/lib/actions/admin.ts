@@ -108,7 +108,7 @@ export async function createTree(_prev: AdminState, formData: FormData): Promise
 
   revalidatePath("/admin/pohon");
   revalidatePath("/pohon");
-  return {};
+  redirect(`/admin/pohon?created=${encodeURIComponent(idpohon)}`);
 }
 
 export async function createExpense(_prev: AdminState, formData: FormData): Promise<AdminState> {

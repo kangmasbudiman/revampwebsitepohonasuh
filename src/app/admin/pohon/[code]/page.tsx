@@ -6,12 +6,14 @@ import { requireAdminLevel } from "@/lib/guard";
 import { TREE_STATUS } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
 import TreeForm from "@/components/admin/tree-form";
+import SuccessPopup from "@/components/admin/success-popup";
 
 export const metadata = { title: "Edit Pohon | Pohon Asuh" };
 
 export default async function EditTreePage(props: PageProps<"/admin/pohon/[code]">) {
   await requireAdminLevel();
   const { code } = await props.params;
+  const searchParams = await props.searchParams;
   const treeCode = decodeURIComponent(code);
 
   let tree: ApiTree | null = null;
@@ -50,12 +52,19 @@ export default async function EditTreePage(props: PageProps<"/admin/pohon/[code]
         </div>
       </div>
 
-      {props.searchParams &&
-        (await props.searchParams).saved && (
-          <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
-            Perubahan pohon tersimpan.
-          </p>
-        )}
+      {searchParams.saved && (
+        <SuccessPopup
+          paramKey="saved"
+          title="Perubahan pohon tersimpan"
+          subtitle={`${tree.localName} · ${tree.code}`}
+        >
+          Perubahan data pohon{" "}
+          <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-zinc-700 dark:bg-night-800 dark:text-zinc-200">
+            {tree.code}
+          </span>{" "}
+          sudah tersimpan.
+        </SuccessPopup>
+      )}
 
       {tree.photoUrl && (
         <div className="relative mt-4 h-40 w-full overflow-hidden rounded-2xl bg-emerald-50 dark:bg-night-800 sm:h-52">

@@ -66,6 +66,19 @@ await page.click('button[type=submit]:has-text("Tambah Pohon")');
 // waitForURL instan (URL sudah /admin/pohon) — tunggu baris benar-benar masuk DB
 const masuk = await tungguDb(`SELECT COUNT(*) FROM data_pohon WHERE idpohon='${KODE}'`, "1");
 ok("pohon baru masuk DB", masuk);
+// popup sukses tambah muncul (?created=) lalu bisa ditutup
+const popupTambah = page.locator('div[role="dialog"][aria-label="Pohon tersimpan"]');
+await popupTambah.waitFor({ timeout: 10000 }).catch(() => {});
+ok("popup sukses tambah tampil", (await popupTambah.count()) === 1);
+ok("popup tambah memuat kode pohon", ((await popupTambah.textContent()) ?? "").includes(KODE));
+await popupTambah.locator('button:has-text("Selesai")').click();
+let popupTertutup = false;
+for (let i = 0; i < 20 && !popupTertutup; i++) {
+  await page.waitForTimeout(400);
+  popupTertutup =
+    (await page.locator("div[role=dialog]").count()) === 0 && !page.url().includes("created=");
+}
+ok("popup tambah tertutup + param bersih", popupTertutup);
 const fotoDb = sql(
   `SELECT CONCAT('[',IFNULL(foto_pohon,''),']') FROM data_pohon WHERE idpohon='${KODE}'`,
 );
@@ -95,6 +108,11 @@ const naik = await tungguDb(
   20000,
 );
 ok("upload → DB foto_pohon = URL upload", naik);
+// popup sukses edit muncul (?saved=1) di halaman yang sama
+const popupEdit = page.locator('div[role="dialog"][aria-label="Pohon tersimpan"]');
+await popupEdit.waitFor({ timeout: 10000 }).catch(() => {});
+ok("popup sukses edit tampil", (await popupEdit.count()) === 1);
+await popupEdit.locator('button:has-text("Selesai")').click();
 const fotoBaru = sql(`SELECT foto_pohon FROM data_pohon WHERE idpohon='${KODE}'`);
 const adaFile = execSync(
   `ls /opt/homebrew/var/www/restApiPohonasuh/public/upload/pohon/pohon_${KODE}_*.jpg 2>/dev/null | wc -l`,

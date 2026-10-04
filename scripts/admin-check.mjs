@@ -364,13 +364,15 @@ await page.screenshot({ path: "screenshots/96-admin-penugasan.png", fullPage: tr
 const [desaUji, pohonDesa] = rows(
   "SELECT desa, COUNT(*) FROM data_pohon WHERE desa='rantaukermas' AND latitude IS NOT NULL GROUP BY desa",
 )[0];
+// chip Total menghitung SEMUA pohon desa (pohonmapdesa), marker hanya yang berkoordinat
+const totalDesa = rows("SELECT COUNT(*) FROM data_pohon WHERE desa='rantaukermas'")[0][0];
 await page.goto(`${BASE}/admin/peta?desa=${encodeURIComponent(desaUji)}`, { waitUntil: "networkidle" });
 // MapLibre: marker bukan DOM node (layer GPU) — jumlah titik divulgasi lewat
 // data-pohon di wrapper peta + kanvas harus dirender.
 await page.waitForSelector("div[data-pohon] .maplibregl-canvas", { timeout: 20000 });
 const markerPeta = Number(await page.locator("div[data-pohon]").first().getAttribute("data-pohon"));
 assert(markerPeta === Number(pohonDesa), `peta desa: ${markerPeta} titik = ${pohonDesa} pohon DB`);
-assert((await page.getByText(`Total: ${pohonDesa}`).count()) === 1, "chip Total sesuai DB");
+assert((await page.getByText(`Total: ${totalDesa}`).count()) === 1, "chip Total sesuai DB");
 // Ganti gaya peta → Satelit (tile Esri) lalu kembali Standar (tile openfreemap).
 await page.click('button[aria-label="Gaya peta Satelit"]');
 await page.waitForResponse((r) => /arcgisonline\.com/.test(r.url()), { timeout: 20000 }).catch(() => {});
