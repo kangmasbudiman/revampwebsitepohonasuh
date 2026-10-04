@@ -9,9 +9,11 @@ import {
   mapAdopsiPohons,
   mapBank,
   mapConfirmations,
+  mapTaggingTrees,
   type ApiAdopsiPohon,
   type ApiBank,
   type ApiConfirmation,
+  type ApiTaggingTree,
 } from "@/lib/api";
 import { requireUser } from "@/lib/guard";
 import { rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
@@ -19,6 +21,7 @@ import StatusBadge from "@/components/status-badge";
 import PaymentForm from "@/components/payment-form";
 import OnlinePayment from "@/components/online-payment";
 import CancelAdoptionButton from "@/components/cancel-adoption-button";
+import TaggingProgress from "@/components/tagging-progress";
 
 export default async function AdoptionDetailPage(props: PageProps<"/dashboard/adopsi/[code]">) {
   const { code } = await props.params;
@@ -27,6 +30,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   let conf: ApiConfirmation | null = null;
   let trees: ApiAdopsiPohon[] = [];
   let banks: ApiBank[] = [];
+  let tagging: ApiTaggingTree[] | null = null;
   try {
     const confs = mapConfirmations(
       await apiPost<Record<string, unknown>[]>("getconfirmasi", { idmember: session.userId }),
@@ -37,11 +41,28 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
         await apiPost<Record<string, unknown>[]>("mytrees", { iduser: session.userId }),
       ).filter((t) => t.invoice === conf!.invoice);
       banks = (await apiGet<Record<string, unknown>[]>("getrekening")).map(mapBank);
+      try {
+        tagging = mapTaggingTrees(
+          await apiPost<Record<string, unknown>[]>("fototagingorder", { invoice: conf!.invoice }),
+        );
+      } catch {
+        // fail-soft: pakai fallback dari mytrees di bawah
+      }
     }
   } catch {
     // notFound di bawah yang menangani
   }
   if (!conf) notFound();
+  if (tagging === null) {
+    tagging = trees.map((t) => ({
+      idadopsi: t.id,
+      idpohon: t.idpohon,
+      localName: t.localName,
+      desa: t.desa,
+      proses: t.proses,
+      foto: [],
+    }));
+  }
 
   const status = adoptionStatus(conf.confirmation, !!conf.fotoUrl);
   const statusInfo = ADOPTION_STATUS[status] ?? { label: status, className: "bg-zinc-100 text-zinc-600" };
@@ -174,6 +195,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
       )}
 
       {status === "ACTIVE" && (
+        <>
         <section className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
           <p className="text-3xl">🎉</p>
           <h2 className="mt-2 font-bold text-emerald-900">Adopsi Aktif</h2>
@@ -193,6 +215,8 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
             ))}
           </div>
         </section>
+        <TaggingProgress trees={tagging} />
+        </>
       )}
 
       {status === "CANCELLED" && (

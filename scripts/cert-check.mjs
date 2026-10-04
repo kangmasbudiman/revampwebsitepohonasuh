@@ -16,7 +16,7 @@ const rows = (sql) =>
 // Fixture kasus 1: sertifikat web terbaru dari e2e-adopsi.mjs (urut+
 // tanggal berubah tiap run → ambil dinamis dari DB).
 const [CERT1, NAMA1, TGL_ADOPT, TGL_EXP] = rows(
-  "SELECT certnum, nama, tgl_adopt, tgl_exp FROM data_adopsi WHERE nama='E2E Tester Web' AND certnum LIKE '%/LPHD-RA/%' ORDER BY id DESC LIMIT 1",
+  "SELECT certnum, nama, tgl_adopt, tgl_exp FROM data_adopsi WHERE nama='E2E Tester Web' AND certnum LIKE '%/LPHD-%/%' ORDER BY id DESC LIMIT 1",
 )[0] ?? [];
 if (!CERT1) throw new Error("fixture hilang: jalankan scripts/e2e-adopsi.mjs dulu");
 const bulanEn = ["January","February","March","April","May","June","July","August","September","October","November","December"];

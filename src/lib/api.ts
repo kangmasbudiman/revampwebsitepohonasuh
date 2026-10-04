@@ -379,6 +379,35 @@ export function mapAdopsiPohons(rows: Record<string, unknown>[]): ApiAdopsiPohon
   return rows.map(mapAdopsiPohon);
 }
 
+// Baris fototagingorder (proses tagging per pohon dalam satu order, sisi
+// donatur). Foto di-scope idadopsi — hanya bukti tagging order ini.
+export type ApiTaggingTree = {
+  idadopsi: number;
+  idpohon: string;
+  localName: string;
+  desa: string;
+  proses: number;
+  foto: { url: string; tanggal: string | null }[];
+};
+
+export function mapTaggingTrees(rows: Record<string, unknown>[]): ApiTaggingTree[] {
+  return rows.map((r) => ({
+    idadopsi: Number(r.idadopsi) || 0,
+    idpohon: String(r.idpohon ?? ""),
+    localName: String(r.localname ?? ""),
+    desa: String(r.desa ?? ""),
+    proses: Number(r.proses) || 0,
+    foto: Array.isArray(r.foto)
+      ? (r.foto as Record<string, unknown>[])
+          .map((f) => ({
+            url: apiAssetUrl(f.url as string | null) ?? "",
+            tanggal: f.tanggal ? String(f.tanggal) : null,
+          }))
+          .filter((f) => f.url !== "")
+      : [],
+  }));
+}
+
 // Baris ordercustomer (admin: gabungan data_adopsi + confirmation).
 // lat/lng hanya terisi pada ordercustomerbypengurus (untuk petugas
 // tagging di lapangan).
