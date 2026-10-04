@@ -46,6 +46,18 @@ const browser = await chromium.launch();
 const anon = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 const page = await anon.newPage();
 page.on("dialog", (d) => d.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await page.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 
 const [dbPohon, dbAdopted, dbDesa, dbDonatur] = rows(
   "SELECT COUNT(*), SUM(adopted='adopted'), COUNT(DISTINCT desa), (SELECT COUNT(*) FROM member) FROM data_pohon",
@@ -164,6 +176,18 @@ assert((await page.locator("h1", { hasText: "Kebijakan Privasi" }).count()) === 
 const donorCtx = await ctxWith(browser, { userId: 2681, name: "Donatur E2E", role: "DONOR" });
 const d = await donorCtx.newPage();
 d.on("dialog", (dlg) => dlg.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await d.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 const unreadAwal = Number(rows("SELECT COUNT(*) FROM pesan_notif WHERE idmember=2681 AND status='noread'")[0][0]);
 const [pesanId] = rows(
   `INSERT INTO pesan_notif (idmember,pesan,status,created_at,updated_at) VALUES (2681,'E2E lonceng member ${Date.now()}','noread',NOW(),NOW()); SELECT LAST_INSERT_ID();`,
@@ -198,6 +222,18 @@ assert(true, `pesan uji member dibersihkan (id=${pesanId})`);
 const adminCtx = await ctxWith(browser, { userId: 2682, name: "Admin Pohon Asuh", role: "ADMIN", level: 1 });
 const a = await adminCtx.newPage();
 a.on("dialog", (dlg) => dlg.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await a.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 
 await a.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
 const groupBtns = a.locator("aside button[aria-expanded]");
@@ -206,8 +242,11 @@ for (let i = 0; i < (await groupBtns.count()); i++) {
 }
 const navLinks = await a.locator("aside nav a").allTextContents();
 assert(
-  navLinks.length === 16 && navLinks.includes("Kelola Spesies") && navLinks.includes("Testimoni & Partner"),
-  `sidebar admin 16 menu (termasuk 2 menu baru) — ${navLinks.length} link`,
+  navLinks.length === 20 &&
+    navLinks.includes("Kelola Spesies") &&
+    navLinks.includes("Testimoni & Partner") &&
+    navLinks.includes("Backup Database"),
+  `sidebar admin 20 menu (termasuk Kelola Spesies, Testimoni & Partner, Backup Database) — ${navLinks.length} link`,
 );
 
 // ---- CRUD testimoni: section beranda muncul lalu hilang ----

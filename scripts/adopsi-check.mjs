@@ -42,6 +42,18 @@ const ctx = await browser.newContext({
 await ctx.addCookies([{ name: "pa_session", value: token, url: BASE }]);
 const page = await ctx.newPage();
 page.on("dialog", (d) => d.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await page.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 
 // ================= 1. Tabel + filter + cari =================
 const TOTAL = Number(rows("SELECT COUNT(*) FROM data_adopsi")[0][0]);

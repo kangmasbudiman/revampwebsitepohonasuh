@@ -88,6 +88,18 @@ const adminCtx = await browser.newContext({ viewport: { width: 1440, height: 900
 adminCtx.addCookies([{ name: "pa_session", value: adminToken, url: BASE }]);
 const adminPage = await adminCtx.newPage();
 adminPage.on("dialog", (d) => d.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await adminPage.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 
 // ===== 1. Daftar donatur baru (utk alur adopsi multi-tahun & hadiah) =====
 const email = `gaps_${Date.now()}@test.local`;
@@ -178,6 +190,18 @@ const petugasCtx = await browser.newContext({ viewport: { width: 1440, height: 9
 petugasCtx.addCookies([{ name: "pa_session", value: petugasToken, url: BASE }]);
 const petugasPage = await petugasCtx.newPage();
 petugasPage.on("dialog", (d) => d.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await petugasPage.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 await petugasPage.goto(`${BASE}/admin/tagging`, { waitUntil: "networkidle" });
 const noteForm = petugasPage
   .locator(`div:has-text("${TREE_P}") form:has(input[name="note"])`)

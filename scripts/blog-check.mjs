@@ -131,6 +131,18 @@ const adminCtx = await browser.newContext({ viewport: { width: 1440, height: 900
 await adminCtx.addCookies([{ name: "pa_session", value: adminToken, url: BASE }]);
 const ap = await adminCtx.newPage();
 ap.on("dialog", (d) => d.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await ap.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 await ap.goto(`${BASE}/admin/blog`, { waitUntil: "networkidle" });
 await ap.click("summary:has-text('Tambah Artikel')");
 

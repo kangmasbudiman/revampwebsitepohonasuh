@@ -32,6 +32,18 @@ execSync(`rm -f /opt/homebrew/var/www/restApiPohonasuh/public/upload/pohon/pohon
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await page.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 
 await page.goto(`${BASE}/masuk?next=%2Fadmin`, { waitUntil: "networkidle" });
 await page.fill('input[name="email"]', "admintes2026@yahoo.com");

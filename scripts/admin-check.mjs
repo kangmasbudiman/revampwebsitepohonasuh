@@ -43,6 +43,18 @@ const browser = await chromium.launch();
 const adminCtx = await ctxWith(browser, { userId: 2682, name: "Admin Pohon Asuh", role: "ADMIN", level: 1 });
 const page = await adminCtx.newPage();
 page.on("dialog", (d) => d.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await page.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 
 await page.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
 assert(await page.locator("h1", { hasText: "Ringkasan" }).count() >= 0, "/admin termuat");
@@ -465,6 +477,18 @@ await page.screenshot({ path: "screenshots/87-admin-sertifikat.png", fullPage: t
 const petugasCtx = await ctxWith(browser, { userId: 2683, name: "Petugas Taging", role: "ADMIN", level: 2 });
 const p2 = await petugasCtx.newPage();
 p2.on("dialog", (d) => d.accept());
+// ConfirmSubmit kini modal — auto-klik tombol konfirmasinya (setara accept dialog lama)
+await p2.addInitScript(() => {
+  // document.documentElement masih null saat init — tunda sampai DOM siap
+  const pasang = () => {
+    new MutationObserver(() => {
+      document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+        if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+      });
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  };
+  document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
+});
 
 await p2.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
 assert(p2.url().includes("/admin/tagging"), `petugas akses /admin → redirect ${p2.url()}`);
