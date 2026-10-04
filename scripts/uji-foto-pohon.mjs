@@ -54,6 +54,10 @@ ok("thumbnail semua termuat", thumbs.rusak === 0, `${thumbs.rusak} rusak`);
 
 // 2) tambah pohon TANPA foto → DB kosong + baris tabel pakai gambar default
 await page.click("summary:has-text('Tambah Pohon Baru')");
+ok(
+  "input kode dibatasi 7 karakter (varchar(7))",
+  (await page.getAttribute('input[name="idpohon"]', "maxlength")) === "7",
+);
 await page.fill('input[name="idpohon"]', KODE);
 await page.fill('input[name="localName"]', "Uji Foto Pohon");
 await page.selectOption('select[name="desa"]', { label: "rantaukermas" });

@@ -32,11 +32,17 @@ export default function TreeForm({
             name="idpohon"
             type="text"
             required
+            maxLength={7}
             readOnly={isEdit}
             defaultValue={tree?.code}
             className={`${inputClass} ${isEdit ? "bg-zinc-50 font-mono text-zinc-500 dark:bg-night-900 dark:text-zinc-400" : ""}`}
             placeholder="mis. RA-0012"
           />
+          {!isEdit && (
+            <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+              Maksimal 7 karakter (batas kode di database).
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">Nama Lokal *</label>
