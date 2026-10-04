@@ -49,3 +49,7 @@ next-env.d.ts
 /.agents
 /.windsurf
 /skills-lock.json
+
+# config deployment (salin dari next.config.ts.example di server —
+# TANPA file ini next/image & upload pohon rusak, lihat insiden eded82c)
+/next.config.ts
