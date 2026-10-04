@@ -53,29 +53,10 @@ const [D, HD] = rows(
   `SELECT idpohon, harga FROM data_pohon WHERE adopted='available' AND idpohon NOT IN ('${A}','${B}','${C}') ORDER BY id LIMIT 1`,
 )[0];
 
-// ===== 0. Loading berlogo terlihat saat jaringan lambat =====
-// Fetch API terjadi server-side (tak bisa di-delay dari browser), jadi
-// throttle koneksi browser via CDP lalu navigasi ke halaman data —
-// loader tampil pasti selama RSC halaman tujuan diambil.
-const slowCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-const slowPage = await slowCtx.newPage();
-const cdp = await slowCtx.newCDPSession(slowPage);
-await cdp.send("Network.enable");
-await cdp.send("Network.emulateNetworkConditions", {
-  offline: false,
-  latency: 1200,
-  downloadThroughput: 200 * 1024,
-  uploadThroughput: 200 * 1024,
-});
-await slowPage.goto(`${BASE}/faq`, { waitUntil: "domcontentloaded" });
-await slowPage.getByRole("link", { name: "Data Pohon" }).first().click();
-await slowPage.waitForSelector("text=Memuat data", { timeout: 10000 });
-fs.mkdirSync("screenshots", { recursive: true });
-await slowPage.screenshot({ path: "screenshots/99-loading-logo.png" });
-assert(true, "loader berlogo tampil saat navigasi lambat (screenshot 99-loading-logo.png)");
-await slowCtx.close();
+// (Cek loader berlogo kini di scripts/loader-check.mjs khusus — fallback
+// loading.tsx tak selalu sempat ter-paint saat stack lokal cepat.)
 
-// ===== 2. Isi keranjang via tombol ikon kartu =====
+// ===== 2. Isi keranjang via tombol ikon kartu (guest) =====
 await page.locator(`a[href="/pohon/${A}"] button[type=button]`).click();
 await page.waitForTimeout(200);
 if (page.url() !== `${BASE}/pohon`) throw new Error("klik ikon malah menavigasi (hidrasi?)");
@@ -83,26 +64,19 @@ await page.locator(`a[href="/pohon/${B}"] button[type=button]`).click();
 await page.waitForTimeout(200);
 assert(page.url() === `${BASE}/pohon`, `tombol ikon kartu: ${A} & ${B} masuk keranjang tanpa navigasi`);
 
+// Guest di halaman detail hanya dapat link login (bukan tombol keranjang).
 await page.goto(`${BASE}/pohon/${C}`, { waitUntil: "networkidle" });
-await page.click("button:has-text('Masukkan Keranjang')");
-await page.click("button:has-text('Masukkan Keranjang')");
-await page.waitForSelector("text=Pohon ini sudah ada di keranjang", { timeout: 5000 });
-assert(true, `detail ${C}: masuk keranjang + duplikat ditolak`);
+await page.waitForSelector('a:has-text("Masuk untuk Mengadopsi")', { timeout: 5000 });
+assert((await page.locator('button:has-text("Masukkan Keranjang")').count()) === 0, `detail ${C} guest: tombol keranjang tak tampil, ada link login`);
 
-await page.waitForSelector('a[aria-label="Keranjang: 3 pohon"]', { timeout: 5000 });
-assert(true, "badge header menunjukkan 3 pohon");
+await page.waitForSelector('a[aria-label="Keranjang: 2 pohon"]', { timeout: 5000 });
+assert(true, "badge header menunjukkan 2 pohon");
 
-// ===== 3. Halaman keranjang: hapus satu =====
+// ===== 3. Halaman keranjang guest: item tampil =====
 await page.click('a[aria-label^="Keranjang"]');
 await page.waitForURL(`${BASE}/keranjang`);
-await page.waitForSelector(`text=${C}`);
-await page
-  .locator("div", { hasText: C })
-  .locator('button[aria-label^="Hapus"]')
-  .last()
-  .click();
-await page.waitForSelector('a[aria-label="Keranjang: 2 pohon"]', { timeout: 5000 });
-assert(true, `hapusi ${C} dari keranjang → sisa 2`);
+await page.waitForSelector(`text=${A}`);
+assert(true, "halaman keranjang menampilkan item guest");
 
 // ===== 4. Checkout minta login → daftar dengan next =====
 await page.click("text=Masuk untuk Checkout");
@@ -120,6 +94,25 @@ assert(true, "daftar → kembali ke /checkout (keranjang localStorage utuh)");
 
 const memberId = rows(`SELECT id FROM member WHERE emaile='${email}'`)[0][0];
 assert(!!memberId, `member terbuat id=${memberId}`);
+
+// ===== 4b. Setelah login: tombol detail + duplikat + hapus =====
+await page.goto(`${BASE}/pohon/${C}`, { waitUntil: "networkidle" });
+await page.click("button:has-text('Masukkan Keranjang')");
+await page.click("button:has-text('Masukkan Keranjang')");
+await page.waitForSelector("text=Pohon ini sudah ada di keranjang", { timeout: 5000 });
+assert(true, `detail ${C} (login): masuk keranjang + duplikat ditolak`);
+await page.waitForSelector('a[aria-label="Keranjang: 3 pohon"]', { timeout: 5000 });
+assert(true, "badge header menunjukkan 3 pohon");
+await page.goto(`${BASE}/keranjang`, { waitUntil: "networkidle" });
+await page
+  .locator("div", { hasText: C })
+  .locator('button[aria-label^="Hapus"]')
+  .last()
+  .click();
+await page.waitForSelector('a[aria-label="Keranjang: 2 pohon"]', { timeout: 5000 });
+assert(true, `hapusi ${C} dari keranjang → sisa 2`);
+await page.click('a:has-text("Lanjut ke Pembayaran")');
+await page.waitForURL(`${BASE}/checkout`);
 
 // ===== 5. Setup negatif: sisa trolley mobile + pohon A diambil orang =====
 execSync(

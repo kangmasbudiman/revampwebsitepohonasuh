@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Trash2, Gift } from "lucide-react";
+import { Trash2, Gift, Minus, Plus } from "lucide-react";
 import { useCart } from "@/lib/use-cart";
-import { removeFromCart } from "@/lib/cart";
+import { removeFromCart, updateCartItem, MAX_YEARS } from "@/lib/cart";
 import { rupiah } from "@/lib/format";
 
 export default function CartView({ loggedIn }: { loggedIn: boolean }) {
@@ -36,7 +36,9 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-4">
-        {items.map((item) => (
+        {items.map((item) => {
+          const years = item.years ?? 1;
+          return (
           <div
             key={item.code}
             className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm"
@@ -62,9 +64,36 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
                 {item.localName}
               </Link>
               <p className="text-xs text-zinc-500">
-                {item.desa} · {item.code} · {item.years ?? 1}{" "}
-                {(item.years ?? 1) === 1 ? "tahun" : "tahun"}
+                {item.desa} · {item.code}
               </p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center rounded-full border border-emerald-200 bg-white">
+                  <button
+                    type="button"
+                    aria-label={`Kurangi durasi ${item.localName}`}
+                    disabled={years <= 1}
+                    onClick={() => updateCartItem(item.code, { years: years - 1 })}
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="min-w-[4.25rem] text-center text-xs font-semibold text-emerald-800">
+                    {years} {years === 1 ? "tahun" : "tahun"}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Tambah durasi ${item.localName}`}
+                    disabled={years >= MAX_YEARS}
+                    onClick={() => updateCartItem(item.code, { years: years + 1 })}
+                    className="flex h-7 w-7 items-center justify-center rounded-full text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <span className="text-xs text-zinc-500">
+                  {rupiah(item.priceIdr)} / tahun
+                </span>
+              </div>
               {item.giftName ? (
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-emerald-700">
                   <Gift className="h-3 w-3" /> Hadiah untuk {item.giftName}
@@ -72,7 +101,7 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
               ) : null}
             </div>
             <span className="whitespace-nowrap font-bold text-emerald-700">
-              {rupiah(item.priceIdr * (item.years ?? 1))}
+              {rupiah(item.priceIdr * years)}
             </span>
             <button
               type="button"
@@ -83,7 +112,8 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <aside className="h-fit rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
