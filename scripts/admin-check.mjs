@@ -311,9 +311,10 @@ await page.click('form:has(input[name="priceIdr"]) button[type=submit]');
   assert(ok, "tambahpohon via UI → DB");
 }
 
-// pohon baru ada di halaman terakhir (tabel 50/halaman)
-const lastPage = Math.ceil(Number(rows("SELECT COUNT(*) FROM data_pohon")[0][0]) / 50);
-await page.goto(`${BASE}/admin/pohon?page=${lastPage}`, { waitUntil: "networkidle" });
+// pohon baru dicari lewat kotak filter (tabel client-side)
+await page.goto(`${BASE}/admin/pohon`, { waitUntil: "networkidle" });
+await page.fill('input[aria-label="Cari pohon"]', "E2ETST");
+await page.waitForTimeout(400);
 await page.click(`tr:has-text("E2ETST") button:has-text("Hapus")`);
 await page.waitForURL("**/admin/pohon?deleted=1", { timeout: 30000 });
 assert(rows("SELECT COUNT(*) FROM data_pohon WHERE idpohon='E2ETST'")[0][0] === "0", "hapuspohon via UI → row hilang");

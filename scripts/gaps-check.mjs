@@ -277,7 +277,9 @@ assert(
 );
 
 // ===== #1: pohon unggulan (admin toggle → beranda) =====
-await adminPage.goto(`${BASE}/admin/pohon?page=${pageU}`, { waitUntil: "networkidle" });
+await adminPage.goto(`${BASE}/admin/pohon`, { waitUntil: "networkidle" });
+await adminPage.fill('input[aria-label="Cari pohon"]', TREE_U);
+await adminPage.waitForTimeout(400);
 const rowU = adminPage.locator("tr", { hasText: TREE_U }).first();
 await rowU.locator("button:has-text('Jadikan')").click();
 await adminPage.waitForURL(/unggulan=1/, { timeout: 20000 });
@@ -292,7 +294,9 @@ const onHome = await page
   .count();
 assert(onHome > 0, "beranda menampilkan pohon unggulan");
 
-await adminPage.goto(`${BASE}/admin/pohon?page=${pageU}`, { waitUntil: "networkidle" });
+await adminPage.goto(`${BASE}/admin/pohon`, { waitUntil: "networkidle" });
+await adminPage.fill('input[aria-label="Cari pohon"]', TREE_U);
+await adminPage.waitForTimeout(400);
 await adminPage
   .locator("tr", { hasText: TREE_U })
   .first()

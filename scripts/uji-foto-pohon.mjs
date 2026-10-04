@@ -67,11 +67,10 @@ const fotoDb = sql(
 );
 ok("tambah tanpa foto → foto_pohon kosong di DB", fotoDb === "[]", fotoDb);
 
-// baris baru ada di halaman TERAKHIR (paginasi 50/hal, urut id)
-const totalPohon = Number(sql("SELECT COUNT(*) FROM data_pohon"));
-const halAkhir = Math.max(1, Math.ceil(totalPohon / 50));
-await page.goto(`${BASE}/admin/pohon?page=${halAkhir}`, { waitUntil: "networkidle" });
-await page.waitForTimeout(1200);
+// cari baris lewat kotak filter (tabel client-side)
+await page.goto(`${BASE}/admin/pohon`, { waitUntil: "networkidle" });
+await page.fill('input[aria-label="Cari pohon"]', KODE);
+await page.waitForTimeout(400);
 const baris = page.locator(`table tbody tr:has-text("${KODE}")`);
 ok("baris pohon baru tampil di tabel", (await baris.count()) >= 1);
 const srcDefault = await baris.locator("img").first().getAttribute("src");
@@ -113,8 +112,9 @@ const termuat = await page.evaluate(() =>
 ok("semua img halaman edit termuat", termuat);
 
 // 5) tabel: thumbnail baris kini foto upload (bukan default)
-await page.goto(`${BASE}/admin/pohon?page=${halAkhir}`, { waitUntil: "networkidle" });
-await page.waitForTimeout(1200);
+await page.goto(`${BASE}/admin/pohon`, { waitUntil: "networkidle" });
+await page.fill('input[aria-label="Cari pohon"]', KODE);
+await page.waitForTimeout(400);
 const srcBaru = await page.locator(`table tbody tr:has-text("${KODE}") img`).first().getAttribute("src");
 ok("thumbnail tabel = foto baru", !!srcBaru && !srcBaru.includes("no-image-icon"), String(srcBaru)?.slice(0, 80));
 
