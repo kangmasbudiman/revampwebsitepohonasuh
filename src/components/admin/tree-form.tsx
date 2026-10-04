@@ -156,7 +156,7 @@ export default function TreeForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+        className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:from-emerald-700 hover:to-teal-700 disabled:opacity-60"
       >
         {pending ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Tambah Pohon"}
       </button>
