@@ -8,6 +8,9 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 
 const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
+// Port Laravel dev bisa berubah (8000 sempat dipakai proyek lain) — ikuti
+// API_BASE_URL yang juga dipakai `next dev/start` lokal.
+const API = process.env.API_BASE_URL ?? "http://127.0.0.1:8000/api";
 const rows = (sql) =>
   execSync(`mysql -uroot -pkerabatkotak pohonasuh2 -N -B -e "${sql.replace(/"/g, '\\"')}" 2>/dev/null`)
     .toString()
@@ -27,6 +30,12 @@ const assert = (cond, msg) => {
 const secret = new TextEncoder().encode(
   fs.readFileSync(".env", "utf8").match(/AUTH_SECRET="(.+)"/)[1],
 );
+// Fixture gambar upload (blog/kontak/foto tagging) — /tmp bisa terbersihkan.
+if (!fs.existsSync("/tmp/test-cover.jpg")) {
+  execSync(
+    `sips -s format jpeg --resampleWidth 800 public/images/papan-taging.png --out /tmp/test-cover.jpg`,
+  );
+}
 const signToken = (payload) =>
   new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime("1h").sign(secret);
 
@@ -214,7 +223,7 @@ const totalOrderShown = Number(
 );
 // ordercustomer bukan seluruh data_adopsi (hanya baris ber-confirmation) —
 // bandingkan dengan respons API langsung, bukan COUNT tabel.
-const apiTotal = (await (await fetch("http://127.0.0.1:8000/api/ordercustomer")).json()).length;
+const apiTotal = (await (await fetch(`${API}/ordercustomer`)).json()).length;
 assert(totalOrderShown === apiTotal, `KPI Total Order (${totalOrderShown}) = API ordercustomer (${apiTotal})`);
 await page.screenshot({ path: "screenshots/90-admin-pemantauan.png", fullPage: true });
 
@@ -438,7 +447,7 @@ await page.click("tr:has-text('E2E Kelola User') button:has-text('Nonaktifkan')"
 await page.waitForURL("**/admin/user?updated=*", { timeout: 30000 });
 assert(rows(`SELECT aktif FROM member WHERE id=${idUserUji}`)[0][0] === "0", "nonaktifkan via UI → DB aktif=0");
 const tolakLogin = await (
-  await fetch("http://127.0.0.1:8000/api/loginuser", {
+  await fetch(`${API}/loginuser`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: "emaile=e2e_kelolauser@test.local&passe=apapun",
@@ -514,7 +523,7 @@ assert(
 
 // Pilih order proses=1 dari API yang benar-benar terlihat petugas 2683
 const apiOrders = await (
-  await fetch("http://127.0.0.1:8000/api/ordercustomerbypengurus", {
+  await fetch(`${API}/ordercustomerbypengurus`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: "iduser=2683",

@@ -60,7 +60,15 @@ function fmtBerlaku(raw: string | null) {
   return `${m[3]} ${mm >= 1 && mm <= 12 ? bulan[mm - 1] : ""} ${m[1]}`.trim();
 }
 
-export default function PapanTaging({ order }: { order: ApiOrderRow }) {
+// chrome=false → tanpa tombol cetak & tanpa max-width: dipakai render
+// tersembunyi untuk dikonversi jadi gambar (unduh massal di /admin/tagging).
+export default function PapanTaging({
+  order,
+  chrome = true,
+}: {
+  order: ApiOrderRow;
+  chrome?: boolean;
+}) {
   const namaDesa = kapital(order.desa);
   const subLokasi = [
     order.kecamatan.trim() && `Kec. ${kapital(order.kecamatan)}`,
@@ -80,7 +88,11 @@ export default function PapanTaging({ order }: { order: ApiOrderRow }) {
 
   return (
     <div>
-      <div className="pa-papan-wrap mx-auto w-full max-w-4xl overflow-hidden rounded-xl shadow-sm">
+      <div
+        className={`pa-papan-wrap mx-auto w-full ${
+          chrome ? "max-w-4xl overflow-hidden rounded-xl shadow-sm" : ""
+        }`}
+      >
         <div
           className={`pa-papan relative aspect-[2382/1684] w-full [container-type:inline-size] ${playfair.className}`}
         >
@@ -148,18 +160,20 @@ export default function PapanTaging({ order }: { order: ApiOrderRow }) {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-3 print:hidden">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#249689] to-[#10791D] px-6 py-3 text-sm font-bold text-white shadow-md transition-opacity hover:opacity-90"
-        >
-          <Printer className="h-4 w-4" /> Cetak / Simpan PDF
-        </button>
-        <p className="w-full text-center text-xs text-zinc-500 dark:text-zinc-400">
-          Ukuran cetak A4 lanskap — sama seperti papan fisik yang ditempel di pohon.
-        </p>
-      </div>
+      {chrome && (
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3 print:hidden">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#249689] to-[#10791D] px-6 py-3 text-sm font-bold text-white shadow-md transition-opacity hover:opacity-90"
+          >
+            <Printer className="h-4 w-4" /> Cetak / Simpan PDF
+          </button>
+          <p className="w-full text-center text-xs text-zinc-500 dark:text-zinc-400">
+            Ukuran cetak A4 lanskap — sama seperti papan fisik yang ditempel di pohon.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { apiAssetUrl, apiPost, mapOrderRows, type ApiOrderRow } from "@/lib/api"
 import { rupiah } from "@/lib/format";
 import TaggingForm from "@/components/admin/tagging-form";
 import CancelOrderButton from "@/components/admin/cancel-order-button";
+import PapanCheck from "@/components/admin/papan-check";
+import PapanBatchBar from "@/components/admin/papan-batch-bar";
 import { updateOrderNote } from "@/lib/actions/tagging";
 
 export const metadata = { title: "Order Tagging | Pohon Asuh" };
@@ -88,6 +90,8 @@ export default async function TaggingPage({
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Pohon terverifikasi yang menunggu ditandai di lapangan. Unggah foto tagging lalu tandai
         selesai — sertifikat donatur terbit otomatis setelah selesai (paritas aplikasi mobile).
+        Conteng kartu <span className="font-semibold text-emerald-700 dark:text-emerald-300">Papan</span> untuk
+        mengunduh beberapa papan taging sekaligus dalam satu file ZIP.
       </p>
 
       {sp?.proses && (
@@ -194,6 +198,7 @@ export default async function TaggingPage({
                     Lihat lokasi pohon di peta ↗
                   </a>
                 )}
+                <PapanCheck order={order} />
                 <Link
                   href={`/admin/tagging/${order.id}/papan`}
                   className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
@@ -266,6 +271,8 @@ export default async function TaggingPage({
           </p>
         )}
       </div>
+
+      {filtered.length > 0 && <PapanBatchBar />}
     </main>
   );
 }
