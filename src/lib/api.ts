@@ -135,6 +135,9 @@ export type ApiTree = {
   diameterCm: number | null;
   heightM: number | null;
   kelilingCm: number | null;
+  // Estimasi biomassa (ton) dari accessor Pohon::tonase — hanya hadir di
+  // endpoint yang menyerialisasi model (pohonbykode).
+  tonase: number | null;
   priceIdr: number; // harga
   photoUrl: string; // treePhotoUrl — selalu terisi (fallback gambar default)
   lat: number | null;
@@ -168,6 +171,7 @@ export function mapTree(r: Record<string, unknown>): ApiTree {
     diameterCm: num(r.diameter),
     heightM: num(r.tinggi),
     kelilingCm: num(r.keliling),
+    tonase: num(r.tonase),
     priceIdr: Number(r.harga) || 0,
     photoUrl: treePhotoUrl(r.foto_pohon as string | null),
     lat: num(r.latitude),

@@ -24,6 +24,14 @@ const certTitle = Barlow_Semi_Condensed({
   variable: "--font-cert-title",
 });
 
+type ApiPohonSertifikat = {
+  idpohon?: string | null;
+  localname?: string | null;
+  species?: string | null;
+  diameter?: number | string | null;
+  tonase?: number | string | null;
+};
+
 type ApiSertifikat = {
   certnum?: string | null;
   nama?: string | null;
@@ -37,6 +45,7 @@ type ApiSertifikat = {
   provinsi?: string | null;
   tgl_adopt?: string | null;
   tgl_exp?: string | null;
+  pohon_list?: ApiPohonSertifikat[] | null;
 };
 
 export const metadata = { title: "Sertifikat Adopsi Pohon" };
@@ -77,6 +86,75 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   const jambi = tglAdopt
     ? `Jambi, ${tglAdopt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
     : "Jambi";
+
+  // Blok pohon bawah-kiri (jenis + Ø + tonase per batang). Order besar
+  // (satu invoice bisa belasan pohon) → adaptif: ≤5 baris per batang,
+  // selebihnya diringkas per spesies; >6 spesies cukup satu baris ringkas.
+  const pohonList = (s.pohon_list ?? []).map((p) => ({
+    kode: (p.idpohon ?? "").trim(),
+    lokal: (p.localname ?? "").trim(),
+    spesies: (p.species ?? "").trim(),
+    diameter: Number(p.diameter) || 0,
+    tonase: p.tonase === null || p.tonase === undefined ? null : Number(p.tonase),
+  }));
+  const labelPohon = (p: (typeof pohonList)[number]) =>
+    p.lokal && p.spesies ? `${p.lokal} (${p.spesies})` : p.lokal || p.spesies || p.kode;
+  const fmtTon = (t: number) => `± ${t.toLocaleString("en-US", { maximumFractionDigits: 1 })} tons`;
+
+  const barisPohon: string[] = [];
+  let totalTonase = 0;
+  for (const p of pohonList) if (p.tonase !== null) totalTonase += p.tonase;
+
+  if (pohonList.length > 0 && pohonList.length <= 5) {
+    for (const p of pohonList) {
+      const bagian = [
+        p.kode && labelPohon(p) !== p.kode ? p.kode : "",
+        labelPohon(p),
+        p.diameter > 0 ? `Ø ${p.diameter} cm` : "",
+        p.tonase !== null ? fmtTon(p.tonase) : "",
+      ].filter(Boolean);
+      barisPohon.push(bagian.join(" · "));
+    }
+  } else if (pohonList.length > 5) {
+    const grup = new Map<string, { label: string; jumlah: number; dMin: number; dMax: number }>();
+    for (const p of pohonList) {
+      const kunci = `${p.lokal}|${p.spesies}`;
+      const g = grup.get(kunci);
+      if (g) {
+        g.jumlah += 1;
+        g.dMin = Math.min(g.dMin, p.diameter);
+        g.dMax = Math.max(g.dMax, p.diameter);
+      } else {
+        grup.set(kunci, { label: labelPohon(p), jumlah: 1, dMin: p.diameter, dMax: p.diameter });
+      }
+    }
+    const daftarGrup = [...grup.values()];
+    if (daftarGrup.length <= 5) {
+      for (const g of daftarGrup) {
+        const bagian = [
+          `${g.jumlah} × ${g.label}`,
+          g.dMin > 0 ? (g.dMin === g.dMax ? `Ø ${g.dMin} cm` : `Ø ${g.dMin}–${g.dMax} cm`) : "",
+        ].filter(Boolean);
+        barisPohon.push(bagian.join(" · "));
+      }
+      if (totalTonase > 0) {
+        barisPohon.push(`Total ${pohonList.length} trees · ${fmtTon(totalTonase)} estimated biomass`);
+      }
+    } else {
+      const dSemua = pohonList.filter((p) => p.diameter > 0).map((p) => p.diameter);
+      barisPohon.push(
+        [
+          `${pohonList.length} trees · ${daftarGrup.length} species`,
+          dSemua.length > 0
+            ? `Ø ${Math.min(...dSemua)}–${Math.max(...dSemua)} cm`
+            : "",
+          totalTonase > 0 ? fmtTon(totalTonase) : "",
+        ]
+          .filter(Boolean)
+          .join(" · "),
+      );
+    }
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 print:max-w-none print:p-0">
@@ -147,6 +225,19 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
           <p className="absolute top-[72.89%] left-[23.91%] font-[family-name:var(--font-cert-title)] text-[2.58cqw] font-medium text-[#208745]">
             {jambi}
           </p>
+
+          {barisPohon.length > 0 && (
+            <div className="absolute top-[78.2%] left-[23.91%] w-[54%] font-[family-name:var(--font-cert-sans)]">
+              <p className="text-[1.24cqw] font-semibold tracking-wide text-[#208745] uppercase">
+                Adopted Trees
+              </p>
+              <ul className="mt-[0.5cqw] space-y-[0.28cqw] text-[1.12cqw] leading-[1.32] text-[#545353]">
+                {barisPohon.map((b, i) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 

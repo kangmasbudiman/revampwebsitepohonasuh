@@ -40,6 +40,10 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
 
   const specs = [
     { label: "Diameter", value: tree.diameterCm ? `${tree.diameterCm} cm` : "—" },
+    {
+      label: "Estimasi Biomassa",
+      value: tree.tonase !== null ? `± ${tree.tonase.toLocaleString("id-ID", { maximumFractionDigits: 1 })} ton` : "—",
+    },
     { label: "Tinggi", value: tree.heightM ? `${tree.heightM} m` : "—" },
     { label: "Keliling Batang", value: tree.kelilingCm ? `${tree.kelilingCm} cm` : "—" },
     { label: "Kode Pohon", value: tree.code },
