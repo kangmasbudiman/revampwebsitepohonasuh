@@ -73,7 +73,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
           onClick={() => setOpen(false)}
           className="group flex items-center gap-2.5"
         >
-          <span className="transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
+          <span className="shrink-0 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
             <Image
               src="/images/logo_icon.png"
               alt="Logo Pohon Asuh"
