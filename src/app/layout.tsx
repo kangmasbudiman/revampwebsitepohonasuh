@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { getDict, getLocale } from "@/lib/i18n";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -7,7 +8,7 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = Geist({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
@@ -17,19 +18,23 @@ const fraunces = Fraunces({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Pohon Asuh — Adopt Trees, Save The World",
-    template: "%s | Pohon Asuh",
-  },
-  description:
-    "Program adopsi pohon untuk melindungi hutan adat dan hutan desa bersama masyarakat lokal di Indonesia.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const m = (await getDict()).metadata;
+  return {
+    title: {
+      default: m.defaultTitle,
+      template: "%s | Pohon Asuh",
+    },
+    description: m.defaultDesc,
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="id"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="antialiased">

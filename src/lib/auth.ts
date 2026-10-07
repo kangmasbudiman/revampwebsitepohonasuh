@@ -11,6 +11,8 @@ export type Session = {
   role: string;
   /** 1 = admin, 2 = petugas. Session lama tanpa level diperlakukan sebagai admin. */
   level?: number;
+  /** URL foto profil member (upload/profil di server API); kosong = avatar inisial. */
+  photo?: string | null;
 };
 
 export async function createSession(session: Session) {
@@ -49,8 +51,19 @@ export const getSession = cache(async (): Promise<Session | null> => {
       name: payload.name,
       role: payload.role,
       level: typeof payload.level === "number" ? payload.level : undefined,
+      photo: typeof payload.photo === "string" && payload.photo !== "" ? payload.photo : null,
     };
   } catch {
     return null;
   }
 });
+
+/** Perbarui sebagian field session (nama/foto) lalu re-sign cookie.
+ *  getSession di-cache React per-request — setelah memanggil ini cukup
+ *  revalidatePath("/", "layout"), jangan baca ulang getSession di request
+ *  yang sama. */
+export async function updateSession(patch: Partial<Omit<Session, "userId" | "role">>) {
+  const current = await getSession();
+  if (!current) return;
+  await createSession({ ...current, ...patch });
+}

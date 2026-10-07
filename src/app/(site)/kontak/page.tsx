@@ -1,6 +1,9 @@
 import { apiGet } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 
-export const metadata = { title: "Kontak" };
+export async function generateMetadata() {
+  return { title: (await getDict()).pages.kontak.title };
+}
 
 type Kontak = { nama?: string; telepon?: string; whatsapp?: string; email?: string };
 
@@ -11,16 +14,17 @@ export default async function ContactPage() {
   } catch {
     // tampilkan kartu kosong di bawah
   }
+  const t = (await getDict()).pages.kontak;
 
   const items = [
-    { label: "Email", value: k.email, href: k.email ? `mailto:${k.email}` : undefined },
+    { label: t.email, value: k.email, href: k.email ? `mailto:${k.email}` : undefined },
     {
-      label: "WhatsApp",
+      label: t.whatsapp,
       value: k.whatsapp,
       href: k.whatsapp ? `https://wa.me/${k.whatsapp.replace(/[^0-9]/g, "")}` : undefined,
     },
     {
-      label: "Telepon",
+      label: t.phone,
       value: k.telepon,
       href: k.telepon ? `tel:${k.telepon.replace(/[^0-9+]/g, "")}` : undefined,
     },
@@ -28,10 +32,9 @@ export default async function ContactPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
-      <h1 className="text-3xl font-bold text-emerald-950">Hubungi Kami</h1>
+      <h1 className="text-3xl font-bold text-emerald-950">{t.heading}</h1>
       <p className="mt-2 max-w-2xl text-zinc-600">
-        Punya pertanyaan tentang program adopsi pohon atau ingin menjadwalkan kunjungan ke lokasi
-        hutan? Tim {k.nama || "Pohon Asuh"} siap membantu Anda.
+        {t.intro.replaceAll("{name}", k.nama || "Pohon Asuh")}
       </p>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-3">
@@ -55,7 +58,7 @@ export default async function ContactPage() {
       </div>
 
       {items.length === 0 && (
-        <p className="mt-10 text-center text-zinc-500">Informasi kontak belum tersedia.</p>
+        <p className="mt-10 text-center text-zinc-500">{t.empty}</p>
       )}
     </main>
   );

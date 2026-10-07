@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { markComplete, markInProgress, uploadTaggingPhoto } from "@/lib/actions/tagging";
 import type { AdminState } from "@/lib/actions/admin";
-import FileInput from "@/components/admin/file-input";
+import FileInput from "@/components/file-input";
 
 export default function TaggingForm({
   id,

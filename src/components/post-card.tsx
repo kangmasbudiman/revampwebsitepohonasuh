@@ -2,10 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Eye } from "lucide-react";
 import type { ApiPost } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 
 // Paritas kartu blog mobile: thumbnail, kategori, judul, preview deskripsi,
 // author + jumlah dibaca.
-export default function PostCard({ post }: { post: ApiPost }) {
+export default async function PostCard({ post }: { post: ApiPost }) {
+  const t = (await getDict()).pages.blog;
   const preview = post.description
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/g, " ")
@@ -43,7 +45,7 @@ export default function PostCard({ post }: { post: ApiPost }) {
           <span className="truncate font-medium text-emerald-800">{post.author}</span>
           <span className="inline-flex shrink-0 items-center gap-1">
             <Eye className="h-3.5 w-3.5" />
-            {post.viewer} kali dibaca
+            {t.timesRead.replaceAll("{n}", String(post.viewer))}
           </span>
         </p>
       </div>

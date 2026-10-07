@@ -3,23 +3,25 @@
 import Link from "next/link";
 import { use, useActionState } from "react";
 import { login, type AuthState } from "@/lib/actions/auth";
+import { useI18n } from "@/components/i18n-provider";
 
 export default function LoginPage(props: PageProps<"/masuk">) {
   const searchParams = use(props.searchParams);
   const next = typeof searchParams.next === "string" ? searchParams.next : "";
   const [state, action, pending] = useActionState<AuthState, FormData>(login, {});
+  const t = useI18n().dict.pages.masuk;
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 items-center px-4 py-16">
       <div className="w-full rounded-3xl border border-emerald-100 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-emerald-950">Masuk</h1>
+        <h1 className="text-2xl font-bold text-emerald-950">{t.heading}</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Belum punya akun?{" "}
+          {t.noAccount}{" "}
           <Link
             href={next ? `/daftar?next=${encodeURIComponent(next)}` : "/daftar"}
             className="font-semibold text-emerald-700 hover:text-emerald-800"
           >
-            Daftar sekarang
+            {t.registerNow}
           </Link>
         </p>
 
@@ -27,7 +29,7 @@ export default function LoginPage(props: PageProps<"/masuk">) {
           <input type="hidden" name="next" value={next} />
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-zinc-700">
-              Email
+              {t.email}
             </label>
             <input
               id="email"
@@ -40,7 +42,7 @@ export default function LoginPage(props: PageProps<"/masuk">) {
           </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-zinc-700">
-              Kata Sandi
+              {t.password}
             </label>
             <input
               id="password"
@@ -59,7 +61,7 @@ export default function LoginPage(props: PageProps<"/masuk">) {
             disabled={pending}
             className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
           >
-            {pending ? "Memproses..." : "Masuk"}
+            {pending ? t.processing : t.submit}
           </button>
         </form>
       </div>

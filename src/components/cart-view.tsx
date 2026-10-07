@@ -6,25 +6,24 @@ import { Trash2, Gift, Minus, Plus } from "lucide-react";
 import { useCart } from "@/lib/use-cart";
 import { removeFromCart, updateCartItem, MAX_YEARS } from "@/lib/cart";
 import { rupiah } from "@/lib/format";
+import { useI18n } from "@/components/i18n-provider";
 
 export default function CartView({ loggedIn }: { loggedIn: boolean }) {
+  const { dict } = useI18n();
+  const t = dict.cart;
   const items = useCart();
 
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-emerald-100 bg-white p-10 text-center shadow-sm">
         <p className="text-5xl">🛒</p>
-        <h2 className="mt-4 text-lg font-semibold text-emerald-950">
-          Keranjang masih kosong
-        </h2>
-        <p className="mt-1 text-sm text-zinc-500">
-          Pilih pohon favoritmu dan jadilah pengasuh hutan.
-        </p>
+        <h2 className="mt-4 text-lg font-semibold text-emerald-950">{t.emptyTitle}</h2>
+        <p className="mt-1 text-sm text-zinc-500">{t.emptyDesc}</p>
         <Link
           href="/pohon"
           className="mt-6 inline-flex rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
         >
-          Lihat Data Pohon
+          {t.browseTrees}
         </Link>
       </div>
     );
@@ -70,7 +69,7 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
                 <div className="inline-flex items-center rounded-full border border-emerald-200 bg-white">
                   <button
                     type="button"
-                    aria-label={`Kurangi durasi ${item.localName}`}
+                    aria-label={t.minusAria.replaceAll("{name}", item.localName)}
                     disabled={years <= 1}
                     onClick={() => updateCartItem(item.code, { years: years - 1 })}
                     className="flex h-7 w-7 items-center justify-center rounded-full text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
@@ -78,11 +77,11 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
                     <Minus className="h-3.5 w-3.5" />
                   </button>
                   <span className="min-w-[4.25rem] text-center text-xs font-semibold text-emerald-800">
-                    {years} {years === 1 ? "tahun" : "tahun"}
+                    {years} {years === 1 ? t.year : t.years}
                   </span>
                   <button
                     type="button"
-                    aria-label={`Tambah durasi ${item.localName}`}
+                    aria-label={t.plusAria.replaceAll("{name}", item.localName)}
                     disabled={years >= MAX_YEARS}
                     onClick={() => updateCartItem(item.code, { years: years + 1 })}
                     className="flex h-7 w-7 items-center justify-center rounded-full text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
@@ -91,12 +90,12 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
                   </button>
                 </div>
                 <span className="text-xs text-zinc-500">
-                  {rupiah(item.priceIdr)} / tahun
+                  {rupiah(item.priceIdr)} {t.perYear}
                 </span>
               </div>
               {item.giftName ? (
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-emerald-700">
-                  <Gift className="h-3 w-3" /> Hadiah untuk {item.giftName}
+                  <Gift className="h-3 w-3" /> {t.giftFor} {item.giftName}
                 </p>
               ) : null}
             </div>
@@ -105,7 +104,7 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
             </span>
             <button
               type="button"
-              aria-label={`Hapus ${item.localName} dari keranjang`}
+              aria-label={t.removeAria.replaceAll("{name}", item.localName)}
               onClick={() => removeFromCart(item.code)}
               className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
             >
@@ -117,28 +116,26 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
       </div>
 
       <aside className="h-fit rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-        <h2 className="font-semibold text-emerald-950">Ringkasan</h2>
+        <h2 className="font-semibold text-emerald-950">{t.summary}</h2>
         <div className="mt-4 flex items-center justify-between text-sm text-zinc-600">
           <span>
-            {items.length} pohon · {totalYears} {totalYears === 1 ? "tahun" : "tahun"}
+            {items.length} {items.length === 1 ? t.treeWord : t.treesWord} · {totalYears}{" "}
+            {totalYears === 1 ? t.year : t.years}
           </span>
           <span className="text-base font-bold text-emerald-700">{rupiah(total)}</span>
         </div>
-        <p className="mt-2 text-xs text-zinc-500">
-          Belum termasuk kode unik transfer (Rp100–Rp999) yang dihitung saat
-          pembayaran.
-        </p>
+        <p className="mt-2 text-xs text-zinc-500">{t.uniqueNote}</p>
         <Link
           href={loggedIn ? "/checkout" : "/masuk?next=/checkout"}
           className="mt-6 block w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:from-emerald-500 hover:to-emerald-400"
         >
-          {loggedIn ? "Lanjut ke Pembayaran" : "Masuk untuk Checkout"}
+          {loggedIn ? t.checkout : t.loginToCheckout}
         </Link>
         {!loggedIn && (
           <p className="mt-3 text-center text-xs text-zinc-500">
-            Belum punya akun?{" "}
+            {t.noAccount}{" "}
             <Link href="/daftar" className="font-medium text-emerald-700 hover:underline">
-              Daftar
+              {dict.nav.register}
             </Link>
           </p>
         )}

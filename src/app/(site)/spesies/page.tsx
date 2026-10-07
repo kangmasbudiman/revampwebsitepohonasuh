@@ -2,12 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Leaf } from "lucide-react";
 import { apiGet, mapSpeciesList, type ApiSpecies } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 
-export const metadata = {
-  title: "Katalog Spesies",
-  description:
-    "Ensiklopedia spesies pohon dalam program Pohon Asuh — nama lokal, famili, dan estimasi serapan karbon per pohon.",
-};
+export async function generateMetadata() {
+  const t = (await getDict()).pages.spesies;
+  return { title: t.title, description: t.metaDesc };
+}
 
 const ABJAD = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -40,42 +40,39 @@ export default async function SpeciesListPage(props: PageProps<"/spesies">) {
         ? "bg-emerald-600 text-white shadow-sm"
         : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
     }`;
+  const d = (await getDict()).pages.spesies;
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <h1 className="text-3xl font-bold text-emerald-950">Katalog Spesies</h1>
-      <p className="mt-2 max-w-2xl text-zinc-600">
-        Ensiklopedia spesies pohon yang tumbuh di hutan-hutan program Pohon Asuh. Setiap pohon
-        yang Anda asuh menyerap karbon di habitat aslinya — angka serapan di bawah adalah
-        estimasi tahunan per pohon.
-      </p>
+      <h1 className="text-3xl font-bold text-emerald-950">{d.title}</h1>
+      <p className="mt-2 max-w-2xl text-zinc-600">{d.intro}</p>
 
       <form method="GET" className="mt-6 flex max-w-md gap-2">
         <input
           type="search"
           name="q"
           defaultValue={q}
-          placeholder="Cari nama latin atau nama lokal…"
+          placeholder={d.searchPh}
           className="w-full rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-sm text-emerald-950 outline-none transition-colors placeholder:text-zinc-400 focus:border-emerald-500"
         />
         <button
           type="submit"
           className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
         >
-          Cari
+          {d.search}
         </button>
       </form>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
         <Link href="/spesies" className={chipCls(!huruf && !q)}>
-          Semua
+          {d.all}
         </Link>
         {ABJAD.map((h) => (
           <Link
             key={h}
             href={`/spesies?huruf=${h}`}
             className={chipCls(huruf === h)}
-            aria-label={`Spesies berawalan ${h}`}
+            aria-label={d.letterAria.replaceAll("{h}", h)}
           >
             {h}
           </Link>
@@ -84,7 +81,7 @@ export default async function SpeciesListPage(props: PageProps<"/spesies">) {
 
       {species.length > 0 && (
         <p className="mt-6 text-sm text-zinc-500">
-          {tersedia.length} spesies{q || huruf ? " cocok" : " terdaftar"}
+          {(q || huruf ? d.matched : d.listed).replaceAll("{n}", String(tersedia.length))}
         </p>
       )}
 
@@ -110,7 +107,7 @@ export default async function SpeciesListPage(props: PageProps<"/spesies">) {
               {s.serapanKarbon !== null && (
                 <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm backdrop-blur">
                   <Leaf className="h-3.5 w-3.5" />
-                  ≈ {s.serapanKarbon} kg CO₂/tahun
+                  {d.carbonPerYear.replaceAll("{n}", String(s.serapanKarbon))}
                 </span>
               )}
             </div>
@@ -124,7 +121,7 @@ export default async function SpeciesListPage(props: PageProps<"/spesies">) {
                   </span>
                 )}
                 <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600">
-                  {s.jmlPohon} pohon terdata
+                  {d.treeCount.replaceAll("{n}", String(s.jmlPohon))}
                 </span>
               </div>
             </div>
@@ -133,14 +130,10 @@ export default async function SpeciesListPage(props: PageProps<"/spesies">) {
       </div>
 
       {species.length === 0 && (
-        <p className="mt-10 text-center text-zinc-500">
-          Gagal memuat katalog spesies. Silakan coba beberapa saat lagi.
-        </p>
+        <p className="mt-10 text-center text-zinc-500">{d.loadError}</p>
       )}
       {species.length > 0 && tersedia.length === 0 && (
-        <p className="mt-10 text-center text-zinc-500">
-          Tidak ada spesies yang cocok dengan pencarian Anda.
-        </p>
+        <p className="mt-10 text-center text-zinc-500">{d.noMatch}</p>
       )}
     </main>
   );

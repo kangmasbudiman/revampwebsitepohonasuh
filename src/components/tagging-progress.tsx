@@ -5,15 +5,14 @@ import Image from "next/image";
 import { CameraOff, Check, Loader2, TreePine, X } from "lucide-react";
 import type { ApiTaggingTree } from "@/lib/api";
 import { tanggal } from "@/lib/format";
+import { useI18n } from "@/components/i18n-provider";
 
-const STEPS = ["Pembayaran Terverifikasi", "Penandaan Pohon", "Adopsi Selesai"];
-
-function statusOf(proses: number): { label: string; className: string } {
+function statusOf(d: { statusDone: string; statusOngoing: string; statusWaiting: string }, proses: number) {
   if (proses >= 3)
-    return { label: "Selesai Ditandai", className: "bg-emerald-100 text-emerald-800" };
+    return { label: d.statusDone, className: "bg-emerald-100 text-emerald-800" };
   if (proses === 2)
-    return { label: "Sedang Ditandai", className: "bg-amber-100 text-amber-800" };
-  return { label: "Menunggu Penandaan", className: "bg-zinc-100 text-zinc-600" };
+    return { label: d.statusOngoing, className: "bg-amber-100 text-amber-800" };
+  return { label: d.statusWaiting, className: "bg-zinc-100 text-zinc-600" };
 }
 
 function stepState(i: number, proses: number): "done" | "active" | "pending" {
@@ -23,6 +22,9 @@ function stepState(i: number, proses: number): "done" | "active" | "pending" {
 }
 
 export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) {
+  const { dict } = useI18n();
+  const d = dict.dashboard.tagging;
+  const STEPS = [d.step1, d.step2, d.step3];
   const [zoom, setZoom] = useState<{ tree: ApiTaggingTree; index: number } | null>(null);
 
   useEffect(() => {
@@ -42,15 +44,12 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
 
   return (
     <section className="mt-8">
-      <h2 className="text-lg font-bold text-emerald-950">Progres Tagging Pohon</h2>
-      <p className="mt-1 text-sm text-zinc-500">
-        Pantau proses penandaan pohon Anda oleh petugas lapangan — bukti foto akan muncul
-        di bawah ini.
-      </p>
+      <h2 className="text-lg font-bold text-emerald-950">{d.title}</h2>
+      <p className="mt-1 text-sm text-zinc-500">{d.desc}</p>
 
       <div className="mt-4 space-y-4">
         {trees.map((t) => {
-          const st = statusOf(t.proses);
+          const st = statusOf(d, t.proses);
           return (
             <article
               key={t.idadopsi}
@@ -60,7 +59,7 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-semibold text-emerald-950">
-                    {t.localName || "Pohon"}{" "}
+                    {t.localName || d.tree}{" "}
                     <span className="font-normal text-zinc-400">({t.idpohon})</span>
                   </p>
                   <p className="text-xs text-zinc-500">📍 {t.desa}</p>
@@ -74,7 +73,10 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
               </div>
 
               {/* Timeline 3 langkah */}
-              <ol className="mt-5 flex items-start" aria-label={`Proses tagging ${t.idpohon}`}>
+              <ol
+                className="mt-5 flex items-start"
+                aria-label={d.processAria.replaceAll("{tree}", t.idpohon)}
+              >
                 {STEPS.map((label, i) => {
                   const state = stepState(i, t.proses);
                   return (
@@ -136,13 +138,13 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
                       key={`${t.idadopsi}-${i}`}
                       type="button"
                       data-tagging-foto={t.idpohon}
-                      aria-label={`Perbesar foto tagging ${t.idpohon} ke-${i + 1}`}
+                      aria-label={d.enlargeAria.replaceAll("{tree}", t.idpohon).replaceAll("{n}", String(i + 1))}
                       onClick={() => setZoom({ tree: t, index: i })}
                       className="group relative aspect-square overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50"
                     >
                       <Image
                         src={f.url}
-                        alt={`Foto tagging ${t.idpohon} ke-${i + 1}`}
+                        alt={d.photoAlt.replaceAll("{tree}", t.idpohon).replaceAll("{n}", String(i + 1))}
                         fill
                         sizes="(max-width: 640px) 50vw, 200px"
                         className="object-cover transition group-hover:scale-105"
@@ -158,10 +160,7 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
               ) : (
                 <div className="mt-5 flex items-center gap-3 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/60 p-4 text-sm text-zinc-500">
                   <CameraOff className="h-5 w-5 shrink-0 text-zinc-400" aria-hidden />
-                  <span>
-                    Belum ada foto. Bukti foto akan muncul setelah petugas mulai menandai
-                    pohon Anda.
-                  </span>
+                  <span>{d.noPhotos}</span>
                 </div>
               )}
             </article>
@@ -173,7 +172,7 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
       {zoom && (
         <div
           role="dialog"
-          aria-label="Foto tagging"
+          aria-label={d.lightboxAria}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           onClick={() => setZoom(null)}
         >
@@ -184,7 +183,7 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
             <div className="relative h-[75vh] w-full overflow-hidden rounded-2xl bg-black">
               <Image
                 src={zoom.tree.foto[zoom.index].url}
-                alt={`Foto tagging ${zoom.tree.idpohon}`}
+                alt={`${d.lightboxAria} ${zoom.tree.idpohon}`}
                 fill
                 sizes="(max-width: 768px) 100vw, 768px"
                 className="object-contain"
@@ -192,14 +191,15 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
             </div>
             <div className="mt-3 flex items-center justify-between text-white">
               <p className="text-sm">
-                {zoom.tree.localName || "Pohon"} ({zoom.tree.idpohon}) · foto ke-
-                {zoom.index + 1} dari {zoom.tree.foto.length}
+                {zoom.tree.localName || d.tree} ({zoom.tree.idpohon}) ·{" "}
+                {d.photoOf}
+                {zoom.index + 1} {d.of} {zoom.tree.foto.length}
                 {zoom.tree.foto[zoom.index].tanggal &&
                   ` · ${tanggal(zoom.tree.foto[zoom.index].tanggal!)}`}
               </p>
               <button
                 type="button"
-                aria-label="Tutup foto"
+                aria-label={d.closeAria}
                 onClick={() => setZoom(null)}
                 className="rounded-full bg-white/15 p-2 hover:bg-white/25"
               >

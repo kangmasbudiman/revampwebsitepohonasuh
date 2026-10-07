@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { apiPost, mapTree, mapTrees, slugify, type ApiTree } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { rupiah } from "@/lib/format";
+import { getDict } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import TreeCard from "@/components/tree-card";
 import AdoptPanel from "@/components/adopt-panel";
@@ -38,21 +39,28 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
   }
   if (!tree) notFound();
 
+  const dict = await getDict();
+  const d = dict.pages.pohonDetail;
+  const statusLabel = dict.tree;
+
   const specs = [
-    { label: "Diameter", value: tree.diameterCm ? `${tree.diameterCm} cm` : "—" },
+    { label: d.diameter, value: tree.diameterCm ? `${tree.diameterCm} cm` : "—" },
     {
-      label: "Estimasi Biomassa",
-      value: tree.tonase !== null ? `± ${tree.tonase.toLocaleString("id-ID", { maximumFractionDigits: 1 })} ton` : "—",
+      label: d.biomass,
+      value:
+        tree.tonase !== null
+          ? d.ton.replaceAll("{n}", tree.tonase.toLocaleString("id-ID", { maximumFractionDigits: 1 }))
+          : "—",
     },
-    { label: "Tinggi", value: tree.heightM ? `${tree.heightM} m` : "—" },
-    { label: "Keliling Batang", value: tree.kelilingCm ? `${tree.kelilingCm} cm` : "—" },
-    { label: "Kode Pohon", value: tree.code },
+    { label: d.height, value: tree.heightM ? `${tree.heightM} m` : "—" },
+    { label: d.circumference, value: tree.kelilingCm ? `${tree.kelilingCm} cm` : "—" },
+    { label: d.code, value: tree.code },
   ];
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
       <Link href="/pohon" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
-        ← Kembali ke Data Pohon
+        {d.back}
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
@@ -74,10 +82,10 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
         <div>
           <div className="flex items-center gap-3">
             <StatusBadge {...(tree.status === "AVAILABLE"
-              ? { label: "Tersedia", className: "bg-emerald-100 text-emerald-800" }
+              ? { label: statusLabel.statusAvailable, className: "bg-emerald-100 text-emerald-800" }
               : tree.status === "RESERVED"
-                ? { label: "Dipesan", className: "bg-amber-100 text-amber-800" }
-                : { label: "Teradopsi", className: "bg-zinc-100 text-zinc-600" })} />
+                ? { label: statusLabel.statusReserved, className: "bg-amber-100 text-amber-800" }
+                : { label: statusLabel.statusAdopted, className: "bg-zinc-100 text-zinc-600" })} />
             <Link
               href={`/lokasi/${slugify(tree.desa)}`}
               className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
@@ -102,10 +110,10 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
 
           <div className="mt-6 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
             <div className="flex items-baseline justify-between">
-              <span className="text-sm text-zinc-600">Biaya adopsi</span>
+              <span className="text-sm text-zinc-600">{d.adoptionFee}</span>
               <span className="text-2xl font-bold text-emerald-700">{rupiah(tree.priceIdr)}</span>
             </div>
-            <p className="mt-1 text-right text-xs text-zinc-500">per tahun</p>
+            <p className="mt-1 text-right text-xs text-zinc-500">{d.perYear}</p>
             <div className="mt-4">
               {tree.status === "AVAILABLE" ? (
                 <AdoptPanel
@@ -120,7 +128,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
                 />
               ) : (
                 <p className="rounded-xl bg-zinc-50 px-4 py-3 text-center text-sm text-zinc-500">
-                  Pohon ini sedang tidak tersedia untuk adopsi.
+                  {d.unavailable}
                 </p>
               )}
             </div>
@@ -130,7 +138,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
 
       {galeri.length > 0 && (
         <section className="mt-16">
-          <h2 className="text-xl font-bold text-emerald-950">Galeri Pohon</h2>
+          <h2 className="text-xl font-bold text-emerald-950">{d.gallery}</h2>
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {galeri.map((u, i) => (
               <a
@@ -142,7 +150,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
               >
                 <Image
                   src={u}
-                  alt={`Galeri ${tree.localName} ${i + 1}`}
+                  alt={d.galleryAlt.replaceAll("{name}", tree.localName).replaceAll("{n}", String(i + 1))}
                   fill
                   sizes="(max-width: 640px) 50vw, 25vw"
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -156,7 +164,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
       {others.length > 0 && (
         <section className="mt-16">
           <h2 className="text-xl font-bold text-emerald-950">
-            Pohon lain di {tree.desa}
+            {d.others.replaceAll("{desa}", tree.desa)}
           </h2>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {others.map((t, ti) => (

@@ -14,11 +14,12 @@ import { Map as MapIcon, Sun, Layers, Satellite, type LucideIcon } from "lucide-
 import type { FeatureCollection, Point } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { ApiPetaPohon } from "@/lib/api";
+import { useI18n } from "@/components/i18n-provider";
 
-const STATUS_STYLE: Record<string, { color: string; label: string }> = {
-  AVAILABLE: { color: "#059669", label: "Tersedia" },
-  RESERVED: { color: "#d97706", label: "Dipesan" },
-  ADOPTED: { color: "#52525b", label: "Teradopsi" },
+const STATUS_STYLE: Record<string, { color: string }> = {
+  AVAILABLE: { color: "#059669" },
+  RESERVED: { color: "#d97706" },
+  ADOPTED: { color: "#52525b" },
 };
 
 // Path pohon cemara 24×24: dipakai legenda (SVG) & marker (canvas→MapLibre icon).
@@ -44,16 +45,15 @@ const SATELIT_STYLE: StyleSpecification = {
 
 type Basemap = {
   key: string;
-  label: string;
   icon: LucideIcon;
   style: string | StyleSpecification;
 };
 
 const BASEMAPS: Basemap[] = [
-  { key: "standar", label: "Standar", icon: MapIcon, style: "https://tiles.openfreemap.org/styles/liberty" },
-  { key: "terang", label: "Terang", icon: Sun, style: "https://tiles.openfreemap.org/styles/bright" },
-  { key: "minimal", label: "Minimal", icon: Layers, style: "https://tiles.openfreemap.org/styles/positron" },
-  { key: "satelit", label: "Satelit", icon: Satellite, style: SATELIT_STYLE },
+  { key: "standar", icon: MapIcon, style: "https://tiles.openfreemap.org/styles/liberty" },
+  { key: "terang", icon: Sun, style: "https://tiles.openfreemap.org/styles/bright" },
+  { key: "minimal", icon: Layers, style: "https://tiles.openfreemap.org/styles/positron" },
+  { key: "satelit", icon: Satellite, style: SATELIT_STYLE },
 ];
 
 const SOURCE_ID = "pohon";
@@ -137,6 +137,29 @@ export default function DesaMap({ desa, pohon }: { desa: string; pohon: ApiPetaP
   const styleRef = useRef("standar");
   const router = useRouter();
   const [basemap, setBasemap] = useState("standar");
+  const { dict } = useI18n();
+  // Handler map dibuat sekali (effect init, deps kosong) — simpan dict di ref
+  // agar popup tetap memakai bahasa aktif, bukan bahasa saat map dibuat.
+  const dictRef = useRef(dict);
+  dictRef.current = dict;
+  const d = dict.pages.lokasiDetail;
+
+  const baseLabel = (key: string) =>
+    key === "terang"
+      ? d.mapBaseBright
+      : key === "minimal"
+        ? d.mapBaseMinimal
+        : key === "satelit"
+          ? d.mapBaseSatellite
+          : d.mapBaseStandard;
+  const statusLabel = (status: string) => {
+    const t = dictRef.current.tree;
+    return status === "RESERVED"
+      ? t.statusReserved
+      : status === "ADOPTED"
+        ? t.statusAdopted
+        : t.statusAvailable;
+  };
 
   const valid = pohon.filter((p) => p.lat !== null && p.lng !== null);
 
@@ -210,13 +233,14 @@ export default function DesaMap({ desa, pohon }: { desa: string; pohon: ApiPetaP
         status: string;
       };
       const s = STATUS_STYLE[status] ?? STATUS_STYLE.AVAILABLE;
+      const t = dictRef.current.pages.lokasiDetail;
       const href = `/pohon/${encodeURIComponent(code)}`;
       const popup = new Popup({ offset: 14, maxWidth: "240px" })
         .setLngLat((f.geometry as Point).coordinates as [number, number])
         .setHTML(
           `<strong>${escapeHtml(code)}</strong> — ${escapeHtml(localName)}<br />` +
-            `<span style="color:${s.color};font-weight:600">${s.label}</span><br />` +
-            `<a href="${href}" data-pohon-link style="color:#047857;font-weight:600">Lihat detail pohon →</a>`,
+            `<span style="color:${s.color};font-weight:600">${escapeHtml(statusLabel(status))}</span><br />` +
+            `<a href="${href}" data-pohon-link style="color:#047857;font-weight:600">${escapeHtml(t.mapPopupLink)}</a>`,
         )
         .addTo(map);
       popup.on("open", () => {
@@ -260,13 +284,14 @@ export default function DesaMap({ desa, pohon }: { desa: string; pohon: ApiPetaP
           {BASEMAPS.map((b) => {
             const Icon = b.icon;
             const on = basemap === b.key;
+            const label = baseLabel(b.key);
             return (
               <button
                 key={b.key}
                 type="button"
                 onClick={() => setBasemap(b.key)}
-                title={`Peta ${b.label}`}
-                aria-label={`Gaya peta ${b.label}`}
+                title={d.mapBaseTitle.replaceAll("{label}", label)}
+                aria-label={d.mapBaseAria.replaceAll("{label}", label)}
                 aria-pressed={on}
                 className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                   on
@@ -275,7 +300,7 @@ export default function DesaMap({ desa, pohon }: { desa: string; pohon: ApiPetaP
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{b.label}</span>
+                <span className="hidden sm:inline">{label}</span>
               </button>
             );
           })}
@@ -294,7 +319,7 @@ export default function DesaMap({ desa, pohon }: { desa: string; pohon: ApiPetaP
                 paintOrder="stroke"
               />
             </svg>
-            {s.label} ({valid.filter((p) => p.status === status).length})
+            {statusLabel(status)} ({valid.filter((p) => p.status === status).length})
           </span>
         ))}
       </div>

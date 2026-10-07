@@ -5,7 +5,12 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const session = await requireAdmin();
 
   return (
-    <AdminShell name={session.name} level={session.level} userId={session.userId}>
+    <AdminShell
+      name={session.name}
+      level={session.level}
+      userId={session.userId}
+      photo={session.photo}
+    >
       {children}
     </AdminShell>
   );

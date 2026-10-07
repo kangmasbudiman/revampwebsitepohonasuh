@@ -1,9 +1,12 @@
 "use client";
 
 import { useActionState } from "react";
+import { useI18n } from "@/components/i18n-provider";
 import { submitPayment, type AdoptionState } from "@/lib/actions/adoption";
 
 export default function PaymentForm({ confirmationId }: { confirmationId: number }) {
+  const { dict } = useI18n();
+  const t = dict.dashboard.pay;
   const [state, action, pending] = useActionState<AdoptionState, FormData>(submitPayment, {});
 
   return (
@@ -11,7 +14,7 @@ export default function PaymentForm({ confirmationId }: { confirmationId: number
       <input type="hidden" name="confirmationId" value={confirmationId} />
       <div>
         <label htmlFor="proof" className="block text-sm font-medium text-zinc-700">
-          Bukti Transfer <span className="text-zinc-400">(screenshot/gambar, maks 2 MB)</span>
+          {t.proofLabel} <span className="text-zinc-400">{t.proofHint}</span>
         </label>
         <input
           id="proof"
@@ -30,7 +33,7 @@ export default function PaymentForm({ confirmationId }: { confirmationId: number
         disabled={pending}
         className="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
       >
-        {pending ? "Mengirim..." : "Kirim Bukti Pembayaran"}
+        {pending ? t.sending : t.sendProof}
       </button>
     </form>
   );

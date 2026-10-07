@@ -3,6 +3,7 @@ import Image from "next/image";
 import StatusBadge from "@/components/status-badge";
 import AddToCartButton from "@/components/add-to-cart-button";
 import { rupiah, TREE_STATUS } from "@/lib/format";
+import { getDict } from "@/lib/i18n";
 
 type TreeCardProps = {
   tree: {
@@ -17,8 +18,13 @@ type TreeCardProps = {
   };
 };
 
-export default function TreeCard({ tree }: TreeCardProps) {
-  const status = TREE_STATUS[tree.status] ?? { label: tree.status, className: "bg-zinc-100 text-zinc-600" };
+export default async function TreeCard({ tree }: TreeCardProps) {
+  const t = (await getDict()).tree;
+  const statusLabel: Record<string, string> = {
+    AVAILABLE: t.statusAvailable,
+    RESERVED: t.statusReserved,
+    ADOPTED: t.statusAdopted,
+  };
 
   return (
     <Link
@@ -38,7 +44,10 @@ export default function TreeCard({ tree }: TreeCardProps) {
           <div className="flex h-full items-center justify-center text-4xl">🌳</div>
         )}
         <div className="absolute left-3 top-3">
-          <StatusBadge {...status} />
+          <StatusBadge
+            label={statusLabel[tree.status] ?? tree.status}
+            className={TREE_STATUS[tree.status]?.className ?? "bg-zinc-100 text-zinc-600"}
+          />
         </div>
         {tree.status === "AVAILABLE" && (
           <div className="absolute right-3 top-3">
@@ -67,7 +76,7 @@ export default function TreeCard({ tree }: TreeCardProps) {
         </div>
         {tree.location && <p className="mt-2 text-sm text-zinc-600">📍 {tree.location.name}</p>}
         <p className="mt-3 text-lg font-bold text-emerald-700">{rupiah(tree.priceIdr)}</p>
-        <p className="text-xs text-zinc-500">per tahun</p>
+        <p className="text-xs text-zinc-500">{t.perYear}</p>
       </div>
     </Link>
   );

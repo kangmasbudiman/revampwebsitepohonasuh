@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CalendarDays, Eye, User } from "lucide-react";
 import { apiGet, apiPost, mapPost, mapPosts, type ApiPost } from "@/lib/api";
 import { tanggal } from "@/lib/format";
+import { getDict } from "@/lib/i18n";
 import PostCard from "@/components/post-card";
 
 type Props = PageProps<"/blog/[id]">;
@@ -19,8 +20,12 @@ async function getPost(id: number): Promise<ApiPost | null> {
 
 export async function generateMetadata(props: Props) {
   const { id } = await props.params;
-  const post = await getPost(Number(id));
-  return { title: post ? `${post.title} — Blog Pohon Asuh` : "Artikel tidak ditemukan" };
+  const [post, d] = await Promise.all([getPost(Number(id)), getDict()]);
+  return {
+    title: post
+      ? d.pages.blogDetail.title.replaceAll("{title}", post.title)
+      : d.pages.blogDetail.notFoundTitle,
+  };
 }
 
 export default async function BlogDetailPage(props: Props) {
@@ -51,11 +56,12 @@ export default async function BlogDetailPage(props: Props) {
   } catch {
     // section opsional
   }
+  const d = (await getDict()).pages.blogDetail;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
       <Link href="/blog" className="text-sm font-medium text-emerald-700 hover:underline">
-        ← Semua Artikel
+        {d.back}
       </Link>
 
       <article className="mt-4">
@@ -94,7 +100,7 @@ export default async function BlogDetailPage(props: Props) {
           )}
           <span className="inline-flex items-center gap-1.5">
             <Eye className="h-4 w-4" />
-            {viewer} kali dibaca
+            {d.timesRead.replaceAll("{n}", String(viewer))}
           </span>
         </div>
 
@@ -105,7 +111,7 @@ export default async function BlogDetailPage(props: Props) {
 
       {others.length > 0 && (
         <section className="mt-12 border-t border-emerald-100 pt-8">
-          <h2 className="text-lg font-bold text-emerald-950">Artikel Lainnya</h2>
+          <h2 className="text-lg font-bold text-emerald-950">{d.others}</h2>
           <div className="mt-4 grid gap-4">
             {others.map((p) => (
               <PostCard key={p.id} post={p} />

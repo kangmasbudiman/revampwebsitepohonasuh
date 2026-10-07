@@ -16,16 +16,26 @@ import {
   type ApiTaggingTree,
 } from "@/lib/api";
 import { requireUser } from "@/lib/guard";
+import { absoluteUrl } from "@/lib/site-url";
 import { rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
+import { getDict } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import PaymentForm from "@/components/payment-form";
 import OnlinePayment from "@/components/online-payment";
 import CancelAdoptionButton from "@/components/cancel-adoption-button";
 import TaggingProgress from "@/components/tagging-progress";
+import GiftSend from "@/components/gift-send";
 
 export default async function AdoptionDetailPage(props: PageProps<"/dashboard/adopsi/[code]">) {
   const { code } = await props.params;
   const session = await requireUser();
+  const d = (await getDict()).dashboard;
+  const statusLabel: Record<string, string> = {
+    PENDING_PAYMENT: d.statusPendingPayment,
+    PENDING_VERIFICATION: d.statusPendingVerification,
+    ACTIVE: d.statusActive,
+    CANCELLED: d.statusCancelled,
+  };
 
   let conf: ApiConfirmation | null = null;
   let trees: ApiAdopsiPohon[] = [];
@@ -65,22 +75,35 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   }
 
   const status = adoptionStatus(conf.confirmation, !!conf.fotoUrl);
-  const statusInfo = ADOPTION_STATUS[status] ?? { label: status, className: "bg-zinc-100 text-zinc-600" };
   const subtotal = trees.reduce((sum, t) => sum + t.price, 0);
   const unique = Math.max(0, conf.price - subtotal);
   const sertifikatRows = trees.filter((t) => t.certnum);
+  // Adopsi hadiah = ada baris sertifikat atas nama orang lain (bukan kosong).
+  const giftRow = sertifikatRows.find((t) => t.nama.trim()) ?? null;
+  const giftLink = giftRow ? await absoluteUrl(certUrl(giftRow.certnum!)) : "";
+  const localnames = [...new Set(trees.map((t) => t.localName).filter(Boolean))];
+  const pohonLabel = `${trees.length} ${trees.length === 1 ? d.treeWord : d.treesWord}${
+    localnames.length ? ": " + localnames.join(", ") : ""
+  }`;
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
       <Link href="/dashboard" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
-        ← Kembali ke Dashboard
+        {d.backToDashboard}
       </Link>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-emerald-950">Order {conf.invoice}</h1>
-        <StatusBadge {...statusInfo} />
+        <h1 className="text-2xl font-bold text-emerald-950">
+          {d.order} {conf.invoice}
+        </h1>
+        <StatusBadge
+          label={statusLabel[status] ?? status}
+          className={ADOPTION_STATUS[status]?.className ?? "bg-zinc-100 text-zinc-600"}
+        />
       </div>
-      <p className="mt-1 text-sm text-zinc-500">Dibuat {tanggal(new Date(conf.tanggal))}</p>
+      <p className="mt-1 text-sm text-zinc-500">
+        {d.created} {tanggal(new Date(conf.tanggal))}
+      </p>
 
       {/* Ringkasan pohon dalam order ini */}
       <div className="mt-6 space-y-3">
@@ -102,20 +125,22 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               </p>
               <p className="mt-1 text-sm text-zinc-600">📍 {t.desa}</p>
               <p className="text-xs text-zinc-400">
-                Durasi {t.dur} {t.dur === 1 ? "tahun" : "tahun"}
+                {d.duration} {t.dur} {t.dur === 1 ? d.year : d.years}
               </p>
               {t.nama ? (
                 <p className="text-xs text-emerald-700">
-                  Sertifikat a.n. <span className="font-semibold">{t.nama}</span>
+                  {d.certFor} <span className="font-semibold">{t.nama}</span>
                 </p>
               ) : null}
               {t.memo ? <p className="text-xs italic text-zinc-400">“{t.memo}”</p> : null}
               {t.tglExp && status === "ACTIVE" && (
-                <p className="text-xs text-zinc-400">Berlaku hingga {tanggal(new Date(t.tglExp))}</p>
+                <p className="text-xs text-zinc-400">
+                  {d.validUntil} {tanggal(new Date(t.tglExp))}
+                </p>
               )}
             </div>
             <div className="text-right">
-              <p className="text-xs text-zinc-500">Biaya adopsi</p>
+              <p className="text-xs text-zinc-500">{d.adoptionFee}</p>
               <p className="text-lg font-bold text-emerald-700">{rupiah(t.price)}</p>
             </div>
           </div>
@@ -127,16 +152,13 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
         <OnlinePayment confirmationId={conf.id} linkInvoice={conf.linkInvoice} />
         <section className="mt-6 grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-6">
-            <h2 className="font-bold text-amber-900">Instruksi Pembayaran</h2>
-            <p className="mt-2 text-sm leading-6 text-amber-900/80">
-              Transfer tepat <strong>sesuai jumlah total</strong> di bawah ini agar pembayaran Anda
-              mudah diverifikasi. Kode unik membedakan transfer Anda dari donatur lain.
-            </p>
+            <h2 className="font-bold text-amber-900">{d.pay.instructionsTitle}</h2>
+            <p className="mt-2 text-sm leading-6 text-amber-900/80">{d.pay.instructionsDesc}</p>
             <div className="mt-4 rounded-xl bg-white p-4">
-              <p className="text-xs uppercase tracking-wide text-zinc-400">Total Transfer</p>
+              <p className="text-xs uppercase tracking-wide text-zinc-400">{d.pay.totalTransfer}</p>
               <p className="text-2xl font-bold text-emerald-700">{rupiah(conf.price)}</p>
               <p className="mt-1 text-xs text-zinc-500">
-                {rupiah(subtotal)} + kode unik{" "}
+                {rupiah(subtotal)} + {d.pay.uniqueCode}{" "}
                 <span className="font-bold text-amber-600">{unique}</span>
               </p>
             </div>
@@ -147,18 +169,17 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
                   <p className="mt-0.5 font-mono text-lg font-bold text-emerald-950">
                     {bank.accountNumber}
                   </p>
-                  <p className="text-sm text-zinc-600">a.n. {bank.accountName}</p>
+                  <p className="text-sm text-zinc-600">
+                    {d.pay.careOf} {bank.accountName}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-            <h2 className="font-bold text-emerald-950">Konfirmasi Pembayaran</h2>
-            <p className="mt-2 text-sm text-zinc-600">
-              Sudah transfer? Kirim bukti pembayaran di bawah ini. Sertifikat adopsi akan terbit
-              setelah admin memverifikasi pembayaran Anda.
-            </p>
+            <h2 className="font-bold text-emerald-950">{d.pay.confirmTitle}</h2>
+            <p className="mt-2 text-sm text-zinc-600">{d.pay.confirmDesc}</p>
             <div className="mt-4">
               <PaymentForm confirmationId={conf.id} />
             </div>
@@ -173,18 +194,15 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
       {status === "PENDING_VERIFICATION" && (
         <section className="mt-8 space-y-6">
           <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-6">
-            <h2 className="font-bold text-blue-900">Pembayaran Sedang Diverifikasi</h2>
-            <p className="mt-2 text-sm leading-6 text-blue-900/80">
-              Terima kasih! Bukti pembayaran Anda sudah kami terima. Tim kami akan memverifikasi
-              dalam 1-2 hari kerja.
-            </p>
+            <h2 className="font-bold text-blue-900">{d.verify.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-blue-900/80">{d.verify.desc}</p>
             {conf.fotoUrl && (
               <div className="mt-4">
-                <p className="text-xs uppercase tracking-wide text-blue-900/60">Bukti yang dikirim:</p>
+                <p className="text-xs uppercase tracking-wide text-blue-900/60">{d.verify.proofSent}</p>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={conf.fotoUrl}
-                  alt="Bukti pembayaran"
+                  alt={d.verify.proofAlt}
                   className="mt-2 max-h-64 rounded-xl border border-blue-100 bg-white object-contain"
                 />
               </div>
@@ -198,9 +216,9 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
         <>
         <section className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center">
           <p className="text-3xl">🎉</p>
-          <h2 className="mt-2 font-bold text-emerald-900">Adopsi Aktif</h2>
+          <h2 className="mt-2 font-bold text-emerald-900">{d.active.title}</h2>
           <p className="mt-1 text-sm text-emerald-900/80">
-            Pembayaran Anda terverifikasi. Pohon diasuh atas nama{" "}
+            {d.active.descPre}{" "}
             <strong>{trees[0]?.nama?.trim() || session.name}</strong>.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
@@ -210,10 +228,21 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
                 href={certUrl(t.certnum!)}
                 className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
               >
-                Sertifikat {t.idpohon}
+                {d.certificate} {t.idpohon}
               </Link>
             ))}
           </div>
+          {giftRow && (
+            <div className="mt-3 flex justify-center">
+              <GiftSend
+                certnum={giftRow.certnum!}
+                namaPenerima={giftRow.nama.trim()}
+                namaPengirim={session.name}
+                pohonLabel={pohonLabel}
+                link={giftLink}
+              />
+            </div>
+          )}
         </section>
         <TaggingProgress trees={tagging} />
         </>
@@ -221,10 +250,8 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
 
       {status === "CANCELLED" && (
         <section className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
-          <h2 className="font-bold text-zinc-700">Adopsi Dibatalkan</h2>
-          <p className="mt-2 text-sm text-zinc-500">
-            Order ini telah dibatalkan. Anda dapat mengadopsi pohon lain kapan saja.
-          </p>
+          <h2 className="font-bold text-zinc-700">{d.cancelled.title}</h2>
+          <p className="mt-2 text-sm text-zinc-500">{d.cancelled.desc}</p>
         </section>
       )}
     </main>

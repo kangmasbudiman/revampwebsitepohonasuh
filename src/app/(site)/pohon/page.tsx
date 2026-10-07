@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { apiGet, apiPost, mapDesa, mapTrees, type ApiDesa, type ApiTree } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 
-export const metadata = { title: "Data Pohon" };
+export async function generateMetadata() {
+  return { title: (await getDict()).pages.pohon.title };
+}
 
 const PER_PAGE = 24;
 
@@ -31,14 +34,12 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
   const total = trees.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const pageTrees = trees.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const d = (await getDict()).pages.pohon;
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <h1 className="text-3xl font-bold text-emerald-950">Data Pohon</h1>
-      <p className="mt-2 text-zinc-600">
-        Pilih pohon yang ingin Anda asuh. Setiap pohon tumbuh di habitat aslinya dan dirawat oleh
-        masyarakat pengelola hutan.
-      </p>
+      <h1 className="text-3xl font-bold text-emerald-950">{d.title}</h1>
+      <p className="mt-2 text-zinc-600">{d.intro}</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Link
@@ -47,7 +48,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
             !lokasi ? "bg-emerald-600 text-white" : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
           }`}
         >
-          Semua Lokasi
+          {d.allLocations}
         </Link>
         {desaList.map((desa) => (
           <Link
@@ -66,14 +67,16 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
 
       {error ? (
         <p className="mt-10 text-center text-zinc-500">
-          Gagal memuat data pohon.{" "}
+          {d.loadError}{" "}
           <Link href="/pohon" className="font-medium text-emerald-700 hover:underline">
-            Coba lagi
+            {d.retry}
           </Link>
         </p>
       ) : (
         <>
-          <p className="mt-6 text-sm text-zinc-500">{total} pohon tersedia</p>
+          <p className="mt-6 text-sm text-zinc-500">
+            {d.availableCount.replaceAll("{n}", String(total))}
+          </p>
 
           <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {pageTrees.map((tree, i) => (
@@ -84,7 +87,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
             ))}
           </div>
           {total === 0 && (
-            <p className="mt-10 text-center text-zinc-500">Tidak ada pohon pada lokasi ini.</p>
+            <p className="mt-10 text-center text-zinc-500">{d.empty}</p>
           )}
 
           {totalPages > 1 && (
@@ -94,20 +97,20 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
                   href={`/pohon${lokasi ? `?lokasi=${lokasi}&` : "?"}page=${page - 1}`}
                   className="rounded-xl border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
                 >
-                  ← Sebelumnya
+                  {d.prevPage}
                 </Link>
               ) : (
                 <span />
               )}
               <span className="text-sm text-zinc-500">
-                Halaman {page} dari {totalPages}
+                {d.pageOf.replaceAll("{page}", String(page)).replaceAll("{total}", String(totalPages))}
               </span>
               {page < totalPages ? (
                 <Link
                   href={`/pohon${lokasi ? `?lokasi=${lokasi}&` : "?"}page=${page + 1}`}
                   className="rounded-xl border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
                 >
-                  Berikutnya →
+                  {d.nextPage}
                 </Link>
               ) : (
                 <span />

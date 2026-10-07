@@ -4,32 +4,35 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ChevronDown, LayoutDashboard, Leaf, LogOut, ShieldCheck } from "lucide-react";
+import { ChevronDown, LayoutDashboard, Leaf, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import type { Session } from "@/lib/auth";
+import Avatar from "@/components/avatar";
 import CartBadge from "@/components/cart-badge";
 import MemberBell from "@/components/member-bell";
-
-const NAV = [
-  { href: "/", label: "Beranda" },
-  { href: "/pohon", label: "Data Pohon" },
-  { href: "/spesies", label: "Spesies" },
-  { href: "/kalkulator-karbon", label: "Kalkulator Karbon" },
-  { href: "/lokasi", label: "Lokasi" },
-  { href: "/blog", label: "Blog & Artikel" },
-];
-
-// Menu sekunder — dropdown "Informasi" agar bar utama tidak dempet.
-const INFO_NAV = [
-  { href: "/faq", label: "FAQ" },
-  { href: "/keuangan", label: "Keuangan" },
-  { href: "/kontak", label: "Kontak" },
-];
+import LangToggle from "@/components/lang-toggle";
+import { useI18n } from "@/components/i18n-provider";
 
 export default function SiteHeader({ session }: { session: Session | null }) {
   const pathname = usePathname();
+  const { dict } = useI18n();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const NAV = [
+    { href: "/", label: dict.nav.home },
+    { href: "/pohon", label: dict.nav.trees },
+    { href: "/spesies", label: dict.nav.species },
+    { href: "/kalkulator-karbon", label: dict.nav.carbonCalc },
+    { href: "/lokasi", label: dict.nav.locations },
+    { href: "/blog", label: dict.nav.blog },
+  ];
+  // Menu sekunder — dropdown "Informasi" agar bar utama tidak dempet.
+  const INFO_NAV = [
+    { href: "/faq", label: dict.nav.faq },
+    { href: "/keuangan", label: dict.nav.finance },
+    { href: "/kontak", label: dict.nav.contact },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -53,9 +56,8 @@ export default function SiteHeader({ session }: { session: Session | null }) {
   const linkActive = overlay ? "text-white after:w-full" : "text-emerald-700 after:w-full";
 
   const dashboardHref = session?.role === "ADMIN" ? "/admin" : "/dashboard";
-  const dashboardLabel = session?.role === "ADMIN" ? "Panel Admin" : "Dashboard";
+  const dashboardLabel = session?.role === "ADMIN" ? dict.nav.adminPanel : dict.nav.dashboard;
   const DashboardIcon = session?.role === "ADMIN" ? ShieldCheck : LayoutDashboard;
-  const initial = session?.name?.trim()?.charAt(0).toUpperCase() ?? "?";
 
   return (
     <header
@@ -95,7 +97,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                 overlay ? "text-emerald-200/80" : "text-emerald-600/70"
               }`}
             >
-              Adopt · Care · Grow
+              {dict.nav.tagline}
             </span>
           </span>
         </Link>
@@ -116,7 +118,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
               type="button"
               className={`${linkCls} ${infoActive ? linkActive : ""} flex items-center gap-1 whitespace-nowrap`}
             >
-              Informasi
+              {dict.nav.info}
               <ChevronDown
                 className={`h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-180 ${
                   overlay ? "text-white/70" : "text-emerald-700"
@@ -144,6 +146,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
         </nav>
 
         <div className="hidden items-center gap-3 xl:flex">
+          <LangToggle overlay={overlay} />
           <CartBadge overlay={overlay} />
           {session && <MemberBell overlay={overlay} />}
           {session ? (
@@ -154,9 +157,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                   overlay ? "hover:bg-white/10" : "hover:bg-emerald-50"
                 }`}
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-sm font-bold text-white shadow-sm ring-2 ring-white/40">
-                  {initial}
-                </span>
+                <Avatar src={session.photo} name={session.name} size={36} />
                 <span
                   className={`max-w-[10ch] truncate text-sm font-medium ${
                     overlay ? "text-white" : "text-emerald-950"
@@ -176,7 +177,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                   <div className="px-3 pb-2 pt-2">
                     <p className="truncate text-sm font-semibold text-emerald-950">{session.name}</p>
                     <p className="text-xs text-zinc-400">
-                      {session.role === "ADMIN" ? "Administrator" : "Donatur"}
+                      {session.role === "ADMIN" ? dict.nav.administrator : dict.nav.donor}
                     </p>
                   </div>
                   <div className="my-1 h-px bg-emerald-50" />
@@ -187,13 +188,20 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                     <DashboardIcon className="h-4 w-4 text-emerald-600" />
                     {dashboardLabel}
                   </Link>
+                  <Link
+                    href="/dashboard/profil"
+                    className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+                  >
+                    <UserRound className="h-4 w-4 text-emerald-600" />
+                    {dict.nav.profile}
+                  </Link>
                   <form action={logout}>
                     <button
                       type="submit"
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
                     >
                       <LogOut className="h-4 w-4" />
-                      Keluar
+                      {dict.nav.logout}
                     </button>
                   </form>
                 </div>
@@ -218,7 +226,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                 }`}
               >
                 <Leaf className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
-                Daftar
+                {dict.nav.register}
               </Link>
             </>
           )}
@@ -226,7 +234,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
 
         <button
           type="button"
-          aria-label="Buka menu"
+          aria-label={dict.nav.openMenu}
           aria-expanded={open}
           className={`rounded-lg p-2 transition-colors xl:hidden ${
             overlay ? "text-white hover:bg-white/10" : "text-emerald-900 hover:bg-emerald-50"
@@ -261,7 +269,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
               </Link>
             ))}
             <p className="px-4 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-500">
-              Informasi
+              {dict.nav.info}
             </p>
             {INFO_NAV.map((item) => (
               <Link
@@ -277,7 +285,22 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                 {item.label}
               </Link>
             ))}
+            {session && (
+              <Link
+                href="/dashboard/profil"
+                onClick={() => setOpen(false)}
+                className={`mt-2 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                  isActive("/dashboard/profil")
+                    ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow"
+                    : "text-emerald-900 hover:bg-emerald-50"
+                }`}
+              >
+                <UserRound className="h-4 w-4" />
+                {dict.nav.profile}
+              </Link>
+            )}
             <div className="mt-2 flex items-center gap-2 border-t border-emerald-100 pt-3">
+              <LangToggle />
               <CartBadge />
               {session && <MemberBell />}
               {session ? (
@@ -296,7 +319,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                       className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-3 py-2.5 text-sm font-medium text-red-600"
                     >
                       <LogOut className="h-4 w-4" />
-                      Keluar
+                      {dict.nav.logout}
                     </button>
                   </form>
                 </>
@@ -307,14 +330,14 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                     onClick={() => setOpen(false)}
                     className="flex-1 rounded-xl border border-emerald-200 px-3 py-2.5 text-center text-sm font-medium text-emerald-800"
                   >
-                    Masuk
+                    {dict.nav.login}
                   </Link>
                   <Link
                     href="/daftar"
                     onClick={() => setOpen(false)}
                     className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
                   >
-                    Daftar
+                    {dict.nav.register}
                   </Link>
                 </>
               )}

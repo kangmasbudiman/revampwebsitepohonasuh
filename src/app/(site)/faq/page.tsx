@@ -1,16 +1,18 @@
 import { db } from "@/lib/prisma";
+import { getDict } from "@/lib/i18n";
 
-export const metadata = { title: "Pertanyaan Umum (FAQ)" };
+export async function generateMetadata() {
+  return { title: (await getDict()).pages.faq.title };
+}
 
 export default async function FaqPage() {
   const faqs = await db.faq.findMany({ orderBy: { sortOrder: "asc" } });
+  const t = (await getDict()).pages.faq;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-      <h1 className="text-3xl font-bold text-emerald-950">Pertanyaan Umum</h1>
-      <p className="mt-2 text-zinc-600">
-        Temukan jawaban atas pertanyaan yang sering diajukan seputar program Pohon Asuh.
-      </p>
+      <h1 className="text-3xl font-bold text-emerald-950">{t.heading}</h1>
+      <p className="mt-2 text-zinc-600">{t.desc}</p>
 
       <div className="mt-8 space-y-3">
         {faqs.map((faq) => (

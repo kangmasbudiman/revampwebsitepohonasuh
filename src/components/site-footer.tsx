@@ -2,9 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { getSettings } from "@/lib/settings";
 import { apiGet, mapKontak, type ApiKontak } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 
 export default async function SiteFooter() {
   const s = await getSettings();
+  const t = (await getDict()).footer;
 
   // Kontak utama dari Laravel (tabel kontak, sumber tunggal bersama
   // mobile & admin web) — fallback ke settings lokal bila API gagal.
@@ -38,30 +40,30 @@ export default async function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">Jelajahi</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">{t.explore}</h3>
           <ul className="mt-3 space-y-2 text-sm">
-            <li><Link href="/pohon" className="hover:text-white">Data Pohon</Link></li>
-            <li><Link href="/spesies" className="hover:text-white">Katalog Spesies</Link></li>
-            <li><Link href="/kalkulator-karbon" className="hover:text-white">Kalkulator Karbon</Link></li>
-            <li><Link href="/lokasi" className="hover:text-white">Lokasi Hutan</Link></li>
-            <li><Link href="/blog" className="hover:text-white">Blog</Link></li>
-            <li><Link href="/keuangan" className="hover:text-white">Laporan Keuangan</Link></li>
-            <li><Link href="/faq" className="hover:text-white">FAQ</Link></li>
+            <li><Link href="/pohon" className="hover:text-white">{t.treeData}</Link></li>
+            <li><Link href="/spesies" className="hover:text-white">{t.speciesCatalog}</Link></li>
+            <li><Link href="/kalkulator-karbon" className="hover:text-white">{t.carbonCalc}</Link></li>
+            <li><Link href="/lokasi" className="hover:text-white">{t.forestLocation}</Link></li>
+            <li><Link href="/blog" className="hover:text-white">{t.blog}</Link></li>
+            <li><Link href="/keuangan" className="hover:text-white">{t.financeReport}</Link></li>
+            <li><Link href="/faq" className="hover:text-white">{t.faq}</Link></li>
           </ul>
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">Kontak</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">{t.contact}</h3>
           <ul className="mt-3 space-y-2 text-sm text-emerald-200">
             {email && <li>{email}</li>}
-            {whatsapp && <li>WA: {whatsapp}</li>}
-            {telepon && <li>Telp: {telepon}</li>}
+            {whatsapp && <li>{t.wa}: {whatsapp}</li>}
+            {telepon && <li>{t.phone}: {telepon}</li>}
             {s["contact.address"] && <li>{s["contact.address"]}</li>}
           </ul>
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">Ikuti Kami</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">{t.followUs}</h3>
           <ul className="mt-3 space-y-2 text-sm">
             {s["contact.instagram"] && (
               <li><a href={s["contact.instagram"]} target="_blank" rel="noopener noreferrer" className="hover:text-white">Instagram</a></li>
@@ -78,11 +80,11 @@ export default async function SiteFooter() {
       <div className="border-t border-emerald-900 py-4 text-center text-xs text-emerald-300">
         © {new Date().getFullYear()} Pohon Asuh — {s["site.tagline"] ?? "Adopt Trees, Save The World"} ·{" "}
         <Link href="/syarat-ketentuan" className="underline-offset-4 hover:text-white hover:underline">
-          Syarat &amp; Ketentuan
+          {t.terms}
         </Link>{" "}
         ·{" "}
         <Link href="/kebijakan-privasi" className="underline-offset-4 hover:text-white hover:underline">
-          Kebijakan Privasi
+          {t.privacy}
         </Link>
       </div>
     </footer>

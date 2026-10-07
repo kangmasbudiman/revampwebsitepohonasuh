@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { apiGet } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 import CheckoutView from "@/components/checkout-view";
 
-export const metadata = { title: "Checkout | Pohon Asuh" };
+export async function generateMetadata() {
+  return { title: (await getDict()).pages.checkout.title };
+}
 
 export default async function CheckoutPage() {
   const session = await getSession();
@@ -22,20 +25,20 @@ export default async function CheckoutPage() {
     return `https://wa.me/${digits}`;
   };
 
+  const t = (await getDict()).pages.checkout;
+
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <h1 className="text-2xl font-bold text-emerald-950">Checkout</h1>
-      <p className="mt-1 text-sm text-zinc-500">
-        Selesaikan pesanan adopsi pohonmu.
-      </p>
+      <h1 className="text-2xl font-bold text-emerald-950">{t.heading}</h1>
+      <p className="mt-1 text-sm text-zinc-500">{t.desc}</p>
       <div className="mt-8">
         <CheckoutView />
       </div>
       {nomorWa.length > 0 && (
         <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-5 py-4 text-sm text-emerald-900">
-          <p className="font-semibold">Butuh bantuan?</p>
+          <p className="font-semibold">{t.helpTitle}</p>
           <p className="mt-1 text-emerald-800">
-            Hubungi admin kami via WhatsApp:{" "}
+            {t.helpDesc}{" "}
             {nomorWa.map((n, i) => (
               <span key={n}>
                 {i > 0 && " · "}

@@ -19,6 +19,7 @@ import {
   type ApiTree,
 } from "@/lib/api";
 import { getSettings } from "@/lib/settings";
+import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 import PostCard from "@/components/post-card";
 import HeroSlider, { type HeroSlide } from "@/components/hero-slider";
@@ -27,6 +28,8 @@ import CountUp from "@/components/count-up";
 
 export default async function HomePage() {
   const s = await getSettings();
+  const dict = await getDict();
+  const d = dict.home;
 
   let trees: ApiTree[] = [];
   let unggulan: ApiTree[] = [];
@@ -92,9 +95,7 @@ export default async function HomePage() {
   const featured = unggulan.length > 0 ? unggulan : trees.slice(0, 6);
 
   const tagline = s["site.tagline"] ?? "Adopt Trees, Save The World";
-  const description =
-    s["site.description"] ??
-    "Program adopsi pohon untuk melindungi hutan adat dan hutan desa bersama masyarakat lokal di Indonesia.";
+  const description = s["site.description"] ?? dict.metadata.defaultDesc;
 
   // Slider utama dikelola admin (Kelola Slider) — sumber yang sama dengan
   // aplikasi mobile. Fallback ke slide bawaan bila API gagal/kosong.
@@ -102,35 +103,32 @@ export default async function HomePage() {
     {
       image: "/images/Lokasi-Pohon-Asuh-2023.jpg",
       eyebrow: tagline,
-      title: "Adopsi Pohon, Jaga Hutan, Dukung Masyarakat Adat",
+      title: d.slide1Title,
       description,
-      cta: { label: "Adopsi Pohon Sekarang", href: "/pohon" },
-      secondary: { label: "Lihat Lokasi Hutan", href: "/lokasi" },
+      cta: { label: d.adoptNowCta, href: "/pohon" },
+      secondary: { label: d.viewLocationsCta, href: "/lokasi" },
     },
     {
       image: "/images/pohon1.jpg",
-      eyebrow: "Dampak Nyata",
-      title: "Setiap Pohon Menyerap Karbon & Menjaga Keanekaragaman Hayati",
-      description:
-        "Pohon yang Anda asuh tetap tumbuh di habitat aslinya, menyerap CO₂ setiap tahun, dan menjadi rumah bagi satwa liar hutan Indonesia.",
-      cta: { label: "Jelajahi Data Pohon", href: "/pohon" },
-      secondary: { label: "Baca FAQ", href: "/faq" },
+      eyebrow: d.slide2Eyebrow,
+      title: d.slide2Title,
+      description: d.slide2Desc,
+      cta: { label: d.exploreTreesCta, href: "/pohon" },
+      secondary: { label: d.slide2Secondary, href: "/faq" },
     },
     {
       image: "/images/pohon2.jpg",
-      eyebrow: "Transparan & Terverifikasi",
-      title: "Dari Pembayaran hingga Sertifikat Digital",
-      description:
-        "Dapatkan sertifikat adopsi bernomor unik yang dapat diverifikasi secara daring, dan pantau laporan keuangan program secara terbuka.",
-      cta: { label: "Lihat Laporan Keuangan", href: "/keuangan" },
+      eyebrow: d.slide3Eyebrow,
+      title: d.slide3Title,
+      description: d.slide3Desc,
+      cta: { label: d.slide3Cta, href: "/keuangan" },
     },
     {
       image: "/images/pohon3.jpg",
-      eyebrow: "Bersama Masyarakat",
-      title: "Dana Adopsi untuk Masyarakat Pengelola Hutan",
-      description:
-        "Setiap rupiah Anda menjadi kompensasi bagi masyarakat adat dan desa yang merawat hutan mereka — dari Rantau Kremas hingga Laham.",
-      cta: { label: "Pelajari Lokasi Kami", href: "/lokasi" },
+      eyebrow: d.slide4Eyebrow,
+      title: d.slide4Title,
+      description: d.slide4Desc,
+      cta: { label: d.slide4Cta, href: "/lokasi" },
     },
   ];
 
@@ -141,7 +139,7 @@ export default async function HomePage() {
       eyebrow: tagline,
       title: sl.judul,
       description: sl.deskripsi,
-      cta: { label: "Adopsi Pohon Sekarang", href: "/pohon" },
+      cta: { label: d.adoptNowCta, href: "/pohon" },
     }));
   const heroSlides = slides.length > 0 ? slides : defaultSlides;
 
@@ -158,28 +156,16 @@ export default async function HomePage() {
   const marqueeLoop = [...marqueeItems, ...marqueeItems];
 
   const stats = [
-    { label: "Total Pohon Terdata", value: total, icon: TreeDeciduous },
-    { label: "Pohon Teradopsi", value: adopted, icon: Sprout },
-    { label: "Lokasi Hutan", value: stat?.desa ?? locations.length, icon: MapPin },
-    { label: "Donatur Terdaftar", value: stat?.donatur ?? 0, icon: Users },
+    { label: d.statTrees, value: total, icon: TreeDeciduous },
+    { label: d.statAdopted, value: adopted, icon: Sprout },
+    { label: d.statLocations, value: stat?.desa ?? locations.length, icon: MapPin },
+    { label: d.statDonors, value: stat?.donatur ?? 0, icon: Users },
   ];
 
   const steps = [
-    {
-      step: "1",
-      title: "Buat Akun",
-      desc: "Daftar gratis sebagai donatur untuk mulai mengadopsi pohon.",
-    },
-    {
-      step: "2",
-      title: "Pilih Pohon",
-      desc: "Telusuri data pohon di berbagai lokasi hutan dan pilih yang ingin Anda asuh.",
-    },
-    {
-      step: "3",
-      title: "Bayar & Dapat Sertifikat",
-      desc: "Selesaikan pembayaran, verifikasi admin, dan terima sertifikat adopsi digital.",
-    },
+    { step: "1", title: d.step1Title, desc: d.step1Desc },
+    { step: "2", title: d.step2Title, desc: d.step2Desc },
+    { step: "3", title: d.step3Title, desc: d.step3Desc },
   ];
 
   return (
@@ -223,7 +209,7 @@ export default async function HomePage() {
             href="/kalkulator-karbon"
             className="font-medium text-emerald-700 underline-offset-4 transition-colors hover:text-emerald-800 hover:underline"
           >
-            Hitung jejak karbon Anda dan offset dengan adopsi pohon →
+            {d.carbonLink}
           </Link>
         </p>
       </section>
@@ -232,10 +218,10 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-20">
         <Reveal>
           <p className="text-center text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-            Program
+            {d.stepsEyebrow}
           </p>
           <h2 className="mt-3 text-center text-3xl font-bold text-emerald-950">
-            Cara Kerja Program
+            {d.stepsTitle}
           </h2>
           <div className="mx-auto mt-4 h-1 w-20 rounded-full bg-gradient-to-r from-emerald-300 to-emerald-600" />
         </Reveal>
@@ -261,15 +247,15 @@ export default async function HomePage() {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-                  Koleksi
+                  {d.featuredEyebrow}
                 </p>
-                <h2 className="mt-3 text-3xl font-bold text-emerald-950">Pohon Siap Diadopsi</h2>
+                <h2 className="mt-3 text-3xl font-bold text-emerald-950">{d.featuredTitle}</h2>
               </div>
               <Link
                 href="/pohon"
                 className="rounded-full border border-emerald-200 px-5 py-2 text-sm font-semibold text-emerald-700 transition-all hover:-translate-y-0.5 hover:bg-white hover:shadow"
               >
-                Lihat semua →
+                {d.viewAll}
               </Link>
             </div>
           </Reveal>
@@ -281,9 +267,7 @@ export default async function HomePage() {
             ))}
           </div>
           {featured.length === 0 && (
-            <p className="mt-8 text-center text-zinc-500">
-              Saat ini belum ada pohon yang tersedia. Silakan cek kembali nanti.
-            </p>
+            <p className="mt-8 text-center text-zinc-500">{d.featuredEmpty}</p>
           )}
         </div>
       </section>
@@ -295,15 +279,15 @@ export default async function HomePage() {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-                  Kabar Terkini
+                  {d.blogEyebrow}
                 </p>
-                <h2 className="mt-3 text-3xl font-bold text-emerald-950">Artikel Terbaru</h2>
+                <h2 className="mt-3 text-3xl font-bold text-emerald-950">{d.blogTitle}</h2>
               </div>
               <Link
                 href="/blog"
                 className="rounded-full border border-emerald-200 px-5 py-2 text-sm font-semibold text-emerald-700 transition-all hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow"
               >
-                Lihat semua →
+                {d.viewAll}
               </Link>
             </div>
           </Reveal>
@@ -323,10 +307,10 @@ export default async function HomePage() {
           <div className="mx-auto max-w-6xl px-4">
             <Reveal>
               <p className="text-center text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-                Kata Mereka
+                {d.testiEyebrow}
               </p>
               <h2 className="mt-3 text-center text-3xl font-bold text-emerald-950">
-                Cerita para Pengasuh Pohon
+                {d.testiTitle}
               </h2>
             </Reveal>
             <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -364,7 +348,7 @@ export default async function HomePage() {
           <div className="mx-auto max-w-6xl px-4">
             <Reveal>
               <p className="text-center text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-                Didukung Oleh
+                {d.partners}
               </p>
             </Reveal>
             <div className="mt-8 grid grid-cols-2 items-center gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
@@ -408,15 +392,15 @@ export default async function HomePage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-                Jelajahi
+                {d.locEyebrow}
               </p>
-              <h2 className="mt-3 text-3xl font-bold text-emerald-950">Lokasi Hutan</h2>
+              <h2 className="mt-3 text-3xl font-bold text-emerald-950">{d.locTitle}</h2>
             </div>
             <Link
               href="/lokasi"
               className="rounded-full border border-emerald-200 px-5 py-2 text-sm font-semibold text-emerald-700 transition-all hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow"
             >
-              Lihat semua →
+              {d.viewAll}
             </Link>
           </div>
         </Reveal>
@@ -430,12 +414,12 @@ export default async function HomePage() {
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-emerald-950">{loc.name}</h3>
                   <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 transition-colors group-hover:bg-emerald-100">
-                    {loc.total} pohon
+                    {d.locTreeCount.replaceAll("{n}", String(loc.total))}
                   </span>
                 </div>
                 <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-600">{loc.description}</p>
                 <p className="mt-4 flex items-center gap-1 text-sm font-medium text-emerald-700 transition-transform duration-300 group-hover:translate-x-1">
-                  <MapPin className="h-4 w-4" /> Kunjungi halaman lokasi
+                  <MapPin className="h-4 w-4" /> {d.locVisit}
                 </p>
               </Link>
             </Reveal>
@@ -456,16 +440,13 @@ export default async function HomePage() {
               aria-hidden
             />
             <TreeDeciduous className="mx-auto h-12 w-12 animate-float-soft text-emerald-200" />
-            <h2 className="mt-4 text-3xl font-bold">Mulai Jadi Pengasuh Pohon Hari Ini</h2>
-            <p className="mx-auto mt-3 max-w-xl text-emerald-100">
-              Setiap pohon yang Anda adopsi membantu menjaga hutan, menyerap karbon, dan
-              meningkatkan ekonomi masyarakat pengelola hutan.
-            </p>
+            <h2 className="mt-4 text-3xl font-bold">{d.ctaTitle}</h2>
+            <p className="mx-auto mt-3 max-w-xl text-emerald-100">{d.ctaDesc}</p>
             <Link
               href="/daftar"
               className="mt-8 inline-block rounded-full bg-white px-9 py-3.5 text-sm font-semibold text-emerald-800 shadow-lg transition-all hover:scale-[1.04] hover:bg-emerald-50"
             >
-              Daftar Sekarang
+              {d.ctaButton}
             </Link>
           </div>
         </Reveal>

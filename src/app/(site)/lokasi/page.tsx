@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { apiGet, mapDesa, type ApiDesa } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 
-export const metadata = { title: "Lokasi Hutan" };
+export async function generateMetadata() {
+  return { title: (await getDict()).pages.lokasi.title };
+}
 
 export default async function LocationListPage() {
   let desaList: ApiDesa[] = [];
@@ -12,14 +15,12 @@ export default async function LocationListPage() {
   } catch {
     // tampilkan daftar kosong di bawah
   }
+  const d = (await getDict()).pages.lokasi;
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <h1 className="text-3xl font-bold text-emerald-950">Lokasi Hutan</h1>
-      <p className="mt-2 max-w-2xl text-zinc-600">
-        Pohon-pohon dalam program Pohon Asuh tersebar di hutan adat dan hutan desa yang dikelola
-        bersama masyarakat lokal.
-      </p>
+      <h1 className="text-3xl font-bold text-emerald-950">{d.title}</h1>
+      <p className="mt-2 max-w-2xl text-zinc-600">{d.intro}</p>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         {desaList.map((desa) => {
@@ -35,7 +36,7 @@ export default async function LocationListPage() {
                     {desa.name}
                   </h2>
                   <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                    {desa.total} pohon
+                    {d.treeCount.replaceAll("{n}", String(desa.total))}
                   </span>
                 </div>
               </Link>
@@ -49,9 +50,13 @@ export default async function LocationListPage() {
               <div className="mt-4">
                 <div className="flex items-center justify-between text-xs text-zinc-500">
                   <span>
-                    {desa.adopted} diadopsi · {desa.available} tersedia
+                    {d.adoptedAvailable
+                      .replaceAll("{adopted}", String(desa.adopted))
+                      .replaceAll("{available}", String(desa.available))}
                   </span>
-                  <span className="font-semibold text-emerald-700">{pct}% teradopsi</span>
+                  <span className="font-semibold text-emerald-700">
+                    {d.adoptedPct.replaceAll("{n}", String(pct))}
+                  </span>
                 </div>
                 <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-emerald-100">
                   <div
@@ -66,14 +71,14 @@ export default async function LocationListPage() {
                   href={`/lokasi/${desa.slug}`}
                   className="rounded-full border border-emerald-200 px-4 py-1.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
                 >
-                  Detail lokasi
+                  {d.detail}
                 </Link>
                 {desa.available > 0 && (
                   <Link
                     href={`/pohon?lokasi=${desa.slug}`}
                     className="rounded-full bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
                   >
-                    Adopsi di sini
+                    {d.adoptHere}
                   </Link>
                 )}
               </div>
@@ -83,9 +88,9 @@ export default async function LocationListPage() {
       </div>
       {desaList.length === 0 && (
         <p className="mt-10 text-center text-zinc-500">
-          Gagal memuat data lokasi.{" "}
+          {d.loadError}{" "}
           <Link href="/lokasi" className="font-medium text-emerald-700 hover:underline">
-            Coba lagi
+            {d.retry}
           </Link>
         </p>
       )}

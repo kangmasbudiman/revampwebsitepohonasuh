@@ -9,9 +9,27 @@ import {
   markPesanRead,
   type PesanRow,
 } from "@/lib/actions/pesan";
-import NotifPopup from "@/components/notif-popup";
+import NotifPopup, { type NotifPopupLabels } from "@/components/notif-popup";
 
 const MAX_TAMPIL = 8;
+
+// Panel admin tidak ikut diterjemahkan — label tetap Bahasa Indonesia.
+const LABELS: NotifPopupLabels = {
+  title: "Notifikasi",
+  unread: "belum dibaca",
+  allRead: "Semua sudah dibaca",
+  closeAria: "Tutup notifikasi",
+  emptyTitle: "Belum ada notifikasi",
+  emptyDesc: "Kabar terbaru tentang adopsi Anda akan muncul di sini.",
+  markRead: "Tandai sudah dibaca",
+  deleteLabel: "Hapus notifikasi",
+  viewAll: "Lihat semua notifikasi",
+  justNow: "baru saja",
+  minAgo: "menit lalu",
+  hourAgo: "jam lalu",
+  yesterday: "Kemarin",
+  dayAgo: "hari lalu",
+};
 
 // Lonceng notifikasi top bar: badge pesan belum dibaca + dropdown daftar
 // pesan terbaru (pesan_notif utk admin/petugas yang login). Tanpa polling —
@@ -98,6 +116,7 @@ export default function NotificationBell({
 
       {open && (
         <NotifPopup
+          t={LABELS}
           unread={unread}
           loading={loading}
           items={items}

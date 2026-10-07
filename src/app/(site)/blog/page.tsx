@@ -2,19 +2,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { Eye } from "lucide-react";
 import { apiGet, apiPost, mapPosts, type ApiPost } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 import PostCard from "@/components/post-card";
 
-export const metadata = { title: "Blog & Artikel" };
-
-// Nilai chip = nilai kategori di DB (lowercase) agar pencocokan tidak
-// bergantung pada collation MySQL.
-const KATEGORI = [
-  { value: "artikel", label: "Artikel" },
-  { value: "berita", label: "Berita" },
-];
+export async function generateMetadata() {
+  return { title: (await getDict()).pages.blog.title };
+}
 
 export default async function BlogListPage(props: PageProps<"/blog">) {
   const searchParams = await props.searchParams;
+  const d = (await getDict()).pages.blog;
+
+  // Nilai chip = nilai kategori di DB (lowercase) agar pencocokan tidak
+  // bergantung pada collation MySQL.
+  const KATEGORI = [
+    { value: "artikel", label: d.catArticle },
+    { value: "berita", label: d.catNews },
+  ];
   const kategori =
     typeof searchParams.kategori === "string" && KATEGORI.some((k) => k.value === searchParams.kategori)
       ? searchParams.kategori
@@ -35,10 +39,8 @@ export default async function BlogListPage(props: PageProps<"/blog">) {
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <h1 className="text-3xl font-bold text-emerald-950">Blog Pohon Asuh</h1>
-      <p className="mt-2 text-zinc-600">
-        Cerita, berita, dan artikel seputar kelestarian hutan serta program adopsi pohon.
-      </p>
+      <h1 className="text-3xl font-bold text-emerald-950">{d.heading}</h1>
+      <p className="mt-2 text-zinc-600">{d.intro}</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Link
@@ -49,7 +51,7 @@ export default async function BlogListPage(props: PageProps<"/blog">) {
               : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
           }`}
         >
-          Semua
+          {d.all}
         </Link>
         {KATEGORI.map((k) => (
           <Link
@@ -68,9 +70,9 @@ export default async function BlogListPage(props: PageProps<"/blog">) {
 
       {error ? (
         <p className="mt-10 text-center text-zinc-500">
-          Gagal memuat artikel.{" "}
+          {d.loadError}{" "}
           <Link href="/blog" className="font-medium text-emerald-700 hover:underline">
-            Coba lagi
+            {d.retry}
           </Link>
         </p>
       ) : (
@@ -93,7 +95,7 @@ export default async function BlogListPage(props: PageProps<"/blog">) {
                   <div className="flex h-full items-center justify-center text-5xl">📰</div>
                 )}
                 <span className="absolute left-3 top-3 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-                  Terbaru
+                  {d.latest}
                 </span>
               </div>
               <div className="flex flex-col p-6">
@@ -110,7 +112,7 @@ export default async function BlogListPage(props: PageProps<"/blog">) {
                   <span className="font-medium text-emerald-800">{featured.author}</span>
                   <span className="inline-flex items-center gap-1">
                     <Eye className="h-4 w-4" />
-                    {featured.viewer} kali dibaca
+                    {d.timesRead.replaceAll("{n}", String(featured.viewer))}
                   </span>
                 </p>
               </div>
@@ -126,7 +128,7 @@ export default async function BlogListPage(props: PageProps<"/blog">) {
           )}
 
           {posts.length === 0 && (
-            <p className="mt-10 text-center text-zinc-500">Belum ada artikel pada kategori ini.</p>
+            <p className="mt-10 text-center text-zinc-500">{d.empty}</p>
           )}
         </>
       )}

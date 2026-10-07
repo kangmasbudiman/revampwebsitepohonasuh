@@ -10,6 +10,7 @@ import {
   type PesanRow,
 } from "@/lib/actions/pesan";
 import NotifPopup from "@/components/notif-popup";
+import { useI18n } from "@/components/i18n-provider";
 
 const MAX_TAMPIL = 8;
 
@@ -17,6 +18,7 @@ const MAX_TAMPIL = 8;
 // (pesan_notif alamat ke member yang login) + dropdown daftar terbaru.
 // overlay=true saat header transparan di atas hero beranda (teks putih).
 export default function MemberBell({ overlay = false }: { overlay?: boolean }) {
+  const { dict } = useI18n();
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [items, setItems] = useState<PesanRow[] | null>(null);
@@ -77,7 +79,7 @@ export default function MemberBell({ overlay = false }: { overlay?: boolean }) {
     <div ref={wrapRef} className="relative">
       <button
         type="button"
-        aria-label="Notifikasi"
+        aria-label={dict.dashboard.notif.bellAria}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
@@ -96,6 +98,7 @@ export default function MemberBell({ overlay = false }: { overlay?: boolean }) {
 
       {open && (
         <NotifPopup
+          t={dict.dashboard.popup}
           unread={unread}
           loading={loading}
           items={items}

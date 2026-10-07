@@ -8,9 +8,12 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, BellRing, Loader2, Trash2, TriangleAlert } from "lucide-react";
 import { hapusPesan, hapusSemuaPesan, markPesanRead, type PesanRow } from "@/lib/actions/pesan";
+import { useI18n } from "@/components/i18n-provider";
 
 export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
   const router = useRouter();
+  const { dict } = useI18n();
+  const t = dict.dashboard.notif;
   const [items, setItems] = useState(rows);
   const [idHapus, setIdHapus] = useState<number | null>(null);
   const [semuaOpen, setSemuaOpen] = useState(false);
@@ -74,10 +77,8 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
           <Bell className="h-7 w-7 text-emerald-600" />
         </span>
-        <p className="mt-4 font-bold text-emerald-950">Belum ada notifikasi</p>
-        <p className="mt-1 text-sm text-zinc-500">
-          Notifikasi tentang proses order Anda akan muncul di sini.
-        </p>
+        <p className="mt-4 font-bold text-emerald-950">{t.emptyTitle}</p>
+        <p className="mt-1 text-sm text-zinc-500">{t.emptyDesc}</p>
       </div>
     );
   }
@@ -87,8 +88,7 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         {unread > 0 ? (
           <p className="text-sm text-zinc-500">
-            <span className="font-semibold text-emerald-700">{unread}</span> notifikasi belum
-            dibaca — klik notifikasi untuk menandainya dibaca.
+            <span className="font-semibold text-emerald-700">{unread}</span> {t.unreadHint}
           </p>
         ) : (
           <span />
@@ -99,7 +99,7 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
           className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
         >
           <Trash2 className="h-3.5 w-3.5" />
-          Hapus Semua
+          {t.deleteAll}
         </button>
       </div>
 
@@ -155,7 +155,7 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
                   {row.tanggal ?? ""}
                   {belum && (
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                      BARU
+                      {t.new}
                     </span>
                   )}
                 </p>
@@ -163,8 +163,8 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
 
               <button
                 type="button"
-                aria-label={`Hapus notifikasi ${row.id}`}
-                title="Hapus notifikasi"
+                aria-label={`${t.deleteAria} ${row.id}`}
+                title={t.deleteAria}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIdHapus(row.id);
@@ -183,11 +183,11 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
           className="fixed inset-0 z-[60]"
           role="dialog"
           aria-modal="true"
-          aria-label="Konfirmasi hapus notifikasi"
+          aria-label={t.deleteDialogAria}
         >
           <button
             type="button"
-            aria-label="Tutup konfirmasi hapus"
+            aria-label={t.closeDialogAria}
             onClick={() => setIdHapus(null)}
             className="absolute inset-0 h-full w-full cursor-default bg-black/40"
           />
@@ -197,14 +197,11 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
                 <TriangleAlert className="h-5 w-5 text-red-600" />
               </span>
               <div className="min-w-0">
-                <h3 className="text-base font-bold text-emerald-950">Hapus notifikasi?</h3>
+                <h3 className="text-base font-bold text-emerald-950">{t.deleteTitle}</h3>
                 <p className="mt-0.5 line-clamp-2 text-sm text-zinc-500">{target.pesan}</p>
               </div>
             </div>
-            <p className="px-5 py-4 text-sm text-zinc-600">
-              Notifikasi ini akan dihapus permanen dari daftar Anda dan tidak dapat
-              dikembalikan.
-            </p>
+            <p className="px-5 py-4 text-sm text-zinc-600">{t.deleteConfirm}</p>
             <div className="flex flex-col-reverse gap-2 border-t border-emerald-50 px-5 py-4 sm:flex-row sm:justify-end">
               <button
                 ref={batalRef}
@@ -213,7 +210,7 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
                 disabled={pending}
                 className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50"
               >
-                Tidak, Kembali
+                {t.back}
               </button>
               <button
                 type="button"
@@ -226,7 +223,7 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
-                {pending ? "Menghapus…" : "Ya, Hapus"}
+                {pending ? t.deleting : t.deleteYes}
               </button>
             </div>
           </div>
@@ -238,11 +235,11 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
           className="fixed inset-0 z-[60]"
           role="dialog"
           aria-modal="true"
-          aria-label="Konfirmasi hapus semua notifikasi"
+          aria-label={t.deleteAllDialogAria}
         >
           <button
             type="button"
-            aria-label="Tutup konfirmasi hapus semua"
+            aria-label={t.closeAllDialogAria}
             onClick={() => setSemuaOpen(false)}
             className="absolute inset-0 h-full w-full cursor-default bg-black/40"
           />
@@ -252,18 +249,13 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
                 <TriangleAlert className="h-5 w-5 text-red-600" />
               </span>
               <div className="min-w-0">
-                <h3 className="text-base font-bold text-emerald-950">
-                  Hapus semua notifikasi?
-                </h3>
+                <h3 className="text-base font-bold text-emerald-950">{t.deleteAllTitle}</h3>
                 <p className="mt-0.5 text-sm text-zinc-500">
-                  {items.length} notifikasi akan dihapus.
+                  {items.length} {t.deleteAllCount}
                 </p>
               </div>
             </div>
-            <p className="px-5 py-4 text-sm text-zinc-600">
-              Seluruh notifikasi pada daftar ini — termasuk yang belum dibaca — akan
-              dihapus permanen dan tidak dapat dikembalikan.
-            </p>
+            <p className="px-5 py-4 text-sm text-zinc-600">{t.deleteAllConfirm}</p>
             <div className="flex flex-col-reverse gap-2 border-t border-emerald-50 px-5 py-4 sm:flex-row sm:justify-end">
               <button
                 ref={batalRef}
@@ -272,7 +264,7 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
                 disabled={pending}
                 className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-50 disabled:opacity-50"
               >
-                Tidak, Kembali
+                {t.back}
               </button>
               <button
                 type="button"
@@ -285,7 +277,7 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
-                {pending ? "Menghapus…" : "Ya, Hapus Semua"}
+                {pending ? t.deleting : t.deleteAllYes}
               </button>
             </div>
           </div>

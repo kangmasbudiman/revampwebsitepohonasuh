@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Plus_Jakarta_Sans, Nunito, Barlow_Semi_Condensed } from "next/font/google";
 import { apiGet } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 import CertificateName from "@/components/sertifikat/certificate-name";
 import PrintButton from "@/components/sertifikat/print-button";
 
@@ -48,7 +49,9 @@ type ApiSertifikat = {
   pohon_list?: ApiPohonSertifikat[] | null;
 };
 
-export const metadata = { title: "Sertifikat Adopsi Pohon" };
+export async function generateMetadata() {
+  return { title: (await getDict()).sertifikat.title };
+}
 
 const titleCase = (s: string) =>
   s
@@ -61,6 +64,9 @@ const titleCase = (s: string) =>
 export default async function CertificatePage(props: PageProps<"/sertifikat/[...code]">) {
   const { code } = await props.params;
   const certnum = code.map(decodeURIComponent).join("/");
+  // Lembar sertifikat memakai teks Inggris tetap (kalibrasi template PDF) —
+  // yang diterjemahkan hanya laman di sekelilingnya.
+  const t = (await getDict()).sertifikat;
 
   let s: ApiSertifikat | null = null;
   try {
@@ -161,11 +167,11 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
       <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="flex items-center gap-2 text-sm font-medium text-emerald-700">
           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-xs text-emerald-700">✓</span>
-          Sertifikat terverifikasi · No.{s.certnum}
+          {t.verified} · {t.no}{s.certnum}
         </p>
         <div className="flex items-center gap-3">
           <Link href="/pohon" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
-            Adopsi pohon lain →
+            {t.adoptOther}
           </Link>
           <PrintButton />
         </div>
@@ -241,9 +247,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
         </div>
       </div>
 
-      <p className="no-print mt-4 text-center text-xs text-zinc-400">
-        Sertifikat ini dapat diverifikasi secara daring melalui nomor sertifikat di atas.
-      </p>
+      <p className="no-print mt-4 text-center text-xs text-zinc-400">{t.verifyNote}</p>
     </main>
   );
 }

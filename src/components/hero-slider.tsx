@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Leaf } from "lucide-react";
+import { useI18n } from "@/components/i18n-provider";
 
 export type HeroSlide = {
   image: string;
@@ -19,6 +20,7 @@ const AUTOPLAY_MS = 6500;
 export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const t = useI18n().dict.home;
 
   const go = useCallback(
     (dir: number) => setIndex((i) => (i + dir + slides.length) % slides.length),
@@ -37,7 +39,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       aria-roledescription="carousel"
-      aria-label="Sorotan program Pohon Asuh"
+      aria-label={t.sliderAria}
     >
       {slides.map((slide, i) => {
         const active = i === index;
@@ -107,7 +109,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
       <button
         type="button"
         onClick={() => go(-1)}
-        aria-label="Slide sebelumnya"
+        aria-label={t.prevSlideAria}
         className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-2.5 text-white backdrop-blur transition hover:bg-white/25"
       >
         <ChevronLeft className="h-6 w-6" />
@@ -115,7 +117,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
       <button
         type="button"
         onClick={() => go(1)}
-        aria-label="Slide berikutnya"
+        aria-label={t.nextSlideAria}
         className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-2.5 text-white backdrop-blur transition hover:bg-white/25"
       >
         <ChevronRight className="h-6 w-6" />
@@ -127,7 +129,7 @@ export default function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             key={slide.image}
             type="button"
             onClick={() => setIndex(i)}
-            aria-label={`Ke slide ${i + 1}`}
+            aria-label={t.goToSlideAria.replaceAll("{n}", String(i + 1))}
             aria-current={i === index}
             className={`h-2 rounded-full transition-all duration-300 ${
               i === index ? "w-9 bg-emerald-400" : "w-2 bg-white/40 hover:bg-white/70"

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, ShoppingCart } from "lucide-react";
 import { addToCart, type CartItem } from "@/lib/cart";
+import { useI18n } from "@/components/i18n-provider";
 
 export default function AddToCartButton({
   item,
@@ -11,6 +12,8 @@ export default function AddToCartButton({
   item: CartItem;
   variant?: "full" | "icon";
 }) {
+  const { dict } = useI18n();
+  const t = dict.cart;
   const [added, setAdded] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
 
@@ -31,8 +34,8 @@ export default function AddToCartButton({
     return (
       <button
         type="button"
-        aria-label={`Masukkan ${item.localName} ke keranjang`}
-        title={duplicate ? "Sudah ada di keranjang" : "Masukkan ke keranjang"}
+        aria-label={t.addAria.replaceAll("{name}", item.localName)}
+        title={duplicate ? t.inCartTitle : t.addToCartTitle}
         onClick={handleClick}
         className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md backdrop-blur transition-all duration-300 ${
           duplicate
@@ -59,7 +62,7 @@ export default function AddToCartButton({
         className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-6 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-50"
       >
         <ShoppingCart className="h-4 w-4" />
-        Masukkan Keranjang
+        {t.addToCart}
       </button>
       {(added || duplicate) && (
         <p
@@ -67,9 +70,7 @@ export default function AddToCartButton({
             duplicate ? "text-amber-600" : "text-emerald-600"
           }`}
         >
-          {duplicate
-            ? "Pohon ini sudah ada di keranjang."
-            : "Berhasil masuk keranjang ✓"}
+          {duplicate ? t.duplicateMsg : t.addedMsg}
         </p>
       )}
     </div>

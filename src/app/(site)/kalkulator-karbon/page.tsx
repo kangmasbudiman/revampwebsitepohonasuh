@@ -1,11 +1,11 @@
 import { apiGet, mapSpeciesList } from "@/lib/api";
+import { getDict } from "@/lib/i18n";
 import CarbonCalculator from "@/components/carbon-calculator";
 
-export const metadata = {
-  title: "Kalkulator Karbon",
-  description:
-    "Hitung perkiraan jejak karbon tahunan dari aktivitas sehari-hari dan imbangi dengan mengadopsi pohon di hutan Pohon Asuh.",
-};
+export async function generateMetadata() {
+  const t = (await getDict()).pages.kalkulator;
+  return { title: t.title, description: t.metaDesc };
+}
 
 export default async function CarbonCalculatorPage() {
   // Rata-rata serapan katalog spesies jadi basis konversi kg CO2 → pohon.
@@ -22,13 +22,12 @@ export default async function CarbonCalculatorPage() {
     // fallback rata-rata bawaan
   }
 
+  const t = (await getDict()).pages.kalkulator;
+
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <h1 className="text-3xl font-bold text-emerald-950">Kalkulator Karbon</h1>
-      <p className="mt-2 max-w-2xl text-zinc-600">
-        Jejak karbon Anda dari kendaraan, listrik, dan penerbangan bisa diimbangi dengan pohon
-        yang menyerap CO₂ di habitat aslinya. Hitung perkiraannya, lalu mulai adopsi.
-      </p>
+      <h1 className="text-3xl font-bold text-emerald-950">{t.title}</h1>
+      <p className="mt-2 max-w-2xl text-zinc-600">{t.intro}</p>
 
       <div className="mt-10">
         <CarbonCalculator avgSerapan={avgSerapan} />

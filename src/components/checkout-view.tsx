@@ -9,8 +9,11 @@ import { checkoutCart, type CheckoutState } from "@/lib/actions/adoption";
 import { clearCart, removeFromCart, updateCartItem, MAX_YEARS } from "@/lib/cart";
 import { useCart } from "@/lib/use-cart";
 import { rupiah } from "@/lib/format";
+import { useI18n } from "@/components/i18n-provider";
 
 export default function CheckoutView() {
+  const { dict } = useI18n();
+  const t = dict.cart;
   const items = useCart();
   const router = useRouter();
   const [state, action, pending] = useActionState<CheckoutState, FormData>(
@@ -35,17 +38,13 @@ export default function CheckoutView() {
   if (items.length === 0 && !pending && !state.ok) {
     return (
       <div className="rounded-2xl border border-emerald-100 bg-white p-10 text-center shadow-sm">
-        <h2 className="text-lg font-semibold text-emerald-950">
-          Tidak ada pohon untuk dibayar
-        </h2>
-        <p className="mt-1 text-sm text-zinc-500">
-          Keranjangmu kosong atau semua item sudah diproses.
-        </p>
+        <h2 className="text-lg font-semibold text-emerald-950">{t.checkoutEmptyTitle}</h2>
+        <p className="mt-1 text-sm text-zinc-500">{t.checkoutEmptyDesc}</p>
         <Link
           href="/pohon"
           className="mt-6 inline-flex rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
         >
-          Pilih Pohon
+          {t.pickTree}
         </Link>
       </div>
     );
@@ -66,9 +65,9 @@ export default function CheckoutView() {
       )}
       {state.ok && state.redirectTo && skipped.length > 0 && (
         <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          <p className="font-semibold">Pesanan dibuat untuk pohon yang tersedia.</p>
+          <p className="font-semibold">{t.okBanner}</p>
           <p className="mt-1">
-            Pohon berikut tidak lagi tersedia dan dikeluarkan dari pesanan:{" "}
+            {t.skippedOrder}{" "}
             <span className="font-medium">
               {skipped.map((u) => `${u.localName} (${u.code})`).join(", ")}
             </span>
@@ -77,17 +76,17 @@ export default function CheckoutView() {
             href={state.redirectTo}
             className="mt-2 inline-flex rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
           >
-            Lihat Invoice →
+            {t.viewInvoice}
           </Link>
         </div>
       )}
       {!state.ok && skipped.length > 0 && (
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Pohon berikut tidak lagi tersedia dan dikeluarkan dari keranjang:{" "}
+          {t.skippedCart}{" "}
           <span className="font-medium">
             {skipped.map((u) => `${u.localName} (${u.code})`).join(", ")}
           </span>
-          {items.length > 0 && " — pohon lain tetap bisa diproses."}
+          {items.length > 0 && t.othersOk}
         </div>
       )}
 
@@ -138,7 +137,7 @@ export default function CheckoutView() {
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-emerald-50 pt-3">
-                <span className="text-xs font-medium text-zinc-500">Durasi</span>
+                <span className="text-xs font-medium text-zinc-500">{t.duration}</span>
                 {Array.from({ length: MAX_YEARS }, (_, k) => k + 1).map((y) => (
                   <button
                     key={y}
@@ -150,7 +149,7 @@ export default function CheckoutView() {
                         : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                     }`}
                   >
-                    {y} thn
+                    {y} {t.yrsShort}
                   </button>
                 ))}
                 <button
@@ -165,7 +164,7 @@ export default function CheckoutView() {
                   }`}
                 >
                   <Gift className="h-3.5 w-3.5" />
-                  Hadiah
+                  {t.gift}
                 </button>
               </div>
 
@@ -173,7 +172,7 @@ export default function CheckoutView() {
                 <div className="mt-3 grid gap-3 rounded-xl bg-emerald-50/50 p-3 sm:grid-cols-2">
                   <div>
                     <label className="text-xs font-medium text-zinc-500">
-                      Nama penerima (di sertifikat)
+                      {t.giftNameLabel}
                     </label>
                     <input
                       type="text"
@@ -182,13 +181,13 @@ export default function CheckoutView() {
                       onChange={(e) =>
                         updateCartItem(item.code, { giftName: e.target.value })
                       }
-                      placeholder="mis. Ibu Sinta"
+                      placeholder={t.giftNamePh}
                       className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
                     />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-zinc-500">
-                      Pesan / memo
+                      {t.giftNoteLabel}
                     </label>
                     <input
                       type="text"
@@ -197,13 +196,11 @@ export default function CheckoutView() {
                       onChange={(e) =>
                         updateCartItem(item.code, { giftNote: e.target.value })
                       }
-                      placeholder="mis. Selamat hari ibu!"
+                      placeholder={t.giftNotePh}
                       className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
                     />
                   </div>
-                  <p className="text-xs text-zinc-500 sm:col-span-2">
-                    Kosongkan bila bukan hadiah — sertifikat memakai nama akun Anda.
-                  </p>
+                  <p className="text-xs text-zinc-500 sm:col-span-2">{t.giftHint}</p>
                 </div>
               )}
             </div>
@@ -213,21 +210,18 @@ export default function CheckoutView() {
         <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between text-sm text-zinc-600">
             <span>
-              Total ({items.length} pohon · {totalYears}{" "}
-              {totalYears === 1 ? "tahun" : "tahun"} adopsi)
+              {t.total} ({items.length} {items.length === 1 ? t.treeWord : t.treesWord} ·{" "}
+              {totalYears} {totalYears === 1 ? t.year : t.years} {t.adoptionWord})
             </span>
             <span className="text-lg font-bold text-emerald-700">{rupiah(total)}</span>
           </div>
-          <p className="mt-2 text-xs text-zinc-500">
-            Harga dan ketersediaan diverifikasi ulang saat pesanan dibuat. Kode
-            unik transfer (Rp100–Rp999) ditambahkan pada invoice.
-          </p>
+          <p className="mt-2 text-xs text-zinc-500">{t.verifyNote}</p>
           <button
             type="submit"
             disabled={pending || items.length === 0}
             className="mt-4 w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-60"
           >
-            {pending ? "Memproses pesanan..." : "Buat Pesanan"}
+            {pending ? t.processing : t.createOrder}
           </button>
         </div>
       </form>

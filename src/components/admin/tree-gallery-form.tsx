@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { uploadTreePhoto } from "@/lib/actions/tree";
 import type { AdminState } from "@/lib/actions/admin";
-import FileInput from "@/components/admin/file-input";
+import FileInput from "@/components/file-input";
 
 export default function TreeGalleryForm({ code }: { code: string }) {
   const [state, action, pending] = useActionState<AdminState, FormData>(uploadTreePhoto, {});

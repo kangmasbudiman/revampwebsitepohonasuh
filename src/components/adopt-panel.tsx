@@ -6,6 +6,7 @@ import { Check, Gift, ShoppingCart } from "lucide-react";
 import { addToCart, MAX_YEARS } from "@/lib/cart";
 import { createAdoption, type AdoptionState } from "@/lib/actions/adoption";
 import { rupiah } from "@/lib/format";
+import { useI18n } from "@/components/i18n-provider";
 
 type TreeInfo = {
   code: string;
@@ -22,6 +23,8 @@ export default function AdoptPanel({
   tree: TreeInfo;
   loggedIn: boolean;
 }) {
+  const { dict } = useI18n();
+  const t = dict.tree;
   const [state, action, pending] = useActionState<AdoptionState, FormData>(
     createAdoption,
     {},
@@ -62,7 +65,7 @@ export default function AdoptPanel({
         href={`/masuk?next=/pohon/${tree.code}`}
         className="block w-full rounded-xl bg-emerald-600 px-6 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-700"
       >
-        Masuk untuk Mengadopsi
+        {t.loginToAdopt}
       </Link>
     );
   }
@@ -74,7 +77,7 @@ export default function AdoptPanel({
           htmlFor="adopt-years"
           className="text-xs font-medium uppercase tracking-wide text-zinc-500"
         >
-          Durasi adopsi
+          {t.adoptDuration}
         </label>
         <div className="mt-2 flex flex-wrap gap-2">
           {Array.from({ length: MAX_YEARS }, (_, i) => i + 1).map((y) => (
@@ -88,12 +91,13 @@ export default function AdoptPanel({
                   : "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
               }`}
             >
-              {y} {y === 1 ? "tahun" : "tahun"}
+              {y} {y === 1 ? t.year : t.years}
             </button>
           ))}
         </div>
         <p className="mt-2 text-xs text-zinc-500">
-          {rupiah(tree.priceIdr)} / tahun × {years} tahun
+          {rupiah(tree.priceIdr)} {t.perYearSlash} × {years}{" "}
+          {years === 1 ? t.year : t.years}
         </p>
       </div>
 
@@ -105,15 +109,15 @@ export default function AdoptPanel({
         >
           <span className="flex items-center gap-2">
             <Gift className="h-4 w-4" />
-            Adopsi sebagai hadiah
+            {t.giftTitle}
             {giftName.trim() && (
               <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                aktif
+                {t.active}
               </span>
             )}
           </span>
           <span className="text-xs font-normal text-emerald-700">
-            {giftOpen ? "Tutup" : "Buka"}
+            {giftOpen ? t.close : t.open}
           </span>
         </button>
         {giftOpen && (
@@ -123,7 +127,7 @@ export default function AdoptPanel({
                 htmlFor="gift-name"
                 className="text-xs font-medium text-zinc-500"
               >
-                Nama penerima (tercetak di sertifikat)
+                {t.giftNameLabel}
               </label>
               <input
                 id="gift-name"
@@ -131,7 +135,7 @@ export default function AdoptPanel({
                 maxLength={100}
                 value={giftName}
                 onChange={(e) => setGiftName(e.target.value)}
-                placeholder="mis. Ibu Sinta"
+                placeholder={t.giftNamePh}
                 className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
               />
             </div>
@@ -140,7 +144,7 @@ export default function AdoptPanel({
                 htmlFor="gift-note"
                 className="text-xs font-medium text-zinc-500"
               >
-                Pesan / memo di sertifikat
+                {t.giftNoteLabel}
               </label>
               <textarea
                 id="gift-note"
@@ -148,13 +152,11 @@ export default function AdoptPanel({
                 rows={2}
                 value={giftNote}
                 onChange={(e) => setGiftNote(e.target.value)}
-                placeholder="mis. Selamat hari ibu!"
+                placeholder={t.giftNotePh}
                 className="mt-1 w-full resize-none rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500"
               />
             </div>
-            <p className="text-xs text-zinc-500">
-              Kosongkan bila bukan hadiah — sertifikat memakai nama akun Anda.
-            </p>
+            <p className="text-xs text-zinc-500">{t.giftHint}</p>
           </div>
         )}
       </div>
@@ -165,7 +167,7 @@ export default function AdoptPanel({
         <input type="hidden" name="nama" value={giftName.trim()} />
         <input type="hidden" name="pesan" value={giftNote.trim()} />
         <div className="flex items-baseline justify-between rounded-xl bg-emerald-50 px-4 py-3">
-          <span className="text-sm text-zinc-600">Total</span>
+          <span className="text-sm text-zinc-600">{t.total}</span>
           <span className="text-xl font-bold text-emerald-700">
             {rupiah(total)}
           </span>
@@ -175,7 +177,7 @@ export default function AdoptPanel({
           disabled={pending}
           className="w-full rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
         >
-          {pending ? "Memproses..." : "Adopsi Sekarang"}
+          {pending ? t.processing : t.adoptNow}
         </button>
         {state.error && <p className="text-sm text-red-600">{state.error}</p>}
       </form>
@@ -191,7 +193,7 @@ export default function AdoptPanel({
           ) : (
             <ShoppingCart className="h-4 w-4" />
           )}
-          Masukkan Keranjang
+          {t.addToCart}
         </button>
         {(added || duplicate) && (
           <p
@@ -199,9 +201,7 @@ export default function AdoptPanel({
               duplicate ? "text-amber-600" : "text-emerald-600"
             }`}
           >
-            {duplicate
-              ? "Pohon ini sudah ada di keranjang."
-              : "Berhasil masuk keranjang ✓"}
+            {duplicate ? t.duplicateMsg : t.addedMsg}
           </p>
         )}
       </div>

@@ -11,9 +11,11 @@ import {
   ChevronDown,
   LogOut,
   Settings,
+  UserRound,
   X,
 } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
+import Avatar from "@/components/avatar";
 import AdminNav, { AdminNavMobile, AdminSidebarFooter } from "@/components/admin/admin-nav";
 import ThemeToggle from "@/components/admin/theme-toggle";
 import GlobalSearch from "@/components/admin/global-search";
@@ -47,11 +49,13 @@ export default function AdminShell({
   name,
   level,
   userId,
+  photo,
   children,
 }: {
   name: string;
   level?: number;
   userId: number;
+  photo?: string | null;
   children: ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -62,12 +66,6 @@ export default function AdminShell({
   const [kbd, setKbd] = useState<string | null>(null);
 
   const isAdmin = (level ?? 1) === 1;
-  const initials =
-    name
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? "")
-      .join("") || "?";
 
   // Ctrl/⌘+K buka pencarian global; Escape menutup semua lapisan.
   useEffect(() => {
@@ -260,9 +258,7 @@ export default function AdminShell({
                   onClick={() => setOpenMenu(openMenu === "profile" ? null : "profile")}
                   className="flex h-9 items-center gap-2 rounded-full pr-2 pl-0.5 transition-colors hover:bg-emerald-100 dark:hover:bg-night-700"
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-xs font-bold text-white shadow-md shadow-emerald-500/30">
-                    {initials}
-                  </span>
+                  <Avatar src={photo} name={name} size={32} className="shadow-md shadow-emerald-500/30" />
                   <span className="hidden max-w-32 truncate text-sm font-medium text-emerald-950 md:block dark:text-emerald-50">
                     {name}
                   </span>
@@ -282,6 +278,13 @@ export default function AdminShell({
                         {level === 2 ? "Petugas" : "Admin"} · ID {userId}
                       </p>
                     </div>
+                    <Link
+                      href="/dashboard/profil"
+                      onClick={() => setOpenMenu(null)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-night-800"
+                    >
+                      <UserRound className="h-4 w-4" /> Profil
+                    </Link>
                     {isAdmin && (
                       <Link
                         href="/admin/pengaturan"
