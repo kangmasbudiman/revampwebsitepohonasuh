@@ -84,21 +84,12 @@ export default function SiteHeader({ session }: { session: Session | null }) {
               }`}
             />
           </span>
-          <span className="flex flex-col leading-none">
-            <span
-              className={`text-lg font-bold tracking-tight transition-colors ${
-                overlay ? "text-white" : "text-emerald-900"
-              }`}
-            >
-              Pohon Asuh
-            </span>
-            <span
-              className={`mt-0.5 hidden text-[10px] font-semibold uppercase tracking-[0.2em] sm:block ${
-                overlay ? "text-emerald-200/80" : "text-emerald-600/70"
-              }`}
-            >
-              {dict.nav.tagline}
-            </span>
+          <span
+            className={`whitespace-nowrap text-lg font-bold tracking-tight transition-colors ${
+              overlay ? "text-white" : "text-emerald-900"
+            }`}
+          >
+            Pohon Asuh
           </span>
         </Link>
 
