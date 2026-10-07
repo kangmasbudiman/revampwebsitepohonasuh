@@ -5,13 +5,20 @@ import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/lib/use-cart";
 import { useI18n } from "@/components/i18n-provider";
 
-export default function CartBadge({ overlay = false }: { overlay?: boolean }) {
+export default function CartBadge({
+  overlay = false,
+  onNavigate,
+}: {
+  overlay?: boolean;
+  onNavigate?: () => void;
+}) {
   const { dict } = useI18n();
   const count = useCart().length;
 
   return (
     <Link
       href="/keranjang"
+      onClick={onNavigate}
       aria-label={
         count > 0 ? dict.cart.cartWithAria.replaceAll("{n}", String(count)) : dict.cart.cartAria
       }

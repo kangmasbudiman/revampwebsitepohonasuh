@@ -17,7 +17,15 @@ const MAX_TAMPIL = 8;
 // Lonceng notifikasi member di header publik: badge pesan belum dibaca
 // (pesan_notif alamat ke member yang login) + dropdown daftar terbaru.
 // overlay=true saat header transparan di atas hero beranda (teks putih).
-export default function MemberBell({ overlay = false }: { overlay?: boolean }) {
+export default function MemberBell({
+  overlay = false,
+  onNavigate,
+  popupUp = false,
+}: {
+  overlay?: boolean;
+  onNavigate?: () => void;
+  popupUp?: boolean;
+}) {
   const { dict } = useI18n();
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -105,6 +113,8 @@ export default function MemberBell({ overlay = false }: { overlay?: boolean }) {
           onRead={tandaiDibaca}
           onDelete={hapus}
           onClose={() => setOpen(false)}
+          onNavigate={onNavigate}
+          up={popupUp}
         />
       )}
     </div>

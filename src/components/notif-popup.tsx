@@ -58,6 +58,8 @@ export default function NotifPopup({
   onRead,
   onDelete,
   onClose,
+  onNavigate,
+  up,
 }: {
   t: NotifPopupLabels;
   unread: number;
@@ -66,6 +68,8 @@ export default function NotifPopup({
   onRead: (row: PesanRow) => void;
   onDelete: (row: PesanRow) => void;
   onClose: () => void;
+  onNavigate?: () => void;
+  up?: boolean;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -76,7 +80,11 @@ export default function NotifPopup({
   }, [onClose]);
 
   return (
-    <div className="animate-menu absolute top-full right-0 z-50 mt-3 w-[22rem] max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/20 sm:w-96 dark:border-night-700 dark:bg-night-900 dark:shadow-black/50">
+    <div
+      className={`animate-menu absolute right-0 z-50 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/20 sm:w-96 dark:border-night-700 dark:bg-night-900 dark:shadow-black/50 ${
+        up ? "bottom-full mb-3 origin-bottom-right" : "top-full mt-3 origin-top-right"
+      }`}
+    >
       {/* Kepala panel */}
       <div className="flex items-center gap-3 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 via-teal-50/70 to-transparent px-4 py-3 dark:border-night-700 dark:from-night-800 dark:via-night-800/50">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/30">
@@ -185,7 +193,10 @@ export default function NotifPopup({
       {/* Kaki panel */}
       <Link
         href="/dashboard/notifikasi"
-        onClick={onClose}
+        onClick={() => {
+          onClose();
+          onNavigate?.();
+        }}
         className="group flex items-center justify-center gap-1.5 border-t border-emerald-100 bg-gradient-to-r from-emerald-50/70 to-teal-50/70 px-4 py-3 text-xs font-bold text-emerald-700 transition-colors hover:from-emerald-100 hover:to-teal-100 dark:border-night-700 dark:from-night-800/60 dark:to-night-800/30 dark:text-emerald-300 dark:hover:from-night-800 dark:hover:to-night-800"
       >
         {t.viewAll}

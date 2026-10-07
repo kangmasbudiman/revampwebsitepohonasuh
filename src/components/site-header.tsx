@@ -292,8 +292,8 @@ export default function SiteHeader({ session }: { session: Session | null }) {
             )}
             <div className="mt-2 flex items-center gap-2 border-t border-emerald-100 pt-3">
               <LangToggle />
-              <CartBadge />
-              {session && <MemberBell />}
+              <CartBadge onNavigate={() => setOpen(false)} />
+              {session && <MemberBell onNavigate={() => setOpen(false)} popupUp />}
               {session ? (
                 <>
                   <Link
