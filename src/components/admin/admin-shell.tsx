@@ -25,11 +25,11 @@ function Brand() {
   return (
     <span className="flex items-center gap-2.5">
       <Image
-        src="/images/logo_pohonasuh_baru_hijau.jpg"
+        src="/images/logo_icon.png"
         alt="Logo Pohon Asuh"
         width={34}
         height={34}
-        className="rounded-full object-cover ring-2 ring-emerald-400/50"
+        className="rounded-full object-contain shadow-lg ring-2 ring-white/40"
       />
       <span className="flex flex-col leading-tight">
         <span className="text-base font-bold tracking-tight text-white">Pohon Asuh</span>

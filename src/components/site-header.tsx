@@ -75,12 +75,12 @@ export default function SiteHeader({ session }: { session: Session | null }) {
         >
           <span className="transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
             <Image
-              src="/images/logo_pohonasuh_baru_hijau.jpg"
+              src="/images/logo_icon.png"
               alt="Logo Pohon Asuh"
               width={38}
               height={38}
-              className={`rounded-full object-cover ring-2 transition-all ${
-                overlay ? "ring-white/50" : "ring-emerald-200"
+              className={`rounded-full object-contain ring-2 transition-all ${
+                overlay ? "shadow-lg ring-white/70" : "shadow-sm ring-emerald-100"
               }`}
             />
           </span>
