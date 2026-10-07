@@ -58,11 +58,15 @@ export default function MemberBell({
     };
   }, [open]);
 
-  // Klik di luar dropdown → tutup.
+  // Klik di luar dropdown → tutup. Klik di dalam panel tetap diabaikan walau
+  // panel dirender via portal ke body (mode sheet) — ditandai data-notif-popup.
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as HTMLElement;
+      if (wrapRef.current?.contains(t)) return;
+      if (t.closest?.("[data-notif-popup]")) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);

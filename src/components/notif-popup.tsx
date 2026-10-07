@@ -224,17 +224,15 @@ export default function NotifPopup({
     if (!siap) return null;
     return createPortal(
       <div
+        data-notif-popup
         className="fixed inset-0 z-[70] flex items-end justify-center bg-emerald-950/50 backdrop-blur-sm sm:items-center sm:p-4"
         role="dialog"
         aria-modal="true"
         aria-label={t.title}
       >
-        <button
-          type="button"
-          aria-label={t.closeAria}
-          onClick={onClose}
-          className="absolute inset-0 cursor-default"
-        />
+        {/* Backdrop non-focusable (aria-hidden) — tombol X + Escape sudah ada;
+        label dipisah dari tombol X agar tak dobel di a11y/E2E strict mode. */}
+        <div aria-hidden="true" onClick={onClose} className="absolute inset-0 cursor-default" />
         <div className="animate-menu relative max-h-[85vh] w-full max-w-md overflow-hidden rounded-t-3xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/30 sm:rounded-2xl dark:border-night-700 dark:bg-night-900">
           {isi}
         </div>
@@ -244,7 +242,10 @@ export default function NotifPopup({
   }
 
   return (
-    <div className="animate-menu absolute right-0 top-full z-50 mt-3 w-[22rem] origin-top-right overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/20 max-w-[calc(100vw-2rem)] sm:w-96 dark:border-night-700 dark:bg-night-900 dark:shadow-black/50">
+    <div
+      data-notif-popup
+      className="animate-menu absolute right-0 top-full z-50 mt-3 w-[22rem] origin-top-right overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/20 max-w-[calc(100vw-2rem)] sm:w-96 dark:border-night-700 dark:bg-night-900 dark:shadow-black/50"
+    >
       {isi}
     </div>
   );
