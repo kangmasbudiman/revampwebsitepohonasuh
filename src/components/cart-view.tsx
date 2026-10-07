@@ -35,14 +35,17 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-4">
-        {items.map((item) => {
+        {items.map((item, idx) => {
           const years = item.years ?? 1;
           return (
           <div
             key={item.code}
-            className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm"
+            className="flex items-center gap-4 rounded-2xl border border-orange-200 border-l-4 border-l-orange-400 bg-white p-4 shadow-sm"
           >
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-emerald-50">
+              <span className="absolute -left-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-[11px] font-bold text-white shadow ring-2 ring-white">
+                {idx + 1}
+              </span>
               {item.photoUrl ? (
                 <Image
                   src={item.photoUrl}

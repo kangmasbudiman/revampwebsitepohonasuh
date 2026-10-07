@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Check, Gift, ShoppingCart } from "lucide-react";
 import { addToCart, MAX_YEARS } from "@/lib/cart";
+import { useCart } from "@/lib/use-cart";
 import { createAdoption, type AdoptionState } from "@/lib/actions/adoption";
 import { rupiah } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
@@ -35,6 +36,7 @@ export default function AdoptPanel({
   const [giftNote, setGiftNote] = useState("");
   const [added, setAdded] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
+  const inCart = useCart().some((i) => i.code === tree.code);
 
   const total = tree.priceIdr * years;
 
@@ -183,18 +185,28 @@ export default function AdoptPanel({
       </form>
 
       <div className="w-full">
-        <button
-          type="button"
-          onClick={handleAddToCart}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-6 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-50"
-        >
-          {added || duplicate ? (
+        {inCart ? (
+          <Link
+            href="/keranjang"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-orange-400 bg-orange-50 px-6 py-3 text-sm font-bold text-orange-600 transition-colors hover:bg-orange-100"
+          >
             <Check className="h-4 w-4" />
-          ) : (
-            <ShoppingCart className="h-4 w-4" />
-          )}
-          {t.addToCart}
-        </button>
+            {t.inCart}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-6 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-50"
+          >
+            {added || duplicate ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <ShoppingCart className="h-4 w-4" />
+            )}
+            {t.addToCart}
+          </button>
+        )}
         {(added || duplicate) && (
           <p
             className={`mt-2 text-center text-xs font-medium ${

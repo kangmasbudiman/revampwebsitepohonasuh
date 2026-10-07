@@ -133,10 +133,12 @@ export const dict: Dict = {
     addToCart: "Add to Cart",
     duplicateMsg: "This tree is already in your cart.",
     addedMsg: "Added to cart ✓",
+    inCart: "In Cart — View",
   },
   cart: {
     cartAria: "Cart",
     cartWithAria: "Cart: {n} trees",
+    inCartBadge: "In Cart",
     emptyTitle: "Your cart is still empty",
     emptyDesc: "Pick your favorite tree and become a forest caretaker.",
     browseTrees: "Browse Tree Data",

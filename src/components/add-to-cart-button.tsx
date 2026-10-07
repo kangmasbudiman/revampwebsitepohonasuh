@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, ShoppingCart } from "lucide-react";
 import { addToCart, type CartItem } from "@/lib/cart";
+import { useCart } from "@/lib/use-cart";
 import { useI18n } from "@/components/i18n-provider";
 
 export default function AddToCartButton({
@@ -16,6 +17,7 @@ export default function AddToCartButton({
   const t = dict.cart;
   const [added, setAdded] = useState(false);
   const [duplicate, setDuplicate] = useState(false);
+  const inCart = useCart().some((i) => i.code === item.code);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -35,14 +37,16 @@ export default function AddToCartButton({
       <button
         type="button"
         aria-label={t.addAria.replaceAll("{name}", item.localName)}
-        title={duplicate ? t.inCartTitle : t.addToCartTitle}
+        title={inCart || duplicate ? t.inCartTitle : t.addToCartTitle}
         onClick={handleClick}
         className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md backdrop-blur transition-all duration-300 ${
           duplicate
             ? "bg-amber-100 text-amber-700"
             : added
               ? "bg-emerald-600 text-white"
-              : "bg-white/95 text-emerald-700 hover:bg-emerald-600 hover:text-white"
+              : inCart
+                ? "bg-orange-500 text-white"
+                : "bg-white/95 text-emerald-700 hover:bg-emerald-600 hover:text-white"
         }`}
       >
         {added || duplicate ? (

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import StatusBadge from "@/components/status-badge";
 import AddToCartButton from "@/components/add-to-cart-button";
+import CartMarker from "@/components/cart-marker";
 import { rupiah, TREE_STATUS } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 
@@ -29,7 +30,7 @@ export default async function TreeCard({ tree }: TreeCardProps) {
   return (
     <Link
       href={`/pohon/${tree.code}`}
-      className="group block h-full overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+      className="group relative block h-full overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
       <div className="relative h-44 w-full bg-emerald-50">
         {tree.photoUrl ? (
@@ -78,6 +79,7 @@ export default async function TreeCard({ tree }: TreeCardProps) {
         <p className="mt-3 text-lg font-bold text-emerald-700">{rupiah(tree.priceIdr)}</p>
         <p className="text-xs text-zinc-500">{t.perYear}</p>
       </div>
+      <CartMarker code={tree.code} />
     </Link>
   );
 }

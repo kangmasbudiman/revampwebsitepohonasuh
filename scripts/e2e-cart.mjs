@@ -95,12 +95,13 @@ assert(true, "daftar → kembali ke /checkout (keranjang localStorage utuh)");
 const memberId = rows(`SELECT id FROM member WHERE emaile='${email}'`)[0][0];
 assert(!!memberId, `member terbuat id=${memberId}`);
 
-// ===== 4b. Setelah login: tombol detail + duplikat + hapus =====
+// ===== 4b. Setelah login: tambah dari detail → tombol live jadi status =====
 await page.goto(`${BASE}/pohon/${C}`, { waitUntil: "networkidle" });
 await page.click("button:has-text('Masukkan Keranjang')");
-await page.click("button:has-text('Masukkan Keranjang')");
-await page.waitForSelector("text=Pohon ini sudah ada di keranjang", { timeout: 5000 });
-assert(true, `detail ${C} (login): masuk keranjang + duplikat ditolak`);
+await page.waitForSelector("a[href='/keranjang']:has-text('Sudah di Keranjang')", {
+  timeout: 5000,
+});
+assert(true, `detail ${C} (login): masuk keranjang → tombol 'Sudah di Keranjang'`);
 await page.waitForSelector('a[aria-label="Keranjang: 3 pohon"]', { timeout: 5000 });
 assert(true, "badge header menunjukkan 3 pohon");
 await page.goto(`${BASE}/keranjang`, { waitUntil: "networkidle" });

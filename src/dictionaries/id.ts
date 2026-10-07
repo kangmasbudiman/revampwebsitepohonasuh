@@ -134,10 +134,12 @@ export const dict = {
     addToCart: "Masukkan Keranjang",
     duplicateMsg: "Pohon ini sudah ada di keranjang.",
     addedMsg: "Berhasil masuk keranjang ✓",
+    inCart: "Sudah di Keranjang — Lihat",
   },
   cart: {
     cartAria: "Keranjang",
     cartWithAria: "Keranjang: {n} pohon",
+    inCartBadge: "Di Keranjang",
     emptyTitle: "Keranjang masih kosong",
     emptyDesc: "Pilih pohon favoritmu dan jadilah pengasuh hutan.",
     browseTrees: "Lihat Data Pohon",
