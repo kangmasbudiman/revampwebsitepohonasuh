@@ -20,11 +20,11 @@ const MAX_TAMPIL = 8;
 export default function MemberBell({
   overlay = false,
   onNavigate,
-  popupUp = false,
+  sheet = false,
 }: {
   overlay?: boolean;
   onNavigate?: () => void;
-  popupUp?: boolean;
+  sheet?: boolean;
 }) {
   const { dict } = useI18n();
   const [open, setOpen] = useState(false);
@@ -114,7 +114,7 @@ export default function MemberBell({
           onDelete={hapus}
           onClose={() => setOpen(false)}
           onNavigate={onNavigate}
-          up={popupUp}
+          sheet={sheet}
         />
       )}
     </div>

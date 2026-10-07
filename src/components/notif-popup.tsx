@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowRight, Bell, BellOff, BellRing, Trash2, X } from "lucide-react";
 import type { PesanRow } from "@/lib/actions/pesan";
 
@@ -59,7 +60,7 @@ export default function NotifPopup({
   onDelete,
   onClose,
   onNavigate,
-  up,
+  sheet = false,
 }: {
   t: NotifPopupLabels;
   unread: number;
@@ -69,7 +70,7 @@ export default function NotifPopup({
   onDelete: (row: PesanRow) => void;
   onClose: () => void;
   onNavigate?: () => void;
-  up?: boolean;
+  sheet?: boolean;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -79,12 +80,22 @@ export default function NotifPopup({
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
-    <div
-      className={`animate-menu absolute right-0 z-50 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/20 sm:w-96 dark:border-night-700 dark:bg-night-900 dark:shadow-black/50 ${
-        up ? "bottom-full mb-3 origin-bottom-right" : "top-full mt-3 origin-top-right"
-      }`}
-    >
+  // Portal hanya setelah mount (SSR-safe); sheet dibuka lewat interaksi user
+  // jauh setelah mount, tak ada risiko kedip.
+  const [siap, setSiap] = useState(false);
+  useEffect(() => setSiap(true), []);
+
+  // Mode sheet (drawer mobile): kunci scroll body selama terbuka.
+  useEffect(() => {
+    if (!sheet) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [sheet]);
+
+  const isi = (
+    <>
       {/* Kepala panel */}
       <div className="flex items-center gap-3 border-b border-emerald-100 bg-gradient-to-r from-emerald-50 via-teal-50/70 to-transparent px-4 py-3 dark:border-night-700 dark:from-night-800 dark:via-night-800/50">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/30">
@@ -202,6 +213,39 @@ export default function NotifPopup({
         {t.viewAll}
         <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
       </Link>
+    </>
+  );
+
+  // sheet=true (dibuka dari drawer mobile): bottom-sheet modal dengan backdrop,
+  // bukan popup jangkar yang menimpa menu drawer. Dirender lewat portal ke
+  // document.body karena ancestor drawer mempertahankan transform (animate-menu
+  // fill both) yang mengubah containing block elemen fixed.
+  if (sheet) {
+    if (!siap) return null;
+    return createPortal(
+      <div
+        className="fixed inset-0 z-[70] flex items-end justify-center bg-emerald-950/50 backdrop-blur-sm sm:items-center sm:p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.title}
+      >
+        <button
+          type="button"
+          aria-label={t.closeAria}
+          onClick={onClose}
+          className="absolute inset-0 cursor-default"
+        />
+        <div className="animate-menu relative max-h-[85vh] w-full max-w-md overflow-hidden rounded-t-3xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/30 sm:rounded-2xl dark:border-night-700 dark:bg-night-900">
+          {isi}
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
+  return (
+    <div className="animate-menu absolute right-0 top-full z-50 mt-3 w-[22rem] origin-top-right overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-950/20 max-w-[calc(100vw-2rem)] sm:w-96 dark:border-night-700 dark:bg-night-900 dark:shadow-black/50">
+      {isi}
     </div>
   );
 }
