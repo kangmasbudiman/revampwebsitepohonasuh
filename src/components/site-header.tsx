@@ -67,7 +67,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
           : "border-b border-emerald-100 bg-white/90 shadow-sm backdrop-blur-md"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 xl:max-w-7xl">
         <Link
           href="/"
           onClick={() => setOpen(false)}
