@@ -7,7 +7,7 @@ import { SignJWT } from "jose";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
 
 const secret = new TextEncoder().encode(
   fs.readFileSync(".env", "utf8").match(/AUTH_SECRET="(.+)"/)[1],
