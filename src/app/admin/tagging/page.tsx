@@ -8,6 +8,7 @@ import TaggingForm from "@/components/admin/tagging-form";
 import CancelOrderButton from "@/components/admin/cancel-order-button";
 import PapanCheck from "@/components/admin/papan-check";
 import PapanBatchBar from "@/components/admin/papan-batch-bar";
+import DesaFilter from "@/components/admin/desa-filter";
 import { updateOrderNote } from "@/lib/actions/tagging";
 
 export const metadata = { title: "Order Tagging | Pohon Asuh" };
@@ -31,6 +32,10 @@ export default async function TaggingPage({
   const session = await requireAdmin();
   const sp = await searchParams;
   const prosesFilter = ["1", "2", "3"].includes(String(sp.proses)) ? String(sp.proses) : "";
+  const desaFilter = String((Array.isArray(sp?.desa) ? sp.desa[0] : sp?.desa) ?? "").trim();
+  // Admin program (level 1) melihat order tagging dari SEMUA desa (param
+  // `semua` di endpoint) + filter desa; petugas tetap hanya desa tugasnya.
+  const isAdmin = (session.level ?? 1) === 1;
 
   let orders: ApiOrderRow[] = [];
   let fetchError = false;
@@ -38,6 +43,7 @@ export default async function TaggingPage({
     orders = mapOrderRows(
       await apiPost<Record<string, unknown>[]>("ordercustomerbypengurus", {
         iduser: session.userId,
+        ...(isAdmin ? { semua: 1 } : {}),
       }),
     ).sort((a, b) => b.id - a.id);
   } catch {
@@ -45,7 +51,12 @@ export default async function TaggingPage({
   }
   // Hanya order terverifikasi yang siap ditandai (paritas mobile).
   const taggable = orders.filter((o) => o.confirmation === "yes");
-  const filtered = prosesFilter ? taggable.filter((o) => String(o.proses) === prosesFilter) : taggable;
+  const desaOptions = isAdmin
+    ? [...new Set(taggable.map((o) => o.desa).filter(Boolean))].sort()
+    : [];
+  const dalamDesa =
+    isAdmin && desaFilter ? taggable.filter((o) => o.desa === desaFilter) : taggable;
+  const filtered = prosesFilter ? dalamDesa.filter((o) => String(o.proses) === prosesFilter) : dalamDesa;
 
   // Foto tagging per order, di-scope per idadopsi (siklus order ini) lewat
   // fototagingorder per invoice — riwayat foto siklus adopsi LAMA tidak ikut,
@@ -84,7 +95,15 @@ export default async function TaggingPage({
   );
 
   const countFor = (v: string) =>
-    v ? taggable.filter((o) => String(o.proses) === v).length : taggable.length;
+    v ? dalamDesa.filter((o) => String(o.proses) === v).length : dalamDesa.length;
+
+  const tabHref = (v: string) => {
+    const p = new URLSearchParams();
+    if (v) p.set("proses", v);
+    if (isAdmin && desaFilter) p.set("desa", desaFilter);
+    const q = p.toString();
+    return `/admin/tagging${q ? `?${q}` : ""}`;
+  };
 
   // Pohon "sudah ditagging" = punya foto tagging ATAU proses selesai —
   // papan taging-nya tak perlu dicetak lagi (dikeluarkan dari seleksi massal).
@@ -102,6 +121,11 @@ export default async function TaggingPage({
         mengunduh beberapa papan taging sekaligus dalam satu file ZIP — pohon yang sudah memiliki
         foto tagging otomatis dikeluarkan dari unduhan massal.
       </p>
+      {isAdmin && (
+        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+          Sebagai admin, daftar ini mencakup order dari semua desa — gunakan filter desa untuk mempersempit.
+        </p>
+      )}
 
       {sp?.proses && (
         <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
@@ -127,11 +151,11 @@ export default async function TaggingPage({
         <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">{String(sp.error)}</p>
       )}
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
         {TABS.map((tab) => (
           <Link
             key={tab.value}
-            href={tab.value ? `/admin/tagging?proses=${tab.value}` : "/admin/tagging"}
+            href={tabHref(tab.value)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               prosesFilter === tab.value
                 ? "pa-btn-primary text-white shadow-sm"
@@ -141,6 +165,11 @@ export default async function TaggingPage({
             {tab.label} ({countFor(tab.value)})
           </Link>
         ))}
+        {isAdmin && desaOptions.length > 0 && (
+          <span className="ml-auto">
+            <DesaFilter options={desaOptions} value={desaFilter} proses={prosesFilter} />
+          </span>
+        )}
       </div>
 
       {fetchError && (
