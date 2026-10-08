@@ -241,6 +241,10 @@ export const dict: Dict = {
         "Transfer exactly the total amount below so your payment is easy to verify. The unique code distinguishes your transfer from other donors.",
       totalTransfer: "Total Transfer",
       uniqueCode: "unique code",
+      deadlineTitle: "1x24 Hour Payment Deadline",
+      deadlineAt: "Complete your payment before {time}.",
+      deadlineNote:
+        "Orders unpaid within 1x24 hours are canceled automatically and the tree returns to the adoptable tree list.",
       careOf: "a/n",
       confirmTitle: "Payment Confirmation",
       confirmDesc:

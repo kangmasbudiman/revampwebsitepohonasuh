@@ -18,7 +18,7 @@ import {
 import { requireUser } from "@/lib/guard";
 import { absoluteUrl } from "@/lib/site-url";
 import { rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
-import { getDict } from "@/lib/i18n";
+import { getDict, getLocale } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import PaymentForm from "@/components/payment-form";
 import OnlinePayment from "@/components/online-payment";
@@ -30,6 +30,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   const { code } = await props.params;
   const session = await requireUser();
   const d = (await getDict()).dashboard;
+  const locale = await getLocale();
   const statusLabel: Record<string, string> = {
     PENDING_PAYMENT: d.statusPendingPayment,
     PENDING_VERIFICATION: d.statusPendingVerification,
@@ -75,6 +76,18 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   }
 
   const status = adoptionStatus(conf.confirmation, !!conf.fotoUrl);
+  const batasPembayaran = conf.createdAt
+    ? new Date(new Date(conf.createdAt).getTime() + 24 * 60 * 60 * 1000)
+    : null;
+  const batasStr = batasPembayaran
+    ? new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(batasPembayaran)
+    : "";
   const subtotal = trees.reduce((sum, t) => sum + t.price, 0);
   const unique = Math.max(0, conf.price - subtotal);
   const sertifikatRows = trees.filter((t) => t.certnum);
@@ -149,6 +162,23 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
 
       {status === "PENDING_PAYMENT" && (
         <>
+        {batasPembayaran && (
+          <div
+            data-testid="batas-pembayaran"
+            className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-5"
+          >
+            <span className="text-2xl leading-none" aria-hidden>
+              ⏰
+            </span>
+            <div>
+              <p className="font-bold text-amber-900">{d.pay.deadlineTitle}</p>
+              <p className="mt-1 text-sm font-semibold text-amber-900">
+                {d.pay.deadlineAt.replace("{time}", batasStr)}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-amber-800/80">{d.pay.deadlineNote}</p>
+            </div>
+          </div>
+        )}
         <OnlinePayment confirmationId={conf.id} linkInvoice={conf.linkInvoice} />
         <section className="mt-6 grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-6">

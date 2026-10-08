@@ -33,9 +33,10 @@ rows(`DELETE FROM confirmation WHERE invoice='${INVOICE}'`);
 rows(`DELETE FROM pesan_notif WHERE idmember=2683 AND pesan LIKE '%canceled%'`);
 
 // dua pohon available di rantaukermas (desa petugas 2683) — simpan state aslinya
+// (kolom terakhir 'x' = sentinel: kolom kosong di ujung baris mysql -B ikut ter-trim)
 const POHONS = rows(
-  "SELECT idpohon, IFNULL(adopted,''), IFNULL(pengasuh,''), IFNULL(nama,''), IFNULL(invoice,''), IFNULL(tgl_adopt,'') FROM data_pohon WHERE desa='rantaukermas' AND adopted='available' ORDER BY id LIMIT 2",
-);
+  "SELECT idpohon, IFNULL(adopted,''), IFNULL(pengasuh,''), IFNULL(nama,''), IFNULL(invoice,''), IFNULL(tgl_adopt,''), 'x' FROM data_pohon WHERE desa='rantaukermas' AND adopted='available' ORDER BY id LIMIT 2",
+).map((r) => r.slice(0, 6));
 assert(POHONS.length === 2, `2 pohon fixture available rantaukermas (${POHONS.map((p) => p[0]).join(", ")})`);
 const [P1, P2] = POHONS.map((p) => p[0]);
 // sisipkan koma pada nama/nama asli saat RESTORE (kolom 3 = nama)

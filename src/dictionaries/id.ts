@@ -242,6 +242,10 @@ export const dict = {
         "Transfer tepat sesuai jumlah total di bawah ini agar pembayaran Anda mudah diverifikasi. Kode unik membedakan transfer Anda dari donatur lain.",
       totalTransfer: "Total Transfer",
       uniqueCode: "kode unik",
+      deadlineTitle: "Batas Pembayaran 1×24 Jam",
+      deadlineAt: "Selesaikan pembayaran sebelum {time}.",
+      deadlineNote:
+        "Order yang tidak dibayar dalam 1×24 jam otomatis dibatalkan dan pohonnya kembali ke daftar pohon siap diadopsi.",
       careOf: "a.n.",
       confirmTitle: "Konfirmasi Pembayaran",
       confirmDesc:
