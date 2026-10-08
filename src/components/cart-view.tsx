@@ -2,9 +2,17 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Trash2, Gift, Minus, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Trash2, Gift, Minus, Plus, Hourglass, X } from "lucide-react";
 import { useCart } from "@/lib/use-cart";
-import { removeFromCart, updateCartItem, MAX_YEARS } from "@/lib/cart";
+import {
+  removeFromCart,
+  updateCartItem,
+  MAX_YEARS,
+  getExpiredNotice,
+  dismissExpiredNotice,
+  type ExpiredNotice,
+} from "@/lib/cart";
 import { rupiah } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -12,19 +20,69 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
   const { dict } = useI18n();
   const t = dict.cart;
   const items = useCart();
+  const [expired, setExpired] = useState<ExpiredNotice[] | null>(null);
+
+  useEffect(() => {
+    setExpired(getExpiredNotice());
+  }, []);
+
+  const expiryBanner =
+    expired && expired.length > 0 ? (
+      <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 shadow-sm">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+            <Hourglass className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-sm font-semibold text-amber-900">{t.expiredTitle}</h2>
+            <p className="mt-0.5 text-xs text-amber-800">{t.expiredDesc}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {expired.map((e) => (
+                <span
+                  key={e.code}
+                  className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-amber-900 ring-1 ring-amber-300"
+                >
+                  {e.localName} · {e.code}
+                </span>
+              ))}
+            </div>
+            <Link
+              href="/pohon"
+              className="mt-2.5 inline-flex text-xs font-semibold text-amber-800 underline-offset-2 hover:underline"
+            >
+              {t.browseTrees} →
+            </Link>
+          </div>
+          <button
+            type="button"
+            aria-label={t.expiredDismissAria}
+            onClick={() => {
+              dismissExpiredNotice();
+              setExpired([]);
+            }}
+            className="rounded-lg p-1.5 text-amber-500 transition-colors hover:bg-amber-100 hover:text-amber-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    ) : null;
 
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-emerald-100 bg-white p-10 text-center shadow-sm">
-        <p className="text-5xl">🛒</p>
-        <h2 className="mt-4 text-lg font-semibold text-emerald-950">{t.emptyTitle}</h2>
-        <p className="mt-1 text-sm text-zinc-500">{t.emptyDesc}</p>
-        <Link
-          href="/pohon"
-          className="mt-6 inline-flex rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
-        >
-          {t.browseTrees}
-        </Link>
+      <div className="space-y-4">
+        {expiryBanner}
+        <div className="rounded-2xl border border-emerald-100 bg-white p-10 text-center shadow-sm">
+          <p className="text-5xl">🛒</p>
+          <h2 className="mt-4 text-lg font-semibold text-emerald-950">{t.emptyTitle}</h2>
+          <p className="mt-1 text-sm text-zinc-500">{t.emptyDesc}</p>
+          <Link
+            href="/pohon"
+            className="mt-6 inline-flex rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+          >
+            {t.browseTrees}
+          </Link>
+        </div>
       </div>
     );
   }
@@ -33,7 +91,9 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
   const totalYears = items.reduce((s, i) => s + (i.years ?? 1), 0);
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
+    <div className="space-y-4">
+      {expiryBanner}
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-4">
         {items.map((item, idx) => {
           const years = item.years ?? 1;
@@ -128,6 +188,7 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
           <span className="text-base font-bold text-emerald-700">{rupiah(total)}</span>
         </div>
         <p className="mt-2 text-xs text-zinc-500">{t.uniqueNote}</p>
+        <p className="mt-1.5 text-xs text-zinc-500">{t.ttlNote}</p>
         <Link
           href={loggedIn ? "/checkout" : "/masuk?next=/checkout"}
           className="mt-6 block w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:from-emerald-500 hover:to-emerald-400"
@@ -143,6 +204,7 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
           </p>
         )}
       </aside>
+      </div>
     </div>
   );
 }

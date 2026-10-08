@@ -143,6 +143,10 @@ export const dict = {
     emptyTitle: "Keranjang masih kosong",
     emptyDesc: "Pilih pohon favoritmu dan jadilah pengasuh hutan.",
     browseTrees: "Lihat Data Pohon",
+    expiredTitle: "Masa Simpan Keranjang Habis",
+    expiredDesc:
+      "Pohon berikut belum dibayar lebih dari 1 hari dan otomatis dikembalikan ke daftar pohon siap diadopsi.",
+    expiredDismissAria: "Tutup pemberitahuan masa simpan keranjang",
     minusAria: "Kurangi durasi {name}",
     plusAria: "Tambah durasi {name}",
     year: "tahun",
@@ -154,6 +158,7 @@ export const dict = {
     treeWord: "pohon",
     treesWord: "pohon",
     uniqueNote: "Belum termasuk kode unik transfer (Rp100–Rp999) yang dihitung saat pembayaran.",
+    ttlNote: "Item keranjang otomatis dikembalikan bila tidak dibayar dalam 1 × 24 jam.",
     checkout: "Lanjut ke Pembayaran",
     loginToCheckout: "Masuk untuk Checkout",
     noAccount: "Belum punya akun?",

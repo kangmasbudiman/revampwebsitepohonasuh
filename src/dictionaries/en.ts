@@ -142,6 +142,10 @@ export const dict: Dict = {
     emptyTitle: "Your cart is still empty",
     emptyDesc: "Pick your favorite tree and become a forest caretaker.",
     browseTrees: "Browse Tree Data",
+    expiredTitle: "Cart Storage Time Is Up",
+    expiredDesc:
+      "The following trees were unpaid for more than 1 day and have been automatically returned to the adoptable tree list.",
+    expiredDismissAria: "Dismiss cart expiry notice",
     minusAria: "Decrease duration for {name}",
     plusAria: "Increase duration for {name}",
     year: "year",
@@ -153,6 +157,7 @@ export const dict: Dict = {
     treeWord: "tree",
     treesWord: "trees",
     uniqueNote: "Excludes the unique transfer code (Rp100–Rp999) calculated at payment.",
+    ttlNote: "Cart items are automatically returned if they remain unpaid for 24 hours.",
     checkout: "Continue to Payment",
     loginToCheckout: "Log In to Checkout",
     noAccount: "No account yet?",
