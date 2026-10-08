@@ -30,15 +30,27 @@ export default async function AdminFinancePage() {
         </div>
       </details>
 
-      <Link
-        href="/admin/keuangan/desa"
-        className="mt-4 block rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm transition-colors hover:border-emerald-300 dark:border-night-700 dark:hover:border-emerald-800"
-      >
-        <p className="font-semibold text-emerald-950 dark:text-emerald-50">Laporan Dana per Desa →</p>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Rincian adopsi, status tagging, dan total dana terverifikasi untuk tiap desa.
-        </p>
-      </Link>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <Link
+          href="/admin/keuangan/pembayaran"
+          className="block rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm transition-colors hover:border-emerald-300 dark:border-night-700 dark:hover:border-emerald-800"
+        >
+          <p className="font-semibold text-emerald-950 dark:text-emerald-50">Pencatatan Keuangan →</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Catat pembayaran pohon yang sudah ditagging — daftarnya sinkron otomatis dengan
+            status tagging petugas.
+          </p>
+        </Link>
+        <Link
+          href="/admin/keuangan/desa"
+          className="block rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm transition-colors hover:border-emerald-300 dark:border-night-700 dark:hover:border-emerald-800"
+        >
+          <p className="font-semibold text-emerald-950 dark:text-emerald-50">Laporan Dana per Desa →</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Rincian adopsi, status tagging, dan total dana terverifikasi untuk tiap desa.
+          </p>
+        </Link>
+      </div>
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-lg font-bold pa-hgrad">Riwayat Pengeluaran</h2>

@@ -1072,3 +1072,66 @@ export function mapPartners(rows: Record<string, unknown>[]): ApiPartner[] {
     };
   });
 }
+
+// pembayaranlist → Pencatatan Keuangan (/admin/keuangan/pembayaran): pohon
+// "sudah ditagging" (dihitung hidup di backend, selaras chip Order Tagging)
+// beserta status pembayarannya per siklus adopsi.
+export type ApiPembayaranBayar = {
+  id: number;
+  penerima: string;
+  jumlah: number;
+  tanggal: string;
+  metode: string;
+  catatan: string | null;
+};
+
+export type ApiPembayaranRow = {
+  idadopsi: number;
+  idpohon: string;
+  invoice: string;
+  nama: string;
+  price: number;
+  proses: number;
+  tglAdopt: string | null;
+  desa: string;
+  localname: string;
+  jmlFoto: number;
+  tglTagging: string | null;
+  petugasDesa: string;
+  dibayar: boolean;
+  bayar: ApiPembayaranBayar | null;
+};
+
+export function mapPembayaranRows(res: {
+  value?: number | string;
+  data?: Record<string, unknown>[];
+}): ApiPembayaranRow[] {
+  return (res.data ?? []).map((r) => {
+    const b = (r.pembayaran ?? null) as Record<string, unknown> | null;
+    return {
+      idadopsi: Number(r.idadopsi ?? 0),
+      idpohon: String(r.idpohon ?? ""),
+      invoice: String(r.invoice ?? ""),
+      nama: String(r.nama ?? ""),
+      price: Number(r.price ?? 0),
+      proses: Number(r.proses ?? 0),
+      tglAdopt: r.tgl_adopt ? String(r.tgl_adopt) : null,
+      desa: String(r.desa ?? ""),
+      localname: String(r.localname ?? r.idpohon ?? ""),
+      jmlFoto: Number(r.jml_foto ?? 0),
+      tglTagging: r.tgl_tagging ? String(r.tgl_tagging) : null,
+      petugasDesa: String(r.petugas_desa ?? ""),
+      dibayar: Boolean(r.dibayar),
+      bayar: b
+        ? {
+            id: Number(b.id ?? 0),
+            penerima: String(b.penerima ?? ""),
+            jumlah: Number(b.jumlah ?? 0),
+            tanggal: String(b.tanggal ?? ""),
+            metode: String(b.metode ?? ""),
+            catatan: b.catatan ? String(b.catatan) : null,
+          }
+        : null,
+    };
+  });
+}
