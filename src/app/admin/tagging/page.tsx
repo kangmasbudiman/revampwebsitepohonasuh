@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Printer } from "lucide-react";
+import { CheckCircle2, Printer } from "lucide-react";
 import { requireAdmin } from "@/lib/guard";
 import { apiAssetUrl, apiPost, mapOrderRows, type ApiOrderRow } from "@/lib/api";
 import { rupiah } from "@/lib/format";
@@ -25,8 +25,6 @@ const PROSES_BADGE: Record<number, { label: string; className: string }> = {
   3: { label: "Selesai", className: "bg-emerald-50 text-emerald-700 dark:bg-night-800 dark:text-emerald-300" },
 };
 
-type FotoTagging = { idpohon: string; urls: string[] };
-
 export default async function TaggingPage({
   searchParams,
 }: PageProps<"/admin/tagging">) {
@@ -49,20 +47,24 @@ export default async function TaggingPage({
   const taggable = orders.filter((o) => o.confirmation === "yes");
   const filtered = prosesFilter ? taggable.filter((o) => String(o.proses) === prosesFilter) : taggable;
 
-  // Foto tagging per pohon untuk order yang tampil (volume per petugas kecil).
-  const fotos: Record<string, string[]> = {};
+  // Foto tagging per order, di-scope per idadopsi (siklus order ini) lewat
+  // fototagingorder per invoice — riwayat foto siklus adopsi LAMA tidak ikut,
+  // sehingga pohon yang pernah ditandai di adopsi sebelumnya tetap dianggap
+  // belum ditagging untuk order berjalan.
+  const fotosByOrder: Record<number, string[]> = {};
   await Promise.all(
-    filtered.map(async (o) => {
-      if (fotos[o.idpohon]) return;
+    [...new Set(filtered.map((o) => o.invoice))].map(async (inv) => {
       try {
-        const rows = await apiPost<{ urlGambar?: string }[]>("lihatfototaging", {
-          idpohon: o.idpohon,
-        });
-        fotos[o.idpohon] = rows
-          .map((r) => apiAssetUrl(r.urlGambar))
-          .filter((u): u is string => !!u);
+        const rows = await apiPost<
+          { idadopsi?: number | string; foto?: { url?: string }[] }[]
+        >("fototagingorder", { invoice: inv });
+        for (const r of rows) {
+          fotosByOrder[Number(r.idadopsi)] = (r.foto ?? [])
+            .map((f) => apiAssetUrl(f.url))
+            .filter((u): u is string => !!u);
+        }
       } catch {
-        fotos[o.idpohon] = [];
+        // kartu tetap dirender tanpa foto
       }
     }),
   );
@@ -84,6 +86,12 @@ export default async function TaggingPage({
   const countFor = (v: string) =>
     v ? taggable.filter((o) => String(o.proses) === v).length : taggable.length;
 
+  // Pohon "sudah ditagging" = punya foto tagging ATAU proses selesai —
+  // papan taging-nya tak perlu dicetak lagi (dikeluarkan dari seleksi massal).
+  const taggedIds = filtered
+    .filter((o) => (fotosByOrder[o.id]?.length ?? 0) > 0 || o.proses === 3)
+    .map((o) => o.id);
+
   return (
     <main className="w-full px-6 py-8 lg:px-10">
       <h1 className="text-xl font-bold pa-hgrad">Order Tagging</h1>
@@ -91,7 +99,8 @@ export default async function TaggingPage({
         Pohon terverifikasi yang menunggu ditandai di lapangan. Unggah foto tagging lalu tandai
         selesai — sertifikat donatur terbit otomatis setelah selesai (paritas aplikasi mobile).
         Conteng kartu <span className="font-semibold text-emerald-700 dark:text-emerald-300">Papan</span> untuk
-        mengunduh beberapa papan taging sekaligus dalam satu file ZIP.
+        mengunduh beberapa papan taging sekaligus dalam satu file ZIP — pohon yang sudah memiliki
+        foto tagging otomatis dikeluarkan dari unduhan massal.
       </p>
 
       {sp?.proses && (
@@ -146,6 +155,8 @@ export default async function TaggingPage({
             label: `Proses ${order.proses}`,
             className: "bg-zinc-100 text-zinc-600 dark:text-zinc-300",
           };
+          const jmlFoto = fotosByOrder[order.id]?.length ?? 0;
+          const tagged = jmlFoto > 0 || order.proses === 3;
           const osm =
             order.lat && order.lng
               ? `https://www.openstreetmap.org/?mlat=${order.lat}&mlon=${order.lng}#map=17/${order.lat}/${order.lng}`
@@ -198,7 +209,18 @@ export default async function TaggingPage({
                     Lihat lokasi pohon di peta ↗
                   </a>
                 )}
-                <PapanCheck order={order} />
+                {tagged ? (
+                  <span
+                    data-testid="chip-sudah-tagging"
+                    title="Pohon ini sudah memiliki catatan tagging — papan otomatis dikeluarkan dari unduhan massal"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Sudah ditagging{jmlFoto > 0 ? ` (${jmlFoto} foto)` : ""}
+                  </span>
+                ) : (
+                  <PapanCheck order={order} />
+                )}
                 <Link
                   href={`/admin/tagging/${order.id}/papan`}
                   className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
@@ -216,13 +238,13 @@ export default async function TaggingPage({
                 )}
               </div>
 
-              {fotos[order.idpohon]?.length > 0 && (
+              {fotosByOrder[order.id]?.length > 0 && (
                 <div className="mt-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
-                    Foto tagging ({fotos[order.idpohon].length})
+                    Foto tagging ({fotosByOrder[order.id].length})
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {fotos[order.idpohon].map((u, i) => (
+                    {fotosByOrder[order.id].map((u, i) => (
                       <Image
                         key={`${u}-${i}`}
                         src={u}
@@ -272,7 +294,7 @@ export default async function TaggingPage({
         )}
       </div>
 
-      {filtered.length > 0 && <PapanBatchBar />}
+      {filtered.length > 0 && <PapanBatchBar taggedIds={taggedIds} />}
     </main>
   );
 }

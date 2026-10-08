@@ -47,6 +47,7 @@ export default async function SiteFooter() {
             <li><Link href="/kalkulator-karbon" className="hover:text-white">{t.carbonCalc}</Link></li>
             <li><Link href="/lokasi" className="hover:text-white">{t.forestLocation}</Link></li>
             <li><Link href="/blog" className="hover:text-white">{t.blog}</Link></li>
+            <li><Link href="/cerita-dampak" className="hover:text-white">{t.impactStories}</Link></li>
             <li><Link href="/keuangan" className="hover:text-white">{t.financeReport}</Link></li>
             <li><Link href="/faq" className="hover:text-white">{t.faq}</Link></li>
           </ul>

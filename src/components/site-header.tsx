@@ -30,6 +30,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
   // Menu sekunder — dropdown "Informasi" agar bar utama tidak dempet.
   const INFO_NAV = [
     { href: "/faq", label: dict.nav.faq },
+    { href: "/cerita-dampak", label: dict.nav.impact },
     { href: "/keuangan", label: dict.nav.finance },
     { href: "/kontak", label: dict.nav.contact },
   ];

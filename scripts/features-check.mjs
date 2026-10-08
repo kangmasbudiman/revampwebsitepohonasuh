@@ -9,7 +9,7 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 
 const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.API_BASE_URL ?? "http://127.0.0.1:8000/api";
 const rows = (sql) =>
   execSync(`mysql -uroot -pkerabatkotak pohonasuh2 -N -B -e "${sql.replace(/"/g, '\\"')}" 2>/dev/null`)
     .toString()
@@ -242,11 +242,12 @@ for (let i = 0; i < (await groupBtns.count()); i++) {
 }
 const navLinks = await a.locator("aside nav a").allTextContents();
 assert(
-  navLinks.length === 20 &&
+  navLinks.length === 21 &&
     navLinks.includes("Kelola Spesies") &&
+    navLinks.includes("Cerita Dampak") &&
     navLinks.includes("Testimoni & Partner") &&
     navLinks.includes("Backup Database"),
-  `sidebar admin 20 menu (termasuk Kelola Spesies, Testimoni & Partner, Backup Database) — ${navLinks.length} link`,
+  `sidebar admin 21 menu (termasuk Kelola Spesies, Cerita Dampak, Testimoni & Partner, Backup Database) — ${navLinks.length} link`,
 );
 
 // ---- CRUD testimoni: section beranda muncul lalu hilang ----

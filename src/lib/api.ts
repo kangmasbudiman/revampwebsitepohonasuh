@@ -1019,6 +1019,37 @@ export function mapTestimonis(rows: Record<string, unknown>[]): ApiTestimoni[] {
 }
 
 // partnerlist → section "Didukung Oleh" beranda. Endpoint membalas logo
+// ceritalist → halaman publik /cerita-dampak (kisah penerima manfaat).
+// Endpoint membalas foto URL penuh dari host API; rebuild dari origin
+// (pola mapPartner) agar upload dev lokal langsung terlihat.
+export type ApiCerita = {
+  id: number;
+  judul: string;
+  narasumber: string;
+  peran: string;
+  lokasi: string;
+  isi: string;
+  fotoUrl: string | null;
+  createdAt: string;
+};
+
+export function mapCeritas(rows: Record<string, unknown>[]): ApiCerita[] {
+  return rows.map((r) => {
+    const file = String(r.foto ?? "").split("/").pop() ?? "";
+    return {
+      id: Number(r.id),
+      judul: String(r.judul ?? ""),
+      narasumber: String(r.narasumber ?? ""),
+      peran: String(r.peran ?? ""),
+      lokasi: String(r.lokasi ?? ""),
+      isi: String(r.isi ?? ""),
+      fotoUrl: file ? `${ASSET_ORIGIN}/assets/${file}` : null,
+      createdAt: String(r.created_at ?? ""),
+    };
+  });
+}
+
+// partnerlist → section "Didukung Oleh" beranda. Endpoint membalas logo
 // URL penuh dari host API; rebuild dari origin (pola mapSlider) agar
 // upload dev lokal langsung terlihat.
 export type ApiPartner = {

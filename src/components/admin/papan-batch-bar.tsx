@@ -24,10 +24,13 @@ function namaFile(o: ApiOrderRow) {
 
 // Bar aksi melayang: unduh SEMUA papan taging pohon yang diconteng dalam
 // satu file ZIP (render PNG satu-per-satu dari komponen PapanTaging yang
-// sama dengan halaman pratinjau).
-export default function PapanBatchBar() {
+// sama dengan halaman pratinjau). Pohon yang sudah ditagging (punya foto /
+// selesai) otomatis digugurkan dari seleksi — termasuk seleksi basi yang
+// diconteng sebelum foto tagging diunggah.
+export default function PapanBatchBar({ taggedIds = [] }: { taggedIds?: number[] }) {
   const sel = useSyncExternalStore(subscribePapan, papanSnapshot, papanSnapshot);
-  const list = [...sel.values()];
+  const tagged = new Set(taggedIds);
+  const list = [...sel.values()].filter((o) => !tagged.has(o.id));
   const [proses, setProses] = useState(false);
   const [selesai, setSelesai] = useState(0);
   const [gagal, setGagal] = useState(0);
