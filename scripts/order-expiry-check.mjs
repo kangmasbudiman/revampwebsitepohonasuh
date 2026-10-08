@@ -35,8 +35,9 @@ const assert = (cond, msg) => {
 const KODE = "EXPE2E";
 const INV_OLD = "#EXPE2EOLD";
 const INV_NEW = "#EXPE2ENEW";
-rows(`DELETE FROM data_adopsi WHERE invoice IN ('${INV_OLD}','${INV_NEW}')`);
-rows(`DELETE FROM confirmation WHERE invoice IN ('${INV_OLD}','${INV_NEW}')`);
+const INV_LEGACY = "#EXPE2ELEG";
+rows(`DELETE FROM data_adopsi WHERE invoice IN ('${INV_OLD}','${INV_NEW}','${INV_LEGACY}')`);
+rows(`DELETE FROM confirmation WHERE invoice IN ('${INV_OLD}','${INV_NEW}','${INV_LEGACY}')`);
 rows(`DELETE FROM pesan_notif WHERE idmember=${MEMBER} AND pesan LIKE '%1x24 hour payment deadline%'`);
 rows(`DELETE FROM data_pohon WHERE idpohon='${KODE}'`);
 const DESA = one("SELECT desa FROM data_pohon WHERE desa IS NOT NULL AND desa<>'' LIMIT 1");
@@ -53,7 +54,13 @@ rows(
 const NEW_ID = rows(
   `INSERT INTO confirmation (invoice,tgl_pesan,idpengasuh,name,email,methode,cur,price,tanggal,jml_pohon,confirmation,confirmationBy,created_at,updated_at) VALUES ('${INV_NEW}',CURDATE(),${MEMBER},'E2E Segar','new@e2e.test','transfer','IDR',200108,CURDATE(),1,'no','E2E',NOW(),NOW()); SELECT LAST_INSERT_ID()`,
 )[0][0];
-assert(Boolean(OLD_ID && NEW_ID), `fixture: order tua ${OLD_ID} (25 jam) + order segar ${NEW_ID}`);
+const LEGACY_ID = rows(
+  `INSERT INTO confirmation (invoice,tgl_pesan,idpengasuh,name,email,methode,cur,price,tanggal,jml_pohon,confirmation,confirmationBy,created_at,updated_at) VALUES ('${INV_LEGACY}',CURDATE(),${MEMBER},'E2E Legacy','leg@e2e.test','transfer','IDR',200108,CURDATE(),1,'no','E2E',DATE_SUB(UTC_TIMESTAMP(), INTERVAL 8 DAY),UTC_TIMESTAMP()); SELECT LAST_INSERT_ID()`,
+)[0][0];
+assert(
+  Boolean(OLD_ID && NEW_ID && LEGACY_ID),
+  `fixture: order tua ${OLD_ID} (25 jam) + order segar ${NEW_ID} + legacy 8 hari ${LEGACY_ID}`,
+);
 
 // ============== 1. Trigger sweep via getconfirmasi ==============
 const res = await fetch(`${API}/getconfirmasi`, {
@@ -66,6 +73,8 @@ const old = konf.find((k) => k.invoice === INV_OLD);
 const segar = konf.find((k) => k.invoice === INV_NEW);
 assert(old?.confirmation === "cancel", "order 25 jam → confirmation='cancel' setelah sweep");
 assert(segar?.confirmation === "no", "order segar tetap 'no' (tidak tersentuh sweep)");
+const legacy = konf.find((k) => k.invoice === INV_LEGACY);
+assert(legacy?.confirmation === "no", "order legacy >7 hari TIDAK tersentuh sweep");
 assert(typeof old?.created_at === "string" && old.created_at.length > 0, "getconfirmasi kini bawa created_at");
 
 // ============== 2. Efek DB ==============
@@ -138,8 +147,8 @@ assert(invJson.code === 409, `createinvoice menolak order cancel (code ${invJson
 console.log("   (sisa ±" + sisaJam + " jam — info)");
 
 // ============== Cleanup ==============
-rows(`DELETE FROM data_adopsi WHERE invoice IN ('${INV_OLD}','${INV_NEW}')`);
-rows(`DELETE FROM confirmation WHERE invoice IN ('${INV_OLD}','${INV_NEW}')`);
+rows(`DELETE FROM data_adopsi WHERE invoice IN ('${INV_OLD}','${INV_NEW}','${INV_LEGACY}')`);
+rows(`DELETE FROM confirmation WHERE invoice IN ('${INV_OLD}','${INV_NEW}','${INV_LEGACY}')`);
 rows(`DELETE FROM data_pohon WHERE idpohon='${KODE}'`);
 rows(`DELETE FROM pesan_notif WHERE idmember=${MEMBER} AND pesan LIKE '%1x24 hour payment deadline%'`);
 await browser.close();
