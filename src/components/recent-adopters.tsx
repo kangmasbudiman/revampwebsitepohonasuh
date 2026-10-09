@@ -89,39 +89,39 @@ export default function RecentAdopters({ items }: { items: ApiAdopsiTerKini[] })
             </button>
           </div>
         </div>
+      </div>
 
-        <div
-          ref={trackRef}
-          className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {items.map((it, i) => (
-            <div
-              key={`${it.code}-${i}`}
-              className="flex min-w-[270px] max-w-[320px] flex-1 snap-start items-center gap-3 rounded-2xl border border-emerald-100 bg-white p-3 shadow-sm"
-            >
-              {it.photoUrl && (
-                <Image
-                  src={it.photoUrl}
-                  alt={it.localName ?? it.code}
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 shrink-0 rounded-xl object-cover"
-                />
-              )}
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-emerald-950">{it.adopter}</p>
-                <p className="truncate text-xs text-zinc-600">
-                  {t.recentAdopts.replaceAll("{tree}", it.localName || it.code)}{" "}
-                  <span className="font-mono font-semibold text-emerald-700">{it.code}</span>
-                </p>
-                <p className="mt-0.5 truncate text-xs text-zinc-400">
-                  <span className="capitalize">{it.desa}</span>
-                  {it.tanggal ? ` · ${fmtTanggal(it.tanggal)}` : ""}
-                </p>
-              </div>
+      <div
+        ref={trackRef}
+        className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {items.map((it, i) => (
+          <div
+            key={`${it.code}-${i}`}
+            className="flex min-w-[270px] max-w-[320px] flex-1 snap-start items-center gap-3 rounded-2xl border border-emerald-100 bg-white p-3 shadow-sm"
+          >
+            {it.photoUrl && (
+              <Image
+                src={it.photoUrl}
+                alt={it.localName ?? it.code}
+                width={56}
+                height={56}
+                className="h-14 w-14 shrink-0 rounded-xl object-cover"
+              />
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-emerald-950">{it.adopter}</p>
+              <p className="truncate text-xs text-zinc-600">
+                {t.recentAdopts.replaceAll("{tree}", it.localName || it.code)}{" "}
+                <span className="font-mono font-semibold text-emerald-700">{it.code}</span>
+              </p>
+              <p className="mt-0.5 truncate text-xs text-zinc-400">
+                <span className="capitalize">{it.desa}</span>
+                {it.tanggal ? ` · ${fmtTanggal(it.tanggal)}` : ""}
+              </p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </section>
   );
