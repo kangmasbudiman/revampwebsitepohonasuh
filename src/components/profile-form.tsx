@@ -36,6 +36,8 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
   const [pwBaru, setPwBaru] = useState("");
   const [pwKonfirmasi, setPwKonfirmasi] = useState("");
   const pwSama = pwLama !== "" && pwBaru !== "" && pwBaru === pwLama;
+  const [pwTried, setPwTried] = useState(false);
+  const pwSamaError = pwTried && pwSama;
 
   return (
     <div className="mt-6 space-y-6">
@@ -137,6 +139,7 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
             if (pwSama) {
               e.preventDefault();
               e.stopPropagation();
+              setPwTried(true);
             }
           }}
           className="mt-4 grid gap-4 sm:grid-cols-3"
@@ -152,7 +155,10 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
               required
               autoComplete="current-password"
               value={pwLama}
-              onChange={(e) => setPwLama(e.target.value)}
+              onChange={(e) => {
+                setPwLama(e.target.value);
+                setPwTried(false);
+              }}
               className={inputCls}
             />
           </div>
@@ -168,11 +174,14 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
               minLength={6}
               autoComplete="new-password"
               value={pwBaru}
-              onChange={(e) => setPwBaru(e.target.value)}
-              aria-invalid={pwSama}
+              onChange={(e) => {
+                setPwBaru(e.target.value);
+                setPwTried(false);
+              }}
+              aria-invalid={pwSamaError}
               className={inputCls}
             />
-            {pwSama && (
+            {pwSamaError && (
               <p className="mt-1 text-xs font-medium text-red-600" data-testid="pw-same-error">
                 {t.pwSame}
               </p>
