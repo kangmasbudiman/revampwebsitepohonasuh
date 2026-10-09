@@ -1003,6 +1003,29 @@ export function mapSpeciesDetail(r: Record<string, unknown>): ApiSpeciesDetail {
   };
 }
 
+// adopsiterkini → slider "Pengadopsi Terkini" beranda (20 terverifikasi terbaru).
+export type ApiAdopsiTerKini = {
+  adopter: string;
+  code: string;
+  localName: string | null;
+  species: string | null;
+  desa: string;
+  tanggal: string | null;
+  photoUrl: string;
+};
+
+export function mapAdopsiTerKini(rows: Record<string, unknown>[]): ApiAdopsiTerKini[] {
+  return rows.map((r) => ({
+    adopter: String(r.pengadopsi ?? ""),
+    code: String(r.idpohon ?? ""),
+    localName: r.localname ? String(r.localname) : null,
+    species: r.species ? String(r.species) : null,
+    desa: String(r.desa ?? ""),
+    tanggal: r.tgl_adopt ? String(r.tgl_adopt) : null,
+    photoUrl: treePhotoUrl(apiAssetUrl(r.foto as string | null)),
+  }));
+}
+
 // testimonilist → section "Kata Mereka" beranda.
 export type ApiTestimoni = {
   id: number;

@@ -80,6 +80,8 @@ export const dict = {
     prevSlideAria: "Slide sebelumnya",
     nextSlideAria: "Slide berikutnya",
     goToSlideAria: "Ke slide {n}",
+    recentTitle: "Pengadopsi Terkini",
+    recentAdopts: "mengadopsi {tree}",
     statTrees: "Total Pohon Terdata",
     statAdopted: "Pohon Teradopsi",
     statLocations: "Lokasi Hutan",

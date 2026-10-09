@@ -79,6 +79,8 @@ export const dict: Dict = {
     prevSlideAria: "Previous slide",
     nextSlideAria: "Next slide",
     goToSlideAria: "Go to slide {n}",
+    recentTitle: "Recent Adopters",
+    recentAdopts: "adopted {tree}",
     statTrees: "Total Trees Recorded",
     statAdopted: "Trees Adopted",
     statLocations: "Forest Locations",

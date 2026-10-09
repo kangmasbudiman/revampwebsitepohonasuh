@@ -67,6 +67,8 @@ console.log(`   DB: pohon=${dbPohon} diadopsi=${dbAdopted} desa=${dbDesa} donatu
 await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
 await page.waitForTimeout(2200); // CountUp animasi 1.5 dtk
 const statSection = page.locator("section", { hasText: "Total Pohon Terdata" }).first();
+await statSection.scrollIntoViewIfNeeded(); // CountUp baru berjalan saat section terlihat
+await page.waitForTimeout(2000); // animasi CountUp 1,5 dtk
 const statText = await statSection.textContent();
 assert(statText.includes(String(dbPohon)), `statistik beranda: total pohon ${dbPohon} (statistikdampak)`);
 assert(statText.includes(String(dbAdopted)), `statistik beranda: teradopsi ${dbAdopted}`);
@@ -78,6 +80,28 @@ assert(
 );
 assert((await page.getByText("Kata Mereka", { exact: true }).count()) === 0, "section testimoni TERSEMBUNYI saat DB kosong");
 assert((await page.getByText("Didukung Oleh", { exact: true }).count()) === 0, "section partner TERSEMBUNYI saat DB kosong");
+
+// ---- Slider pengadopsi terkini (pengganti running text) ----
+const terkiniApi = await (await fetch(`${API}/adopsiterkini`)).json();
+assert(Array.isArray(terkiniApi) && terkiniApi.length > 0 && terkiniApi.length <= 20, `API adopsiterkini: ${terkiniApi.length} baris (maks 20)`);
+assert(
+  terkiniApi.every((r) => r.pengadopsi && r.idpohon && r.desa !== undefined),
+  "API adopsiterkini: field pengadopsi/idpohon/desa terisi",
+);
+const [terkiniTerbaruDb] = rows(
+  "SELECT m.name FROM data_adopsi a JOIN confirmation c ON c.invoice=a.invoice JOIN member m ON m.id=a.pengasuh WHERE c.confirmation='yes' ORDER BY a.id DESC LIMIT 1",
+)[0];
+assert(
+  terkiniApi[0].pengadopsi === terkiniTerbaruDb,
+  `API adopsiterkini: urutan terbaru duluan ('${terkiniApi[0].pengadopsi}')`,
+);
+assert((await page.getByText("Pengadopsi Terkini", { exact: true }).count()) === 1, "beranda: heading slider 'Pengadopsi Terkini' tampil");
+assert(
+  (await page.locator("div.snap-x > div").count()) === terkiniApi.length,
+  `beranda: ${terkiniApi.length} kartu pengadopsi terkini di slider`,
+);
+assert((await page.locator(".marquee-track").count()) === 0, "beranda: running text lama (marquee) sudah dihapus");
+await page.screenshot({ path: "screenshots/115-fitur-pengadopsi-terkini.png", fullPage: false });
 await page.screenshot({ path: "screenshots/110-fitur-home-stats.png", fullPage: false });
 
 // ================= 2. /lokasi diperkaya =================

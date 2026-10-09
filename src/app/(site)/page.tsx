@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Leaf, MapPin, Quote, Sprout, TreeDeciduous, Users } from "lucide-react";
+import { MapPin, Quote, Sprout, TreeDeciduous, Users } from "lucide-react";
 import {
   apiGet,
   apiPost,
+  mapAdopsiTerKini,
   mapDesa,
   mapPartners,
   mapPosts,
@@ -10,6 +11,7 @@ import {
   mapStatistik,
   mapTestimonis,
   mapTrees,
+  type ApiAdopsiTerKini,
   type ApiDesa,
   type ApiPartner,
   type ApiPost,
@@ -23,6 +25,7 @@ import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 import PostCard from "@/components/post-card";
 import HeroSlider, { type HeroSlide } from "@/components/hero-slider";
+import RecentAdopters from "@/components/recent-adopters";
 import Reveal from "@/components/reveal";
 import CountUp from "@/components/count-up";
 
@@ -39,6 +42,7 @@ export default async function HomePage() {
   let stat: ApiStatistik | null = null;
   let testimoni: ApiTestimoni[] = [];
   let partners: ApiPartner[] = [];
+  let adopsiTerkini: ApiAdopsiTerKini[] = [];
   // peta status aktif per nama desa (false = disembunyikan admin) — dipakai
   // menyaring pohon di beberapa section; desa tak terdaftar tetap tampil.
   let byNamaAktif = new Map<string, boolean>();
@@ -88,6 +92,11 @@ export default async function HomePage() {
     partners = mapPartners(await apiGet<Record<string, unknown>[]>("partnerlist"));
   } catch {
     // section opsional
+  }
+  try {
+    adopsiTerkini = mapAdopsiTerKini(await apiGet<Record<string, unknown>[]>("adopsiterkini"));
+  } catch {
+    // slider opsional
   }
 
   const total = stat?.pohon ?? locations.reduce((sum, d) => sum + d.total, 0);
@@ -143,18 +152,6 @@ export default async function HomePage() {
     }));
   const heroSlides = slides.length > 0 ? slides : defaultSlides;
 
-  const seenSpecies = new Set<string>();
-  const marqueeItems = trees
-    .filter((t) => {
-      const key = t.localName.toLowerCase();
-      if (seenSpecies.has(key)) return false;
-      seenSpecies.add(key);
-      return true;
-    })
-    .slice(0, 40)
-    .map((t) => `${t.localName}${t.species ? ` · ${t.species}` : ""}`);
-  const marqueeLoop = [...marqueeItems, ...marqueeItems];
-
   const stats = [
     { label: d.statTrees, value: total, icon: TreeDeciduous },
     { label: d.statAdopted, value: adopted, icon: Sprout },
@@ -172,20 +169,8 @@ export default async function HomePage() {
     <main className="-mt-16 flex-1">
       <HeroSlider slides={heroSlides} />
 
-      {/* Marquee jenis pohon */}
-      <section className="overflow-hidden border-b border-emerald-100 bg-emerald-50/70 py-4">
-        <div className="marquee-track flex w-max items-center gap-10">
-          {marqueeLoop.map((item, i) => (
-            <span
-              key={i}
-              className="flex items-center gap-10 whitespace-nowrap text-sm font-medium text-emerald-800/70"
-            >
-              <Leaf className="h-4 w-4 shrink-0 text-emerald-500" />
-              {item}
-            </span>
-          ))}
-        </div>
-      </section>
+      {/* Slider pengadopsi terkini */}
+      {adopsiTerkini.length > 0 && <RecentAdopters items={adopsiTerkini} />}
 
       {/* Stats */}
       <section className="border-b border-emerald-100 bg-white">

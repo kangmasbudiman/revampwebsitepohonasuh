@@ -106,11 +106,6 @@ body {
   to { transform: scale(1.1); }
 }
 
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
 @keyframes float-soft {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
@@ -127,14 +122,6 @@ body {
 
 .animate-kenburns {
   animation: kenburns 7s ease-out forwards;
-}
-
-.marquee-track {
-  animation: marquee 60s linear infinite;
-}
-
-.marquee-track:hover {
-  animation-play-state: paused;
 }
 
 .animate-float-soft {
@@ -199,7 +186,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hero-anim,
   .animate-kenburns,
-  .marquee-track,
   .animate-float-soft,
   .gold-shimmer-text,
   .animate-pa-bounce,
