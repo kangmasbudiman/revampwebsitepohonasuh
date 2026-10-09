@@ -149,7 +149,7 @@ export default async function SpeciesDetailPage(props: Props) {
                   localName: p.localName,
                   species: p.species,
                   priceIdr: p.priceIdr,
-                  status: "AVAILABLE",
+                  status: p.status,
                   photoUrl: p.photoUrl,
                   desa: p.desa,
                   location: { name: p.desa },

@@ -125,10 +125,21 @@ assert(
   `detail spesies: serapan karbon ${kempasKarbon} kg CO₂/pohon/tahun (CountUp)`,
 );
 assert((await page.getByText(`${kempasJml} pohon terdata`).count()) === 1, `detail spesies: ${kempasJml} pohon terdata (match species_key)`);
-if (kempasAvail > 0) {
+if (kempasJml > 0) {
+  const expTersedia = Math.min(12, kempasAvail);
+  const expLain = Math.min(4, kempasJml - kempasAvail);
+  const nTampil = expTersedia + expLain;
   assert(
-    (await page.getByText(`Pohon Koompassia malaccensis siap diadopsi (${Math.min(12, kempasAvail)})`).count()) === 1,
-    `detail spesies: grid ${Math.min(12, kempasAvail)} pohon tersedia`,
+    (await page.getByText(`Pohon Koompassia malaccensis (${nTampil})`).count()) === 1,
+    `detail spesies: grid ${nTampil} pohon (${expTersedia} tersedia + ${expLain} dipesan/teradopsi)`,
+  );
+  // Status asli per kartu: badge muncul di semua kartu, tombol keranjang hanya di Tersedia
+  const badgeTersedia = await page.getByText("Tersedia", { exact: true }).count();
+  const badgeLain = (await page.getByText("Dipesan", { exact: true }).count()) + (await page.getByText("Teradopsi", { exact: true }).count());
+  const keranjang = await page.locator("main button[aria-label^='Masukkan']").count();
+  assert(
+    badgeTersedia === expTersedia && keranjang === expTersedia && badgeLain === expLain,
+    `detail spesies: ${badgeTersedia} Tersedia (dgn keranjang) + ${badgeLain} Dipesan/Teradopsi (tanpa keranjang)`,
   );
 }
 await page.screenshot({ path: "screenshots/111-fitur-spesies-detail.png", fullPage: false });

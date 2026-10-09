@@ -964,7 +964,7 @@ export function mapSpeciesList(rows: Record<string, unknown>[]): ApiSpecies[] {
   return rows.map(mapSpecies);
 }
 
-// speciesdetail/{id} → katalog + pohon available & desa terkait.
+// speciesdetail/{id} → katalog + pohon terkait (semua status) & desa.
 export type ApiSpeciesDetail = ApiSpecies & {
   speciesKey: string;
   pohon: {
@@ -974,6 +974,7 @@ export type ApiSpeciesDetail = ApiSpecies & {
     desa: string;
     priceIdr: number;
     photoUrl: string;
+    status: TreeStatus;
   }[];
   desaTerkait: { nama: string; jml: number }[];
 };
@@ -991,6 +992,7 @@ export function mapSpeciesDetail(r: Record<string, unknown>): ApiSpeciesDetail {
       desa: String(p.desa ?? ""),
       priceIdr: Number(p.harga) || 0,
       photoUrl: treePhotoUrl(p.foto_pohon as string | null),
+      status: TREE_STATUS_MAP[String(p.adopted ?? "")] ?? "ADOPTED",
     })),
     desaTerkait: desa.map((d) => ({
       nama: String(d.nama ?? ""),
