@@ -131,7 +131,16 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
         <h2 className="flex items-center gap-2 font-bold text-emerald-950">
           <KeyRound className="h-4 w-4 text-emerald-600" /> {t.pwTitle}
         </h2>
-        <form action={pwAction} className="mt-4 grid gap-4 sm:grid-cols-3">
+        <form
+          action={pwAction}
+          onSubmit={(e) => {
+            if (pwSama) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
+          className="mt-4 grid gap-4 sm:grid-cols-3"
+        >
           <div>
             <label htmlFor="passe_lama" className={labelCls}>
               {t.pwOld}
@@ -189,7 +198,7 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
           <div className="sm:col-span-3">
             <button
               type="submit"
-              disabled={pwPending || pwSama}
+              disabled={pwPending}
               className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-60"
             >
               <KeyRound className="h-4 w-4" />
