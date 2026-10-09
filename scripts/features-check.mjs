@@ -100,10 +100,19 @@ await page.screenshot({ path: "screenshots/113-fitur-lokasi.png", fullPage: fals
 
 // ================= 3. Katalog spesies + karbon =================
 const jmlSpecies = Number(rows("SELECT COUNT(*) FROM species_catalog")[0][0]);
+const speciesListApi = await (await fetch(`${API}/specieslist`)).json();
+const kempasTersediaApi = Number(
+  speciesListApi.find((s) => s.nama_latin === "Koompassia malaccensis")?.jml_tersedia ?? -1,
+);
+assert(kempasTersediaApi >= 0, `API specieslist bawa jml_tersedia (kempas=${kempasTersediaApi})`);
 await page.goto(`${BASE}/spesies`, { waitUntil: "networkidle" });
 assert(
   (await page.locator("a[href^='/spesies/']").count()) === jmlSpecies,
   `/spesies: ${jmlSpecies} kartu katalog (seed migrasi)`,
+);
+assert(
+  (await page.getByText(`${kempasTersediaApi} Tersedia`, { exact: true }).count()) >= 1,
+  `/spesies: chip ketersediaan di kartu katalog (${kempasTersediaApi} Tersedia)`,
 );
 await page.goto(`${BASE}/spesies?huruf=K`, { waitUntil: "networkidle" });
 assert((await page.locator("a[href^='/spesies/']").count()) === 1, "filter huruf K → 1 spesies (Koompassia)");
@@ -125,6 +134,11 @@ assert(
   `detail spesies: serapan karbon ${kempasKarbon} kg CO₂/pohon/tahun (CountUp)`,
 );
 assert((await page.getByText(`${kempasJml} pohon terdata`).count()) === 1, `detail spesies: ${kempasJml} pohon terdata (match species_key)`);
+assert(kempasTersediaApi === kempasAvail, `API specieslist jml_tersedia (${kempasTersediaApi}) = SQL available (${kempasAvail})`);
+assert(
+  (await page.getByText(`${kempasAvail} Tersedia`, { exact: true }).count()) === 1,
+  `detail spesies: chip "${kempasAvail} Tersedia" tampil`,
+);
 if (kempasJml > 0) {
   const expTersedia = Math.min(12, kempasAvail);
   const expLain = Math.min(4, kempasJml - kempasAvail);

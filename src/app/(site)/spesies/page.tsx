@@ -123,6 +123,17 @@ export default async function SpeciesListPage(props: PageProps<"/spesies">) {
                 <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600">
                   {d.treeCount.replaceAll("{n}", String(s.jmlPohon))}
                 </span>
+                {s.jmlTersedia > 0 ? (
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+                    {d.availableChip.replaceAll("{n}", String(s.jmlTersedia))}
+                  </span>
+                ) : (
+                  s.jmlPohon > 0 && (
+                    <span className="rounded-full bg-zinc-200 px-2.5 py-1 text-xs font-semibold text-zinc-500">
+                      {d.soldOutChip}
+                    </span>
+                  )
+                )}
               </div>
             </div>
           </Link>

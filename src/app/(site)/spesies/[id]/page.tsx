@@ -78,6 +78,17 @@ export default async function SpeciesDetailPage(props: Props) {
             <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm font-medium text-zinc-600">
               {d.treeCount.replaceAll("{n}", String(s.jmlPohon))}
             </span>
+            {s.jmlTersedia > 0 ? (
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800">
+                {d.availableChip.replaceAll("{n}", String(s.jmlTersedia))}
+              </span>
+            ) : (
+              s.jmlPohon > 0 && (
+                <span className="rounded-full bg-zinc-200 px-3 py-1 text-sm font-semibold text-zinc-500">
+                  {d.soldOutChip}
+                </span>
+              )
+            )}
           </div>
 
           {s.serapanKarbon !== null && (

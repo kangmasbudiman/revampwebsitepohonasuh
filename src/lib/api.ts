@@ -945,6 +945,7 @@ export type ApiSpecies = {
   serapanKarbon: number | null; // kg CO2/pohon/tahun (estimasi)
   photoUrl: string | null;
   jmlPohon: number;
+  jmlTersedia: number;
 };
 
 export function mapSpecies(r: Record<string, unknown>): ApiSpecies {
@@ -957,6 +958,7 @@ export function mapSpecies(r: Record<string, unknown>): ApiSpecies {
     serapanKarbon: num(r.serapan_karbon),
     photoUrl: assetUrl(r.foto as string | null),
     jmlPohon: Number(r.jml_pohon) || 0,
+    jmlTersedia: Number(r.jml_tersedia) || 0,
   };
 }
 
