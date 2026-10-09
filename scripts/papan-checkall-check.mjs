@@ -93,10 +93,31 @@ const boxes = 'input[aria-label^="Tandai papan"]';
   fs.mkdirSync("screenshots", { recursive: true });
   await page.screenshot({ path: "screenshots/checkall-petugas.png" });
 
-  // Kosongkan
+  // Kosongkan via toggle "Hilangkan Semua", lalu conteng lagi via toggle
+  const btnToggle = page.locator("[data-testid='conteng-semua']");
+  assert(
+    (await btnToggle.getAttribute("aria-label")) === "Hilangkan semua centang",
+    "semua tercentang: tombol berubah jadi Hilangkan Semua",
+  );
+  assert((await btnToggle.textContent()).includes("Hilangkan Semua"), "label tombol: Hilangkan Semua");
+  await btnToggle.click();
+  await page.waitForTimeout(300);
+  assert((await page.locator(`${boxes}:checked`).count()) === 0, "klik Hilangkan Semua: SEMUA centang hilang");
+  assert(
+    (await page.locator("[data-testid='conteng-semua']").getAttribute("aria-label")) === "Conteng semua papan",
+    "kosong: tombol kembali jadi Conteng Semua",
+  );
+  await page.locator("[data-testid='conteng-semua']").click();
+  await page.waitForTimeout(300);
+  assert(
+    (await page.locator(`${boxes}:checked`).count()) === nCb,
+    `toggle bolak-balik: ${nCb} tercentang lagi`,
+  );
+
+  // Kosongkan via tombol bar
   await page.getByRole("button", { name: "Kosongkan pilihan papan" }).click();
   await page.waitForTimeout(300);
-  assert((await page.locator(`${boxes}:checked`).count()) === 0, "Kosongkan menghapus semua centang");
+  assert((await page.locator(`${boxes}:checked`).count()) === 0, "Kosongkan (bar) menghapus semua centang");
 
   // Tab aktif dihormati: di tab Baru hanya papan proses=1 yang diconteng
   await page.goto(`${BASE}/admin/tagging?proses=1`, { waitUntil: "networkidle" });
