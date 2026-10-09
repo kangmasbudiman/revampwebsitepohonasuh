@@ -25,7 +25,7 @@ export default async function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Image
-            src="/images/logo_putih.png"
+            src="/images/logo_icon.png"
             alt="Logo Pohon Asuh"
             width={112}
             height={112}
