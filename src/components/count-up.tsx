@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from "react";
 export default function CountUp({
   target,
   duration = 1500,
+  format,
 }: {
   target: number;
   duration?: number;
+  format?: "id-ID";
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   const started = useRef(false);
@@ -36,5 +38,7 @@ export default function CountUp({
     return () => observer.disconnect();
   }, [target, duration]);
 
-  return <span ref={ref}>{value}</span>;
+  return (
+    <span ref={ref}>{format === "id-ID" ? value.toLocaleString("id-ID") : value}</span>
+  );
 }

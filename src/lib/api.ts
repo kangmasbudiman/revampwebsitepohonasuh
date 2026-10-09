@@ -923,6 +923,7 @@ export type ApiStatistik = {
   tersedia: number;
   desa: number;
   donatur: number;
+  donasi: number;
 };
 
 export function mapStatistik(r: Record<string, unknown>): ApiStatistik {
@@ -932,6 +933,7 @@ export function mapStatistik(r: Record<string, unknown>): ApiStatistik {
     tersedia: Number(r.tersedia) || 0,
     desa: Number(r.desa) || 0,
     donatur: Number(r.donatur) || 0,
+    donasi: Number(r.donasi) || 0,
   };
 }
 

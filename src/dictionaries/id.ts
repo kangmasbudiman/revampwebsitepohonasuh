@@ -86,6 +86,7 @@ export const dict = {
     statAdopted: "Pohon Teradopsi",
     statLocations: "Lokasi Hutan",
     statDonors: "Donatur Terdaftar",
+    statFunds: "Dana Adopsi Terkumpul",
     carbonLink: "Hitung jejak karbon Anda dan offset dengan adopsi pohon →",
     stepsEyebrow: "Program",
     stepsTitle: "Cara Kerja Program",

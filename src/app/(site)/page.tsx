@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Quote, Sprout, TreeDeciduous, Users } from "lucide-react";
+import { MapPin, Quote, Sprout, TreeDeciduous, Users, Wallet } from "lucide-react";
 import {
   apiGet,
   apiPost,
@@ -101,6 +101,7 @@ export default async function HomePage() {
 
   const total = stat?.pohon ?? locations.reduce((sum, d) => sum + d.total, 0);
   const adopted = stat?.diadopsi ?? locations.reduce((sum, d) => sum + d.adopted, 0);
+  const dana = stat?.donasi ?? 0;
   const featured = unggulan.length > 0 ? unggulan : trees.slice(0, 6);
 
   const tagline = s["site.tagline"] ?? "Adopt Trees, Save The World";
@@ -174,7 +175,7 @@ export default async function HomePage() {
 
       {/* Stats */}
       <section className="border-b border-emerald-100 bg-white">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-12 sm:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-12 sm:grid-cols-3 lg:grid-cols-5">
           {stats.map((stat, i) => (
             <Reveal key={stat.label} delay={i * 100}>
               <div className="group flex flex-col items-center text-center">
@@ -188,6 +189,20 @@ export default async function HomePage() {
               </div>
             </Reveal>
           ))}
+          {dana > 0 && (
+            <Reveal delay={400}>
+              <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 px-3 py-5 text-center text-white shadow-md shadow-emerald-200">
+                <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
+                  <Wallet className="h-6 w-6" />
+                </span>
+                <p className="whitespace-nowrap text-xl font-bold xl:text-2xl">
+                  <span className="mr-1 align-middle text-base font-semibold">Rp</span>
+                  <CountUp target={dana} format="id-ID" />
+                </p>
+                <p className="mt-1 text-xs text-emerald-50">{d.statFunds}</p>
+              </div>
+            </Reveal>
+          )}
         </div>
         <p className="pb-6 text-center text-sm">
           <Link

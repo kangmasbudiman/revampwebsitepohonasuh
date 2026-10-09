@@ -74,6 +74,16 @@ assert(statText.includes(String(dbPohon)), `statistik beranda: total pohon ${dbP
 assert(statText.includes(String(dbAdopted)), `statistik beranda: teradopsi ${dbAdopted}`);
 assert(statText.includes(String(dbDesa)), `statistik beranda: lokasi ${dbDesa}`);
 assert(statText.includes(String(dbDonatur)) && statText.includes("Donatur Terdaftar"), `statistik beranda: donatur ${dbDonatur} (metrik baru)`);
+const statApi = await (await fetch(`${API}/statistikdampak`)).json();
+const dbDonasi = Number(
+  rows("SELECT IFNULL(SUM(a.price),0) FROM data_adopsi a LEFT JOIN confirmation c ON c.invoice=a.invoice WHERE c.id IS NULL OR c.confirmation='yes'")[0][0],
+);
+assert(Number(statApi.donasi) === dbDonasi, `API statistikdampak: donasi ${dbDonasi} (riwayat penuh)`);
+assert(statText.includes("Dana Adopsi Terkumpul"), "statistik beranda: kartu dana terkumpul tampil (kartu ke-5)");
+assert(
+  statText.includes(dbDonasi.toLocaleString("id-ID")),
+  `statistik beranda: dana terkumpul Rp ${dbDonasi.toLocaleString("id-ID")} (CountUp id-ID)`,
+);
 assert(
   (await page.locator("a[href='/kalkulator-karbon']").count()) >= 1,
   "link kalkulator karbon di bawah grid statistik",

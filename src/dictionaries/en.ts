@@ -85,6 +85,7 @@ export const dict: Dict = {
     statAdopted: "Trees Adopted",
     statLocations: "Forest Locations",
     statDonors: "Registered Donors",
+    statFunds: "Adoption Funds Raised",
     carbonLink: "Calculate your carbon footprint and offset it by adopting trees →",
     stepsEyebrow: "The Program",
     stepsTitle: "How the Program Works",
