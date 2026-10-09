@@ -60,7 +60,9 @@ assert(Boolean(KONF_ID), `confirmation dummy (id ${KONF_ID}) + 2 baris adopsi (p
 const secret = new TextEncoder().encode(
   fs.readFileSync(".env", "utf8").match(/AUTH_SECRET="(.+)"/)[1],
 );
-const token = await new SignJWT({ userId: 2683, name: "Petugas E2E", role: "ADMIN", level: 2 })
+// Login sebagai ADMIN (level 1): tombol "Batalkan Order" kini khusus admin —
+// petugas hanya "Batalkan Proses" (diuji di batalproses-check.mjs).
+const token = await new SignJWT({ userId: 2682, name: "Admin Pohon Asuh", role: "ADMIN", level: 1 })
   .setProtectedHeader({ alg: "HS256" })
   .setIssuedAt()
   .setExpirationTime("1h")

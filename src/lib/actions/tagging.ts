@@ -123,6 +123,29 @@ export async function cancelOrder(formData: FormData) {
   redirect("/admin/tagging?batal=1");
 }
 
+// Batalkan PROSES tagging satu pohon (batalproses) — khusus petugas:
+// kebalikan "Mulai Proses", order kembali ke daftar Baru (proses=1) dan
+// foto tagging siklus ini dihapus. Order/adopsi TETAP ADA — berbeda dari
+// cancelOrder yang membatalkan seluruh order per invoice.
+export async function cancelProses(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/admin/tagging?error=Order+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("batalproses", { id });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/tagging?error=${encodeURIComponent(res.pesan ?? "Gagal membatalkan proses.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/tagging?error=Gagal+membatalkan+proses");
+  }
+
+  revalidatePath("/admin/tagging");
+  redirect("/admin/tagging?batalproses=1");
+}
+
 // Catatan order tagging (updatenoted): simpan catatan internal per order.
 export async function updateOrderNote(formData: FormData) {
   await requireAdmin();

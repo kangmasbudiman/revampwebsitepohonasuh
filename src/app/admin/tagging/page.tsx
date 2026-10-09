@@ -6,6 +6,7 @@ import { apiAssetUrl, apiPost, mapOrderRows, type ApiOrderRow } from "@/lib/api"
 import { rupiah } from "@/lib/format";
 import TaggingForm from "@/components/admin/tagging-form";
 import CancelOrderButton from "@/components/admin/cancel-order-button";
+import CancelProsesButton from "@/components/admin/cancel-proses-button";
 import PapanCheck from "@/components/admin/papan-check";
 import PapanBatchBar from "@/components/admin/papan-batch-bar";
 import DesaFilter from "@/components/admin/desa-filter";
@@ -147,6 +148,11 @@ export default async function TaggingPage({
           Order dibatalkan — pohon pada invoice dikembalikan ke tersedia dan donatur dinotifikasi.
         </p>
       )}
+      {sp?.batalproses && (
+        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+          Proses tagging dibatalkan — order kembali ke daftar Baru.
+        </p>
+      )}
       {sp?.error && (
         <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">{String(sp.error)}</p>
       )}
@@ -256,7 +262,7 @@ export default async function TaggingPage({
                 >
                   <Printer className="h-3.5 w-3.5" /> Papan Taging
                 </Link>
-                {order.proses !== 3 && (
+                {order.proses !== 3 && isAdmin && (
                   <CancelOrderButton
                     confirmasiId={order.confirmasiId}
                     invoice={order.invoice}
@@ -264,6 +270,12 @@ export default async function TaggingPage({
                     localName={order.localName}
                     nama={order.nama}
                   />
+                )}
+                {/* Petugas TIDAK boleh membatalkan order — hanya membatalkan
+                    proses (kembalikan ke Baru), khusus order yang sedang
+                    diproses (kebalikan "Mulai Proses"). */}
+                {!isAdmin && order.proses === 2 && (
+                  <CancelProsesButton id={order.id} idpohon={order.idpohon} localName={order.localName} />
                 )}
               </div>
 
