@@ -60,10 +60,18 @@ export default function RecentAdopters({ items }: { items: ApiAdopsiTerKini[] })
     >
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-emerald-800">
-            <Sprout className="h-4 w-4 text-emerald-500" />
-            {t.recentTitle}
-          </h2>
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+              <Sprout className="h-5 w-5" />
+            </span>
+            <h2 className="text-base font-bold uppercase tracking-wide text-emerald-800">{t.recentTitle}</h2>
+            <span
+              data-testid="jml-pengadopsi"
+              className="rounded-full bg-emerald-600/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-700"
+            >
+              {items.length}
+            </span>
+          </div>
           <div className="flex gap-1.5">
             <button
               type="button"

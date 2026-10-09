@@ -97,6 +97,10 @@ assert(
 );
 assert((await page.getByText("Pengadopsi Terkini", { exact: true }).count()) === 1, "beranda: heading slider 'Pengadopsi Terkini' tampil");
 assert(
+  (await page.locator("[data-testid='jml-pengadopsi']").first().textContent()) === String(terkiniApi.length),
+  `beranda: pill jumlah pengadopsi = ${terkiniApi.length}`,
+);
+assert(
   (await page.locator("div.snap-x > div").count()) === terkiniApi.length,
   `beranda: ${terkiniApi.length} kartu pengadopsi terkini di slider`,
 );
