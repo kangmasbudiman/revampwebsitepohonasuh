@@ -224,23 +224,26 @@ export default function SiteHeader({ session }: { session: Session | null }) {
           )}
         </div>
 
-        <button
-          type="button"
-          aria-label={dict.nav.openMenu}
-          aria-expanded={open}
-          className={`rounded-lg p-2 transition-colors xl:hidden ${
-            overlay ? "text-white hover:bg-white/10" : "text-emerald-900 hover:bg-emerald-50"
-          }`}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            {open ? (
-              <path d="M6 6l12 12M18 6L6 18" />
-            ) : (
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            )}
-          </svg>
-        </button>
+        <div className="flex items-center gap-1 xl:hidden">
+          <CartBadge overlay={overlay} />
+          <button
+            type="button"
+            aria-label={dict.nav.openMenu}
+            aria-expanded={open}
+            className={`rounded-lg p-2 transition-colors ${
+              overlay ? "text-white hover:bg-white/10" : "text-emerald-900 hover:bg-emerald-50"
+            }`}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              {open ? (
+                <path d="M6 6l12 12M18 6L6 18" />
+              ) : (
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -293,7 +296,6 @@ export default function SiteHeader({ session }: { session: Session | null }) {
             )}
             <div className="mt-2 flex items-center gap-2 border-t border-emerald-100 pt-3">
               <LangToggle />
-              <CartBadge onNavigate={() => setOpen(false)} />
               {session && <MemberBell onNavigate={() => setOpen(false)} sheet />}
               {session ? (
                 <>
