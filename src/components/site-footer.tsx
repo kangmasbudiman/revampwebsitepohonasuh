@@ -24,16 +24,13 @@ export default async function SiteFooter() {
     <footer className="mt-16 bg-emerald-950 text-emerald-50">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2">
-            <Image
-              src="/images/logo_putih.png"
-              alt="Logo Pohon Asuh"
-              width={36}
-              height={36}
-              className="rounded-full object-cover"
-            />
-            <span className="text-lg font-bold">Pohon Asuh</span>
-          </div>
+          <Image
+            src="/images/logo_putih.png"
+            alt="Logo Pohon Asuh"
+            width={112}
+            height={112}
+            className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-white/25"
+          />
           <p className="mt-3 text-sm leading-6 text-emerald-200">
             {s["site.description"] ?? "Program adopsi pohon bersama masyarakat lokal."}
           </p>
