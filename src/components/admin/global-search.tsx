@@ -25,7 +25,7 @@ import {
   type ApiSearchBlog,
   type ApiSearchDesa,
 } from "@/lib/api";
-import { rupiah } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
 
 type Item = {
   key: string;
@@ -42,7 +42,7 @@ function pohonItems(rows: ApiSearchPohon[]): Item[] {
     key: `pohon-${r.id}`,
     title: r.code,
     mono: true,
-    subtitle: [r.localName, r.desa].filter(Boolean).join(" · "),
+    subtitle: [r.localName, namaDesa(r.desa)].filter(Boolean).join(" · "),
     target: `/admin/pohon/${encodeURIComponent(r.code)}`,
   }));
 }
@@ -93,7 +93,7 @@ function blogItems(rows: ApiSearchBlog[]): Item[] {
 function desaItems(rows: ApiSearchDesa[]): Item[] {
   return rows.map((r) => ({
     key: `desa-${r.id}`,
-    title: r.nama,
+    title: namaDesa(r.nama),
     subtitle: r.provinsi ?? "",
     target: `/admin/peta?desa=${encodeURIComponent(r.nama)}`,
   }));

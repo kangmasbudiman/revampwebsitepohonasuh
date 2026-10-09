@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/guard";
 import { apiPost, mapOrderRows, type ApiOrderRow } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import PapanTaging from "@/components/admin/papan-taging";
 
 export const metadata = { title: "Papan Taging | Pohon Asuh" };
@@ -27,7 +28,7 @@ export default async function PapanTagingPage({
   if (!order) notFound();
 
   const lokasi = [
-    order.desa && `Desa ${order.desa}`,
+    order.desa && `Desa ${namaDesa(order.desa)}`,
     order.kecamatan && `Kec. ${order.kecamatan}`,
     order.kabupaten && `Kab. ${order.kabupaten}`,
     order.provinsi && `Provinsi ${order.provinsi}`,

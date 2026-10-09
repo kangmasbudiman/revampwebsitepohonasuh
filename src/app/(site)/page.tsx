@@ -20,6 +20,7 @@ import {
   type ApiTestimoni,
   type ApiTree,
 } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
@@ -412,7 +413,7 @@ export default async function HomePage() {
                 className="group block h-full rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-emerald-950">{loc.name}</h3>
+                  <h3 className="font-semibold text-emerald-950">{namaDesa(loc.name)}</h3>
                   <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 transition-colors group-hover:bg-emerald-100">
                     {d.locTreeCount.replaceAll("{n}", String(loc.total))}
                   </span>

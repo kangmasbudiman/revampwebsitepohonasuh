@@ -20,6 +20,7 @@ import {
   YAxis,
 } from "recharts";
 import type { ApiAdopsi } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 
 const AXIS_TICK = { fill: "#94a3b8", fontSize: 11 };
 const GRID_STROKE = "#94a3b8";
@@ -81,7 +82,7 @@ export default function AdopsiCharts({
       perDesa.set(r.desa, (perDesa.get(r.desa) ?? 0) + (r.price ?? 0));
     }
     const arr = [...perDesa.entries()]
-      .map(([name, total]) => ({ name, total }))
+      .map(([name, total]) => ({ name: namaDesa(name), total }))
       .sort((a, b) => b.total - a.total);
     if (arr.length > 8) {
       const lainnya = arr.slice(7).reduce((s, x) => s + x.total, 0);

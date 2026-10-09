@@ -1,3 +1,13 @@
+// Nama desa di DB lama tersimpan huruf kecil semua ("rantaukermas");
+// tampilkan dengan huruf awal kapital per kata. Bila admin mengisi nama
+// dengan huruf kapital sendiri (mis. "KBKA"), hormati input apa adanya.
+export function namaDesa(name: string | null | undefined): string {
+  const s = (name ?? "").trim().replace(/\s+/g, " ");
+  if (!s) return "";
+  if (s !== s.toLowerCase()) return s;
+  return s.replace(/(^|[\s\-'])\p{L}/gu, (c) => c.toUpperCase());
+}
+
 export function rupiah(value: number): string {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { apiGet, mapDesa, type ApiDesa } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 
 export async function generateMetadata() {
@@ -33,7 +34,7 @@ export default async function LocationListPage() {
               <Link href={`/lokasi/${desa.slug}`} className="group">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-lg font-semibold text-emerald-950 group-hover:text-emerald-700">
-                    {desa.name}
+                    {namaDesa(desa.name)}
                   </h2>
                   <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
                     {d.treeCount.replaceAll("{n}", String(desa.total))}

@@ -75,7 +75,8 @@ await page.waitForTimeout(400);
 const sqlDesa = Number(sql(`SELECT COUNT(*) FROM data_pohon WHERE desa='${desaUji}'`));
 ok(`filter lokasi ${desaUji} → jumlah = SQL`, (await jml()) === `${fmt(sqlDesa)} pohon`, `${await jml()} vs ${sqlDesa}`);
 const lokasiSel = await page.locator("table tbody tr td:nth-child(3)").allTextContents();
-ok("semua baris halaman = desa terfilter", lokasiSel.every((t) => t.trim() === desaUji), `${lokasiSel.length} baris`);
+// sel lokasi kini ditampilkan Title Case (namaDesa) — bandingkan case-insensitive
+ok("semua baris halaman = desa terfilter", lokasiSel.every((t) => t.trim().toLowerCase() === desaUji.toLowerCase()), `${lokasiSel.length} baris`);
 
 // 6) kombinasi lokasi + status tersedia
 await page.selectOption('select[aria-label="Filter status adopsi"]', "AVAILABLE");

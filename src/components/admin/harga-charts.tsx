@@ -19,6 +19,7 @@ import {
   YAxis,
 } from "recharts";
 import type { ApiPriceRow } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 
 const AXIS_TICK = { fill: "#94a3b8", fontSize: 11 };
 const GRID_STROKE = "#94a3b8";
@@ -157,7 +158,7 @@ export default function HargaCharts({
           >
             {desaList.map((d) => (
               <option key={d} value={d}>
-                {d}
+                {namaDesa(d)}
               </option>
             ))}
           </select>

@@ -3,7 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { apiPost, mapTree, mapTrees, slugify, type ApiTree } from "@/lib/api";
 import { getSession } from "@/lib/auth";
-import { rupiah } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import TreeCard from "@/components/tree-card";
@@ -90,7 +90,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
               href={`/lokasi/${slugify(tree.desa)}`}
               className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
             >
-              📍 {tree.desa}
+              📍 {namaDesa(tree.desa)}
             </Link>
           </div>
 
@@ -164,7 +164,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
       {others.length > 0 && (
         <section className="mt-16">
           <h2 className="text-xl font-bold text-emerald-950">
-            {d.others.replaceAll("{desa}", tree.desa)}
+            {d.others.replaceAll("{desa}", namaDesa(tree.desa))}
           </h2>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {others.map((t, ti) => (

@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { apiPost } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
-import { rupiah } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
 import { updateOrderMemo } from "@/lib/actions/order";
 
 export const metadata = { title: "Koreksi Order | Pohon Asuh" };
@@ -110,7 +110,7 @@ export default async function KoreksiOrderPage(
                   {r.idpohon}
                 </td>
                 <td className="px-4 py-3 text-zinc-800 dark:text-zinc-100">{r.localName}</td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.desa}</td>
+                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{namaDesa(r.desa)}</td>
                 <td className="px-4 py-3">
                   <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:bg-night-700 dark:text-zinc-300">
                     {PROSES_LABEL[r.proses] ?? `Proses ${r.proses}`}

@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { ApiLokasi, ApiPriceRow } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import HargaCharts from "@/components/admin/harga-charts";
 
 const PER_PAGE = 10;
@@ -140,7 +141,7 @@ export default function HargaTable({
                     {(current - 1) * PER_PAGE + i + 1}
                   </td>
                   <td className="px-3 py-3">
-                    <p className="font-semibold text-zinc-800 dark:text-zinc-100">{d.nama}</p>
+                    <p className="font-semibold text-zinc-800 dark:text-zinc-100">{namaDesa(d.nama)}</p>
                     {d.label && <p className="text-xs text-zinc-500 dark:text-zinc-400">{d.label}</p>}
                   </td>
                   {tiers.map((t) => (

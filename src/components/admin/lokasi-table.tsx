@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, MapPin, Pencil, Search } from "lucide-react";
 import type { ApiLokasi, ApiPetaPohon } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import { hapusLokasi, toggleLokasiAktif } from "@/lib/actions/lokasi";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import LokasiForm from "@/components/admin/lokasi-form";
@@ -92,7 +93,7 @@ export default function LokasiTable({
                       href={`/lokasi/${l.slug}`}
                       className="font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
                     >
-                      {l.nama}
+                      {namaDesa(l.nama)}
                     </Link>
                     {l.label && l.label !== l.nama && (
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">{l.label}</p>

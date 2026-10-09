@@ -10,7 +10,7 @@ import {
   type ApiConfirmation,
 } from "@/lib/api";
 import { requireUser } from "@/lib/guard";
-import { rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
+import { namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 
@@ -120,7 +120,7 @@ export default async function DashboardPage() {
                 <td className="px-4 py-3 font-mono text-xs text-zinc-500">{r.idpohon}</td>
                 <td className="px-4 py-3">
                   <p className="font-medium text-zinc-800">{r.localName}</p>
-                  <p className="text-xs text-zinc-500">{r.desa}</p>
+                  <p className="text-xs text-zinc-500">{namaDesa(r.desa)}</p>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-zinc-500">
                   {r.tglAdopt ? tanggal(new Date(r.tglAdopt)) : "—"}

@@ -89,7 +89,9 @@ assert((await a.getByText(marker).count()) >= 1, "admin: order rantaukermas teta
 const sel = a.locator('select[aria-label="Filter desa"]');
 await sel.waitFor({ timeout: 10000 });
 const options = await sel.locator("option").allTextContents();
-assert(options.includes("Semua desa") && options.includes(desaLain) && options.includes("rantaukermas"),
+// label opsi kini Title Case (namaDesa) — bandingkan case-insensitive
+const lower = options.map((o) => o.toLowerCase());
+assert(lower.includes("semua desa") && lower.includes(desaLain.toLowerCase()) && lower.includes("rantaukermas"),
   `dropdown filter memuat semua desa (${options.join(", ")})`);
 
 await sel.selectOption(desaLain);

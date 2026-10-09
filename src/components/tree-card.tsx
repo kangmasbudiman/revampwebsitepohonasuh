@@ -3,7 +3,7 @@ import Image from "next/image";
 import StatusBadge from "@/components/status-badge";
 import AddToCartButton from "@/components/add-to-cart-button";
 import CartMarker from "@/components/cart-marker";
-import { rupiah, TREE_STATUS } from "@/lib/format";
+import { namaDesa, rupiah, TREE_STATUS } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 
 type TreeCardProps = {
@@ -75,7 +75,9 @@ export default async function TreeCard({ tree }: TreeCardProps) {
             {tree.code}
           </span>
         </div>
-        {tree.location && <p className="mt-2 text-sm text-zinc-600">📍 {tree.location.name}</p>}
+        {tree.location && (
+          <p className="mt-2 text-sm text-zinc-600">📍 {namaDesa(tree.location.name)}</p>
+        )}
         <p className="mt-3 text-lg font-bold text-emerald-700">{rupiah(tree.priceIdr)}</p>
         <p className="text-xs text-zinc-500">{t.perYear}</p>
       </div>

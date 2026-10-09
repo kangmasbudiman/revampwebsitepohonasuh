@@ -17,7 +17,7 @@ import {
 } from "@/lib/api";
 import { requireUser } from "@/lib/guard";
 import { absoluteUrl } from "@/lib/site-url";
-import { rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
+import { namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import PaymentForm from "@/components/payment-form";
@@ -136,7 +136,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               <p className="font-semibold text-emerald-950">
                 {t.localName} <span className="font-normal text-zinc-400">({t.idpohon})</span>
               </p>
-              <p className="mt-1 text-sm text-zinc-600">📍 {t.desa}</p>
+              <p className="mt-1 text-sm text-zinc-600">📍 {namaDesa(t.desa)}</p>
               <p className="text-xs text-zinc-400">
                 {d.duration} {t.dur} {t.dur === 1 ? d.year : d.years}
               </p>

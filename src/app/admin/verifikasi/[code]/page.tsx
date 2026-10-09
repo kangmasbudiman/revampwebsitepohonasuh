@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiGet, mapOrderRows, type ApiOrderRow } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
-import { rupiah } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
 import VerifyPanel from "@/components/verify-panel";
 
 export default async function VerificationDetailPage(
@@ -69,7 +69,7 @@ export default async function VerificationDetailPage(
               {orderRows.map((r) => (
                 <div key={r.id} className="flex justify-between gap-4">
                   <dt className="text-zinc-600 dark:text-zinc-300">
-                    {r.localName} <span className="text-zinc-400 dark:text-zinc-500">({r.idpohon})</span> · {r.desa}
+                    {r.localName} <span className="text-zinc-400 dark:text-zinc-500">({r.idpohon})</span> · {namaDesa(r.desa)}
                   </dt>
                   <dd className="whitespace-nowrap text-zinc-800 dark:text-zinc-100">{rupiah(r.price)}</dd>
                 </div>

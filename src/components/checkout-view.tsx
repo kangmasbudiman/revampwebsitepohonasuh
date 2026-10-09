@@ -8,7 +8,7 @@ import { Gift } from "lucide-react";
 import { checkoutCart, type CheckoutState } from "@/lib/actions/adoption";
 import { clearCart, removeFromCart, updateCartItem, MAX_YEARS } from "@/lib/cart";
 import { useCart } from "@/lib/use-cart";
-import { rupiah } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
 
 export default function CheckoutView() {
@@ -128,7 +128,7 @@ export default function CheckoutView() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-emerald-950">{item.localName}</p>
                   <p className="text-xs text-zinc-500">
-                    {item.desa} · {item.code} · {rupiah(item.priceIdr)}/tahun
+                    {namaDesa(item.desa)} · {item.code} · {rupiah(item.priceIdr)}/tahun
                   </p>
                 </div>
                 <span className="whitespace-nowrap font-bold text-emerald-700">

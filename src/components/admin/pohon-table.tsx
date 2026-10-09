@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react";
 import type { ApiTree, TreeStatus } from "@/lib/api";
-import { rupiah, TREE_STATUS } from "@/lib/format";
+import { namaDesa, rupiah, TREE_STATUS } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { deleteTree, setTreeUnggulan, removeTreeUnggulan } from "@/lib/actions/tree";
@@ -76,7 +76,7 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
           <option value="semua">Semua lokasi</option>
           {desaList.map((d) => (
             <option key={d} value={d}>
-              {d}
+              {namaDesa(d)}
             </option>
           ))}
         </select>
@@ -164,7 +164,7 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{tree.desa}</td>
+                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{namaDesa(tree.desa)}</td>
                 <td className="px-4 py-3">
                   <StatusBadge
                     {...(TREE_STATUS[tree.status] ?? {

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, Sprout } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import type { ApiAdopsiTerKini } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 
 // Slider "Pengadopsi Terkini" di beranda: kartu bergeser otomatis,
 // berhenti saat disentuh/arahkan kursor, bisa digeser manual.
@@ -124,7 +125,7 @@ export default function RecentAdopters({ items }: { items: ApiAdopsiTerKini[] })
                 <span className="font-mono font-semibold text-emerald-700">{it.code}</span>
               </p>
               <p className="mt-0.5 truncate text-xs text-zinc-400">
-                <span className="capitalize">{it.desa}</span>
+                <span>{namaDesa(it.desa)}</span>
                 {it.tanggal ? ` · ${fmtTanggal(it.tanggal)}` : ""}
               </p>
             </div>

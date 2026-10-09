@@ -6,6 +6,7 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { ChevronLeft, ChevronRight, Download, QrCode, Search, Tag, X } from "lucide-react";
 import { certUrl, type ApiAdopsi } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import { hapusAdopsi } from "@/lib/actions/adopsi";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import AdopsiCharts from "@/components/admin/adopsi-charts";
@@ -167,7 +168,7 @@ export default function AdopsiTable({
           <option value="semua">Semua lokasi</option>
           {desaList.map((d) => (
             <option key={d} value={d}>
-              {d}
+              {namaDesa(d)}
             </option>
           ))}
         </select>
@@ -220,7 +221,7 @@ export default function AdopsiTable({
                 </td>
                 <td className="px-3 py-3">
                   <p className="font-semibold text-zinc-800 dark:text-zinc-100">{r.idpohon}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{r.desa}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{namaDesa(r.desa)}</p>
                 </td>
                 <td className="px-3 py-3 text-zinc-600 dark:text-zinc-300">
                   {r.diameterCm !== null ? `${r.diameterCm} cm` : "—"}

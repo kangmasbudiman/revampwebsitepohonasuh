@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Leaf, MapPin, Sprout } from "lucide-react";
 import { apiGet, mapSpeciesDetail, slugify, type ApiSpeciesDetail } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 import CountUp from "@/components/count-up";
@@ -120,7 +121,9 @@ export default async function SpeciesDetailPage(props: Props) {
                     href={`/lokasi/${slugify(desa.nama)}`}
                     className="rounded-full border border-emerald-200 px-3 py-1.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
                   >
-                    {d.desaChip.replaceAll("{name}", desa.nama).replaceAll("{n}", String(desa.jml))}
+                    {d.desaChip
+                      .replaceAll("{name}", namaDesa(desa.nama))
+                      .replaceAll("{n}", String(desa.jml))}
                   </Link>
                 ))}
               </div>

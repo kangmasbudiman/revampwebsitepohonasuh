@@ -9,6 +9,7 @@ import {
   mapPetaPohons,
   type ApiPetaPohon,
 } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import PetaDesaMapLoader from "@/components/admin/peta-desa-map-loader";
 import PetaDownloadPanel from "@/components/admin/peta-download-panel";
 
@@ -119,7 +120,7 @@ export default async function PetaDesaPage({
 
           {fetchError && (
             <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">
-              Gagal memuat data pohon desa {desa}. Muat ulang halaman.
+              Gagal memuat data pohon desa {namaDesa(desa)}. Muat ulang halaman.
             </p>
           )}
 

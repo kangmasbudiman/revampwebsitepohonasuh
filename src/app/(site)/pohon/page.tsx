@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { apiGet, apiPost, mapDesa, mapTrees, type ApiDesa, type ApiTree } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 
@@ -86,7 +87,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
                 : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
             }`}
           >
-            {desa.name}
+            {namaDesa(desa.name)}
           </Link>
         ))}
       </div>

@@ -12,7 +12,7 @@ import {
   type ApiPosisiPetugas,
 } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
-import { rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
+import { namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
 import MonitorCharts from "@/components/admin/monitor-charts";
 
@@ -109,7 +109,7 @@ export default async function PemantauanPage() {
   const desaChart = [...desaRes]
     .sort((a, b) => b.total - a.total)
     .slice(0, 8)
-    .map((d) => ({ name: d.name, tersedia: d.available, teradopsi: d.adopted }));
+    .map((d) => ({ name: namaDesa(d.name), tersedia: d.available, teradopsi: d.adopted }));
 
   const recent = [...rows].sort((a, b) => b.id - a.id).slice(0, 8);
 
@@ -274,7 +274,7 @@ export default async function PemantauanPage() {
                 </td>
                 <td className="px-4 py-3 font-medium text-zinc-800 dark:text-zinc-100">{r.nama}</td>
                 <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.localName}</td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.desa}</td>
+                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{namaDesa(r.desa)}</td>
                 <td className="whitespace-nowrap px-4 py-3 text-zinc-500 dark:text-zinc-400">
                   {r.tglAdopt ? tanggal(r.tglAdopt) : "—"}
                 </td>

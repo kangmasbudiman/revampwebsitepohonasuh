@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CameraOff, Check, Loader2, TreePine, X } from "lucide-react";
 import type { ApiTaggingTree } from "@/lib/api";
-import { tanggal } from "@/lib/format";
+import { namaDesa, tanggal } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
 
 function statusOf(d: { statusDone: string; statusOngoing: string; statusWaiting: string }, proses: number) {
@@ -62,7 +62,7 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
                     {t.localName || d.tree}{" "}
                     <span className="font-normal text-zinc-400">({t.idpohon})</span>
                   </p>
-                  <p className="text-xs text-zinc-500">📍 {t.desa}</p>
+                  <p className="text-xs text-zinc-500">📍 {namaDesa(t.desa)}</p>
                 </div>
                 <span
                   data-tagging-status={t.idpohon}

@@ -10,6 +10,7 @@ import {
   type ApiPetaPohon,
   type ApiTree,
 } from "@/lib/api";
+import { namaDesa } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 import DesaMapLoader from "@/components/desa-map-loader";
@@ -50,7 +51,7 @@ export default async function LocationDetailPage(props: PageProps<"/lokasi/[slug
         {d.back}
       </Link>
 
-      <h1 className="mt-6 text-3xl font-bold text-emerald-950">{desa.name}</h1>
+      <h1 className="mt-6 text-3xl font-bold text-emerald-950">{namaDesa(desa.name)}</h1>
       <p className="mt-1 text-sm text-zinc-500">
         {[desa.kecamatan, desa.kabupaten, desa.provinsi].filter(Boolean).join(", ")}
       </p>

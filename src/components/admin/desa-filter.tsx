@@ -3,6 +3,7 @@
 // Filter desa untuk /admin/tagging (khusus admin level 1 — daftar ordernya
 // mencakup semua desa; petugas tetap hanya melihat desa tugasnya).
 import { useRouter } from "next/navigation";
+import { namaDesa } from "@/lib/format";
 
 export default function DesaFilter({
   options,
@@ -32,7 +33,7 @@ export default function DesaFilter({
         <option value="">Semua desa</option>
         {options.map((d) => (
           <option key={d} value={d}>
-            {d}
+            {namaDesa(d)}
           </option>
         ))}
       </select>

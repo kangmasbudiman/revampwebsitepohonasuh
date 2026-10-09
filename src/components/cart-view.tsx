@@ -13,7 +13,7 @@ import {
   dismissExpiredNotice,
   type ExpiredNotice,
 } from "@/lib/cart";
-import { rupiah } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
 
 export default function CartView({ loggedIn }: { loggedIn: boolean }) {
@@ -126,7 +126,7 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
                 {item.localName}
               </Link>
               <p className="text-xs text-zinc-500">
-                {item.desa} · {item.code}
+                {namaDesa(item.desa)} · {item.code}
               </p>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center rounded-full border border-emerald-200 bg-white">
