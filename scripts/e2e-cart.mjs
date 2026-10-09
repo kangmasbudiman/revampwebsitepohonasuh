@@ -7,7 +7,7 @@ import { chromium } from "playwright";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
 
 const rows = (sql) =>
   execSync(`mysql -uroot -pkerabatkotak pohonasuh2 -N -B -e "${sql.replace(/"/g, '\\"')}" 2>/dev/null`)

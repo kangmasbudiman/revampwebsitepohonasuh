@@ -9,6 +9,24 @@ export async function generateMetadata() {
 
 const PER_PAGE = 24;
 
+// Acak stabil per hari (seed = tanggal UTC): urutan berubah tiap hari tapi
+// konsisten sepanjang hari, sehingga paginasi antar halaman tidak tercecer.
+function acakHarian<T>(items: T[]): T[] {
+  const out = [...items];
+  let seed = Math.floor(Date.now() / 86_400_000);
+  const rand = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 export default async function TreeListPage(props: PageProps<"/pohon">) {
   const searchParams = await props.searchParams;
   const lokasi = typeof searchParams.lokasi === "string" ? searchParams.lokasi : undefined;
@@ -16,13 +34,14 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
 
   let desaList: ApiDesa[] = [];
   let trees: ApiTree[] = [];
+  let aktif: ApiDesa | undefined;
   let error = false;
   try {
     const semua = (await apiGet<Record<string, unknown>[]>("getdesa")).map(mapDesa);
     // lokasi nonaktif disembunyikan dari web (toggle Data Lokasi admin)
     desaList = semua.filter((d) => d.aktif);
     const byNama = new Map(semua.map((d) => [d.name, d.aktif]));
-    const aktif = desaList.find((d) => d.slug === lokasi);
+    aktif = desaList.find((d) => d.slug === lokasi);
     const rows = aktif
       ? await apiPost<Record<string, unknown>[]>("pohonbydesa", { desa: aktif.name })
       : await apiPost<Record<string, unknown>[]>("filtertrees", { adopted: "available" });
@@ -31,9 +50,16 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
     error = true;
   }
 
-  const total = trees.length;
+  // Pohon unggulan (pilihan admin, highlight=1 via setPohonterbaik) selalu
+  // tampil paling awal; sisanya diacak pada tampilan Semua lokasi agar desa
+  // lain berpeluang tampil duluan. (highlight=2 = flag legacy lain, bukan unggulan.)
+  const unggulan = trees.filter((t) => t.highlight === 1);
+  const biasa = trees.filter((t) => t.highlight !== 1);
+  const ordered = [...unggulan, ...(aktif ? biasa : acakHarian(biasa))];
+
+  const total = ordered.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-  const pageTrees = trees.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const pageTrees = ordered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const d = (await getDict()).pages.pohon;
 
   return (
