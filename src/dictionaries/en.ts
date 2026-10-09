@@ -360,6 +360,7 @@ export const dict: Dict = {
       pwOld: "Current Password",
       pwNew: "New Password",
       pwConfirm: "Confirm New Password",
+      pwSame: "The password you entered is still the same as the old password.",
       changePw: "Change Password",
     },
     gift: {

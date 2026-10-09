@@ -83,6 +83,9 @@ export async function gantiPassword(_prev: { error?: string }, formData: FormDat
 
   if (!lama || !baru) return { error: "Password lama dan baru wajib diisi." };
   if (baru.length < 6) return { error: "Password baru minimal 6 karakter." };
+  if (baru === lama) {
+    return { error: "Password yang Anda masukkan masih sama dengan password lama." };
+  }
   if (baru !== konfirmasi) return { error: "Konfirmasi password tidak cocok." };
 
   let res: ProfileResponse;

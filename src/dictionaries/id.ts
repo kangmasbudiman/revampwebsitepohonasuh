@@ -361,6 +361,7 @@ export const dict = {
       pwOld: "Password Lama",
       pwNew: "Password Baru",
       pwConfirm: "Konfirmasi Password Baru",
+      pwSame: "Password yang Anda masukkan masih sama dengan password lama.",
       changePw: "Ganti Password",
     },
     gift: {

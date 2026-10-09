@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { KeyRound, Save, UserRound } from "lucide-react";
 import Avatar from "@/components/avatar";
 import FileInput from "@/components/file-input";
@@ -32,6 +32,10 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
   const [dataState, dataAction, dataPending] = useActionState(updateProfile, {});
   const [fotoState, fotoAction, fotoPending] = useActionState(uploadFoto, {});
   const [pwState, pwAction, pwPending] = useActionState(gantiPassword, {});
+  const [pwLama, setPwLama] = useState("");
+  const [pwBaru, setPwBaru] = useState("");
+  const [pwKonfirmasi, setPwKonfirmasi] = useState("");
+  const pwSama = pwLama !== "" && pwBaru !== "" && pwBaru === pwLama;
 
   return (
     <div className="mt-6 space-y-6">
@@ -138,6 +142,8 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
               type="password"
               required
               autoComplete="current-password"
+              value={pwLama}
+              onChange={(e) => setPwLama(e.target.value)}
               className={inputCls}
             />
           </div>
@@ -152,8 +158,16 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
               required
               minLength={6}
               autoComplete="new-password"
+              value={pwBaru}
+              onChange={(e) => setPwBaru(e.target.value)}
+              aria-invalid={pwSama}
               className={inputCls}
             />
+            {pwSama && (
+              <p className="mt-1 text-xs font-medium text-red-600" data-testid="pw-same-error">
+                {t.pwSame}
+              </p>
+            )}
           </div>
           <div>
             <label htmlFor="passe_konfirmasi" className={labelCls}>
@@ -166,6 +180,8 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
               required
               minLength={6}
               autoComplete="new-password"
+              value={pwKonfirmasi}
+              onChange={(e) => setPwKonfirmasi(e.target.value)}
               className={inputCls}
             />
           </div>
@@ -173,7 +189,7 @@ export default function ProfileForm({ profil }: { profil: ProfilData }) {
           <div className="sm:col-span-3">
             <button
               type="submit"
-              disabled={pwPending}
+              disabled={pwPending || pwSama}
               className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-60"
             >
               <KeyRound className="h-4 w-4" />
