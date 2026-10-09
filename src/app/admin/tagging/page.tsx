@@ -8,6 +8,7 @@ import TaggingForm from "@/components/admin/tagging-form";
 import CancelOrderButton from "@/components/admin/cancel-order-button";
 import CancelProsesButton from "@/components/admin/cancel-proses-button";
 import PapanCheck from "@/components/admin/papan-check";
+import PapanCheckAll from "@/components/admin/papan-check-all";
 import PapanBatchBar from "@/components/admin/papan-batch-bar";
 import DesaFilter from "@/components/admin/desa-filter";
 import { updateOrderNote } from "@/lib/actions/tagging";
@@ -111,6 +112,11 @@ export default async function TaggingPage({
   const taggedIds = filtered
     .filter((o) => (fotosByOrder[o.id]?.length ?? 0) > 0 || o.proses === 3)
     .map((o) => o.id);
+  // Papan yang bisa diconteng (belum ditagging) pada tampilan aktif —
+  // dipakai tombol "Conteng Semua" petugas.
+  const checkable = filtered.filter(
+    (o) => (fotosByOrder[o.id]?.length ?? 0) === 0 && o.proses !== 3,
+  );
 
   return (
     <main className="w-full px-6 py-8 lg:px-10">
@@ -174,6 +180,12 @@ export default async function TaggingPage({
         {isAdmin && desaOptions.length > 0 && (
           <span className="ml-auto">
             <DesaFilter options={desaOptions} value={desaFilter} proses={prosesFilter} />
+          </span>
+        )}
+        {/* Petugas: conteng sekaligus semua pohon yang akan diproses. */}
+        {!isAdmin && (
+          <span className="ml-auto">
+            <PapanCheckAll orders={checkable} />
           </span>
         )}
       </div>

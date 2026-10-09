@@ -23,6 +23,15 @@ export function togglePapan(order: ApiOrderRow) {
   emit();
 }
 
+// Conteng sekaligus ("Conteng Semua" petugas): ganti seluruh seleksi dengan
+// daftar papan yang akan diproses pada tampilan/tab aktif.
+export function setPapanSelection(orders: ApiOrderRow[]) {
+  const next = new Map<number, ApiOrderRow>();
+  for (const o of orders) next.set(o.id, o);
+  selected = next.size > 0 ? next : EMPTY;
+  emit();
+}
+
 export function clearPapanSelection() {
   if (selected.size === 0) return;
   selected = EMPTY;
