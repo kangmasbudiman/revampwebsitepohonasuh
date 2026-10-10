@@ -93,35 +93,37 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
   return (
     <div className="space-y-4">
       {expiryBanner}
-      <div className="grid items-start gap-6 lg:grid-cols-[1fr_360px]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-4">
         {items.map((item, idx) => {
           const years = item.years ?? 1;
           return (
           <div
             key={item.code}
-            className="flex items-center gap-4 rounded-2xl border border-orange-200 border-l-4 border-l-orange-400 bg-white p-4 shadow-sm"
+            className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-orange-200 border-l-4 border-l-orange-400 bg-white p-4 shadow-sm"
           >
-            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-emerald-50">
+            <div className="relative shrink-0">
               <span className="absolute -left-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-[11px] font-bold text-white shadow ring-2 ring-white">
                 {idx + 1}
               </span>
-              {item.photoUrl ? (
-                <Image
-                  src={item.photoUrl}
-                  alt={item.localName}
-                  fill
-                  sizes="64px"
-                  className="object-cover"
-                />
-              ) : (
-                <span className="flex h-full items-center justify-center text-2xl">🌳</span>
-              )}
+              <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-emerald-50">
+                {item.photoUrl ? (
+                  <Image
+                    src={item.photoUrl}
+                    alt={item.localName}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="flex h-full items-center justify-center text-2xl">🌳</span>
+                )}
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-[9.5rem] flex-1">
               <Link
                 href={`/pohon/${item.code}`}
-                className="truncate font-semibold text-emerald-950 hover:text-emerald-700"
+                className="block truncate font-semibold text-emerald-950 hover:text-emerald-700"
               >
                 {item.localName}
               </Link>
@@ -162,17 +164,19 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
                 </p>
               ) : null}
             </div>
-            <span className="whitespace-nowrap font-bold text-emerald-700">
-              {rupiah(item.priceIdr * years)}
-            </span>
-            <button
-              type="button"
-              aria-label={t.removeAria.replaceAll("{name}", item.localName)}
-              onClick={() => removeFromCart(item.code)}
-              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="whitespace-nowrap font-bold text-emerald-700">
+                {rupiah(item.priceIdr * years)}
+              </span>
+              <button
+                type="button"
+                aria-label={t.removeAria.replaceAll("{name}", item.localName)}
+                onClick={() => removeFromCart(item.code)}
+                className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </div>
           );
         })}

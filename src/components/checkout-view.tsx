@@ -111,7 +111,7 @@ export default function CheckoutView() {
               key={item.code}
               className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm"
             >
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-emerald-50">
                   {item.photoUrl ? (
                     <Image
@@ -125,13 +125,13 @@ export default function CheckoutView() {
                     <span className="flex h-full items-center justify-center text-2xl">🌳</span>
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-[9rem] flex-1">
                   <p className="truncate font-semibold text-emerald-950">{item.localName}</p>
                   <p className="text-xs text-zinc-500">
                     {namaDesa(item.desa)} · {item.code} · {rupiah(item.priceIdr)}/tahun
                   </p>
                 </div>
-                <span className="whitespace-nowrap font-bold text-emerald-700">
+                <span className="ml-auto whitespace-nowrap font-bold text-emerald-700">
                   {rupiah(item.priceIdr * years)}
                 </span>
               </div>

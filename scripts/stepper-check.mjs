@@ -1,7 +1,7 @@
 // Verifikasi stepper durasi tahun di halaman /keranjang (dev lokal).
 import { chromium } from "playwright";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
 let gagal = 0;
 const ok = (nama, kondisi, detail = "") => {
   console.log(`${kondisi ? "PASS" : "FAIL"} — ${nama}${detail ? ` (${detail})` : ""}`);
@@ -81,7 +81,8 @@ const teksB = await page.locator("div.rounded-2xl.border").filter({ hasText: "Po
 ok("item 2 independen → 3 tahun", teksB.includes("3 tahun") && rpRe(450000).test(teksB));
 
 // ===== 8. Badge header keranjang tak berubah (2 pohon) =====
-ok("badge header tetap 2 pohon", (await page.locator('a[aria-label="Keranjang: 2 pohon"]').count()) === 1);
+// Sejak ikon keranjang mobile (ddd7268), badge ada 2x di DOM (grup xl:hidden + desktop) — hitung yang terlihat.
+ok("badge header tetap 2 pohon", (await page.locator('a[aria-label="Keranjang: 2 pohon"]:visible').count()) === 1);
 
 await page.screenshot({ path: "screenshots/stepper-keranjang.png", fullPage: true });
 await browser.close();
