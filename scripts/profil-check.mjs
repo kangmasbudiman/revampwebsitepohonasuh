@@ -207,6 +207,22 @@ const loginBaru = await fetch(`${API}/loginuser`, {
 }).then((r) => r.json());
 assert(String(loginBaru.value) === "200", "login ulang dengan password baru sukses");
 
+// ============== 7b. getprofil petugas (cabang join desa) ==============
+// Regression guard: select * join dulu membuat id/foto member tertimpa
+// kolom desa (id balas desa.id, foto balas desa.foto=NULL).
+{
+  const profilPetugas = await fetch(`${API}/getprofil`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ id: "2683" }),
+  }).then((r) => r.json());
+  assert(
+    Number(profilPetugas.id) === 2683,
+    `getprofil petugas: id=2683, bukan desa.id (nyata ${profilPetugas.id})`,
+  );
+  assert(profilPetugas.foto === "", "getprofil petugas: foto dari kolom member");
+}
+
 // ============== 8. Dropdown admin ==============
 const adminCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 const adminPage = await adminCtx.newPage();
