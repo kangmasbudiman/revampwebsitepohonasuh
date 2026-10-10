@@ -24,7 +24,7 @@ export default async function LocationListPage() {
       <h1 className="text-3xl font-bold text-emerald-950">{d.title}</h1>
       <p className="mt-2 max-w-2xl text-zinc-600">{d.intro}</p>
 
-      <div className="mt-8 flex flex-col gap-6">
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
         {desaList.map((desa) => {
           const pct = desa.total > 0 ? Math.round((desa.adopted / desa.total) * 100) : 0;
           return (
@@ -34,13 +34,13 @@ export default async function LocationListPage() {
             >
               <Link
                 href={`/lokasi/${desa.slug}`}
-                className="group relative block h-44 w-full shrink-0 overflow-hidden sm:h-auto sm:w-52 md:w-64 lg:w-72"
+                className="group relative block h-44 w-full shrink-0 overflow-hidden sm:h-auto sm:w-52 md:w-44 lg:w-52"
               >
                 <Image
                   src={desa.photoUrl ?? "/images/Lokasi-Pohon-Asuh-2023.jpg"}
                   alt={`Hutan ${namaDesa(desa.name)}`}
                   fill
-                  sizes="(max-width: 640px) 100vw, 288px"
+                  sizes="(max-width: 640px) 100vw, 208px"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </Link>

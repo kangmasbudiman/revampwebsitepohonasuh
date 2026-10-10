@@ -37,10 +37,13 @@ for (const vp of [
   if (vp.w < 640) {
     ok(`${vp.nama}: mobile foto di ATAS konten (stacked)`, fb.y < tb.y, `foto y=${Math.round(fb.y)} judul y=${Math.round(tb.y)}`);
     ok(`${vp.nama}: mobile foto full-width kartu`, Math.abs(fb.x - cb.x) < 2 && fb.width > cb.width - 4, `w=${Math.round(fb.width)}`);
+    ok(`${vp.nama}: mobile satu kolom penuh`, Math.abs(cb.x - (await page.locator("main > div > div").nth(1).boundingBox()).x) < 2);
   } else {
     ok(`${vp.nama}: foto di KIRI konten (side by side)`, fb.x < tb.x && fb.y >= cb.y - 2, `foto x=${Math.round(fb.x)} judul x=${Math.round(tb.x)}`);
     ok(`${vp.nama}: foto tinggi penuh kartu (stretch)`, fb.y <= cb.y + 2 && fb.y + fb.height >= cb.y + cb.height - 2, `foto ${Math.round(fb.height)}px vs kartu ${Math.round(cb.height)}px`);
-    ok(`${vp.nama}: lebar foto sesuai breakpoint`, Math.abs(fb.width - 256) < 4 || Math.abs(fb.width - 288) < 4, `w=${Math.round(fb.width)}`);
+    ok(`${vp.nama}: lebar foto sesuai breakpoint`, Math.abs(fb.width - (vp.w < 1024 ? 176 : 208)) < 4, `w=${Math.round(fb.width)}`);
+    const b1 = await cards.nth(1).boundingBox();
+    ok(`${vp.nama}: grid 2 kolom (kartu sejajar)`, Math.abs(b1.y - cb.y) < 4 && b1.x > cb.x + cb.width - 4, `kartu0 x=${Math.round(cb.x)} w=${Math.round(cb.width)} kartu1 x=${Math.round(b1.x)}`);
   }
 
   // kontrak lama: link detail + judul
