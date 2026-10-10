@@ -170,6 +170,7 @@ export const dict: Dict = {
     addAria: "Add {name} to cart",
     inCartTitle: "Already in cart",
     addToCartTitle: "Add to cart",
+    removeTitle: "Remove from cart",
     addToCart: "Add to Cart",
     duplicateMsg: "This tree is already in your cart.",
     addedMsg: "Added to cart ✓",

@@ -64,6 +64,21 @@ await page.locator(`a[href="/pohon/${B}"] button[type=button]`).click();
 await page.waitForTimeout(200);
 assert(page.url() === `${BASE}/pohon`, `tombol ikon kartu: ${A} & ${B} masuk keranjang tanpa navigasi`);
 
+// Toggle: klik ulang ikon A saat sudah di keranjang → item keluar (badge 1,
+// bingkai oranye hilang); klik lagi → masuk kembali (badge 2, bingkai tampil).
+await page.locator(`a[href="/pohon/${A}"] button[type=button]`).click();
+await page.waitForSelector('a[aria-label="Keranjang: 1 pohon"]', { timeout: 5000 });
+assert(
+  (await page.locator(`a[href="/pohon/${A}"] span.border-orange-400`).count()) === 0,
+  `toggle off: ${A} keluar keranjang, bingkai oranye hilang`,
+);
+await page.locator(`a[href="/pohon/${A}"] button[type=button]`).click();
+await page.waitForSelector('a[aria-label="Keranjang: 2 pohon"]', { timeout: 5000 });
+assert(
+  (await page.locator(`a[href="/pohon/${A}"] span.border-orange-400`).count()) >= 1,
+  `toggle on: ${A} masuk keranjang lagi, bingkai oranye tampil`,
+);
+
 // Guest di halaman detail hanya dapat link login (bukan tombol keranjang).
 await page.goto(`${BASE}/pohon/${C}`, { waitUntil: "networkidle" });
 await page.waitForSelector('a:has-text("Masuk untuk Mengadopsi")', { timeout: 5000 });

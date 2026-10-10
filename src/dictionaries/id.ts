@@ -171,6 +171,7 @@ export const dict = {
     addAria: "Masukkan {name} ke keranjang",
     inCartTitle: "Sudah ada di keranjang",
     addToCartTitle: "Masukkan ke keranjang",
+    removeTitle: "Hapus dari keranjang",
     addToCart: "Masukkan Keranjang",
     duplicateMsg: "Pohon ini sudah ada di keranjang.",
     addedMsg: "Berhasil masuk keranjang ✓",

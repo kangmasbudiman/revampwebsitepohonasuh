@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ShoppingCart } from "lucide-react";
-import { addToCart, type CartItem } from "@/lib/cart";
+import { Check, ShoppingCart, ShoppingCartMinus } from "lucide-react";
+import { addToCart, removeFromCart, type CartItem } from "@/lib/cart";
 import { useCart } from "@/lib/use-cart";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -22,6 +22,10 @@ export default function AddToCartButton({
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    if (inCart) {
+      removeFromCart(item.code);
+      return;
+    }
     const result = addToCart(item);
     if (result === "duplicate") {
       setDuplicate(true);
@@ -36,8 +40,12 @@ export default function AddToCartButton({
     return (
       <button
         type="button"
-        aria-label={t.addAria.replaceAll("{name}", item.localName)}
-        title={inCart || duplicate ? t.inCartTitle : t.addToCartTitle}
+        aria-label={
+          inCart
+            ? t.removeAria.replaceAll("{name}", item.localName)
+            : t.addAria.replaceAll("{name}", item.localName)
+        }
+        title={inCart ? t.removeTitle : duplicate ? t.inCartTitle : t.addToCartTitle}
         onClick={handleClick}
         className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md backdrop-blur transition-all duration-300 ${
           duplicate
@@ -51,6 +59,8 @@ export default function AddToCartButton({
       >
         {added || duplicate ? (
           <Check className="h-4 w-4" />
+        ) : inCart ? (
+          <ShoppingCartMinus className="h-4 w-4" />
         ) : (
           <ShoppingCart className="h-4 w-4" />
         )}
@@ -63,10 +73,14 @@ export default function AddToCartButton({
       <button
         type="button"
         onClick={handleClick}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-6 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-50"
+        className={`flex w-full items-center justify-center gap-2 rounded-xl border px-6 py-3 text-sm font-semibold transition-colors ${
+          inCart
+            ? "border-orange-400 bg-orange-50 text-orange-600 hover:border-orange-500 hover:bg-orange-100"
+            : "border-emerald-300 bg-white text-emerald-700 hover:border-emerald-500 hover:bg-emerald-50"
+        }`}
       >
-        <ShoppingCart className="h-4 w-4" />
-        {t.addToCart}
+        {inCart ? <ShoppingCartMinus className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+        {inCart ? t.removeTitle : t.addToCart}
       </button>
       {(added || duplicate) && (
         <p
