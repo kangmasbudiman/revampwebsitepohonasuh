@@ -1,18 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useI18n } from "@/components/i18n-provider";
 
 // Pil ID/EN: tulis cookie pa_lang lalu refresh agar server components
 // membaca ulang kamus (tanpa navigasi, tanpa prefix URL).
+//
+// `locale` dari context adalah nilai SERVER — saat refresh sebelumnya masih
+// di udara, nilainya basi. Membandingkan klik terhadapnya membuat klik
+// cepat id→en→id DIABAIKAN diam-diam (cookie tertinggal di bahasa lama).
+// Pil aktif karena itu memakai state optimistik yang disinkronkan kembali
+// setiap context server baru turun.
 export default function LangToggle({ overlay = false }: { overlay?: boolean }) {
   const { locale } = useI18n();
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [aktif, setAktif] = useState(locale);
+  useEffect(() => setAktif(locale), [locale]);
 
   const ganti = (next: "id" | "en") => {
-    if (next === locale) return;
+    if (next === aktif) return;
+    setAktif(next);
     start(() => {
       document.cookie = `pa_lang=${next}; path=/; max-age=31536000; samesite=lax`;
       router.refresh();
@@ -36,9 +46,9 @@ export default function LangToggle({ overlay = false }: { overlay?: boolean }) {
           key={l}
           type="button"
           onClick={() => ganti(l)}
-          aria-pressed={locale === l}
+          aria-pressed={aktif === l}
           className={`px-2.5 py-1 uppercase tracking-wide transition-colors ${
-            locale === l
+            aktif === l
               ? overlay
                 ? "bg-white text-emerald-800"
                 : "bg-emerald-600 text-white"

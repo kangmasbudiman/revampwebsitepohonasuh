@@ -47,20 +47,22 @@ const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
 
 // ============== F2: toggle EN/ID live ==============
+// Tunggu perubahan <html lang> (refresh RSC di produksi bisa >900ms) dan
+// asersi teks lewat body.innerText (hanya teks terlihat).
+const tungguLang = (l) =>
+  page
+    .waitForFunction((x) => document.documentElement.lang === x, l, { timeout: 20000 })
+    .then(() => true)
+    .catch(() => false);
+const teksTampil = async (s) => (await page.locator("body").innerText()).includes(s);
 await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
 await page.click('div[role="group"] button:text-is("en")');
-await page.waitForTimeout(900);
-assert(
-  await page.locator('section[aria-roledescription="carousel"] a:has-text("Adopt a Tree Now")').first().isVisible().catch(() => false),
-  "F2 toggle→EN: hero CTA 'Adopt a Tree Now'",
-);
-assert(await page.getByText("Sign Up Now", { exact: true }).first().isVisible().catch(() => false), "F2 toggle→EN: CTA 'Sign Up Now'");
+assert(await tungguLang("en"), "F2 toggle→EN: <html lang> berubah");
+assert(await teksTampil("Adopt a Tree Now"), "F2 toggle→EN: hero CTA 'Adopt a Tree Now' tampil");
+assert(await teksTampil("Sign Up Now"), "F2 toggle→EN: CTA 'Sign Up Now' tampil");
 await page.click('div[role="group"] button:text-is("id")');
-await page.waitForTimeout(900);
-assert(
-  await page.locator('section[aria-roledescription="carousel"] a:has-text("Adopsi Pohon Sekarang")').first().isVisible().catch(() => false),
-  "F2 toggle→ID kembali: hero CTA 'Adopsi Pohon Sekarang'",
-);
+assert(await tungguLang("id"), "F2 toggle→ID kembali: <html lang> berubah");
+assert(await teksTampil("Adopsi Pohon Sekarang"), "F2 toggle→ID: hero CTA kembali Indonesia");
 
 // ============== Daftar member uji ==============
 const email = `e2e_vps3f_${Date.now()}@test.local`;
