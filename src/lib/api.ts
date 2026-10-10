@@ -199,6 +199,8 @@ export type ApiDesa = {
   total: number;
   available: number;
   adopted: number;
+  donasi: number;
+  donasiTahun: number;
   aktif: boolean;
 };
 
@@ -232,6 +234,8 @@ export function mapDesa(r: Record<string, unknown>): ApiDesa {
     total: Number(r.total) || 0,
     available: Number(r.available) || 0,
     adopted: Number(r.adopted) || 0,
+    donasi: Number(r.donasi) || 0,
+    donasiTahun: Number(r.donasi_tahun) || 0,
     aktif: Number(r.aktif ?? 1) === 1,
   };
 }

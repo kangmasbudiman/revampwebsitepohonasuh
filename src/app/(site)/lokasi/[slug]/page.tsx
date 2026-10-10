@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
+import { CalendarDays, Coins, Heart, Sprout, TreePine } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   apiGet,
@@ -10,7 +12,7 @@ import {
   type ApiPetaPohon,
   type ApiTree,
 } from "@/lib/api";
-import { namaDesa } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 import DesaMapLoader from "@/components/desa-map-loader";
@@ -44,6 +46,13 @@ export default async function LocationDetailPage(props: PageProps<"/lokasi/[slug
 
   const pct = desa.total > 0 ? Math.round((desa.adopted / desa.total) * 100) : 0;
   const d = (await getDict()).pages.lokasiDetail;
+  const tahun = new Date().getFullYear();
+
+  const stats = [
+    { icon: TreePine, value: desa.total, label: d.statTotal },
+    { icon: Heart, value: desa.adopted, label: d.statAdopted },
+    { icon: Sprout, value: desa.available, label: d.statAvailable },
+  ];
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
@@ -55,38 +64,102 @@ export default async function LocationDetailPage(props: PageProps<"/lokasi/[slug
       <p className="mt-1 text-sm text-zinc-500">
         {[desa.kecamatan, desa.kabupaten, desa.provinsi].filter(Boolean).join(", ")}
       </p>
-      {desa.description && (
-        <p className="mt-3 max-w-2xl leading-7 text-zinc-600">{desa.description}</p>
-      )}
 
-      <div className="mt-6 grid max-w-2xl gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-center shadow-sm">
-          <p className="text-2xl font-bold text-emerald-700">{desa.total}</p>
-          <p className="text-xs text-zinc-500">{d.statTotal}</p>
-        </div>
-        <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-center shadow-sm">
-          <p className="text-2xl font-bold text-emerald-700">{desa.adopted}</p>
-          <p className="text-xs text-zinc-500">{d.statAdopted}</p>
-        </div>
-        <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-center shadow-sm">
-          <p className="text-2xl font-bold text-emerald-700">{desa.available}</p>
-          <p className="text-xs text-zinc-500">{d.statAvailable}</p>
-        </div>
-      </div>
-      <div className="mt-3 max-w-2xl">
-        <div className="flex items-center justify-between text-xs text-zinc-500">
-          <span>{d.progress}</span>
-          <span className="font-semibold text-emerald-700">
-            {d.adoptedPct.replaceAll("{n}", String(pct))}
-          </span>
-        </div>
-        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-emerald-100">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
-            style={{ width: `${pct}%` }}
+      {/* Hero: foto hutan kiri + statistik & donasi kanan */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_3fr]">
+        <div
+          data-testid="hero-foto"
+          className="relative h-56 overflow-hidden rounded-2xl border border-emerald-100 shadow-sm sm:h-72 lg:h-auto lg:min-h-72"
+        >
+          <Image
+            src={desa.photoUrl ?? "/images/Lokasi-Pohon-Asuh-2023.jpg"}
+            alt={`Hutan ${namaDesa(desa.name)}`}
+            fill
+            sizes="(max-width: 1023px) 100vw, 440px"
+            className="object-cover"
+            priority
           />
         </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-3 gap-3">
+            {stats.map((s, i) => (
+              <div
+                key={s.label}
+                className="flex flex-col items-center rounded-2xl border border-emerald-100 bg-white px-3 py-4 text-center shadow-sm"
+              >
+                <span className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <s.icon className="h-5 w-5" />
+                </span>
+                <p
+                  data-testid={["stat-total", "stat-adopted", "stat-available"][i]}
+                  className="text-2xl font-bold text-emerald-700"
+                >
+                  {s.value}
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-500">{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-emerald-800">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
+                  <Coins className="h-4 w-4" />
+                </span>
+                {d.donasiTotal}
+              </div>
+              <p
+                data-testid="donasi-total"
+                className="mt-2 whitespace-nowrap text-2xl font-bold text-emerald-800"
+              >
+                {rupiah(desa.donasi)}
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-600">{d.donasiTotalSub}</p>
+            </div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-emerald-800">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
+                  <CalendarDays className="h-4 w-4" />
+                </span>
+                {d.donasiYear}
+              </div>
+              <p
+                data-testid="donasi-tahun"
+                className="mt-2 whitespace-nowrap text-2xl font-bold text-emerald-800"
+              >
+                {rupiah(desa.donasiTahun)}
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-600">
+                {d.donasiYearSub.replaceAll("{year}", String(tahun))}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between text-xs text-zinc-500">
+              <span>{d.progress}</span>
+              <span className="font-semibold text-emerald-700">
+                {d.adoptedPct.replaceAll("{n}", String(pct))}
+              </span>
+            </div>
+            <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-emerald-100">
+              <div
+                data-testid="progress-fill"
+                className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
+
+      {desa.description && (
+        <p data-testid="deskripsi-lokasi" className="mt-8 max-w-3xl leading-7 text-zinc-600">
+          {desa.description}
+        </p>
+      )}
 
       {titikPeta.length > 0 && (
         <section className="mt-10">
