@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState } from "react";
 import { tambahLokasi, updateLokasi } from "@/lib/actions/lokasi";
+import FileInput from "@/components/file-input";
+import { apiAssetUrl, type ApiLokasi } from "@/lib/api";
 import type { AdminState } from "@/lib/actions/admin";
-import type { ApiLokasi } from "@/lib/api";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40";
@@ -169,16 +171,74 @@ export default function LokasiForm({ lokasi }: { lokasi?: ApiLokasi }) {
           className={inputClass}
         />
       </div>
-      <div>
-        <label className={labelClass}>URL Foto</label>
-        <input
-          name="foto"
-          type="text"
-          defaultValue={lokasi?.foto ?? ""}
-          placeholder="https://rest.pohonasuh.org/assets/…"
-          className={inputClass}
-        />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className={labelClass}>
+            Foto Lokasi{" "}
+            <span className="text-zinc-400 dark:text-zinc-500">
+              (jpg/png/webp, maks 2MB)
+            </span>
+          </label>
+          <FileInput name="foto" />
+          <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+            {edit
+              ? "Kosongkan untuk mempertahankan foto saat ini — unggahan menimpa URL foto."
+              : "Kosongkan untuk memakai foto pohon pertama desa secara otomatis."}
+          </p>
+        </div>
+        <div>
+          <label className={labelClass}>
+            URL Foto <span className="text-zinc-400 dark:text-zinc-500">(opsional)</span>
+          </label>
+          <input
+            name="fotoUrl"
+            type="text"
+            defaultValue={lokasi?.fotoRaw ?? ""}
+            placeholder="https://… (kosong = foto pohon otomatis)"
+            className={inputClass}
+          />
+          <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+            Hanya dipakai bila tidak ada unggahan; unggahan di samping lebih diutamakan.
+          </p>
+        </div>
       </div>
+
+      {edit && lokasi!.foto && (
+        <div className="flex items-start gap-4 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 dark:border-night-700 dark:bg-night-900/40">
+          <Image
+            src={apiAssetUrl(lokasi!.foto) ?? ""}
+            alt={`Foto lokasi ${lokasi!.label || lokasi!.nama}`}
+            width={112}
+            height={80}
+            className="h-20 w-28 shrink-0 rounded-lg border border-emerald-100 object-cover dark:border-night-700"
+          />
+          <div className="min-w-0 text-xs text-zinc-600 dark:text-zinc-300">
+            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+              Foto Saat Ini
+            </p>
+            {lokasi!.fotoRaw ? (
+              <>
+                <p className="mt-1">
+                  Foto kustom dipakai di halaman publik lokasi.
+                </p>
+                <label className="mt-1.5 flex items-start gap-2 font-medium text-red-600 dark:text-red-400">
+                  <input
+                    type="checkbox"
+                    name="hapusFoto"
+                    className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-red-600 focus:ring-red-500"
+                  />
+                  Hapus foto kustom — kembali ke foto pohon pertama desa
+                </label>
+              </>
+            ) : (
+              <p className="mt-1">
+                Otomatis dari foto pohon pertama desa (belum ada foto kustom) —
+                unggah foto atau isi URL untuk menggantinya.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <label className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-200">
         <input

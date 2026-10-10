@@ -257,6 +257,7 @@ export type ApiLokasi = {
   lng: string;
   profil: string;
   foto: string;
+  fotoRaw: string;
   total: number;
   available: number;
   adminDesa: string;
@@ -280,6 +281,7 @@ export function mapLokasi(r: Record<string, unknown>): ApiLokasi {
     lng: r.longitude ? String(r.longitude) : "",
     profil: r.profil ? String(r.profil) : "",
     foto: r.foto ? String(r.foto) : "",
+    fotoRaw: r.foto_raw ? String(r.foto_raw) : "",
     total: Number(r.total) || 0,
     available: Number(r.available) || 0,
     adminDesa: r.admin_desa ? String(r.admin_desa) : "",
