@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Check, Gift, ShoppingCart } from "lucide-react";
+import { Check, Gift, ShoppingCartPlus, TreePine } from "lucide-react";
 import { addToCart, MAX_YEARS } from "@/lib/cart";
 import { useCart } from "@/lib/use-cart";
 import { createAdoption, type AdoptionState } from "@/lib/actions/adoption";
@@ -174,49 +174,52 @@ export default function AdoptPanel({
             {rupiah(total)}
           </span>
         </div>
-        <button
-          type="submit"
-          disabled={pending}
-          className="w-full rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-        >
-          {pending ? t.processing : t.adoptNow}
-        </button>
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
-      </form>
-
-      <div className="w-full">
-        {inCart ? (
-          <Link
-            href="/keranjang"
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-orange-400 bg-orange-50 px-6 py-3 text-sm font-bold text-orange-600 transition-colors hover:bg-orange-100"
-          >
-            <Check className="h-4 w-4" />
-            {t.inCart}
-          </Link>
-        ) : (
+        <div className="flex items-stretch gap-3">
+          {inCart ? (
+            <Link
+              href="/keranjang"
+              className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-orange-400 bg-orange-50 px-3 py-3 text-sm font-bold text-orange-600 transition-colors hover:bg-orange-100"
+            >
+              <Check className="h-4 w-4 shrink-0" />
+              <span className="leading-snug sm:hidden">{t.inCartShort}</span>
+              <span className="hidden leading-snug sm:inline">{t.inCart}</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-3 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-50"
+            >
+              {added || duplicate ? (
+                <Check className="h-4 w-4 shrink-0" />
+              ) : (
+                <ShoppingCartPlus className="h-4 w-4 shrink-0" />
+              )}
+              <span className="leading-snug">{t.addToCart}</span>
+            </button>
+          )}
           <button
-            type="button"
-            onClick={handleAddToCart}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-6 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:border-emerald-500 hover:bg-emerald-50"
+            type="submit"
+            disabled={pending}
+            className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
           >
-            {added || duplicate ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <ShoppingCart className="h-4 w-4" />
-            )}
-            {t.addToCart}
+            <TreePine className="h-4 w-4 shrink-0" />
+            <span className="leading-snug">
+              {pending ? t.processing : t.adoptNow}
+            </span>
           </button>
-        )}
+        </div>
+        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
         {(added || duplicate) && (
           <p
-            className={`mt-2 text-center text-xs font-medium ${
+            className={`text-center text-xs font-medium ${
               duplicate ? "text-amber-600" : "text-emerald-600"
             }`}
           >
             {duplicate ? t.duplicateMsg : t.addedMsg}
           </p>
         )}
-      </div>
+      </form>
     </div>
   );
 }

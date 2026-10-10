@@ -16,7 +16,7 @@ console.log("login OK");
 await page.goto(`${BASE}/pohon/A116`, { waitUntil: "networkidle" });
 const btn = page.locator("button", { hasText: "Adopsi" });
 console.log("tombol adopsi:", await btn.allTextContents());
-await page.locator("button:text-is('Adopsi Sekarang')").click();
+await page.locator("button:has-text('Adopsi Sekarang')").click();
 await page.waitForTimeout(4000);
 console.log("URL sekarang:", page.url());
 console.log("pesan halaman:", (await page.locator("main").textContent()).slice(0, 400));

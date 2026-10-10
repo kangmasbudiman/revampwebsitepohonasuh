@@ -139,6 +139,7 @@ export const dict: Dict = {
     duplicateMsg: "This tree is already in your cart.",
     addedMsg: "Added to cart ✓",
     inCart: "In Cart — View",
+    inCartShort: "View Cart",
   },
   cart: {
     cartAria: "Cart",

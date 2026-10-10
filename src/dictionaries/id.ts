@@ -136,10 +136,11 @@ export const dict = {
     total: "Total",
     processing: "Memproses...",
     adoptNow: "Adopsi Sekarang",
-    addToCart: "Masukkan Keranjang",
+    addToCart: "Tambah ke Keranjang",
     duplicateMsg: "Pohon ini sudah ada di keranjang.",
     addedMsg: "Berhasil masuk keranjang ✓",
     inCart: "Sudah di Keranjang — Lihat",
+    inCartShort: "Lihat Keranjang",
   },
   cart: {
     cartAria: "Keranjang",

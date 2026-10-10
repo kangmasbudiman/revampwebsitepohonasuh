@@ -130,7 +130,7 @@ assert(
   (totalText.match(/\d/g) || []).join("") === String(HARGA_A * 3),
   `panel total = ${HARGA_A}×3`,
 );
-await page.click("button:text-is('Adopsi Sekarang')");
+await page.click("button:has-text('Adopsi Sekarang')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const confId1 = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];
 await page.waitForSelector("text=Instruksi Pembayaran", { timeout: 15000 });
@@ -166,7 +166,7 @@ const petugasName = rows(
   `SELECT name FROM member WHERE id=${petugasId}`,
 )[0][0];
 await page.goto(`${BASE}/pohon/${TREE_P}`, { waitUntil: "networkidle" });
-await page.click("button:text-is('Adopsi Sekarang')");
+await page.click("button:has-text('Adopsi Sekarang')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const confId3 = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];
 const inv3 = rows(`SELECT invoice FROM confirmation WHERE id=${confId3}`)[0][0];
@@ -269,7 +269,7 @@ await page.goto(`${BASE}/pohon/${TREE_B}`, { waitUntil: "networkidle" });
 await page.click("button:text-is('2 tahun')");
 await page.click("button:has-text('Adopsi sebagai hadiah')");
 await page.fill("#gift-name", "Kakak Tercinta");
-await page.click("button:has-text('Masukkan Keranjang')");
+await page.click("button:has-text('Tambah ke Keranjang')");
 await page.goto(`${BASE}/keranjang`, { waitUntil: "networkidle" });
 const cartBody = await page.textContent("main");
 assert(cartBody.includes("Kakak Tercinta"), "keranjang: hadiah utk Kakak Tercinta");

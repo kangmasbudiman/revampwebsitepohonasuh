@@ -67,7 +67,7 @@ assert(page.url() === `${BASE}/pohon`, `tombol ikon kartu: ${A} & ${B} masuk ker
 // Guest di halaman detail hanya dapat link login (bukan tombol keranjang).
 await page.goto(`${BASE}/pohon/${C}`, { waitUntil: "networkidle" });
 await page.waitForSelector('a:has-text("Masuk untuk Mengadopsi")', { timeout: 5000 });
-assert((await page.locator('button:has-text("Masukkan Keranjang")').count()) === 0, `detail ${C} guest: tombol keranjang tak tampil, ada link login`);
+assert((await page.locator('button:has-text("Tambah ke Keranjang")').count()) === 0, `detail ${C} guest: tombol keranjang tak tampil, ada link login`);
 
 await page.waitForSelector('a[aria-label="Keranjang: 2 pohon"]', { timeout: 5000 });
 assert(true, "badge header menunjukkan 2 pohon");
@@ -97,7 +97,7 @@ assert(!!memberId, `member terbuat id=${memberId}`);
 
 // ===== 4b. Setelah login: tambah dari detail → tombol live jadi status =====
 await page.goto(`${BASE}/pohon/${C}`, { waitUntil: "networkidle" });
-await page.click("button:has-text('Masukkan Keranjang')");
+await page.click("button:has-text('Tambah ke Keranjang')");
 await page.waitForSelector("a[href='/keranjang']:has-text('Sudah di Keranjang')", {
   timeout: 5000,
 });

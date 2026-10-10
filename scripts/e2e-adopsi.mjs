@@ -57,7 +57,7 @@ assert(!!memberId, `member terbuat id=${memberId}`);
 
 // ===== 2. Adopsi TREE_MAIN =====
 await page.goto(`${BASE}/pohon/${TREE_MAIN}`, { waitUntil: "networkidle" });
-await page.click("button:text-is('Adopsi Sekarang')");
+await page.click("button:has-text('Adopsi Sekarang')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const confId = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];
 assert(true, `adopsi → /dashboard/adopsi/${confId} (invoice page)`);
@@ -138,7 +138,7 @@ assert(
 
 // ===== 6. Negatif: adopsi lalu batalkan =====
 await page.goto(`${BASE}/pohon/${TREE_CANCEL}`, { waitUntil: "networkidle" });
-await page.click("button:text-is('Adopsi Sekarang')");
+await page.click("button:has-text('Adopsi Sekarang')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 await page.waitForSelector("text=Instruksi Pembayaran", { timeout: 15000 });
 await page.click("button:has-text('Batalkan Adopsi')");

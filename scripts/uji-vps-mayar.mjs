@@ -82,7 +82,7 @@ ok("daftar akun baru di produksi", !!MEMBER_ID, `id=${MEMBER_ID}`);
 
 // ================= 2. Adopsi pohon → order pending =================
 await page.goto(`${BASE}/pohon/${KODE}`, { waitUntil: "networkidle" });
-await page.click("button:text-is('Adopsi Sekarang')");
+await page.click("button:has-text('Adopsi Sekarang')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const CONF_ID = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];
 const INVOICE = sql(`SELECT invoice FROM pohonasuh.confirmation WHERE id=${CONF_ID}`);
