@@ -61,10 +61,13 @@ export default async function EditLaporanPage(
         {sp?.dikirim && (
           <Banner tone="ok">Laporan terkirim dan akan diperiksa oleh tim Pohon Asuh.</Banner>
         )}
+        {sp?.disetujui && (
+          <Banner tone="ok">Laporan disetujui dan ditandai sudah diperiksa.</Banner>
+        )}
         {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
 
         <div className="mt-5 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
-          <LaporanForm laporan={laporan} desaList={desaList} />
+          <LaporanForm laporan={laporan} desaList={desaList} level={session.level ?? 1} />
         </div>
 
         <div className="mt-6 rounded-2xl border border-red-100 bg-red-50/40 p-5 dark:border-red-900/40 dark:bg-red-950/20">

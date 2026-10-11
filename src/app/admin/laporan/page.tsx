@@ -15,12 +15,10 @@ export default async function AdminLaporanPage({
   let laporan: ApiLaporan[] = [];
   let fetchError = false;
   try {
-    // Petugas: semua laporan miliknya (termasuk draf). Admin: hanya yang
-    // sudah dikirim — draf tak tampil sampai petugas menekan Kirim.
+    // Petugas: semua laporan miliknya (termasuk draf). Admin: SEMUA laporan
+    // (draf + terkirim + disetujui) untuk diperiksa dan disetujui.
     const qs =
-      (session.level ?? 1) === 2
-        ? `?idpetugas=${session.userId}`
-        : "?status=terkirim";
+      (session.level ?? 1) === 2 ? `?idpetugas=${session.userId}` : "";
     laporan = mapLaporans(await apiGet<Record<string, unknown>[]>(`laporanlist${qs}`));
   } catch {
     fetchError = true;
@@ -34,7 +32,7 @@ export default async function AdminLaporanPage({
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             {(session.level ?? 1) === 2
               ? "Laporan kegiatan lapangan Anda."
-              : "Laporan kegiatan seluruh petugas yang sudah dikirim."}
+              : "Semua laporan kegiatan petugas — periksa dan setujui laporan yang sudah dikirim."}
           </p>
         </div>
         <Link
@@ -48,6 +46,7 @@ export default async function AdminLaporanPage({
 
       {sp?.saved && <Banner tone="ok">Laporan tersimpan.</Banner>}
       {sp?.deleted && <Banner tone="ok">Laporan dihapus.</Banner>}
+      {sp?.disetujui && <Banner tone="ok">Laporan disetujui.</Banner>}
       {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
 
       {fetchError && (

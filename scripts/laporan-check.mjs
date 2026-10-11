@@ -1,7 +1,8 @@
 // E2E Laporan Kegiatan (form step-by-step ala contoh): buat DRAF + foto
 // bertahap → kirim (validasi dana/hasil) → chip status → filter jenis/status →
 // responsif (desktop tabel / mobile kartu) → ownership + visibilitas draf
-// (petugas lihat draf sendiri, admin hanya yang terkirim) → hapus foto/laporan.
+// (petugas lihat draf sendiri, admin melihat semua) → admin menyetujui
+// (tombol cepat di daftar + tombol approve di form admin) → hapus foto/laporan.
 import { chromium } from "playwright";
 import { SignJWT } from "jose";
 import { execSync } from "node:child_process";
@@ -103,6 +104,7 @@ assert((await p.locator('select[aria-label="Filter status"]').count()) === 1, "p
 // 2. Validasi kirim kosong ditolak client-side
 await p.goto(`${BASE}/admin/laporan/baru`, { waitUntil: "networkidle" });
 assert((await p.locator("ol > li").count()) === 7, "form 7 langkah bernomor tampil");
+assert((await p.locator('button:has-text("Setujui")').count()) === 0, "form petugas: tanpa tombol setujui");
 await p.click('button:has-text("Kirim Laporan")');
 await p.waitForTimeout(400);
 assert(
@@ -246,7 +248,88 @@ assert(
   "petugas buka edit laporan admin → 404",
 );
 
-// 10. Hapus laporan (milik sendiri)
+// 10. ===================== SISI ADMIN =====================
+const ctxA = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+pasangAutoConfirm(ctxA);
+ctxA.addCookies([{ name: "pa_session", value: tokAdmin, url: BASE }]);
+const a = await ctxA.newPage();
+await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+assert(
+  (await a.locator("main", { hasText: "E2E Laporan Kegiatan" }).count()) >= 1,
+  "admin melihat laporan terkirim petugas",
+);
+assert(
+  (await a.locator("main", { hasText: "E2E Laporan Draf" }).count()) >= 1,
+  "admin melihat draf petugas",
+);
+assert(
+  (await a.locator("main", { hasText: "E2E Laporan Admin" }).count()) >= 1,
+  "admin melihat laporan miliknya (terkirim)",
+);
+assert((await a.locator('select[aria-label="Filter petugas"]').count()) === 1, "admin punya filter petugas");
+assert((await a.locator('select[aria-label="Filter status"]').count()) === 1, "admin punya filter status");
+assert(
+  (await a.locator(`form:has(input[name="id"][value="${idDraft}"]) button:has-text("Setujui")`).count()) === 0,
+  "tombol Setujui TIDAK muncul di baris draf",
+);
+
+// 11. Admin menyetujui laporan terkirim petugas via tombol cepat
+await a.click(`form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);
+await a.waitForURL(/disetujui=1/, { timeout: 30000 });
+await waitForDb(
+  () => rows(`SELECT status FROM laporan_kegiatan WHERE id=${ID}`)[0]?.[0] === "disetujui",
+  20000, "status=disetujui via tombol cepat",
+);
+assert(true, "admin menyetujui laporan petugas via tombol cepat → status=disetujui");
+await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+assert(
+  (await a.locator("table span", { hasText: "Disetujui" }).count()) >= 1,
+  "chip Disetujui tampil di tabel admin",
+);
+
+// 12. Admin mengisi laporan sendiri → tombol approve langsung di form
+await a.goto(`${BASE}/admin/laporan/baru`, { waitUntil: "networkidle" });
+assert(
+  (await a.locator('button:has-text("Kirim & Setujui")').count()) === 1,
+  "form admin: tombol Kirim & Setujui tampil",
+);
+await a.fill('form input[name="judul"]', "E2E Laporan Langsung");
+await a.selectOption('form select[name="jenis"]', "pemantauan");
+await a.fill('form input[name="tanggal"]', HARI);
+await a.fill('form textarea[name="isi"]', "Uraian laporan admin.");
+await a.fill('form input[name="dana"]', "500000");
+await a.fill('form textarea[name="hasil"]', "Hasil laporan admin.");
+await a.setInputFiles('form input[type=file][accept^="image"]', "/tmp/laporan-e2e.png");
+await a.click('button:has-text("Kirim & Setujui")');
+await a.waitForURL(/\/admin\/laporan\/\d+\/edit\?disetujui=1/, { timeout: 30000 });
+const IDA = Number(a.url().match(/\/admin\/laporan\/(\d+)\/edit/)[1]);
+assert(!!IDA, `laporan admin dibuat id=${IDA}`);
+await waitForDb(
+  () => rows(`SELECT status FROM laporan_kegiatan WHERE id=${IDA}`)[0]?.[0] === "disetujui",
+  20000, "admin create langsung disetujui",
+);
+await waitForDb(
+  () => rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${IDA}`)[0][0] === "1",
+  20000, "foto laporan admin terunggah",
+);
+assert(true, "admin mengisi laporan sendiri → langsung disetujui + 1 foto");
+assert(
+  (await a.locator("text=Disetujui — laporan sudah diperiksa").count()) >= 1,
+  "chip Disetujui tampil di halaman edit",
+);
+
+// 13. Petugas melihat laporannya sudah disetujui
+await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+assert(
+  (await p.locator("table span", { hasText: "Disetujui" }).count()) >= 1,
+  "petugas melihat chip Disetujui pada laporannya",
+);
+assert(
+  (await p.locator('button:has-text("Setujui")').count()) === 0,
+  "petugas TIDAK punya tombol Setujui di daftar",
+);
+
+// 14. Hapus laporan milik sendiri (petugas)
 await p.goto(`${BASE}/admin/laporan/${ID}/edit`, { waitUntil: "networkidle" });
 await p.click('form:has(input[name="id"]) button:has-text("Hapus Laporan")');
 await p.waitForURL(/\/admin\/laporan\?deleted=1/, { timeout: 30000 });
@@ -257,26 +340,10 @@ await waitForDb(
 assert(true, "laporan milik sendiri terhapus");
 assert(rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`)[0][0] === "0", "foto ikut terhapus (cascade)");
 
-// ===================== SISI ADMIN =====================
-const ctxA = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-pasangAutoConfirm(ctxA);
-ctxA.addCookies([{ name: "pa_session", value: tokAdmin, url: BASE }]);
-const a = await ctxA.newPage();
-await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
-assert(
-  (await a.locator("main", { hasText: "E2E Laporan Admin" }).count()) >= 1,
-  "admin melihat laporan miliknya (terkirim)",
-);
-assert(
-  (await a.locator("main", { hasText: "E2E Laporan Draf" }).count()) === 0,
-  "admin TIDAK melihat draf petugas",
-);
-assert((await a.locator('select[aria-label="Filter petugas"]').count()) === 1, "admin punya filter petugas");
-assert((await a.locator('select[aria-label="Filter status"]').count()) === 0, "admin tak punya filter status (hanya terkirim)");
-
-// cleanup fixture admin + draf
+// cleanup fixture admin + draf + laporan admin
 execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${idAdm}" > /dev/null`);
 execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${idDraft}" > /dev/null`);
+execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${IDA}" > /dev/null`);
 assert(
   rows(`SELECT COUNT(*) FROM laporan_kegiatan WHERE judul LIKE 'E2E Lap%'`)[0][0] === "0",
   "cleanup: 0 laporan E2E tersisa",

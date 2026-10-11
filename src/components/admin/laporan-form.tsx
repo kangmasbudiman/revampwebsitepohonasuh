@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
+  BadgeCheck,
   CalendarDays,
   CloudUpload,
   Info,
@@ -63,13 +64,17 @@ type Staged = { file: File; url: string };
 export default function LaporanForm({
   laporan,
   desaList,
+  level,
 }: {
   laporan?: ApiLaporan;
   desaList: { nama: string; label: string }[];
+  level: number;
 }) {
   const router = useRouter();
   const edit = Boolean(laporan);
   const terkirim = edit && laporan!.status !== "draft";
+  const isAdmin = level === 1;
+  const sudahDisetujui = edit && laporan!.status === "disetujui";
 
   const [isi, setIsi] = useState(laporan?.isi ?? "");
   const [hasil, setHasil] = useState(laporan?.hasil ?? "");
@@ -77,7 +82,7 @@ export default function LaporanForm({
   const [staged, setStaged] = useState<Staged[]>([]);
   const [fotoErr, setFotoErr] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState<"draft" | "terkirim" | null>(null);
+  const [pending, setPending] = useState<"draft" | "terkirim" | "disetujui" | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [removing, setRemoving] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -125,13 +130,14 @@ export default function LaporanForm({
     e.preventDefault();
     if (pending) return;
     const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
-    const status = submitter?.value === "draft" ? "draft" : "terkirim";
+    const status =
+      submitter?.value === "draft" ? "draft" : submitter?.value === "disetujui" ? "disetujui" : "terkirim";
 
     const fd = new FormData(e.currentTarget);
     fd.set("status", status);
     fd.set("dana", danaDigits);
 
-    if (status === "terkirim") {
+    if (status !== "draft") {
       const judul = String(fd.get("judul") ?? "").trim();
       const tanggal = String(fd.get("tanggal") ?? "").trim();
       if (!judul || !tanggal || !isi.trim()) {
@@ -172,11 +178,18 @@ export default function LaporanForm({
     staged.forEach((s) => URL.revokeObjectURL(s.url));
 
     if (edit) {
-      const param = status === "draft" ? "saved=1" : laporan!.status === "draft" ? "dikirim=1" : "saved=1";
+      const param =
+        status === "draft"
+          ? "saved=1"
+          : status === "disetujui"
+            ? "disetujui=1"
+            : laporan!.status === "draft"
+              ? "dikirim=1"
+              : "saved=1";
       router.push(`/admin/laporan/${r.id}/edit?${param}`);
     } else {
       router.push(
-        `/admin/laporan/${r.id}/edit?created=1${gagal.length ? `&error=${encodeURIComponent(gagal.join(" "))}` : ""}`,
+        `/admin/laporan/${r.id}/edit?${status === "disetujui" ? "disetujui=1" : "created=1"}${gagal.length ? `&error=${encodeURIComponent(gagal.join(" "))}` : ""}`,
       );
     }
     router.refresh();
@@ -189,6 +202,12 @@ export default function LaporanForm({
         <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
           <CalendarDays className="h-3.5 w-3.5" />
           Draf — laporan belum dikirim ke tim Pohon Asuh.
+        </p>
+      )}
+      {sudahDisetujui && (
+        <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+          <BadgeCheck className="h-3.5 w-3.5" />
+          Disetujui — laporan sudah diperiksa tim Pohon Asuh.
         </p>
       )}
       {error && (
@@ -419,7 +438,11 @@ export default function LaporanForm({
             name="status"
             value="terkirim"
             disabled={pending !== null}
-            className="w-full rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className={
+              isAdmin && !sudahDisetujui
+                ? "w-full rounded-xl border border-emerald-600 px-5 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-400 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                : "w-full rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+            }
           >
             <Send className="mr-2 inline h-4 w-4" />
             {pending === "terkirim"
@@ -436,6 +459,29 @@ export default function LaporanForm({
               : "Laporan akan diperiksa oleh tim Pohon Asuh."}
           </p>
         </div>
+        {isAdmin && !sudahDisetujui && (
+          <div className="flex-1">
+            <button
+              type="submit"
+              name="status"
+              value="disetujui"
+              disabled={pending !== null}
+              className="w-full rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <BadgeCheck className="mr-2 inline h-4 w-4" />
+              {pending === "disetujui"
+                ? progress
+                  ? "Mengunggah foto…"
+                  : "Menyetujui…"
+                : terkirim && edit
+                  ? "Setujui Laporan"
+                  : "Kirim & Setujui"}
+            </button>
+            <p className="mt-1.5 text-center text-xs text-zinc-500 dark:text-zinc-400">
+              Laporan langsung ditandai disetujui.
+            </p>
+          </div>
+        )}
       </div>
     </form>
   );

@@ -29,7 +29,11 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
   const session = await requireAdmin();
 
   const id = Number(formData.get("id")) || null;
-  const status = String(formData.get("status") ?? "") === "draft" ? "draft" : "terkirim";
+  const statusRaw = String(formData.get("status") ?? "");
+  const status = ["draft", "terkirim", "disetujui"].includes(statusRaw) ? statusRaw : "terkirim";
+  if (status === "disetujui" && (session.level ?? 1) !== 1) {
+    return { ok: false, error: "Hanya admin yang bisa menyetujui laporan." };
+  }
   const judul = String(formData.get("judul") ?? "").trim();
   const isi = String(formData.get("isi") ?? "").trim();
   const tanggal = String(formData.get("tanggal") ?? "").trim();
@@ -40,13 +44,13 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
   const hasil = String(formData.get("hasil") ?? "").trim();
 
   if (!JENIS_KEYS.has(jenis)) return { ok: false, error: "Jenis kegiatan tidak valid." };
-  if (status === "terkirim" && (!judul || !isi || !tanggal)) {
+  if (status !== "draft" && (!judul || !isi || !tanggal)) {
     return { ok: false, error: "Nama kegiatan, tanggal, dan uraian wajib diisi sebelum dikirim." };
   }
-  if (status === "terkirim" && !dana) {
+  if (status !== "draft" && !dana) {
     return { ok: false, error: "Isi dana yang digunakan sebelum mengirim laporan." };
   }
-  if (status === "terkirim" && !hasil) {
+  if (status !== "draft" && !hasil) {
     return { ok: false, error: "Isi hasil atau manfaat kegiatan sebelum mengirim laporan." };
   }
 
@@ -162,4 +166,29 @@ export async function deleteLaporan(formData: FormData) {
 
   revalidatePath("/admin/laporan");
   redirect("/admin/laporan?deleted=1");
+}
+
+// Setujui laporan (admin saja) — tombol cepat di daftar.
+export async function approveLaporan(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/admin/laporan?error=Laporan+tidak+ditemukan");
+
+  const session = await requireAdmin();
+  if ((session.level ?? 1) !== 1) {
+    redirect("/admin/laporan?error=Hanya+admin+yang+bisa+menyetujui+laporan");
+  }
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("approvelaporan", { id });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/laporan?error=${encodeURIComponent(res.pesan ?? "Gagal menyetujui laporan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/laporan?error=Gagal+menyetujui+laporan");
+  }
+
+  revalidatePath("/admin/laporan");
+  revalidatePath(`/admin/laporan/${id}/edit`);
+  redirect("/admin/laporan?disetujui=1");
 }

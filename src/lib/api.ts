@@ -1097,7 +1097,9 @@ export function mapLaporans(rows: Record<string, unknown>[]): ApiLaporan[] {
     isi: String(r.isi ?? ""),
     dana: r.dana === null || r.dana === undefined || r.dana === "" ? null : Number(r.dana),
     hasil: String(r.hasil ?? ""),
-    status: String(r.status ?? "terkirim") === "draft" ? "draft" : "terkirim",
+    status: ["draft", "disetujui"].includes(String(r.status ?? ""))
+      ? String(r.status)
+      : "terkirim",
     createdAt: String(r.created_at ?? ""),
     foto: Array.isArray(r.foto)
       ? (r.foto as Record<string, unknown>[])

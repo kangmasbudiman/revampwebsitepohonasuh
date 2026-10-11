@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { CalendarDays, Camera, Coins, MapPin, NotebookPen, Search, UserRound } from "lucide-react";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
-import { deleteLaporan } from "@/lib/actions/laporan";
+import { deleteLaporan, approveLaporan } from "@/lib/actions/laporan";
 import { LAPORAN_JENIS, LAPORAN_JENIS_LABEL, type ApiLaporan } from "@/lib/api";
 import { namaDesa, rupiah } from "@/lib/format";
 
@@ -19,6 +19,7 @@ const JENIS_CHIP: Record<string, string> = {
 const STATUS_CHIP: Record<string, string> = {
   draft: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
   terkirim: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  disetujui: "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300",
 };
 
 const inputClass =
@@ -94,18 +95,17 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
           ))}
         </select>
       )}
-      {!isAdmin && (
-        <select
-          aria-label="Filter status"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className={`${inputClass} sm:w-40`}
-        >
-          <option value="">Semua status</option>
-          <option value="draft">Draft</option>
-          <option value="terkirim">Terkirim</option>
-        </select>
-      )}
+      <select
+        aria-label="Filter status"
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+        className={`${inputClass} sm:w-40`}
+      >
+        <option value="">Semua status</option>
+        <option value="draft">Draft</option>
+        <option value="terkirim">Terkirim</option>
+        <option value="disetujui">Disetujui</option>
+      </select>
       {adaFilter && (
         <button
           type="button"
@@ -140,7 +140,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
         STATUS_CHIP[s] ?? STATUS_CHIP.terkirim
       }`}
     >
-      {s === "draft" ? "Draft" : "Terkirim"}
+      {s === "draft" ? "Draft" : s === "disetujui" ? "Disetujui" : "Terkirim"}
     </span>
   );
 
@@ -157,6 +157,18 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
         className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
       >
         Hapus
+      </ConfirmSubmit>
+    </form>
+  );
+
+  const setujuForm = (r: ApiLaporan) => (
+    <form action={approveLaporan}>
+      <input type="hidden" name="id" value={r.id} />
+      <ConfirmSubmit
+        message={`Setujui laporan "${r.judul}"? Laporan ditandai sudah diperiksa dan lengkap.`}
+        className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800"
+      >
+        Setujui
       </ConfirmSubmit>
     </form>
   );
@@ -245,6 +257,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                         >
                           Edit
                         </Link>
+                        {isAdmin && r.status === "terkirim" && setujuForm(r)}
                         {hapusForm(r)}
                       </div>
                     </td>
@@ -330,6 +343,9 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                     <NotebookPen className="mr-1 inline h-3.5 w-3.5" />
                     Edit
                   </Link>
+                  {isAdmin && r.status === "terkirim" && (
+                    <div className="flex-1 text-center">{setujuForm(r)}</div>
+                  )}
                   <div className="flex-1 text-center">{hapusForm(r)}</div>
                 </div>
               </div>

@@ -6,7 +6,7 @@ import LaporanForm from "@/components/admin/laporan-form";
 export const metadata = { title: "Tambah Laporan Kegiatan | Pohon Asuh" };
 
 export default async function LaporanBaruPage() {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   let desaList: { nama: string; label: string }[] = [];
   try {
@@ -31,7 +31,7 @@ export default async function LaporanBaruPage() {
           Ceritakan kegiatan yang sudah dilakukan menggunakan dukungan dana Pohon Asuh.
         </p>
         <div className="mt-5 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
-          <LaporanForm desaList={desaList} />
+          <LaporanForm desaList={desaList} level={session.level ?? 1} />
         </div>
       </div>
     </main>
