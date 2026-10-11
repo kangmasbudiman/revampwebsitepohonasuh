@@ -2,8 +2,14 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { Check, Gift, ShoppingCartPlus, TreePine } from "lucide-react";
-import { addToCart } from "@/lib/cart";
+import {
+  Check,
+  Gift,
+  ShoppingCartMinus,
+  ShoppingCartPlus,
+  TreePine,
+} from "lucide-react";
+import { addToCart, removeFromCart } from "@/lib/cart";
 import YearsStepper from "@/components/years-stepper";
 import { useCart } from "@/lib/use-cart";
 import { createAdoption, type AdoptionState } from "@/lib/actions/adoption";
@@ -62,16 +68,10 @@ export default function AdoptPanel({
     window.setTimeout(() => setAdded(false), 2000);
   };
 
-  if (!loggedIn) {
-    return (
-      <Link
-        href={`/masuk?next=/pohon/${tree.code}`}
-        className="block w-full rounded-xl bg-emerald-600 px-6 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-700"
-      >
-        {t.loginToAdopt}
-      </Link>
-    );
-  }
+  const handleRemoveFromCart = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    removeFromCart(tree.code);
+  };
 
   return (
     <div className="space-y-4">
@@ -171,14 +171,14 @@ export default function AdoptPanel({
         </div>
         <div className="flex items-stretch gap-3">
           {inCart ? (
-            <Link
-              href="/keranjang"
+            <button
+              type="button"
+              onClick={handleRemoveFromCart}
               className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-orange-400 bg-orange-50 px-3 py-3 text-sm font-bold text-orange-600 transition-colors hover:bg-orange-100"
             >
-              <Check className="h-4 w-4 shrink-0" />
-              <span className="leading-snug sm:hidden">{t.inCartShort}</span>
-              <span className="hidden leading-snug sm:inline">{t.inCart}</span>
-            </Link>
+              <ShoppingCartMinus className="h-4 w-4 shrink-0" />
+              <span className="leading-snug">{dict.cart.removeTitle}</span>
+            </button>
           ) : (
             <button
               type="button"
@@ -193,16 +193,26 @@ export default function AdoptPanel({
               <span className="leading-snug">{t.addToCart}</span>
             </button>
           )}
-          <button
-            type="submit"
-            disabled={pending}
-            className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
-            <TreePine className="h-4 w-4 shrink-0" />
-            <span className="leading-snug">
-              {pending ? t.processing : t.adoptNow}
-            </span>
-          </button>
+          {loggedIn ? (
+            <button
+              type="submit"
+              disabled={pending}
+              className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-3 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              <TreePine className="h-4 w-4 shrink-0" />
+              <span className="leading-snug">
+                {pending ? t.processing : t.adoptNow}
+              </span>
+            </button>
+          ) : (
+            <Link
+              href={`/masuk?next=/pohon/${tree.code}`}
+              className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              <TreePine className="h-4 w-4 shrink-0" />
+              <span className="leading-snug">{t.adoptNow}</span>
+            </Link>
+          )}
         </div>
         {state.error && <p className="text-sm text-red-600">{state.error}</p>}
         {(added || duplicate) && (

@@ -79,12 +79,24 @@ assert(
   `toggle on: ${A} masuk keranjang lagi, bingkai oranye tampil`,
 );
 
-// Guest di halaman detail hanya dapat link login (bukan tombol keranjang).
+// Guest di halaman detail kini juga dapat kedua tombol: keranjang (localStorage)
+// + "Adopsi Sekarang" (link login, kembali ke pohon ini setelah masuk).
 await page.goto(`${BASE}/pohon/${C}`, { waitUntil: "networkidle" });
-await page.waitForSelector('a:has-text("Masuk untuk Mengadopsi")', { timeout: 5000 });
-assert((await page.locator('button:has-text("Tambah ke Keranjang")').count()) === 0, `detail ${C} guest: tombol keranjang tak tampil, ada link login`);
-
+await page.waitForSelector('button:has-text("Tambah ke Keranjang")', { timeout: 5000 });
+assert(
+  (await page.locator(`a[href="/masuk?next=/pohon/${C}"]:has-text("Adopsi Sekarang")`).count()) === 1,
+  `detail ${C} guest: tombol keranjang + "Adopsi Sekarang" (link login) tampil`,
+);
+// Guest tambah dari detail → klik ulang tombol = batal (toggle, badge balik 2).
+await page.click('button:has-text("Tambah ke Keranjang")');
+await page.waitForSelector('a[aria-label="Keranjang: 3 pohon"]', { timeout: 5000 });
+assert(true, `guest: ${C} masuk keranjang dari detail (3 pohon)`);
+await page.click('button:has-text("Hapus dari keranjang")');
 await page.waitForSelector('a[aria-label="Keranjang: 2 pohon"]', { timeout: 5000 });
+assert(
+  (await page.locator('button:has-text("Tambah ke Keranjang")').count()) === 1,
+  `toggle detail: klik ulang = ${C} dikeluarkan dari keranjang, tombol balik "Tambah ke Keranjang"`,
+);
 assert(true, "badge header menunjukkan 2 pohon");
 
 // ===== 3. Halaman keranjang guest: item tampil =====
@@ -110,13 +122,13 @@ assert(true, "daftar → kembali ke /checkout (keranjang localStorage utuh)");
 const memberId = rows(`SELECT id FROM member WHERE emaile='${email}'`)[0][0];
 assert(!!memberId, `member terbuat id=${memberId}`);
 
-// ===== 4b. Setelah login: tambah dari detail → tombol live jadi status =====
+// ===== 4b. Setelah login: tambah dari detail → tombol live jadi toggle hapus =====
 await page.goto(`${BASE}/pohon/${C}`, { waitUntil: "networkidle" });
 await page.click("button:has-text('Tambah ke Keranjang')");
-await page.waitForSelector("a[href='/keranjang']:has-text('Sudah di Keranjang')", {
+await page.waitForSelector("button:has-text('Hapus dari keranjang')", {
   timeout: 5000,
 });
-assert(true, `detail ${C} (login): masuk keranjang → tombol 'Sudah di Keranjang'`);
+assert(true, `detail ${C} (login): masuk keranjang → tombol jadi 'Hapus dari keranjang' (toggle)`);
 await page.waitForSelector('a[aria-label="Keranjang: 3 pohon"]', { timeout: 5000 });
 assert(true, "badge header menunjukkan 3 pohon");
 await page.goto(`${BASE}/keranjang`, { waitUntil: "networkidle" });
