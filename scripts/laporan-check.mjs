@@ -52,14 +52,18 @@ fs.writeFileSync(
   ),
 );
 
-// cleanup sisa run gagal SEBELUM hitung apa pun
+// cleanup sisa run gagal SEBELUM hitung apa pun — file fisik hanya milik
+// fixture (nama dari DB; glob bebas pernah menghapus foto produksi di VPS)
+const fileLama = rows(
+  `SELECT lf.url FROM laporan_foto lf JOIN laporan_kegiatan lk ON lk.id=lf.idlaporan WHERE lk.judul LIKE 'E2E Lap%'`,
+).map((r) => String(r[0] ?? "").split("/").pop()).filter(Boolean);
 rows(`
   DELETE lf FROM laporan_foto lf
   JOIN laporan_kegiatan lk ON lk.id = lf.idlaporan
   WHERE lk.judul LIKE 'E2E Lap%';
   DELETE FROM laporan_kegiatan WHERE judul LIKE 'E2E Lap%';
 `);
-execSync(`rm -f ${LARAVEL}/public/upload/laporan/laporan_*.png`);
+fileLama.forEach((n) => execSync(`rm -f ${LARAVEL}/public/upload/laporan/${n}`));
 
 const secret = new TextEncoder().encode(
   fs.readFileSync(".env", "utf8").match(/AUTH_SECRET="(.+)"/)[1].replace(/^"|"$/g, ""),
@@ -352,7 +356,8 @@ assert(
   rows(`SELECT COUNT(*) FROM laporan_foto lf JOIN laporan_kegiatan lk ON lk.id=lf.idlaporan WHERE lk.judul LIKE 'E2E Lap%'`)[0][0] === "0",
   "cleanup: 0 foto E2E tersisa",
 );
-execSync(`rm -f ${LARAVEL}/public/upload/laporan/laporan_*.png`);
+// file fisik fixture sudah dihapus endpoint hapuslaporan; sisa file crash-run
+// ditangani cleanup awal (DB-driven) pada run berikutnya — TANPA glob bebas.
 
 await browser.close();
 console.log("\n=== LAPORAN KEGIATAN (FORM CONTOH) LULUS E2E ===");

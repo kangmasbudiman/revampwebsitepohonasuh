@@ -29,10 +29,17 @@ async function waitForDb(fn, timeout = 20000, label = "DB") {
   throw new Error(`waitForDb timeout: ${label}`);
 }
 
-// bersihkan sisa run gagal sebelum mulai
+// bersihkan sisa run gagal sebelum mulai — file fisik HANYA milik fixture kita,
+// nama file diambil dari DB (glob bebas `laporan_*.png` pernah menghapus foto
+// produksi user — JANGAN kembali ke pola glob).
+const DIR_LAPORAN = "/var/www/apps/pohonasuh/rest-api-pohonasuh/public/upload/laporan";
+vps(`SELECT lf.url FROM laporan_foto lf JOIN laporan_kegiatan lk ON lk.id=lf.idlaporan WHERE lk.judul LIKE 'UJI VPS Laporan%'`)
+  .split("\n").filter(Boolean).forEach((u) => {
+    const nama = u.trim().split("/").pop();
+    if (nama) vpsShell(`rm -f ${DIR_LAPORAN}/${nama}`);
+  });
 vps(`DELETE lf FROM laporan_foto lf JOIN laporan_kegiatan lk ON lk.id=lf.idlaporan WHERE lk.judul LIKE 'UJI VPS Laporan%'`);
 vps(`DELETE FROM laporan_kegiatan WHERE judul LIKE 'UJI VPS Laporan%'`);
-vpsShell("rm -f /var/www/apps/pohonasuh/rest-api-pohonasuh/public/upload/laporan/laporan_*.png /var/www/apps/pohonasuh/rest-api-pohonasuh/public/upload/laporan/laporan_*.jpg /var/www/apps/pohonasuh/rest-api-pohonasuh/public/upload/laporan/laporan_*.webp 2>/dev/null");
 
 const browser = await chromium.launch();
 
