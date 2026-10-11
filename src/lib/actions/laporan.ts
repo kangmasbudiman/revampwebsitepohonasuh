@@ -5,9 +5,11 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/guard";
 import { apiGet, apiPost, apiPostForm, mapLaporans, LAPORAN_JENIS, type ApiLaporan } from "@/lib/api";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
-import type { AdminState } from "@/lib/actions/admin";
 
 const JENIS_KEYS = new Set(LAPORAN_JENIS.map((j) => j.key));
+
+export type SimpanResult = { ok: boolean; id?: number; error?: string };
+export type FotoResult = { ok: boolean; error?: string };
 
 // Endpoint laporan flat tanpa auth — kepemilikan ditegakkan di web:
 // petugas (level 2) hanya boleh mengubah laporan miliknya sendiri.
@@ -20,80 +22,125 @@ async function laporanMilik(id: number): Promise<{ laporan?: ApiLaporan; boleh: 
   return { laporan, boleh };
 }
 
-export async function createLaporan(_prev: AdminState, formData: FormData): Promise<AdminState> {
+// Simpan laporan (buat baru bila tanpa id) — dipanggil imperatif dari form
+// step-by-step; foto bertahap diunggah TERPISAH per file lewat unggahFotoLaporan
+// setelah baris laporan ada (jaga body server action < 3MB).
+export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
   const session = await requireAdmin();
 
+  const id = Number(formData.get("id")) || null;
+  const status = String(formData.get("status") ?? "") === "draft" ? "draft" : "terkirim";
   const judul = String(formData.get("judul") ?? "").trim();
   const isi = String(formData.get("isi") ?? "").trim();
   const tanggal = String(formData.get("tanggal") ?? "").trim();
+  const tanggalSelesai = String(formData.get("tanggal_selesai") ?? "").trim();
   const jenis = String(formData.get("jenis") ?? "").trim() || "lainnya";
-  if (!judul || !isi || !tanggal) {
-    return { error: "Judul, tanggal, dan uraian kegiatan wajib diisi." };
-  }
-  if (!JENIS_KEYS.has(jenis)) return { error: "Jenis kegiatan tidak valid." };
+  const desa = String(formData.get("desa") ?? "").trim();
+  const dana = String(formData.get("dana") ?? "").replace(/[^\d]/g, "");
+  const hasil = String(formData.get("hasil") ?? "").trim();
 
-  let id: number | null = null;
+  if (!JENIS_KEYS.has(jenis)) return { ok: false, error: "Jenis kegiatan tidak valid." };
+  if (status === "terkirim" && (!judul || !isi || !tanggal)) {
+    return { ok: false, error: "Nama kegiatan, tanggal, dan uraian wajib diisi sebelum dikirim." };
+  }
+  if (status === "terkirim" && !dana) {
+    return { ok: false, error: "Isi dana yang digunakan sebelum mengirim laporan." };
+  }
+  if (status === "terkirim" && !hasil) {
+    return { ok: false, error: "Isi hasil atau manfaat kegiatan sebelum mengirim laporan." };
+  }
+
+  const payload: Record<string, string | number> = {
+    judul,
+    jenis,
+    desa,
+    tanggal,
+    tanggal_selesai: tanggalSelesai,
+    isi,
+    dana,
+    hasil,
+    status,
+  };
+
   try {
+    if (id) {
+      const { laporan, boleh } = await laporanMilik(id);
+      if (!laporan) return { ok: false, error: "Laporan tidak ditemukan." };
+      if (!boleh) return { ok: false, error: "Anda hanya bisa mengubah laporan milik sendiri." };
+      const res = await apiPost<{ value?: string | number; pesan?: string }>("editlaporan", {
+        id,
+        ...payload,
+      });
+      if (Number(res.value) !== 200) {
+        return { ok: false, error: res.pesan ?? "Gagal menyimpan laporan." };
+      }
+      revalidatePath("/admin/laporan");
+      revalidatePath(`/admin/laporan/${id}/edit`);
+      return { ok: true, id };
+    }
     const res = await apiPost<{ value?: string | number; pesan?: string; id?: number }>(
       "tambahlaporan",
-      {
-        idpetugas: session.userId,
-        judul,
-        jenis,
-        desa: String(formData.get("desa") ?? "").trim(),
-        tanggal,
-        isi,
-      },
+      { idpetugas: session.userId, ...payload },
     );
     if (Number(res.value) !== 200) {
-      return { error: res.pesan ?? "Gagal menambah laporan." };
+      return { ok: false, error: res.pesan ?? "Gagal menambah laporan." };
     }
-    id = Number(res.id) || null;
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    return { error: e instanceof Error && e.message ? e.message : "Gagal menambah laporan." };
+    const baru = Number(res.id) || null;
+    revalidatePath("/admin/laporan");
+    return { ok: true, id: baru ?? undefined };
+  } catch {
+    return { ok: false, error: "Gagal menyimpan laporan. Coba lagi." };
   }
-
-  revalidatePath("/admin/laporan");
-  redirect(id ? `/admin/laporan/${id}/edit?created=1` : "/admin/laporan?saved=1");
 }
 
-export async function updateLaporan(_prev: AdminState, formData: FormData): Promise<AdminState> {
-  const id = Number(formData.get("id"));
-  if (!id) return { error: "Laporan tidak ditemukan." };
-
-  const { laporan, boleh } = await laporanMilik(id);
-  if (!laporan) return { error: "Laporan tidak ditemukan." };
-  if (!boleh) return { error: "Anda hanya bisa mengubah laporan milik sendiri." };
-
-  const judul = String(formData.get("judul") ?? "").trim();
-  const isi = String(formData.get("isi") ?? "").trim();
-  const tanggal = String(formData.get("tanggal") ?? "").trim();
-  const jenis = String(formData.get("jenis") ?? "").trim() || "lainnya";
-  if (!judul || !isi || !tanggal) {
-    return { error: "Judul, tanggal, dan uraian kegiatan wajib diisi." };
+export async function unggahFotoLaporan(idlaporan: number, file: File): Promise<FotoResult> {
+  if (!idlaporan) return { ok: false, error: "Laporan tidak ditemukan." };
+  const { boleh } = await laporanMilik(idlaporan).catch(() => ({ boleh: false }));
+  if (!boleh) return { ok: false, error: "Anda hanya bisa mengunggah foto ke laporan milik sendiri." };
+  if (file.size === 0) return { ok: false, error: "File foto kosong." };
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+    return { ok: false, error: `${file.name}: format harus JPG, PNG, atau WEBP.` };
   }
-  if (!JENIS_KEYS.has(jenis)) return { error: "Jenis kegiatan tidak valid." };
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return { ok: false, error: `${file.name}: melebihi 2MB.` };
+  }
 
+  const fd = new FormData();
+  fd.append("idlaporan", String(idlaporan));
+  fd.append("foto", file);
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>("editlaporan", {
+    const res = await apiPostForm<{ value?: string | number; pesan?: string }>(
+      "uploadlaporanfoto",
+      fd,
+    );
+    if (Number(res.value) !== 200) {
+      return { ok: false, error: res.pesan ?? `Gagal mengunggah ${file.name}.` };
+    }
+  } catch {
+    return { ok: false, error: `Gagal mengunggah ${file.name}.` };
+  }
+  revalidatePath(`/admin/laporan/${idlaporan}/edit`);
+  revalidatePath("/admin/laporan");
+  return { ok: true };
+}
+
+export async function hapusFotoLaporan(id: number, idlaporan: number): Promise<FotoResult> {
+  if (!idlaporan || !id) return { ok: false, error: "Foto tidak ditemukan." };
+  const { boleh } = await laporanMilik(idlaporan).catch(() => ({ boleh: false }));
+  if (!boleh) return { ok: false, error: "Anda hanya bisa mengubah laporan milik sendiri." };
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("hapuslaporanfoto", {
       id,
-      judul,
-      jenis,
-      desa: String(formData.get("desa") ?? "").trim(),
-      tanggal,
-      isi,
     });
     if (Number(res.value) !== 200) {
-      return { error: res.pesan ?? "Gagal menyimpan laporan." };
+      return { ok: false, error: res.pesan ?? "Gagal menghapus foto." };
     }
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    return { error: e instanceof Error && e.message ? e.message : "Gagal menyimpan laporan." };
+  } catch {
+    return { ok: false, error: "Gagal menghapus foto." };
   }
-
+  revalidatePath(`/admin/laporan/${idlaporan}/edit`);
   revalidatePath("/admin/laporan");
-  redirect(`/admin/laporan/${id}/edit?saved=1`);
+  return { ok: true };
 }
 
 export async function deleteLaporan(formData: FormData) {
@@ -115,67 +162,4 @@ export async function deleteLaporan(formData: FormData) {
 
   revalidatePath("/admin/laporan");
   redirect("/admin/laporan?deleted=1");
-}
-
-export async function uploadLaporanFoto(
-  _prev: AdminState,
-  formData: FormData,
-): Promise<AdminState> {
-  const id = Number(formData.get("idlaporan"));
-  if (!id) return { error: "Laporan tidak ditemukan." };
-
-  const { boleh } = await laporanMilik(id).catch(() => ({ boleh: false }));
-  if (!boleh) return { error: "Anda hanya bisa mengunggah foto ke laporan milik sendiri." };
-
-  const file = formData.get("foto");
-  if (!(file instanceof File) || file.size === 0) return { error: "Pilih foto terlebih dahulu." };
-  if (!file.type.startsWith("image/")) return { error: "File harus berupa gambar." };
-  if (file.size > MAX_UPLOAD_BYTES) return { error: "Ukuran foto maksimal 2MB." };
-
-  const fd = new FormData();
-  fd.append("idlaporan", String(id));
-  fd.append("foto", file);
-
-  let res: { value?: string | number; pesan?: string };
-  try {
-    res = await apiPostForm<{ value?: string | number; pesan?: string }>("uploadlaporanfoto", fd);
-  } catch (e) {
-    return { error: e instanceof Error && e.message ? e.message : "Gagal mengunggah foto." };
-  }
-  if (Number(res.value) !== 200) {
-    return { error: res.pesan ?? "Gagal mengunggah foto." };
-  }
-
-  revalidatePath(`/admin/laporan/${id}/edit`);
-  revalidatePath("/admin/laporan");
-  return { saved: true };
-}
-
-export async function deleteLaporanFoto(formData: FormData) {
-  const id = Number(formData.get("id"));
-  const idlaporan = Number(formData.get("idlaporan"));
-  if (!idlaporan) redirect("/admin/laporan?error=Laporan+tidak+ditemukan");
-
-  const { boleh } = await laporanMilik(idlaporan).catch(() => ({ boleh: false }));
-  if (!boleh) redirect("/admin/laporan?error=Anda+hanya+bisa+mengubah+laporan+milik+sendiri");
-
-  if (id) {
-    try {
-      const res = await apiPost<{ value?: string | number; pesan?: string }>("hapuslaporanfoto", {
-        id,
-      });
-      if (Number(res.value) !== 200) {
-        redirect(
-          `/admin/laporan/${idlaporan}/edit?error=${encodeURIComponent(res.pesan ?? "Gagal menghapus foto.")}`,
-        );
-      }
-    } catch (e) {
-      if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-      redirect(`/admin/laporan/${idlaporan}/edit?error=Gagal+menghapus+foto`);
-    }
-  }
-
-  revalidatePath(`/admin/laporan/${idlaporan}/edit`);
-  revalidatePath("/admin/laporan");
-  redirect(`/admin/laporan/${idlaporan}/edit?hapus=1`);
 }

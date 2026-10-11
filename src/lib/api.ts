@@ -1075,7 +1075,11 @@ export type ApiLaporan = {
   jenis: string;
   desa: string;
   tanggal: string;
+  tanggalSelesai: string;
   isi: string;
+  dana: number | null;
+  hasil: string;
+  status: string;
   createdAt: string;
   foto: ApiLaporanFoto[];
 };
@@ -1089,7 +1093,11 @@ export function mapLaporans(rows: Record<string, unknown>[]): ApiLaporan[] {
     jenis: String(r.jenis ?? "lainnya"),
     desa: String(r.desa ?? ""),
     tanggal: String(r.tanggal ?? ""),
+    tanggalSelesai: String(r.tanggal_selesai ?? ""),
     isi: String(r.isi ?? ""),
+    dana: r.dana === null || r.dana === undefined || r.dana === "" ? null : Number(r.dana),
+    hasil: String(r.hasil ?? ""),
+    status: String(r.status ?? "terkirim") === "draft" ? "draft" : "terkirim",
     createdAt: String(r.created_at ?? ""),
     foto: Array.isArray(r.foto)
       ? (r.foto as Record<string, unknown>[])

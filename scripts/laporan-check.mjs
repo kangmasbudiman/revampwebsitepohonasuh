@@ -1,13 +1,14 @@
-// E2E Laporan Kegiatan (admin panel, level 1+2): petugas membuat laporan +
-// galeri foto, edit, filter daftar, tampilan responsif (desktop tabel /
-// mobile kartu), ownership (petugas tak bisa buka laporan orang lain),
-// admin melihat semua, hapus foto & laporan. Cleanup penuh di akhir.
+// E2E Laporan Kegiatan (form step-by-step ala contoh): buat DRAF + foto
+// bertahap → kirim (validasi dana/hasil) → chip status → filter jenis/status →
+// responsif (desktop tabel / mobile kartu) → ownership + visibilitas draf
+// (petugas lihat draf sendiri, admin hanya yang terkirim) → hapus foto/laporan.
 import { chromium } from "playwright";
 import { SignJWT } from "jose";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 
 const BASE = process.env.E2E_BASE ?? "http://localhost:3001";
+const API = process.env.API_BASE_URL ?? "http://127.0.0.1:8001/api";
 const LARAVEL = "/opt/homebrew/var/www/restApiPohonasuh";
 
 const rows = (sql) =>
@@ -42,7 +43,6 @@ async function waitForDb(fn, timeout = 20000, label = "DB") {
 
 const HARI = new Date().toISOString().slice(0, 10);
 
-// fixture PNG 1×1
 fs.writeFileSync(
   "/tmp/laporan-e2e.png",
   Buffer.from(
@@ -90,84 +90,119 @@ pasangAutoConfirm(ctxP);
 ctxP.addCookies([{ name: "pa_session", value: tokPetugas, url: BASE }]);
 const p = await ctxP.newPage();
 
-// 1. Menu & halaman
+// 1. Menu & halaman daftar
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 const navP = await p.locator("aside nav a").allTextContents();
 assert(
   navP.length === 3 && navP.includes("Laporan Kegiatan"),
-  `sidebar petugas memuat Laporan Kegiatan (${navP})`,
+  `sidebar petugas 3 menu termuat (${navP})`,
 );
 assert(await p.locator("h1", { hasText: "Laporan Kegiatan" }).count() >= 1, "halaman /admin/laporan termuat");
+assert((await p.locator('select[aria-label="Filter status"]').count()) === 1, "petugas punya filter status");
 
-// 2. Tambah laporan → redirect ke halaman edit (mode galeri)
-await p.click("summary:has-text('Tambah Laporan')");
-await p.fill('details form input[name="judul"]', "E2E Laporan Kegiatan");
-await p.selectOption('details form select[name="jenis"]', "pemantauan");
-await p.fill('details form input[name="tanggal"]', HARI);
-const desaVal = await p
-  .locator('details form select[name="desa"] option')
-  .nth(1)
-  .getAttribute("value");
-await p.selectOption('details form select[name="desa"]', desaVal);
-await p.fill('details form textarea[name="isi"]', "Uraian kegiatan uji end-to-end.");
-await p.click("details form button:has-text('Simpan Laporan')");
+// 2. Validasi kirim kosong ditolak client-side
+await p.goto(`${BASE}/admin/laporan/baru`, { waitUntil: "networkidle" });
+assert((await p.locator("ol > li").count()) === 7, "form 7 langkah bernomor tampil");
+await p.click('button:has-text("Kirim Laporan")');
+await p.waitForTimeout(400);
+assert(
+  (await p.locator("form p", { hasText: "Lengkapi nama kegiatan" }).count()) >= 1,
+  "kirim form kosong → pesan validasi",
+);
+assert(rows(`SELECT COUNT(*) FROM laporan_kegiatan WHERE judul LIKE 'E2E Lap%'`)[0][0] === "0", "tidak ada row tersimpan saat validasi gagal");
+
+// 3. Buat DRAF + foto bertahap
+await p.fill('form input[name="judul"]', "E2E Laporan Kegiatan");
+await p.selectOption('form select[name="jenis"]', "pemantauan");
+await p.fill('form input[name="tanggal"]', HARI);
+await p.fill('form textarea[name="isi"]', "Uraian kegiatan uji end-to-end.");
+assert((await p.locator("form p", { hasText: /\/500/ }).count()) === 2, "counter N/500 tampil di 2 textarea");
+await p.setInputFiles('form input[type=file][accept^="image"]', "/tmp/laporan-e2e.png");
+assert((await p.locator('button[aria-label^="Buang foto baru"]').count()) === 1, "thumbnail foto baru muncul di dropzone");
+await p.click('button:has-text("Simpan sebagai Draft")');
 await p.waitForURL(/\/admin\/laporan\/\d+\/edit\?created=1/, { timeout: 30000 });
 const ID = Number(p.url().match(/\/admin\/laporan\/(\d+)\/edit/)[1]);
-assert(!!ID, `laporan dibuat id=${ID}`);
-assert(await p.locator("text=Laporan dibuat").count() >= 1, "banner created tampil");
-
-// 3. Upload 2 foto galeri
-for (let i = 0; i < 2; i++) {
-  await p.setInputFiles('form:has(input[name="idlaporan"]) input[type=file]', "/tmp/laporan-e2e.png");
-  await p.click('form:has(input[name="idlaporan"]) button:has-text("Unggah Foto")');
-  await waitForDb(
-    () => rows(`SELECT id FROM laporan_foto WHERE idlaporan=${ID}`).length === i + 1,
-    20000,
-    `foto ke-${i + 1}`,
-  );
-}
-assert(true, "2 foto terunggah (DB)");
-await p.waitForTimeout(800);
-const fileFisik = rows(`SELECT url FROM laporan_foto WHERE idlaporan=${ID}`)
-  .map((r) => r[0].split("/").pop());
-assert(
-  fileFisik.every((f) => fs.existsSync(`${LARAVEL}/public/upload/laporan/${f}`)),
-  `file fisik ada (${fileFisik.length})`,
+assert(!!ID, `draf dibuat id=${ID}`);
+await waitForDb(
+  () => rows(`SELECT status FROM laporan_kegiatan WHERE id=${ID}`)[0]?.[0] === "draft",
+  20000, "status=draft di DB",
 );
-assert((await p.locator("main img").count()) >= 2, "grid galeri menampilkan foto");
-
-// 4. Edit judul
-await p.fill('form:has(input[name="id"]) input[name="judul"]', "E2E Laporan Kegiatan Edit");
-await p.click('form:has(input[name="id"]) button:has-text("Simpan Perubahan")');
-await p.waitForURL(/saved=1/, { timeout: 30000 });
+await waitForDb(
+  () => rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`)[0][0] === "1",
+  20000, "foto terunggah saat simpan draf",
+);
 assert(
-  rows(`SELECT judul FROM laporan_kegiatan WHERE id=${ID}`)[0][0] === "E2E Laporan Kegiatan Edit",
-  "edit judul tersimpan di DB",
+  (await p.locator("text=Draf — laporan belum dikirim").count()) >= 1,
+  "chip Draf tampil di halaman edit",
 );
 
-// 5. Daftar + filter (desktop = tabel)
+// 4. Lengkapi lalu KIRIM (dana + hasil wajib)
+await p.fill('form input[name="dana"]', "1500000");
+assert(
+  /1\.500\.000/.test(await p.inputValue('form input[name="dana"]')),
+  "input dana memformat ribuan id-ID",
+);
+await p.fill('form input[name="tanggal_selesai"]', HARI);
+await p.fill('form textarea[name="hasil"]', "Hasil kegiatan terukur.");
+// clik kirim tanpa foto sekarang tidak masalah — foto sudah ada 1
+await p.click('button:has-text("Kirim Laporan")');
+await p.waitForURL(/dikirim=1/, { timeout: 30000 });
+await waitForDb(
+  () => {
+    const r = rows(`SELECT status,dana,hasil,tanggal_selesai FROM laporan_kegiatan WHERE id=${ID}`)[0];
+    return r && r[0] === "terkirim" && Number(r[1]) === 1500000 && r[2] === "Hasil kegiatan terukur." && r[3] === HARI;
+  },
+  20000, "status terkirim + dana + hasil + tanggal_selesai",
+);
+assert(true, "kirim: status=terkirim dana=1.500.000 hasil+range tersimpan");
+assert(
+  (await p.locator("text=Laporan terkirim dan akan diperiksa").count()) >= 1,
+  "banner dikirim tampil",
+);
+
+// 5. Hapus foto via × lalu unggah ulang via Simpan Perubahan
+const fotoId = rows(`SELECT id FROM laporan_foto WHERE idlaporan=${ID}`)[0][0];
+await p.click(`button[aria-label="Hapus foto laporan ${fotoId}"]`);
+await waitForDb(
+  () => rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`)[0][0] === "0",
+  20000, "foto terhapus via ×",
+);
+assert(true, "foto terhapus via tombol ×");
+await p.setInputFiles('form input[type=file][accept^="image"]', "/tmp/laporan-e2e.png");
+await p.click('button:has-text("Simpan Perubahan")');
+await waitForDb(
+  () => rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`)[0][0] === "1",
+  20000, "foto terunggah ulang",
+);
+assert(true, "unggah ulang foto via Simpan Perubahan");
+
+// 6. Daftar + filter (desktop = tabel) — chip status & dana
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(await p.locator("table").first().isVisible(), "desktop: tabel tampil");
-assert((await p.locator("table").count()) === 1, "desktop: hanya 1 tabel (kartu mobile tersembunyi)");
-assert((await p.locator("a", { hasText: "E2E Laporan Kegiatan Edit" }).count()) >= 1, "baris laporan tampil");
+assert((await p.locator("a", { hasText: "E2E Laporan Kegiatan" }).count()) >= 1, "baris laporan tampil");
+assert(
+  (await p.locator("table span", { hasText: "Terkirim" }).count()) >= 1,
+  "chip Terkirim di tabel",
+);
+assert(
+  /1\.500\.000/.test(await p.locator("table").first().innerText()),
+  "kolom dana menampilkan Rp 1.500.000",
+);
 await p.selectOption('select[aria-label="Filter jenis kegiatan"]', "pemantauan");
 await p.waitForTimeout(300);
 assert((await p.locator('[data-testid="jml-laporan"]').textContent()).includes("1"), "filter jenis pemantauan → 1");
 await p.selectOption('select[aria-label="Filter jenis kegiatan"]', "tagging");
 await p.waitForTimeout(300);
 assert((await p.locator('[data-testid="jml-laporan"]').textContent()).includes("0"), "filter jenis tagging → 0");
-await p.fill('input[aria-label="Cari laporan"]', "E2E Laporan");
 await p.selectOption('select[aria-label="Filter jenis kegiatan"]', "");
+await p.selectOption('select[aria-label="Filter status"]', "draft");
 await p.waitForTimeout(300);
-assert((await p.locator('[data-testid="jml-laporan"]').textContent()).includes("1"), "cari judul → 1");
+assert((await p.locator('[data-testid="jml-laporan"]').textContent()).includes("0"), "filter status draft → 0 (milik kita terkirim)");
 await p.click('button[aria-label="Reset filter"]');
 await p.waitForTimeout(300);
-assert(
-  (await p.locator('[data-testid="jml-laporan"]').textContent()).includes("1"),
-  `reset filter mengembalikan daftar (${await p.locator('[data-testid="jml-laporan"]').textContent()})`,
-);
+assert((await p.locator('[data-testid="jml-laporan"]').textContent()).includes("1"), "reset filter mengembalikan daftar");
 
-// 6. Mobile = kartu, tabel tersembunyi
+// 7. Mobile = kartu, tabel tersembunyi
 await p.setViewportSize({ width: 390, height: 844 });
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 // count() menghitung node DOM — tabel desktop (hidden md:block) tetap ada di
@@ -175,21 +210,32 @@ await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(!(await p.locator("table").first().isVisible()), "mobile 390px: tabel tersembunyi");
 assert(
   // wrapper tabel desktop juga rounded-2xl — kartu mobile dibedakan kelas p-4
-  await p.locator("div.rounded-2xl.p-4", { hasText: "E2E Laporan Kegiatan Edit" }).first().isVisible(),
+  await p.locator("div.rounded-2xl.p-4", { hasText: "E2E Laporan Kegiatan" }).first().isVisible(),
   "mobile 390px: kartu laporan tampil",
 );
+await p.setViewportSize({ width: 1280, height: 800 });
 
-// 7. Ownership: laporan milik admin tak terlihat/dibuka petugas
+// 8. Visibilitas draf: draf petugas terlihat petugas, TIDAK oleh admin
+const rDraft = execSync(
+  `curl -s -X POST ${API}/tambahlaporan -d "idpetugas=2683&judul=E2E Laporan Draf&jenis=tagging&tanggal=${HARI}&isi=masih draf&status=draft"`,
+).toString();
+const idDraft = Number(rDraft.match(/"id":(\d+)/)?.[1] ?? 0);
+assert(!!idDraft, `fixture draf id=${idDraft}`);
+await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+assert(
+  (await p.locator("main", { hasText: "E2E Laporan Draf" }).count()) >= 1,
+  "petugas melihat drafnya sendiri (chip Draft)",
+);
+
+// 9. Ownership: laporan milik admin tak terlihat/dibuka petugas
 let idAdm = rows(`SELECT id FROM laporan_kegiatan WHERE judul='E2E Laporan Admin'`)[0]?.[0];
 if (!idAdm) {
   const r = execSync(
-    `curl -s -X POST http://127.0.0.1:8001/api/tambahlaporan -d "idpetugas=2682&judul=E2E Laporan Admin&jenis=tagging&tanggal=${HARI}&isi=laporan milik admin"`,
+    `curl -s -X POST ${API}/tambahlaporan -d "idpetugas=2682&judul=E2E Laporan Admin&jenis=tagging&tanggal=${HARI}&isi=laporan milik admin"`,
   ).toString();
   idAdm = Number(r.match(/"id":(\d+)/)?.[1] ?? 0);
 }
 assert(!!idAdm, `fixture laporan admin id=${idAdm}`);
-await p.setViewportSize({ width: 1280, height: 800 });
-await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(
   (await p.locator("main", { hasText: "E2E Laporan Admin" }).count()) === 0,
   "petugas TIDAK melihat laporan milik admin",
@@ -200,26 +246,16 @@ assert(
   "petugas buka edit laporan admin → 404",
 );
 
-// 8. Hapus satu foto
+// 10. Hapus laporan (milik sendiri)
 await p.goto(`${BASE}/admin/laporan/${ID}/edit`, { waitUntil: "networkidle" });
-await p.locator('form:has(input[name="idlaporan"]) button:has-text("Hapus")').first().click();
-await waitForDb(
-  () => rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`)[0][0] === "1",
-  20000,
-  "sisa 1 foto",
-);
-assert(true, "hapus 1 foto → sisa 1");
-
-// 9. Hapus laporan (milik sendiri)
 await p.click('form:has(input[name="id"]) button:has-text("Hapus Laporan")');
 await p.waitForURL(/\/admin\/laporan\?deleted=1/, { timeout: 30000 });
 await waitForDb(
   () => rows(`SELECT COUNT(*) FROM laporan_kegiatan WHERE id=${ID}`)[0][0] === "0",
-  20000,
-  "laporan terhapus",
+  20000, "laporan terhapus",
 );
 assert(true, "laporan milik sendiri terhapus");
-assert(rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`)[0][0] === "0", "foto ikut terhapus (cascade web)");
+assert(rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`)[0][0] === "0", "foto ikut terhapus (cascade)");
 
 // ===================== SISI ADMIN =====================
 const ctxA = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -229,17 +265,18 @@ const a = await ctxA.newPage();
 await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(
   (await a.locator("main", { hasText: "E2E Laporan Admin" }).count()) >= 1,
-  "admin melihat laporan miliknya (semua petugas)",
+  "admin melihat laporan miliknya (terkirim)",
 );
 assert(
-  (await a.locator('select[aria-label="Filter petugas"]').count()) === 1,
-  "admin punya filter petugas",
+  (await a.locator("main", { hasText: "E2E Laporan Draf" }).count()) === 0,
+  "admin TIDAK melihat draf petugas",
 );
+assert((await a.locator('select[aria-label="Filter petugas"]').count()) === 1, "admin punya filter petugas");
+assert((await a.locator('select[aria-label="Filter status"]').count()) === 0, "admin tak punya filter status (hanya terkirim)");
 
-// cleanup laporan admin
-execSync(
-  `curl -s -X POST http://127.0.0.1:8001/api/hapuslaporan -d "id=${idAdm}" > /dev/null`,
-);
+// cleanup fixture admin + draf
+execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${idAdm}" > /dev/null`);
+execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${idDraft}" > /dev/null`);
 assert(
   rows(`SELECT COUNT(*) FROM laporan_kegiatan WHERE judul LIKE 'E2E Lap%'`)[0][0] === "0",
   "cleanup: 0 laporan E2E tersisa",
@@ -251,4 +288,4 @@ assert(
 execSync(`rm -f ${LARAVEL}/public/upload/laporan/laporan_*.png`);
 
 await browser.close();
-console.log("\n=== LAPORAN KEGIATAN LULUS E2E ===");
+console.log("\n=== LAPORAN KEGIATAN (FORM CONTOH) LULUS E2E ===");

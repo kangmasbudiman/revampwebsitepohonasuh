@@ -3,17 +3,22 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CalendarDays, Camera, MapPin, NotebookPen, Search, UserRound } from "lucide-react";
+import { CalendarDays, Camera, Coins, MapPin, NotebookPen, Search, UserRound } from "lucide-react";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { deleteLaporan } from "@/lib/actions/laporan";
 import { LAPORAN_JENIS, LAPORAN_JENIS_LABEL, type ApiLaporan } from "@/lib/api";
-import { namaDesa } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
 
 const JENIS_CHIP: Record<string, string> = {
   tagging: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
   pemantauan: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300",
   papan: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
   lainnya: "bg-zinc-100 text-zinc-600 dark:bg-night-800 dark:text-zinc-300",
+};
+
+const STATUS_CHIP: Record<string, string> = {
+  draft: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
+  terkirim: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
 };
 
 const inputClass =
@@ -23,6 +28,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
   const [q, setQ] = useState("");
   const [jenis, setJenis] = useState("");
   const [petugas, setPetugas] = useState("");
+  const [status, setStatus] = useState("");
 
   const petugasOptions = useMemo(() => {
     const m = new Map<number, string>();
@@ -35,15 +41,16 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
     return rows.filter((r) => {
       if (jenis && r.jenis !== jenis) return false;
       if (petugas && String(r.idpetugas) !== petugas) return false;
+      if (status && r.status !== status) return false;
       if (!needle) return true;
-      return [r.judul, r.isi, r.desa, r.petugas, LAPORAN_JENIS_LABEL[r.jenis] ?? r.jenis]
+      return [r.judul, r.isi, r.hasil, r.desa, r.petugas, LAPORAN_JENIS_LABEL[r.jenis] ?? r.jenis]
         .join(" ")
         .toLowerCase()
         .includes(needle);
     });
-  }, [rows, q, jenis, petugas]);
+  }, [rows, q, jenis, petugas, status]);
 
-  const adaFilter = q !== "" || jenis !== "" || petugas !== "";
+  const adaFilter = q !== "" || jenis !== "" || petugas !== "" || status !== "";
   const isAdmin = level === 1;
 
   const filterBar = (
@@ -87,6 +94,18 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
           ))}
         </select>
       )}
+      {!isAdmin && (
+        <select
+          aria-label="Filter status"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className={`${inputClass} sm:w-40`}
+        >
+          <option value="">Semua status</option>
+          <option value="draft">Draft</option>
+          <option value="terkirim">Terkirim</option>
+        </select>
+      )}
       {adaFilter && (
         <button
           type="button"
@@ -95,6 +114,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
             setQ("");
             setJenis("");
             setPetugas("");
+            setStatus("");
           }}
           className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 dark:border-night-700 dark:text-zinc-300 dark:hover:bg-night-800"
         >
@@ -113,6 +133,21 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
       {LAPORAN_JENIS_LABEL[j] ?? "Lainnya"}
     </span>
   );
+
+  const statusChip = (s: string) => (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+        STATUS_CHIP[s] ?? STATUS_CHIP.terkirim
+      }`}
+    >
+      {s === "draft" ? "Draft" : "Terkirim"}
+    </span>
+  );
+
+  const tanggalRange = (r: ApiLaporan) =>
+    r.tanggalSelesai && r.tanggalSelesai !== r.tanggal
+      ? `${r.tanggal} – ${r.tanggalSelesai}`
+      : r.tanggal;
 
   const hapusForm = (r: ApiLaporan) => (
     <form action={deleteLaporan}>
@@ -149,8 +184,10 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                   <th className="px-4 py-3">Tanggal</th>
                   <th className="px-4 py-3">Judul</th>
                   <th className="px-4 py-3">Jenis</th>
+                  <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Desa</th>
                   {isAdmin && <th className="px-4 py-3">Petugas</th>}
+                  <th className="px-4 py-3">Dana</th>
                   <th className="px-4 py-3">Foto</th>
                   <th className="px-4 py-3 text-right">Aksi</th>
                 </tr>
@@ -159,7 +196,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                 {filtered.map((r) => (
                   <tr key={r.id} className="hover:bg-emerald-50/40 dark:hover:bg-night-800/50">
                     <td className="whitespace-nowrap px-4 py-3 text-zinc-600 dark:text-zinc-300">
-                      {r.tanggal}
+                      {tanggalRange(r)}
                     </td>
                     <td className="max-w-[260px] px-4 py-3">
                       <Link
@@ -171,6 +208,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                       <p className="line-clamp-1 text-xs text-zinc-400">{r.isi}</p>
                     </td>
                     <td className="px-4 py-3">{jenisChip(r.jenis)}</td>
+                    <td className="px-4 py-3">{statusChip(r.status)}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
                       {r.desa ? namaDesa(r.desa) : "—"}
                     </td>
@@ -179,6 +217,9 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                         {r.petugas || "—"}
                       </td>
                     )}
+                    <td className="whitespace-nowrap px-4 py-3 text-zinc-600 dark:text-zinc-300">
+                      {r.dana !== null && r.dana > 0 ? rupiah(r.dana) : "—"}
+                    </td>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
                         {r.foto[0] && (
@@ -223,9 +264,12 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                     <CalendarDays className="h-3.5 w-3.5" />
-                    {r.tanggal}
+                    {tanggalRange(r)}
                   </span>
-                  {jenisChip(r.jenis)}
+                  <span className="flex flex-wrap gap-1.5">
+                    {jenisChip(r.jenis)}
+                    {statusChip(r.status)}
+                  </span>
                 </div>
                 <Link
                   href={`/admin/laporan/${r.id}/edit`}
@@ -239,6 +283,12 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                     <span className="inline-flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5" />
                       {namaDesa(r.desa)}
+                    </span>
+                  )}
+                  {r.dana !== null && r.dana > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <Coins className="h-3.5 w-3.5" />
+                      {rupiah(r.dana)}
                     </span>
                   )}
                   {isAdmin && (
