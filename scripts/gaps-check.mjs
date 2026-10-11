@@ -117,7 +117,7 @@ assert(true, `donatur terdaftar id=${memberId}`);
 
 // ===== #7+#8: adopsi langsung 3 tahun + hadiah =====
 await page.goto(`${BASE}/pohon/${TREE_A}`, { waitUntil: "networkidle" });
-await page.click("button:text-is('3 tahun')");
+await page.fill('input[aria-label="Durasi adopsi"]', "3");
 await page.click("button:has-text('Adopsi sebagai hadiah')");
 await page.fill("#gift-name", "Ibu Sinta");
 await page.fill("#gift-note", "Selamat hari ibu!");
@@ -266,7 +266,7 @@ assert(
 
 // ===== #7+#8 jalur keranjang: 2 tahun + hadiah, ubah di checkout =====
 await page.goto(`${BASE}/pohon/${TREE_B}`, { waitUntil: "networkidle" });
-await page.click("button:text-is('2 tahun')");
+await page.fill('input[aria-label="Durasi adopsi"]', "2");
 await page.click("button:has-text('Adopsi sebagai hadiah')");
 await page.fill("#gift-name", "Kakak Tercinta");
 await page.click("button:has-text('Tambah ke Keranjang')");
@@ -281,7 +281,7 @@ assert(
 );
 
 await page.goto(`${BASE}/checkout`, { waitUntil: "networkidle" });
-await page.click("button:text-is('3 thn')"); // ubah durasi via keranjang
+await page.click('button[aria-label^="Tambah durasi"]'); // 2 → 3 tahun via stepper checkout
 await page.click("button:has-text('Buat Pesanan')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const confId2 = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];

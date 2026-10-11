@@ -3,16 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Trash2, Gift, Minus, Plus, Hourglass, X } from "lucide-react";
+import { Trash2, Gift, Hourglass, X } from "lucide-react";
 import { useCart } from "@/lib/use-cart";
 import {
   removeFromCart,
   updateCartItem,
-  MAX_YEARS,
   getExpiredNotice,
   dismissExpiredNotice,
   type ExpiredNotice,
 } from "@/lib/cart";
+import YearsStepper from "@/components/years-stepper";
 import { namaDesa, rupiah } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -131,29 +131,15 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
                 {namaDesa(item.desa)} · {item.code}
               </p>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center rounded-full border border-emerald-200 bg-white">
-                  <button
-                    type="button"
-                    aria-label={t.minusAria.replaceAll("{name}", item.localName)}
-                    disabled={years <= 1}
-                    onClick={() => updateCartItem(item.code, { years: years - 1 })}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
-                  >
-                    <Minus className="h-3.5 w-3.5" />
-                  </button>
-                  <span className="min-w-[4.25rem] text-center text-xs font-semibold text-emerald-800">
-                    {years} {years === 1 ? t.year : t.years}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={t.plusAria.replaceAll("{name}", item.localName)}
-                    disabled={years >= MAX_YEARS}
-                    onClick={() => updateCartItem(item.code, { years: years + 1 })}
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                <YearsStepper
+                  size="sm"
+                  years={years}
+                  onChange={(y) => updateCartItem(item.code, { years: y })}
+                  minusAria={t.minusAria.replaceAll("{name}", item.localName)}
+                  plusAria={t.plusAria.replaceAll("{name}", item.localName)}
+                  inputAria={t.yearsInputAria.replaceAll("{name}", item.localName)}
+                  unit={years === 1 ? t.year : t.years}
+                />
                 <span className="text-xs text-zinc-500">
                   {rupiah(item.priceIdr)} {t.perYear}
                 </span>

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Check, Gift, ShoppingCartPlus, TreePine } from "lucide-react";
-import { addToCart, MAX_YEARS } from "@/lib/cart";
+import { addToCart } from "@/lib/cart";
+import YearsStepper from "@/components/years-stepper";
 import { useCart } from "@/lib/use-cart";
 import { createAdoption, type AdoptionState } from "@/lib/actions/adoption";
 import { rupiah } from "@/lib/format";
@@ -81,21 +82,15 @@ export default function AdoptPanel({
         >
           {t.adoptDuration}
         </label>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {Array.from({ length: MAX_YEARS }, (_, i) => i + 1).map((y) => (
-            <button
-              key={y}
-              type="button"
-              onClick={() => setYears(y)}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-                years === y
-                  ? "bg-emerald-600 text-white"
-                  : "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
-              }`}
-            >
-              {y} {y === 1 ? t.year : t.years}
-            </button>
-          ))}
+        <div className="mt-2">
+          <YearsStepper
+            years={years}
+            onChange={setYears}
+            minusAria={t.minusAria}
+            plusAria={t.plusAria}
+            inputAria={t.adoptDuration}
+            unit={t.year}
+          />
         </div>
         <p className="mt-2 text-xs text-zinc-500">
           {rupiah(tree.priceIdr)} {t.perYearSlash} × {years}{" "}

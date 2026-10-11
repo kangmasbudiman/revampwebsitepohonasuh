@@ -31,10 +31,14 @@ type CheckoutResult =
   | { ok: true; id: number; unavailable: UnavailableTree[] }
   | { ok: false; error: string; unavailable: UnavailableTree[] };
 
+// Batas atas senyap menjaga tgl_exp (DATE) tetap valid — sama dengan
+// MAX_YEARS di lib/cart.ts; durasi bebas dipilih donatur di bawah itu.
+const YEARS_SAFETY_MAX = 100;
+
 function clampYears(v: unknown): number {
   const n = Math.floor(Number(v));
   if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(n, 5);
+  return Math.min(n, YEARS_SAFETY_MAX);
 }
 
 async function checkoutTrees(

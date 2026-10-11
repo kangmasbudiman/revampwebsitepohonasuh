@@ -6,7 +6,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Gift } from "lucide-react";
 import { checkoutCart, type CheckoutState } from "@/lib/actions/adoption";
-import { clearCart, removeFromCart, updateCartItem, MAX_YEARS } from "@/lib/cart";
+import { clearCart, removeFromCart, updateCartItem } from "@/lib/cart";
+import YearsStepper from "@/components/years-stepper";
 import { useCart } from "@/lib/use-cart";
 import { namaDesa, rupiah } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
@@ -138,20 +139,15 @@ export default function CheckoutView() {
 
               <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-emerald-50 pt-3">
                 <span className="text-xs font-medium text-zinc-500">{t.duration}</span>
-                {Array.from({ length: MAX_YEARS }, (_, k) => k + 1).map((y) => (
-                  <button
-                    key={y}
-                    type="button"
-                    onClick={() => updateCartItem(item.code, { years: y })}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                      years === y
-                        ? "bg-emerald-600 text-white"
-                        : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                    }`}
-                  >
-                    {y} {t.yrsShort}
-                  </button>
-                ))}
+                <YearsStepper
+                  size="sm"
+                  years={years}
+                  onChange={(y) => updateCartItem(item.code, { years: y })}
+                  minusAria={t.minusAria.replaceAll("{name}", item.localName)}
+                  plusAria={t.plusAria.replaceAll("{name}", item.localName)}
+                  inputAria={t.yearsInputAria.replaceAll("{name}", item.localName)}
+                  unit={t.yrsShort}
+                />
                 <button
                   type="button"
                   onClick={() =>

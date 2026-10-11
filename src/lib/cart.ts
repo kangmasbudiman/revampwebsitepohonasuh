@@ -15,7 +15,9 @@ export type ExpiredNotice = { code: string; localName: string };
 const KEY = "pa_cart_v1";
 const EXPIRED_KEY = "pa_cart_expired_v1";
 const EVENT = "cart-changed";
-export const MAX_YEARS = 5;
+// Guard keamanan senyap (tgl_exp kolom DATE maks 9999) — UI tidak
+// menampilkan batas atas; donatur praktis bebas isi berapa tahun.
+export const MAX_YEARS = 100;
 export const CART_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Snapshot harus referensi stabil — array baru tiap getSnapshot memicu
