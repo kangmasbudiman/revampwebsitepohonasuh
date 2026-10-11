@@ -1,6 +1,7 @@
 // Smoke produksi Laporan Kegiatan form step-by-step (pohonasuh.io): petugas
-// (login asli) buat DRAF + foto bertahap → kirim (dana/hasil) → admin (JWT
-// AUTH_SECRET VPS) melihat yang terkirim → kartu mobile → hapus + bersihkan.
+// (login asli) buat DRAF + foto bertahap → kirim (dana/hasil) → DRAF kedua →
+// admin (JWT AUTH_SECRET VPS) melihat terkirim + draf → SETUJUI via tombol
+// cepat → kartu mobile → hapus semua + bersihkan.
 // Jalankan: node scripts/uji-vps-laporan.mjs
 import { chromium } from "playwright";
 import { SignJWT } from "jose";
@@ -86,6 +87,16 @@ await waitForDb(() => {
 }, 20000, "terkirim+dana");
 assert(true, "kirim: status=terkirim dana=350000");
 
+// draf kedua (tetap draf) — utk uji visibilitas admin & tombol setujui
+const JUDUL_DRAF = `UJI VPS Laporan Draf ${Date.now()}`;
+await p.goto(`${BASE}/admin/laporan/baru`, { waitUntil: "networkidle" });
+await p.fill('form input[name="judul"]', JUDUL_DRAF);
+await p.click('button:has-text("Simpan sebagai Draft")');
+await p.waitForURL(/\/admin\/laporan\/\d+\/edit\?created=1/, { timeout: 30000 });
+const ID_DRAF = Number(p.url().match(/\/admin\/laporan\/(\d+)\/edit/)[1]);
+assert(!!ID_DRAF, `draf kedua dibuat id=${ID_DRAF} (tanpa foto/dana)`);
+await waitForDb(() => vps(`SELECT status FROM laporan_kegiatan WHERE id=${ID_DRAF}`) === "draft", 20000, "draf kedua draft");
+
 // daftar: desktop tabel + chip; lalu mobile kartu
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(await p.locator("table").first().isVisible(), "desktop: tabel tampil");
@@ -110,7 +121,30 @@ assert(
   (await a.locator("main", { hasText: JUDUL }).count()) >= 1,
   "admin melihat laporan terkirim buatan petugas",
 );
+assert(
+  (await a.locator("main", { hasText: JUDUL_DRAF }).count()) >= 1,
+  "admin melihat draf petugas (belum dikirim)",
+);
 assert((await a.locator('select[aria-label="Filter petugas"]').count()) === 1, "admin punya filter petugas");
+assert(
+  (await a.locator(`form:has(input[name="id"][value="${ID_DRAF}"]) button:has-text("Setujui")`).count()) === 0,
+  "tombol Setujui tak muncul di baris draf",
+);
+
+// setujui laporan terkirim petugas via tombol cepat (auto-klik modal konfirmasi)
+await a.evaluate(() => {
+  new MutationObserver(() => {
+    document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+      if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+});
+await a.click(`form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);
+await a.waitForURL(/disetujui=1/, { timeout: 30000 });
+await waitForDb(() => vps(`SELECT status FROM laporan_kegiatan WHERE id=${ID}`) === "disetujui", 20000, "approve prod");
+assert(true, "admin menyetujui via tombol cepat → status=disetujui");
+await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+assert((await a.locator("table span", { hasText: "Disetujui" }).count()) >= 1, "chip Disetujui tampil (admin)");
 
 // ================= CLEANUP: hapus via UI petugas =================
 await p.setViewportSize({ width: 1280, height: 800 });
@@ -129,6 +163,19 @@ assert(vps(`SELECT COUNT(*) FROM laporan_kegiatan WHERE id=${ID}`) === "0", "lap
 assert(vps(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`) === "0", "foto ikut terhapus");
 const namaFile = fotoRow[0].split("/").pop();
 vpsShell(`rm -f /var/www/apps/pohonasuh/rest-api-pohonasuh/public/upload/laporan/${namaFile}`);
+
+// hapus draf kedua via UI petugas (pasang ulang auto-confirm — page sudah navigasi)
+await p.goto(`${BASE}/admin/laporan/${ID_DRAF}/edit`, { waitUntil: "networkidle" });
+await p.evaluate(() => {
+  new MutationObserver(() => {
+    document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+      if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+});
+await p.click('form:has(input[name="id"]) button:has-text("Hapus Laporan")');
+await p.waitForURL(/\/admin\/laporan\?deleted=1/, { timeout: 30000 });
+assert(vps(`SELECT COUNT(*) FROM laporan_kegiatan WHERE id=${ID_DRAF}`) === "0", "draf kedua terhapus dari DB");
 assert(vps("SELECT COUNT(*) FROM laporan_kegiatan WHERE judul LIKE 'UJI VPS Laporan%'") === "0", "cleanup: 0 laporan uji tersisa");
 
 // logout petugas (simpan cookie QA tetap bersih)
