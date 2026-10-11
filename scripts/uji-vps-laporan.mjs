@@ -1,6 +1,6 @@
-// Smoke produksi Laporan Kegiatan (pohonasuh.io): petugas (login asli) buat
-// laporan + unggah foto → admin (JWT AUTH_SECRET VPS) melihatnya + filter
-// petugas → tampilan mobile kartu → hapus laporan + bersihkan file.
+// Smoke produksi Laporan Kegiatan form step-by-step (pohonasuh.io): petugas
+// (login asli) buat DRAF + foto bertahap → kirim (dana/hasil) → admin (JWT
+// AUTH_SECRET VPS) melihat yang terkirim → kartu mobile → hapus + bersihkan.
 // Jalankan: node scripts/uji-vps-laporan.mjs
 import { chromium } from "playwright";
 import { SignJWT } from "jose";
@@ -18,6 +18,15 @@ const vps = (sql) =>
   execSync(`ssh pohonasuh-vps "docker exec pohonasuh-mysql mysql -uroot -p'Pohonassuh2026#' pohonasuh -N -e \\"${sql.replace(/"/g, '\\\\"')}\\" 2>/dev/null"`).toString().trim();
 const vpsShell = (cmd) =>
   execSync(`ssh pohonasuh-vps "${cmd}"`).toString().trim();
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function waitForDb(fn, timeout = 20000, label = "DB") {
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeout) {
+    try { if (fn()) return true; } catch {}
+    await sleep(400);
+  }
+  throw new Error(`waitForDb timeout: ${label}`);
+}
 
 // bersihkan sisa run gagal sebelum mulai
 vps(`DELETE lf FROM laporan_foto lf JOIN laporan_kegiatan lk ON lk.id=lf.idlaporan WHERE lk.judul LIKE 'UJI VPS Laporan%'`);
@@ -35,46 +44,53 @@ await p.click("button[type=submit]");
 await p.waitForURL(/\/admin/, { timeout: 30000 });
 assert(true, `login petugas → ${p.url()}`);
 
+// halaman buat baru (form step ala contoh)
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 const nav = await p.locator("aside nav a").allTextContents();
 assert(
   nav.length === 3 && nav.includes("Laporan Kegiatan"),
-  `sidebar petugas 3 menu termuat (${nav})`,
+  `sidebar petugas 3 menu (${nav})`,
 );
+await p.click('a:has-text("Tambah Laporan")');
+await p.waitForURL(/\/admin\/laporan\/baru/, { timeout: 30000 });
+assert((await p.locator("ol > li").count()) === 7, "form 7 langkah bernomor tampil");
 
-// buat laporan → halaman edit (mode galeri)
-await p.click("summary:has-text('Tambah Laporan')");
-await p.fill('details form input[name="judul"]', JUDUL);
-await p.selectOption('details form select[name="jenis"]', "pemantauan");
-await p.fill('details form input[name="tanggal"]', HARI);
-const desaVal = await p.locator('details form select[name="desa"] option').nth(1).getAttribute("value");
-await p.selectOption('details form select[name="desa"]', desaVal);
-await p.fill('details form textarea[name="isi"]', "Smoke test laporan kegiatan produksi.");
-await p.click("details form button:has-text('Simpan Laporan')");
-await p.waitForURL(/\/admin\/laporan\/\d+\/edit\?created=1/, { timeout: 30000 });
-const ID = Number(p.url().match(/\/admin\/laporan\/(\d+)\/edit/)[1]);
-assert(!!ID, `laporan dibuat id=${ID}`);
-
-// unggah 1 foto (PNG 1×1)
-await p.setInputFiles('form:has(input[name="idlaporan"]) input[type=file]', {
+// buat DRAF + 1 foto bertahap
+await p.fill('form input[name="judul"]', JUDUL);
+await p.selectOption('form select[name="jenis"]', "pemantauan");
+await p.fill('form input[name="tanggal"]', HARI);
+await p.fill('form textarea[name="isi"]', "Smoke test laporan kegiatan produksi.");
+await p.setInputFiles('form input[type=file][accept^="image"]', {
   name: "uji-laporan.png", mimeType: "image/png",
   buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64"),
 });
-await p.click('form:has(input[name="idlaporan"]) button:has-text("Unggah Foto")');
-let fotoRow = null;
-for (let i = 0; i < 20 && !fotoRow; i++) {
-  await p.waitForTimeout(500);
-  const r = vps(`SELECT id,url FROM laporan_foto WHERE idlaporan=${ID}`);
-  if (r) fotoRow = r.split("\t");
-}
-assert(!!fotoRow, `foto tersimpan di DB (id=${fotoRow?.[0]})`);
-const http = await fetch(fotoRow[1]);
+await p.click('button:has-text("Simpan sebagai Draft")');
+await p.waitForURL(/\/admin\/laporan\/\d+\/edit\?created=1/, { timeout: 30000 });
+const ID = Number(p.url().match(/\/admin\/laporan\/(\d+)\/edit/)[1]);
+assert(!!ID, `draf dibuat id=${ID}`);
+await waitForDb(() => vps(`SELECT status FROM laporan_kegiatan WHERE id=${ID}`) === "draft", 20000, "status draft");
+await waitForDb(() => vps(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`) === "1", 20000, "foto draf");
+assert(true, "draf + 1 foto tersimpan (DB)");
+const fotoRow = vps(`SELECT url FROM laporan_foto WHERE idlaporan=${ID} LIMIT 1`).split("\t");
+const http = await fetch(fotoRow[0]);
 assert(http.status === 200 && (http.headers.get("content-type") ?? "").includes("image/"), `file tersaji via URL rest.pohonasuh.io (${http.status})`);
 
-// daftar: desktop tabel + baris; lalu mobile kartu
+// lengkapi lalu KIRIM
+await p.fill('form input[name="dana"]', "350000");
+await p.fill('form textarea[name="hasil"]', "Hasil uji produksi.");
+await p.click('button:has-text("Kirim Laporan")');
+await p.waitForURL(/dikirim=1/, { timeout: 30000 });
+await waitForDb(() => {
+  const r = vps(`SELECT status,dana FROM laporan_kegiatan WHERE id=${ID}`).split("\t");
+  return r[0] === "terkirim" && Number(r[1]) === 350000;
+}, 20000, "terkirim+dana");
+assert(true, "kirim: status=terkirim dana=350000");
+
+// daftar: desktop tabel + chip; lalu mobile kartu
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(await p.locator("table").first().isVisible(), "desktop: tabel tampil");
 assert((await p.locator("a", { hasText: JUDUL }).count()) >= 1, "baris laporan tampil");
+assert((await p.locator("table span", { hasText: "Terkirim" }).count()) >= 1, "chip Terkirim tampil");
 await p.setViewportSize({ width: 390, height: 844 });
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(!(await p.locator("table").first().isVisible()), "mobile 390px: tabel tersembunyi");
@@ -92,7 +108,7 @@ const a = await ctxA.newPage();
 await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(
   (await a.locator("main", { hasText: JUDUL }).count()) >= 1,
-  "admin melihat laporan buatan petugas",
+  "admin melihat laporan terkirim buatan petugas",
 );
 assert((await a.locator('select[aria-label="Filter petugas"]').count()) === 1, "admin punya filter petugas");
 
@@ -111,7 +127,7 @@ await p.click('form:has(input[name="id"]) button:has-text("Hapus Laporan")');
 await p.waitForURL(/\/admin\/laporan\?deleted=1/, { timeout: 30000 });
 assert(vps(`SELECT COUNT(*) FROM laporan_kegiatan WHERE id=${ID}`) === "0", "laporan terhapus dari DB");
 assert(vps(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`) === "0", "foto ikut terhapus");
-const namaFile = fotoRow[1].split("/").pop();
+const namaFile = fotoRow[0].split("/").pop();
 vpsShell(`rm -f /var/www/apps/pohonasuh/rest-api-pohonasuh/public/upload/laporan/${namaFile}`);
 assert(vps("SELECT COUNT(*) FROM laporan_kegiatan WHERE judul LIKE 'UJI VPS Laporan%'") === "0", "cleanup: 0 laporan uji tersisa");
 
@@ -120,4 +136,4 @@ await p.locator("aside form button:has-text('Keluar')").click();
 await p.waitForURL(`${BASE}/`, { timeout: 30000 });
 
 await browser.close();
-console.log("\n=== SMOKE LAPORAN KEGIATAN PRODUKSI LULUS ===");
+console.log("\n=== SMOKE LAPORAN KEGIATAN (FORM CONTOH) PRODUKSI LULUS ===");
