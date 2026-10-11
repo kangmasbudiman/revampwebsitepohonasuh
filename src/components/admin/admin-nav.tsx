@@ -20,6 +20,7 @@ import {
   MapPinned,
   MessageSquareQuote,
   Newspaper,
+  NotebookPen,
   Settings,
   Tag,
   TreePine,
@@ -42,6 +43,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/pemantauan", label: "Dashboard Pemantauan", icon: Activity },
       { href: "/admin/verifikasi", label: "Verifikasi Pembayaran", icon: BadgeCheck },
       { href: "/admin/tagging", label: "Order Tagging", icon: Tag },
+      { href: "/admin/laporan", label: "Laporan Kegiatan", icon: NotebookPen },
       { href: "/admin/adopsi", label: "Data Adopsi", icon: HeartHandshake },
       { href: "/admin/penugasan", label: "Penugasan Petugas", icon: UserCog },
       { href: "/admin/posisi", label: "Posisi Petugas", icon: MapPin },
@@ -73,8 +75,8 @@ const GROUPS: { title: string; items: Item[] }[] = [
   },
 ];
 
-// Petugas (level 2): Order Tagging + peta offline desa tugasnya.
-const PETUGAS_HREFS = new Set(["/admin/tagging", "/admin/peta"]);
+// Petugas (level 2): Order Tagging, laporan kegiatan sendiri, + peta offline.
+const PETUGAS_HREFS = new Set(["/admin/tagging", "/admin/laporan", "/admin/peta"]);
 const ALL_ITEMS: Item[] = GROUPS.flatMap((g) => g.items);
 
 const isActive = (href: string, pathname: string) =>

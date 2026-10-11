@@ -77,10 +77,10 @@ for (let i = 0; i < (await groupBtns.count()); i++) {
 }
 const navLinks = await page.locator("aside nav a").allTextContents();
 assert(
-  ["Ringkasan", "Dashboard Pemantauan", "Verifikasi Pembayaran", "Order Tagging", "Penugasan Petugas", "Posisi Petugas",
+  ["Ringkasan", "Dashboard Pemantauan", "Verifikasi Pembayaran", "Order Tagging", "Laporan Kegiatan", "Penugasan Petugas", "Posisi Petugas",
    "Kelola Peta Desa", "Kelola Pohon", "Kelola Blog", "Kelola Slider", "Kelola Sertifikat", "Kelola Keuangan",
    "Kelola User", "Pengaturan"].every((t) => navLinks.includes(t)),
-  `sidebar 14 menu (${navLinks.length} link)`
+  `sidebar 22 menu (${navLinks.length} link)`
 );
 assert((await page.locator("aside form button:has-text('Keluar')").count()) === 1, "shortcut Keluar di bawah sidebar");
 
@@ -503,8 +503,8 @@ await p2.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
 assert(p2.url().includes("/admin/tagging"), `petugas akses /admin → redirect ${p2.url()}`);
 const navPetugas = await p2.locator("aside nav a").allTextContents();
 assert(
-  navPetugas.length === 2 && navPetugas.includes("Order Tagging") && navPetugas.includes("Kelola Peta Desa"),
-  `sidebar petugas: Order Tagging + Kelola Peta Desa (${navPetugas})`,
+  navPetugas.length === 3 && navPetugas.includes("Order Tagging") && navPetugas.includes("Laporan Kegiatan") && navPetugas.includes("Kelola Peta Desa"),
+  `sidebar petugas: Order Tagging + Laporan Kegiatan + Kelola Peta Desa (${navPetugas})`,
 );
 // Petugas juga bisa membuka peta offline desa tugasnya (rantaukermas).
 await p2.goto(`${BASE}/admin/peta`, { waitUntil: "networkidle" });

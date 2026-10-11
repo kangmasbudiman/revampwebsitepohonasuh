@@ -1053,6 +1053,55 @@ export function mapTestimonis(rows: Record<string, unknown>[]): ApiTestimoni[] {
   }));
 }
 
+// laporanlist → Laporan Kegiatan petugas (admin panel; level 1+2).
+export const LAPORAN_JENIS: { key: string; label: string }[] = [
+  { key: "tagging", label: "Tagging Pohon" },
+  { key: "pemantauan", label: "Pemantauan" },
+  { key: "papan", label: "Pembuatan Papan" },
+  { key: "lainnya", label: "Lainnya" },
+];
+
+export const LAPORAN_JENIS_LABEL: Record<string, string> = Object.fromEntries(
+  LAPORAN_JENIS.map((j) => [j.key, j.label]),
+);
+
+export type ApiLaporanFoto = { id: number; url: string };
+
+export type ApiLaporan = {
+  id: number;
+  idpetugas: number;
+  petugas: string;
+  judul: string;
+  jenis: string;
+  desa: string;
+  tanggal: string;
+  isi: string;
+  createdAt: string;
+  foto: ApiLaporanFoto[];
+};
+
+export function mapLaporans(rows: Record<string, unknown>[]): ApiLaporan[] {
+  return rows.map((r) => ({
+    id: Number(r.id),
+    idpetugas: Number(r.idpetugas) || 0,
+    petugas: String(r.petugas ?? ""),
+    judul: String(r.judul ?? ""),
+    jenis: String(r.jenis ?? "lainnya"),
+    desa: String(r.desa ?? ""),
+    tanggal: String(r.tanggal ?? ""),
+    isi: String(r.isi ?? ""),
+    createdAt: String(r.created_at ?? ""),
+    foto: Array.isArray(r.foto)
+      ? (r.foto as Record<string, unknown>[])
+          .map((f) => ({
+            id: Number(f.id),
+            url: apiAssetUrl(f.url as string | null) ?? "",
+          }))
+          .filter((f) => f.url !== "")
+      : [],
+  }));
+}
+
 // partnerlist → section "Didukung Oleh" beranda. Endpoint membalas logo
 // ceritalist → halaman publik /cerita-dampak (kisah penerima manfaat).
 // Endpoint membalas foto URL penuh dari host API; rebuild dari origin
