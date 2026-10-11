@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { Gift } from "lucide-react";
 import { checkoutCart, type CheckoutState } from "@/lib/actions/adoption";
 import { clearCart, removeFromCart, updateCartItem } from "@/lib/cart";
-import YearsStepper from "@/components/years-stepper";
 import { useCart } from "@/lib/use-cart";
 import { namaDesa, rupiah } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
@@ -51,11 +50,7 @@ export default function CheckoutView() {
     );
   }
 
-  const total = items.reduce(
-    (s, i) => s + i.priceIdr * (i.years ?? 1),
-    0,
-  );
-  const totalYears = items.reduce((s, i) => s + (i.years ?? 1), 0);
+  const total = items.reduce((s, i) => s + i.priceIdr, 0);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -98,14 +93,12 @@ export default function CheckoutView() {
           value={JSON.stringify(
             items.map((i) => ({
               code: i.code,
-              years: i.years ?? 1,
               giftName: i.giftName ?? "",
               giftNote: i.giftNote ?? "",
             })),
           )}
         />
         {items.map((item) => {
-          const years = item.years ?? 1;
           const open = giftOpen[item.code] ?? !!(item.giftName || item.giftNote);
           return (
             <div
@@ -133,21 +126,11 @@ export default function CheckoutView() {
                   </p>
                 </div>
                 <span className="ml-auto whitespace-nowrap font-bold text-emerald-700">
-                  {rupiah(item.priceIdr * years)}
+                  {rupiah(item.priceIdr)}
                 </span>
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-emerald-50 pt-3">
-                <span className="text-xs font-medium text-zinc-500">{t.duration}</span>
-                <YearsStepper
-                  size="sm"
-                  years={years}
-                  onChange={(y) => updateCartItem(item.code, { years: y })}
-                  minusAria={t.minusAria.replaceAll("{name}", item.localName)}
-                  plusAria={t.plusAria.replaceAll("{name}", item.localName)}
-                  inputAria={t.yearsInputAria.replaceAll("{name}", item.localName)}
-                  unit={t.yrsShort}
-                />
                 <button
                   type="button"
                   onClick={() =>
@@ -206,8 +189,8 @@ export default function CheckoutView() {
         <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between text-sm text-zinc-600">
             <span>
-              {t.total} ({items.length} {items.length === 1 ? t.treeWord : t.treesWord} ·{" "}
-              {totalYears} {totalYears === 1 ? t.year : t.years} {t.adoptionWord})
+              {t.total} ({items.length}{" "}
+              {items.length === 1 ? t.treeWord : t.treesWord})
             </span>
             <span className="text-lg font-bold text-emerald-700">{rupiah(total)}</span>
           </div>

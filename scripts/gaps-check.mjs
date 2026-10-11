@@ -1,8 +1,8 @@
 // E2E 9 gap fitur website-lama (pohonasuh.org) yang diadopsi ke web baru:
 //  #1 pohon unggulan (admin toggle → beranda), #2 koreksi nama/memo order,
 //  #3 kirim pesan manual ke member, #4 catatan order tagging, #5 laporan
-//  dana per desa, #6 galeri multi-foto pohon, #7 adopsi multi-tahun,
-//  #8 adopsi hadiah, #9 CRUD nomor WA admin.
+//  dana per desa, #6 galeri multi-foto pohon, #7 adopsi 1 tahun (fitur
+//  durasi dihapus), #8 adopsi hadiah, #9 CRUD nomor WA admin.
 // Butuh: web server (E2E_BASE, default :3000) + Laravel :8000 + MySQL.
 // Semua data uji dikembalikan/dibersihkan di akhir.
 import { chromium } from "playwright";
@@ -115,9 +115,8 @@ await page.waitForURL(`${BASE}/dashboard`, { timeout: 30000 });
 const memberId = rows(`SELECT id FROM member WHERE emaile='${email}'`)[0][0];
 assert(true, `donatur terdaftar id=${memberId}`);
 
-// ===== #7+#8: adopsi langsung 3 tahun + hadiah =====
+// ===== #7+#8: adopsi langsung (1 tahun, fitur durasi dihapus) + hadiah =====
 await page.goto(`${BASE}/pohon/${TREE_A}`, { waitUntil: "networkidle" });
-await page.fill('input[aria-label="Durasi adopsi"]', "3");
 await page.click("button:has-text('Adopsi sebagai hadiah')");
 await page.fill("#gift-name", "Ibu Sinta");
 await page.fill("#gift-note", "Selamat hari ibu!");
@@ -127,15 +126,15 @@ const totalText = await page
   .locator("xpath=..")
   .textContent();
 assert(
-  (totalText.match(/\d/g) || []).join("") === String(HARGA_A * 3),
-  `panel total = ${HARGA_A}×3`,
+  (totalText.match(/\d/g) || []).join("") === String(HARGA_A),
+  `panel total = ${HARGA_A}×1`,
 );
 await page.click("button:has-text('Adopsi Sekarang')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const confId1 = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];
 await page.waitForSelector("text=Instruksi Pembayaran", { timeout: 15000 });
 const body1 = await page.textContent("main");
-assert(body1.includes("Durasi 3 tahun"), "invoice: Durasi 3 tahun");
+assert(body1.includes("Durasi 1 tahun"), "invoice: Durasi 1 tahun");
 assert(body1.includes("Ibu Sinta"), "invoice: sertifikat a.n. Ibu Sinta");
 assert(body1.includes("Selamat hari ibu"), "invoice: memo hadiah tampil");
 
@@ -145,14 +144,14 @@ const [inv1, price1] = rows(
 const [dur1, nama1, memo1, priceAd1] = rows(
   `SELECT dur, nama, memo, price FROM data_adopsi WHERE invoice='${inv1}'`,
 )[0];
-assert(Number(dur1) === 3, `data_adopsi.dur=3 (${dur1})`);
+assert(Number(dur1) === 1, `data_adopsi.dur=1 (${dur1})`);
 assert(nama1 === "Ibu Sinta", `data_adopsi.nama=${nama1}`);
 assert(memo1 === "Selamat hari ibu!", `data_adopsi.memo=${memo1}`);
-assert(Number(priceAd1) === HARGA_A * 3, `price=${priceAd1} = harga×3`);
-const uniq1 = Number(price1) - HARGA_A * 3;
+assert(Number(priceAd1) === HARGA_A, `price=${priceAd1} = harga×1`);
+const uniq1 = Number(price1) - HARGA_A;
 assert(
   uniq1 >= 100 && uniq1 <= 999,
-  `confirmation.price=${price1} = ${HARGA_A * 3} + kode unik ${uniq1}`,
+  `confirmation.price=${price1} = ${HARGA_A} + kode unik ${uniq1}`,
 );
 
 // ===== #4: catatan order tagging (petugas; order harus terverifikasi) =====
@@ -264,9 +263,8 @@ assert(
   `${TREE_A} balik available`,
 );
 
-// ===== #7+#8 jalur keranjang: 2 tahun + hadiah, ubah di checkout =====
+// ===== #7+#8 jalur keranjang: hadiah, durasi tetap 1 tahun =====
 await page.goto(`${BASE}/pohon/${TREE_B}`, { waitUntil: "networkidle" });
-await page.fill('input[aria-label="Durasi adopsi"]', "2");
 await page.click("button:has-text('Adopsi sebagai hadiah')");
 await page.fill("#gift-name", "Kakak Tercinta");
 await page.click("button:has-text('Tambah ke Keranjang')");
@@ -275,13 +273,12 @@ const cartBody = await page.textContent("main");
 assert(cartBody.includes("Kakak Tercinta"), "keranjang: hadiah utk Kakak Tercinta");
 assert(
   (cartBody.match(/Rp\s?[\d.]+/g) || []).some(
-    (s) => s.replace(/\D/g, "") === String(HARGA_B * 2),
+    (s) => s.replace(/\D/g, "") === String(HARGA_B),
   ),
-  `keranjang: total = harga×2`,
+  `keranjang: total = harga×1`,
 );
 
 await page.goto(`${BASE}/checkout`, { waitUntil: "networkidle" });
-await page.click('button[aria-label^="Tambah durasi"]'); // 2 → 3 tahun via stepper checkout
 await page.click("button:has-text('Buat Pesanan')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const confId2 = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];
@@ -289,9 +286,9 @@ const inv2 = rows(`SELECT invoice FROM confirmation WHERE id=${confId2}`)[0][0];
 const [dur2, nama2] = rows(
   `SELECT dur, nama FROM data_adopsi WHERE invoice='${inv2}' LIMIT 1`,
 )[0];
-assert(Number(dur2) === 3, `checkout ubah durasi → dur=3 (${dur2})`);
+assert(Number(dur2) === 1, `checkout → dur=1 (${dur2})`);
 assert(nama2 === "Kakak Tercinta", `hadiah ikut checkout → nama=${nama2}`);
-await page.waitForSelector("text=Durasi 3 tahun", { timeout: 15000 });
+await page.waitForSelector("text=Durasi 1 tahun", { timeout: 15000 });
 await page.click("button:has-text('Batalkan Adopsi')");
 await page.waitForURL(`${BASE}/dashboard`, { timeout: 30000 });
 assert(

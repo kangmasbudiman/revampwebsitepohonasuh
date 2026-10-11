@@ -10,7 +10,6 @@ import {
   TreePine,
 } from "lucide-react";
 import { addToCart, removeFromCart } from "@/lib/cart";
-import YearsStepper from "@/components/years-stepper";
 import { useCart } from "@/lib/use-cart";
 import { createAdoption, type AdoptionState } from "@/lib/actions/adoption";
 import { rupiah } from "@/lib/format";
@@ -37,7 +36,6 @@ export default function AdoptPanel({
     createAdoption,
     {},
   );
-  const [years, setYears] = useState(1);
   const [giftOpen, setGiftOpen] = useState(false);
   const [giftName, setGiftName] = useState("");
   const [giftNote, setGiftNote] = useState("");
@@ -45,7 +43,7 @@ export default function AdoptPanel({
   const [duplicate, setDuplicate] = useState(false);
   const inCart = useCart().some((i) => i.code === tree.code);
 
-  const total = tree.priceIdr * years;
+  const total = tree.priceIdr;
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -55,7 +53,6 @@ export default function AdoptPanel({
       desa: tree.desa,
       priceIdr: tree.priceIdr,
       photoUrl: tree.photoUrl,
-      years,
       giftName: giftName.trim(),
       giftNote: giftNote.trim(),
     });
@@ -75,29 +72,6 @@ export default function AdoptPanel({
 
   return (
     <div className="space-y-4">
-      <div>
-        <label
-          htmlFor="adopt-years"
-          className="text-xs font-medium uppercase tracking-wide text-zinc-500"
-        >
-          {t.adoptDuration}
-        </label>
-        <div className="mt-2">
-          <YearsStepper
-            years={years}
-            onChange={setYears}
-            minusAria={t.minusAria}
-            plusAria={t.plusAria}
-            inputAria={t.adoptDuration}
-            unit={t.year}
-          />
-        </div>
-        <p className="mt-2 text-xs text-zinc-500">
-          {rupiah(tree.priceIdr)} {t.perYearSlash} × {years}{" "}
-          {years === 1 ? t.year : t.years}
-        </p>
-      </div>
-
       <div className="rounded-xl border border-emerald-100 bg-emerald-50/40">
         <button
           type="button"
@@ -160,7 +134,6 @@ export default function AdoptPanel({
 
       <form action={action} className="space-y-3">
         <input type="hidden" name="treeCode" value={tree.code} />
-        <input type="hidden" name="years" value={years} />
         <input type="hidden" name="nama" value={giftName.trim()} />
         <input type="hidden" name="pesan" value={giftNote.trim()} />
         <div className="flex items-baseline justify-between rounded-xl bg-emerald-50 px-4 py-3">

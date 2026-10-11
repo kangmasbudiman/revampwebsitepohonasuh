@@ -4,7 +4,6 @@ export type CartItem = {
   desa: string;
   priceIdr: number; // harga per tahun
   photoUrl: string | null;
-  years?: number; // durasi adopsi (default 1)
   giftName?: string; // nama penerima sertifikat (adopsi hadiah)
   giftNote?: string; // memo/pesan di sertifikat
   addedAt?: number; // epoch ms — item otomatis keluar setelah 1 × 24 jam
@@ -15,9 +14,6 @@ export type ExpiredNotice = { code: string; localName: string };
 const KEY = "pa_cart_v1";
 const EXPIRED_KEY = "pa_cart_expired_v1";
 const EVENT = "cart-changed";
-// Guard keamanan senyap (tgl_exp kolom DATE maks 9999) — UI tidak
-// menampilkan batas atas; donatur praktis bebas isi berapa tahun.
-export const MAX_YEARS = 100;
 export const CART_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Snapshot harus referensi stabil — array baru tiap getSnapshot memicu
@@ -27,12 +23,6 @@ let cache: CartItem[] | null = null;
 
 export function serverSnapshot(): CartItem[] {
   return EMPTY;
-}
-
-export function normalizeYears(v: unknown): number {
-  const n = Math.floor(Number(v));
-  if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.min(n, MAX_YEARS);
 }
 
 function readStore(): CartItem[] {
@@ -48,9 +38,16 @@ function readStore(): CartItem[] {
       )
       .map((i) => {
         if (typeof i.addedAt !== "number") migrated = true;
+        // properti era fitur durasi (years) dibuang — persist ulang agar bersih
+        if ("years" in i) migrated = true;
+        // Rebuild eksplisit tanpa spread — properti lama (mis. years dari
+        // fitur durasi yang sudah dihapus) dibuang saat dipersist ulang.
         return {
-          ...i,
-          years: normalizeYears(i.years),
+          code: i.code,
+          localName: i.localName,
+          desa: i.desa,
+          priceIdr: Number(i.priceIdr) || 0,
+          photoUrl: i.photoUrl ?? null,
           giftName: typeof i.giftName === "string" ? i.giftName : "",
           giftNote: typeof i.giftNote === "string" ? i.giftNote : "",
           // keranjang lama tanpa stempel dianggap baru dimasukkan
@@ -125,22 +122,12 @@ export function removeFromCart(code: string) {
   save(getCart().filter((i) => i.code !== code));
 }
 
-// Ubah durasi / info hadiah satu item (dipakai halaman keranjang).
+// Ubah info hadiah satu item (dipakai halaman keranjang/checkout).
 export function updateCartItem(
   code: string,
-  patch: Partial<Pick<CartItem, "years" | "giftName" | "giftNote">>,
+  patch: Partial<Pick<CartItem, "giftName" | "giftNote">>,
 ) {
-  save(
-    getCart().map((i) =>
-      i.code === code
-        ? {
-            ...i,
-            ...patch,
-            years: normalizeYears(patch.years ?? i.years),
-          }
-        : i,
-    ),
-  );
+  save(getCart().map((i) => (i.code === code ? { ...i, ...patch } : i)));
 }
 
 export function clearCart() {
