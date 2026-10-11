@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { CalendarDays, Camera, Coins, MapPin, NotebookPen, Search, UserRound } from "lucide-react";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
+import LaporanFotoPopup from "@/components/admin/laporan-foto-popup";
 import { deleteLaporan, approveLaporan } from "@/lib/actions/laporan";
-import { LAPORAN_JENIS, LAPORAN_JENIS_LABEL, type ApiLaporan } from "@/lib/api";
+import { LAPORAN_JENIS, LAPORAN_JENIS_LABEL, type ApiLaporan, type ApiLaporanFoto } from "@/lib/api";
 import { namaDesa, rupiah } from "@/lib/format";
 
 const JENIS_CHIP: Record<string, string> = {
@@ -30,6 +31,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
   const [jenis, setJenis] = useState("");
   const [petugas, setPetugas] = useState("");
   const [status, setStatus] = useState("");
+  const [galeri, setGaleri] = useState<{ judul: string; foto: ApiLaporanFoto[]; start: number } | null>(null);
 
   const petugasOptions = useMemo(() => {
     const m = new Map<number, string>();
@@ -233,21 +235,33 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                       {r.dana !== null && r.dana > 0 ? rupiah(r.dana) : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
-                        {r.foto[0] && (
-                          <Image
-                            src={r.foto[0].url}
-                            alt={`Foto ${r.judul}`}
-                            width={32}
-                            height={32}
-                            className="h-8 w-8 rounded-lg object-cover"
-                          />
-                        )}
-                        <span className="inline-flex items-center gap-1 text-xs">
+                      {r.foto.length > 0 ? (
+                        <button
+                          type="button"
+                          aria-label={`Lihat ${r.foto.length} foto ${r.judul}`}
+                          onClick={() => setGaleri({ judul: r.judul, foto: r.foto, start: 0 })}
+                          className="inline-flex items-center gap-1.5 rounded-lg text-zinc-600 hover:opacity-80 dark:text-zinc-300"
+                        >
+                          <span className="relative block h-8 w-8 overflow-hidden rounded-lg">
+                            <Image
+                              src={r.foto[0].url}
+                              alt={`Foto ${r.judul}`}
+                              fill
+                              sizes="32px"
+                              className="object-cover"
+                            />
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-xs">
+                            <Camera className="h-3.5 w-3.5" />
+                            {r.foto.length}
+                          </span>
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-300">
                           <Camera className="h-3.5 w-3.5" />
                           {r.foto.length}
                         </span>
-                      </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
@@ -317,21 +331,32 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                 </div>
                 {r.foto.length > 0 && (
                   <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                    {r.foto.slice(0, 5).map((f) => (
-                      <div key={f.id} className="relative h-16 w-16 shrink-0">
+                    {r.foto.slice(0, 5).map((f, i) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        aria-label={`Lihat foto ${i + 1} ${r.judul}`}
+                        onClick={() => setGaleri({ judul: r.judul, foto: r.foto, start: i })}
+                        className="relative block h-16 w-16 shrink-0 overflow-hidden rounded-lg"
+                      >
                         <Image
                           src={f.url}
                           alt={`Foto ${r.judul}`}
                           fill
                           sizes="64px"
-                          className="rounded-lg object-cover"
+                          className="object-cover"
                         />
-                      </div>
+                      </button>
                     ))}
                     {r.foto.length > 5 && (
-                      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-xs font-semibold text-zinc-500 dark:bg-night-800 dark:text-zinc-300">
+                      <button
+                        type="button"
+                        aria-label={`Lihat semua ${r.foto.length} foto ${r.judul}`}
+                        onClick={() => setGaleri({ judul: r.judul, foto: r.foto, start: 5 })}
+                        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-xs font-semibold text-zinc-500 hover:bg-zinc-200 dark:bg-night-800 dark:text-zinc-300 dark:hover:bg-night-700"
+                      >
                         +{r.foto.length - 5}
-                      </span>
+                      </button>
                     )}
                   </div>
                 )}
@@ -352,6 +377,14 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
             ))}
           </div>
         </>
+      )}
+      {galeri && (
+        <LaporanFotoPopup
+          judul={galeri.judul}
+          fotos={galeri.foto}
+          start={galeri.start}
+          onClose={() => setGaleri(null)}
+        />
       )}
     </div>
   );

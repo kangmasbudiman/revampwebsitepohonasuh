@@ -109,10 +109,34 @@ await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(await p.locator("table").first().isVisible(), "desktop: tabel tampil");
 assert((await p.locator("a", { hasText: JUDUL }).count()) >= 1, "baris laporan tampil");
 assert((await p.locator("table span", { hasText: "Terkirim" }).count()) >= 1, "chip Terkirim tampil");
+
+// popup galeri semua foto (desktop)
+await p.click(`button[aria-label="Lihat 1 foto ${JUDUL}"]`);
+await p.waitForSelector('[data-testid="popup-foto-laporan"]');
+assert(
+  (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === "1 / 1",
+  "popup galeri terbuka dari tabel (1 / 1)",
+);
+assert((await p.locator('button[aria-label="Foto berikutnya"]').count()) === 0, "popup 1 foto: tanpa tombol navigasi");
+await p.keyboard.press("Escape");
+await p.waitForSelector('[data-testid="popup-foto-laporan"]', { state: "detached" });
+assert(true, "Escape menutup popup galeri");
+
 await p.setViewportSize({ width: 390, height: 844 });
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(!(await p.locator("table").first().isVisible()), "mobile 390px: tabel tersembunyi");
 assert(await p.locator("div.rounded-2xl.p-4", { hasText: JUDUL }).first().isVisible(), "mobile 390px: kartu laporan tampil");
+
+// popup galeri via strip foto kartu mobile
+await p.click(`button[aria-label="Lihat foto 1 ${JUDUL}"]`);
+await p.waitForSelector('[data-testid="popup-foto-laporan"]');
+assert(
+  (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === "1 / 1",
+  "mobile: popup galeri terbuka dari strip kartu (1 / 1)",
+);
+await p.click('button[aria-label="Tutup galeri foto"]');
+await p.waitForSelector('[data-testid="popup-foto-laporan"]', { state: "detached" });
+assert(true, "mobile: tombol X menutup popup galeri");
 
 // ================= SISI ADMIN (JWT AUTH_SECRET VPS) =================
 const secretB64 = vpsShell("grep -o 'AUTH_SECRET=.*' /var/www/apps/pohonasuh/frontend/.env.production")

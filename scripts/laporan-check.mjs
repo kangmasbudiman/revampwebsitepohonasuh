@@ -208,6 +208,53 @@ await p.click('button[aria-label="Reset filter"]');
 await p.waitForTimeout(300);
 assert((await p.locator('[data-testid="jml-laporan"]').textContent()).includes("1"), "reset filter mengembalikan daftar");
 
+// 6b. Popup galeri semua foto (desktop): navigasi panah/tombol + strip + Escape
+for (let i = 0; i < 2; i++) {
+  execSync(
+    `curl -s -X POST ${API}/uploadlaporanfoto -F "idlaporan=${ID}" -F "foto=@/tmp/laporan-e2e.png;type=image/png" > /dev/null`,
+  );
+}
+await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+await p.click('button[aria-label="Lihat 3 foto E2E Laporan Kegiatan"]');
+await p.waitForSelector('[data-testid="popup-foto-laporan"]');
+assert(
+  (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === "1 / 3",
+  "popup galeri terbuka — counter 1 / 3",
+);
+assert(await p.locator('[data-foto-utama] img').isVisible(), "foto utama tampil di popup");
+assert(
+  (await p.locator('[data-testid="popup-foto-laporan"] button[aria-label^="Lihat foto"]').count()) === 3,
+  "strip popup memuat semua 3 foto",
+);
+assert(
+  (await p.evaluate(() => document.body.style.overflow)) === "hidden",
+  "scroll body terkunci saat popup terbuka",
+);
+assert(await p.locator('button[aria-label="Foto sebelumnya"]').isDisabled(), "tombol sebelumnya disabled di foto pertama");
+await p.click('button[aria-label="Foto berikutnya"]');
+assert(
+  (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === "2 / 3",
+  "klik berikutnya → 2 / 3",
+);
+await p.keyboard.press("ArrowRight");
+assert(
+  (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === "3 / 3",
+  "panah kanan → 3 / 3",
+);
+assert(await p.locator('button[aria-label="Foto berikutnya"]').isDisabled(), "tombol berikutnya disabled di foto terakhir");
+await p.click('[data-testid="popup-foto-laporan"] button[aria-label="Lihat foto 1"]');
+assert(
+  (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === "1 / 3",
+  "klik thumbnail strip → kembali 1 / 3",
+);
+await p.keyboard.press("Escape");
+await p.waitForSelector('[data-testid="popup-foto-laporan"]', { state: "detached" });
+assert(
+  (await p.evaluate(() => document.body.style.overflow)) === "",
+  "scroll body dibuka kembali setelah popup tertutup",
+);
+assert(true, "Escape menutup popup galeri");
+
 // 7. Mobile = kartu, tabel tersembunyi
 await p.setViewportSize({ width: 390, height: 844 });
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
@@ -219,6 +266,17 @@ assert(
   await p.locator("div.rounded-2xl.p-4", { hasText: "E2E Laporan Kegiatan" }).first().isVisible(),
   "mobile 390px: kartu laporan tampil",
 );
+
+// 7b. Popup galeri via strip foto kartu mobile
+await p.click('button[aria-label="Lihat foto 1 E2E Laporan Kegiatan"]');
+await p.waitForSelector('[data-testid="popup-foto-laporan"]');
+assert(
+  (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === "1 / 3",
+  "mobile: popup galeri terbuka dari strip kartu (1 / 3)",
+);
+await p.click('button[aria-label="Tutup galeri foto"]');
+await p.waitForSelector('[data-testid="popup-foto-laporan"]', { state: "detached" });
+assert(true, "mobile: tombol X menutup popup galeri");
 await p.setViewportSize({ width: 1280, height: 800 });
 
 // 8. Visibilitas draf: draf petugas terlihat petugas, TIDAK oleh admin
