@@ -23,15 +23,17 @@ function Step({
   n,
   title,
   helper,
+  className,
   children,
 }: {
   n: number;
   title: string;
   helper?: string;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <li className="flex gap-4">
+    <li className={`flex gap-4 ${className ?? ""}`}>
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-bold text-white">
         {n}
       </span>
@@ -181,7 +183,7 @@ export default function LaporanForm({
   };
 
   return (
-    <form onSubmit={onSubmit} className="max-w-3xl">
+    <form onSubmit={onSubmit} className="w-full">
       {edit && <input type="hidden" name="id" value={laporan!.id} />}
       {laporan?.status === "draft" && (
         <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
@@ -206,7 +208,7 @@ export default function LaporanForm({
         </ul>
       </div>
 
-      <ol className="mt-8 space-y-9">
+      <ol className="mt-8 grid gap-9 xl:grid-cols-2 xl:gap-x-10">
         <Step n={1} title="Nama Kegiatan" helper="Beri nama singkat dan jelas.">
           <input
             name="judul"
@@ -318,7 +320,7 @@ export default function LaporanForm({
           </Contoh>
         </Step>
 
-        <Step n={7} title="Foto Kegiatan" helper="Foto asli kegiatan lebih dipercaya pembaca daripada foto stok.">
+        <Step n={7} className="xl:col-span-2" title="Foto Kegiatan" helper="Foto asli kegiatan lebih dipercaya pembaca daripada foto stok.">
           <input
             ref={fileInputRef}
             type="file"

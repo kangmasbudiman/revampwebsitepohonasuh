@@ -38,7 +38,7 @@ export default async function EditLaporanPage(
 
   return (
     <main className="w-full px-6 py-8 lg:px-10">
-      <div className="max-w-3xl">
+      <div className="w-full">
         <Link
           href="/admin/laporan"
           className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-300"
