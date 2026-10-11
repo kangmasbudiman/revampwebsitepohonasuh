@@ -305,12 +305,13 @@ for (let i = 0; i < (await groupBtns.count()); i++) {
 }
 const navLinks = await a.locator("aside nav a").allTextContents();
 assert(
-  navLinks.length === 21 &&
+  navLinks.length === 22 &&
     navLinks.includes("Kelola Spesies") &&
     navLinks.includes("Cerita Dampak") &&
     navLinks.includes("Testimoni & Partner") &&
+    navLinks.includes("Laporan Kegiatan") &&
     navLinks.includes("Backup Database"),
-  `sidebar admin 21 menu (termasuk Kelola Spesies, Cerita Dampak, Testimoni & Partner, Backup Database) — ${navLinks.length} link`,
+  `sidebar admin 22 menu (termasuk Kelola Spesies, Cerita Dampak, Testimoni & Partner, Laporan Kegiatan, Backup Database) — ${navLinks.length} link`,
 );
 
 // ---- CRUD testimoni: section beranda muncul lalu hilang ----

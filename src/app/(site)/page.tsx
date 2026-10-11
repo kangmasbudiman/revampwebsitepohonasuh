@@ -11,8 +11,10 @@ import {
   mapStatistik,
   mapTestimonis,
   mapTrees,
+  mapLaporans,
   type ApiAdopsiTerKini,
   type ApiDesa,
+  type ApiLaporan,
   type ApiPartner,
   type ApiPost,
   type ApiSlider,
@@ -27,6 +29,7 @@ import TreeCard from "@/components/tree-card";
 import PostCard from "@/components/post-card";
 import HeroSlider, { type HeroSlide } from "@/components/hero-slider";
 import RecentAdopters from "@/components/recent-adopters";
+import LaporanSection from "@/components/laporan-section";
 import Reveal from "@/components/reveal";
 import CountUp from "@/components/count-up";
 
@@ -44,6 +47,7 @@ export default async function HomePage() {
   let testimoni: ApiTestimoni[] = [];
   let partners: ApiPartner[] = [];
   let adopsiTerkini: ApiAdopsiTerKini[] = [];
+  let laporanDisetujui: ApiLaporan[] = [];
   // peta status aktif per nama desa (false = disembunyikan admin) — dipakai
   // menyaring pohon di beberapa section; desa tak terdaftar tetap tampil.
   let byNamaAktif = new Map<string, boolean>();
@@ -98,6 +102,14 @@ export default async function HomePage() {
     adopsiTerkini = mapAdopsiTerKini(await apiGet<Record<string, unknown>[]>("adopsiterkini"));
   } catch {
     // slider opsional
+  }
+  // Laporan kegiatan yang tampil di beranda hanya yang disetujui admin.
+  try {
+    laporanDisetujui = mapLaporans(
+      await apiGet<Record<string, unknown>[]>("laporanlist?status=disetujui"),
+    );
+  } catch {
+    // section opsional
   }
 
   const total = stat?.pohon ?? locations.reduce((sum, d) => sum + d.total, 0);
@@ -240,6 +252,9 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Laporan kegiatan — hanya yang disetujui admin */}
+      <LaporanSection items={laporanDisetujui} />
 
       {/* Pohon unggulan */}
       <section className="bg-gradient-to-b from-white to-emerald-50/50 py-20">
