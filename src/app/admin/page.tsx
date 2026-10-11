@@ -20,6 +20,7 @@ export default async function AdminHomePage() {
   let rows: ApiOrderRow[] = [];
   let available = 0;
   let adopted = 0;
+  let totalDonasi = 0;
   try {
     rows = mapOrderRows(await apiGet<Record<string, unknown>[]>("ordercustomer"));
     for (const d of (await apiGet<Record<string, unknown>[]>("getdesa")).map(mapDesa)) {
@@ -29,6 +30,14 @@ export default async function AdminHomePage() {
   } catch {
     // tampilkan ringkasan kosong di bawah
   }
+  try {
+    // Definisi sama dgn beranda (totalDanaTerkumpul): seluruh riwayat data_adopsi
+    // legacy + order terverifikasi — ordercustomer hanya memuat proses 1-3 sehingga
+    // total dari sana memotong 253 juta order terverifikasi lama (proses 0).
+    totalDonasi = Number((await apiGet<{ total?: number }>("totaldonasi")).total) || 0;
+  } catch {
+    // biarkan 0
+  }
 
   const pendingIds = new Set(
     rows
@@ -36,10 +45,6 @@ export default async function AdminHomePage() {
       .map((r) => r.confirmasiId),
   );
   const activeCount = rows.filter((r) => r.confirmation === "yes").length;
-  const income = new Map(
-    rows.filter((r) => r.confirmation === "yes").map((r) => [r.invoice, r.total]),
-  );
-  const totalIncome = [...income.values()].reduce((sum, v) => sum + v, 0);
 
   const stats: {
     label: string;
@@ -123,7 +128,7 @@ export default async function AdminHomePage() {
           <Coins className="h-4 w-4" /> Total Dana Adopsi Terkumpul
         </p>
         <p className="relative mt-1 text-3xl font-extrabold tracking-tight text-white">
-          {rupiah(totalIncome)}
+          {rupiah(totalDonasi)}
         </p>
       </div>
 

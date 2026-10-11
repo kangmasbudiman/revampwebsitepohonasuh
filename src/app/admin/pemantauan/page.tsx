@@ -36,7 +36,7 @@ function parseApiDate(raw: string | null): Date | null {
 export default async function PemantauanPage() {
   await requireAdminLevel();
 
-  const [ordersRes, desaRes, posisiRes, pingSlider, pingDesa] = await Promise.all([
+  const [ordersRes, desaRes, posisiRes, pingSlider, pingDesa, donasiRes] = await Promise.all([
     apiGet<Record<string, unknown>[]>("ordercustomer").then(mapOrderRows, () => [] as ApiOrderRow[]),
     apiGet<Record<string, unknown>[]>("getdesa")
       .then((rs) => rs.map(mapDesa), () => [] as ApiDesa[]),
@@ -44,6 +44,9 @@ export default async function PemantauanPage() {
       .then(mapPosisiPetugasList, () => [] as ApiPosisiPetugas[]),
     pingEndpoint("slider"),
     pingEndpoint("getdesa"),
+    // Definisi sama dgn beranda (totalDanaTerkumpul) — ordercustomer hanya memuat
+    // proses 1-3 sehingga total dari sana memotong order terverifikasi lama.
+    apiGet<{ total?: number }>("totaldonasi").then((r) => Number(r.total) || 0, () => 0),
   ]);
 
   const rows = ordersRes;
@@ -63,14 +66,10 @@ export default async function PemantauanPage() {
   const donasiByMonth = new Map<string, Map<string, number>>(
     monthKeys.map((m) => [m, new Map()]),
   );
-  const incomeAll = new Map<string, number>();
   const pendingSet = new Set<number>();
 
   for (const r of rows) {
     if (r.confirmation === "no" && r.fotoBuktiUrl) pendingSet.add(r.confirmasiId);
-    if (r.confirmation === "yes" && r.confirmasiId > 0) {
-      incomeAll.set(String(r.confirmasiId), r.total);
-    }
     const d = parseApiDate(r.createdAt ?? r.tglAdopt);
     if (!d) continue;
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -92,7 +91,7 @@ export default async function PemantauanPage() {
   const delta =
     orderPrev === 0 ? (orderNow > 0 ? 100 : 0) : Math.round(((orderNow - orderPrev) / orderPrev) * 100);
 
-  const totalIncome = [...incomeAll.values()].reduce((s, v) => s + v, 0);
+  const totalIncome = donasiRes;
 
   const SIX_HOURS = 6 * 60 * 60 * 1000;
   const petugasAktif = posisiRes.filter((p) => {
@@ -117,7 +116,7 @@ export default async function PemantauanPage() {
     {
       label: "Donasi Terkumpul",
       value: rupiah(totalIncome),
-      sub: "order terverifikasi",
+      sub: "seluruh riwayat adopsi",
       icon: Coins,
       grad: "from-emerald-500 to-teal-500",
       shadow: "shadow-emerald-500/30",
