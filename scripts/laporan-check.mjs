@@ -331,12 +331,30 @@ assert(
 assert((await a.locator('select[aria-label="Filter petugas"]').count()) === 1, "admin punya filter petugas");
 assert((await a.locator('select[aria-label="Filter status"]').count()) === 1, "admin punya filter status");
 assert(
-  (await a.locator(`form:has(input[name="id"][value="${idDraft}"]) button:has-text("Setujui")`).count()) === 0,
-  "tombol Setujui TIDAK muncul di baris draf",
+  (await a.locator(`table form:has(input[name="id"][value="${idDraft}"]) button:has-text("Setujui")`).count()) === 1,
+  "admin: tombol Setujui muncul JUGA di baris draf (belum disetujui)",
+);
+
+// 10b. Draf BELUM LENGKAP: tombol tetap tampil utk admin, tapi backend menolak
+const rKosong = execSync(
+  `curl -s -X POST ${API}/tambahlaporan -d "idpetugas=2683&judul=E2E Lap Draf Kosong&jenis=tagging&status=draft"`,
+).toString();
+const idKosong = Number(rKosong.match(/"id":(\d+)/)?.[1] ?? 0);
+assert(!!idKosong, `fixture draf belum lengkap id=${idKosong}`);
+await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+await a.click(`table form:has(input[name="id"][value="${idKosong}"]) button:has-text("Setujui")`);
+await a.waitForURL(/error=/, { timeout: 30000 });
+assert(
+  (await a.locator("body").innerText()).includes("belum lengkap"),
+  "setujui draf belum lengkap → ditolak dengan pesan ramah",
+);
+assert(
+  rows(`SELECT status FROM laporan_kegiatan WHERE id=${idKosong}`)[0][0] === "draft",
+  "status draf belum lengkap tetap draft",
 );
 
 // 11. Admin menyetujui laporan terkirim petugas via tombol cepat
-await a.click(`form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);
+await a.click(`table form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);
 await a.waitForURL(/disetujui=1/, { timeout: 30000 });
 await waitForDb(
   () => rows(`SELECT status FROM laporan_kegiatan WHERE id=${ID}`)[0]?.[0] === "disetujui",
@@ -405,6 +423,7 @@ assert(rows(`SELECT COUNT(*) FROM laporan_foto WHERE idlaporan=${ID}`)[0][0] ===
 // cleanup fixture admin + draf + laporan admin
 execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${idAdm}" > /dev/null`);
 execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${idDraft}" > /dev/null`);
+execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${idKosong}" > /dev/null`);
 execSync(`curl -s -X POST ${API}/hapuslaporan -d "id=${IDA}" > /dev/null`);
 assert(
   rows(`SELECT COUNT(*) FROM laporan_kegiatan WHERE judul LIKE 'E2E Lap%'`)[0][0] === "0",

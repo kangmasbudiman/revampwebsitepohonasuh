@@ -178,6 +178,18 @@ export async function approveLaporan(formData: FormData) {
     redirect("/admin/laporan?error=Hanya+admin+yang+bisa+menyetujui+laporan");
   }
 
+  // apiPost melempar generik pada HTTP 400, jadi kelengkapan dicek dulu di sini
+  // agar pesan banner spesifik (guard backend tetap jadi lapis terakhir).
+  const { laporan } = await laporanMilik(id).catch(() => ({ laporan: undefined }));
+  if (!laporan) redirect("/admin/laporan?error=Laporan+tidak+ditemukan");
+  if (!laporan.judul.trim() || !laporan.isi.trim() || !laporan.tanggal) {
+    redirect(
+      `/admin/laporan?error=${encodeURIComponent(
+        "Laporan belum lengkap — nama kegiatan, tanggal, dan uraian wajib diisi",
+      )}`,
+    );
+  }
+
   try {
     const res = await apiPost<{ value?: string | number; pesan?: string }>("approvelaporan", { id });
     if (Number(res.value) !== 200) {

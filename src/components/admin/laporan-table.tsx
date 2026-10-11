@@ -271,7 +271,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                         >
                           Edit
                         </Link>
-                        {isAdmin && r.status === "terkirim" && setujuForm(r)}
+                        {isAdmin && r.status !== "disetujui" && setujuForm(r)}
                         {hapusForm(r)}
                       </div>
                     </td>
@@ -368,7 +368,7 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                     <NotebookPen className="mr-1 inline h-3.5 w-3.5" />
                     Edit
                   </Link>
-                  {isAdmin && r.status === "terkirim" && (
+                  {isAdmin && r.status !== "disetujui" && (
                     <div className="flex-1 text-center">{setujuForm(r)}</div>
                   )}
                   <div className="flex-1 text-center">{hapusForm(r)}</div>

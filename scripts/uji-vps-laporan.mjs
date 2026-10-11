@@ -109,6 +109,7 @@ await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 assert(await p.locator("table").first().isVisible(), "desktop: tabel tampil");
 assert((await p.locator("a", { hasText: JUDUL }).count()) >= 1, "baris laporan tampil");
 assert((await p.locator("table span", { hasText: "Terkirim" }).count()) >= 1, "chip Terkirim tampil");
+assert((await p.locator('button:has-text("Setujui")').count()) === 0, "petugas: TANPA tombol Setujui di daftar");
 
 // popup galeri semua foto (desktop)
 await p.click(`button[aria-label="Lihat 1 foto ${JUDUL}"]`);
@@ -158,11 +159,11 @@ assert(
 );
 assert((await a.locator('select[aria-label="Filter petugas"]').count()) === 1, "admin punya filter petugas");
 assert(
-  (await a.locator(`form:has(input[name="id"][value="${ID_DRAF}"]) button:has-text("Setujui")`).count()) === 0,
-  "tombol Setujui tak muncul di baris draf",
+  (await a.locator(`table form:has(input[name="id"][value="${ID_DRAF}"]) button:has-text("Setujui")`).count()) === 1,
+  "admin: tombol Setujui muncul juga di baris draf",
 );
 
-// setujui laporan terkirim petugas via tombol cepat (auto-klik modal konfirmasi)
+// draf belum lengkap: tombol tampil utk admin tapi backend menolak (isi kosong)
 await a.evaluate(() => {
   new MutationObserver(() => {
     document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
@@ -170,7 +171,27 @@ await a.evaluate(() => {
     });
   }).observe(document.documentElement, { childList: true, subtree: true });
 });
-await a.click(`form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);
+await a.click(`table form:has(input[name="id"][value="${ID_DRAF}"]) button:has-text("Setujui")`);
+await a.waitForURL(/error=/, { timeout: 30000 });
+assert(
+  (await a.locator("body").innerText()).includes("belum lengkap"),
+  "setujui draf belum lengkap → ditolak dengan pesan ramah",
+);
+assert(
+  vps(`SELECT status FROM laporan_kegiatan WHERE id=${ID_DRAF}`) === "draft",
+  "status draf tetap draft setelah ditolak",
+);
+
+// setujui laporan TERKIRIM petugas via tombol cepat — pasang ulang observer (navigasi baru)
+await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+await a.evaluate(() => {
+  new MutationObserver(() => {
+    document.querySelectorAll("button[data-confirm-submit]").forEach((b) => {
+      if (!b.dataset.auto) { b.dataset.auto = "1"; b.click(); }
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+});
+await a.click(`table form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);
 await a.waitForURL(/disetujui=1/, { timeout: 30000 });
 await waitForDb(() => vps(`SELECT status FROM laporan_kegiatan WHERE id=${ID}`) === "disetujui", 20000, "approve prod");
 assert(true, "admin menyetujui via tombol cepat → status=disetujui");
