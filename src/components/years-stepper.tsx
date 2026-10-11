@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Minus, Plus } from "lucide-react";
+import { MAX_YEARS } from "@/lib/cart";
 
 // Stepper durasi tahun tanpa batas atas yang terlihat: tombol − / + dan
 // input angka bebas (guard keamanan ada di lapisan simpan, bukan UI).
@@ -32,7 +33,7 @@ export default function YearsStepper({
   const box = size === "sm" ? "h-7" : "h-9";
 
   const commit = (raw: string) => {
-    const n = Math.max(1, Math.floor(Number(raw.replace(/\D/g, "")) || 1));
+    const n = Math.min(MAX_YEARS, Math.max(1, Math.floor(Number(raw.replace(/\D/g, "")) || 1)));
     setText(String(n));
     onChange(n);
   };
@@ -58,7 +59,7 @@ export default function YearsStepper({
             onChange={(e) => {
               const digits = e.target.value.replace(/\D/g, "").slice(0, 3);
               setText(digits);
-              if (digits) onChange(Number(digits));
+              if (digits) onChange(Math.min(MAX_YEARS, Number(digits)));
             }}
             onBlur={() => commit(text)}
             onKeyDown={(e) => {
@@ -79,7 +80,8 @@ export default function YearsStepper({
         <button
           type="button"
           aria-label={plusAria}
-          onClick={() => onChange(years + 1)}
+          disabled={years >= MAX_YEARS}
+          onClick={() => onChange(Math.min(MAX_YEARS, years + 1))}
           className={`flex ${btn} items-center justify-center rounded-full transition-colors hover:bg-emerald-50`}
         >
           <Plus className={size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4"} />
