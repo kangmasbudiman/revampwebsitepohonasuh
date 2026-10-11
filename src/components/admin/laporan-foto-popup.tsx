@@ -9,11 +9,13 @@ import { ChevronLeft, ChevronRight, Images, X } from "lucide-react";
 export default function LaporanFotoPopup({
   judul,
   fotos,
+  entity = "laporan",
   start = 0,
   onClose,
 }: {
   judul: string;
   fotos: { id: number; url: string }[];
+  entity?: string;
   start?: number;
   onClose: () => void;
 }) {
@@ -43,7 +45,7 @@ export default function LaporanFotoPopup({
   return (
     <div
       role="dialog"
-      aria-label={`Galeri foto laporan ${judul}`}
+      aria-label={`Galeri foto ${entity} ${judul}`}
       data-testid="popup-foto-laporan"
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4"
       onClick={onClose}
@@ -93,7 +95,7 @@ export default function LaporanFotoPopup({
           <div key={f.id} className="relative h-[62dvh] w-full" data-foto-utama>
             <Image
               src={f.url}
-              alt={`Foto ${idx + 1} laporan ${judul}`}
+              alt={`Foto ${idx + 1} ${entity} ${judul}`}
               fill
               sizes="(max-width: 768px) 100vw, 768px"
               className="rounded-2xl object-contain"

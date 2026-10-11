@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { apiPost, mapTree, mapTrees, slugify, type ApiTree } from "@/lib/api";
 import { getSession } from "@/lib/auth";
@@ -8,6 +7,7 @@ import { getDict } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import TreeCard from "@/components/tree-card";
 import AdoptPanel from "@/components/adopt-panel";
+import TreeHero from "@/components/tree-hero";
 
 export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) {
   const { code } = await props.params;
@@ -64,20 +64,12 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div className="relative h-80 overflow-hidden rounded-3xl bg-emerald-50 sm:h-96">
-          {tree.photoUrl ? (
-            <Image
-              src={tree.photoUrl}
-              alt={tree.localName}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-7xl">🌳</div>
-          )}
-        </div>
+        <TreeHero
+          nama={tree.localName}
+          photoUrl={tree.photoUrl}
+          galeri={galeri}
+          ariaLabel={d.galleryAria}
+        />
 
         <div>
           <div className="flex items-center gap-3">
@@ -135,31 +127,6 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
           </div>
         </div>
       </div>
-
-      {galeri.length > 0 && (
-        <section className="mt-16">
-          <h2 className="text-xl font-bold text-emerald-950">{d.gallery}</h2>
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {galeri.map((u, i) => (
-              <a
-                key={`${u}-${i}`}
-                href={u}
-                target="_blank"
-                rel="noreferrer"
-                className="group relative block aspect-square overflow-hidden rounded-2xl bg-emerald-50"
-              >
-                <Image
-                  src={u}
-                  alt={d.galleryAlt.replaceAll("{name}", tree.localName).replaceAll("{n}", String(i + 1))}
-                  fill
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
 
       {others.length > 0 && (
         <section className="mt-16">

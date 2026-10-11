@@ -620,8 +620,7 @@ export const dict: Dict = {
       adoptionFee: "Adoption fee",
       perYear: "per year",
       unavailable: "This tree is currently not available for adoption.",
-      gallery: "Tree Gallery",
-      galleryAlt: "Gallery of {name} {n}",
+      galleryAria: "View {name} photo gallery ({n} photos)",
       others: "Other trees in {desa}",
     },
     spesies: {

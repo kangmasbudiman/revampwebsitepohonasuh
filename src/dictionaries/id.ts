@@ -621,8 +621,7 @@ export const dict = {
       adoptionFee: "Biaya adopsi",
       perYear: "per tahun",
       unavailable: "Pohon ini sedang tidak tersedia untuk adopsi.",
-      gallery: "Galeri Pohon",
-      galleryAlt: "Galeri {name} {n}",
+      galleryAria: "Lihat galeri foto {name} ({n} foto)",
       others: "Pohon lain di {desa}",
     },
     spesies: {

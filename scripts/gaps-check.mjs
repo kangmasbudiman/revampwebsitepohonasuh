@@ -426,9 +426,42 @@ assert(fs.existsSync(`${LARAVEL}/public${fotoFile}`), `file foto ada di server`)
 
 await page.goto(`${BASE}/pohon/${TREE_A}`, { waitUntil: "networkidle" });
 assert(
-  (await page.locator("text=Galeri Pohon").count()) > 0,
-  "detail pohon publik menampilkan galeri",
+  (await page.locator("text=Galeri Pohon").count()) === 0,
+  "detail pohon publik: section galeri bawah dihapus",
 );
+// galeri kini disatukan ke gambar utama — klik hero membuka popup navigasi
+{
+  const gUrls = rows(
+    `SELECT urlnya FROM imagepohon WHERE idpohon='${TREE_A}' AND urlnya IS NOT NULL AND urlnya != ''`,
+  ).map((r) => r[0]);
+  const [fotoUtama] = rows(
+    `SELECT foto_pohon FROM data_pohon WHERE id=(SELECT MIN(id) FROM data_pohon WHERE idpohon='${TREE_A}')`,
+  )[0];
+  const semua = [...new Set([fotoUtama, ...gUrls].filter(Boolean))];
+  const heroBtn = page.locator("main button[aria-label^='Lihat galeri foto']").first();
+  assert((await heroBtn.count()) === 1, "gambar utama detail pohon jadi tombol galeri");
+  await heroBtn.click();
+  await page.waitForSelector("[data-testid='popup-foto-laporan']", { timeout: 8000 });
+  const counter = await page.locator("[data-testid='popup-foto-counter']").textContent();
+  assert(
+    counter === `1 / ${semua.length}`,
+    `popup galeri terbuka dari gambar utama (${semua.length} foto: utama + galeri, dedupe)`,
+  );
+  assert(
+    (await page
+      .locator(
+        `[data-testid='popup-foto-laporan'] img[src*='${encodeURIComponent(fotoUrl[1])}']`,
+      )
+      .count()) >= 1,
+    "foto galeri yang barusan diunggah ada di dalam popup",
+  );
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(300);
+  assert(
+    (await page.locator("[data-testid='popup-foto-laporan']").count()) === 0,
+    "popup galeri tertutup via Escape",
+  );
+}
 
 await adminPage.goto(
   `${BASE}/admin/pohon/${encodeURIComponent(TREE_A)}/galeri`,
