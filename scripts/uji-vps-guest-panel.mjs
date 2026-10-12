@@ -3,10 +3,16 @@
 import { chromium } from "playwright";
 
 const BASE = process.env.E2E_BASE ?? "https://pohonasuh.io";
-const TREE = process.env.E2E_TREE ?? "D095";
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+
+// Pohon available dinamis (pohon uji bisa berstatus kapan saja di prod)
+await page.goto(`${BASE}/pohon`, { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(800);
+const TREE = process.env.E2E_TREE
+  ?? (await page.locator("a[href^='/pohon/']").first().getAttribute("href")).split("/").pop();
+
 await page.goto(`${BASE}/pohon/${TREE}`, { waitUntil: "domcontentloaded" });
 
 const add = page.locator('button:has-text("Tambah ke Keranjang")');
