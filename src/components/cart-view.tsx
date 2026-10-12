@@ -12,6 +12,7 @@ import {
   dismissExpiredNotice,
   type ExpiredNotice,
 } from "@/lib/cart";
+import YearsStepper from "@/components/years-stepper";
 import { namaDesa, rupiah } from "@/lib/format";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -86,7 +87,8 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
     );
   }
 
-  const total = items.reduce((s, i) => s + i.priceIdr, 0);
+  const total = items.reduce((s, i) => s + i.priceIdr * (i.years ?? 1), 0);
+  const totalYears = items.reduce((s, i) => s + (i.years ?? 1), 0);
 
   return (
     <div className="space-y-4">
@@ -94,6 +96,7 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-4">
         {items.map((item, idx) => {
+          const years = item.years ?? 1;
           return (
           <div
             key={item.code}
@@ -127,6 +130,20 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
               <p className="text-xs text-zinc-500">
                 {namaDesa(item.desa)} · {item.code}
               </p>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                <YearsStepper
+                  size="sm"
+                  years={years}
+                  onChange={(y) => updateCartItem(item.code, { years: y })}
+                  minusAria={t.minusAria.replaceAll("{name}", item.localName)}
+                  plusAria={t.plusAria.replaceAll("{name}", item.localName)}
+                  inputAria={t.yearsInputAria.replaceAll("{name}", item.localName)}
+                  unit={years === 1 ? t.year : t.years}
+                />
+                <span className="text-xs text-zinc-500">
+                  {rupiah(item.priceIdr)} {t.perYear}
+                </span>
+              </div>
               {item.giftName ? (
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-emerald-700">
                   <Gift className="h-3 w-3" /> {t.giftFor} {item.giftName}
@@ -135,7 +152,7 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
             </div>
             <div className="ml-auto flex items-center gap-2">
               <span className="whitespace-nowrap font-bold text-emerald-700">
-                {rupiah(item.priceIdr)}
+                {rupiah(item.priceIdr * years)}
               </span>
               <button
                 type="button"
@@ -155,7 +172,8 @@ export default function CartView({ loggedIn }: { loggedIn: boolean }) {
         <h2 className="font-semibold text-emerald-950">{t.summary}</h2>
         <div className="mt-4 flex items-center justify-between text-sm text-zinc-600">
           <span>
-            {items.length} {items.length === 1 ? t.treeWord : t.treesWord}
+            {items.length} {items.length === 1 ? t.treeWord : t.treesWord} · {totalYears}{" "}
+            {totalYears === 1 ? t.year : t.years}
           </span>
           <span className="text-base font-bold text-emerald-700">{rupiah(total)}</span>
         </div>

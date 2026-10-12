@@ -22,6 +22,7 @@ export type CheckoutState = {
 
 type CheckoutItem = {
   code: string;
+  years?: number;
   giftName?: string;
   giftNote?: string;
 };
@@ -29,6 +30,16 @@ type CheckoutItem = {
 type CheckoutResult =
   | { ok: true; id: number; unavailable: UnavailableTree[] }
   | { ok: false; error: string; unavailable: UnavailableTree[] };
+
+// Batas atas senyap menjaga tgl_exp (DATE) tetap valid — sama dengan
+// MAX_YEARS di lib/cart.ts; durasi bebas dipilih donatur di bawah itu.
+const YEARS_SAFETY_MAX = 100;
+
+function clampYears(v: unknown): number {
+  const n = Math.floor(Number(v));
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(n, YEARS_SAFETY_MAX);
+}
 
 async function checkoutTrees(
   session: { userId: number; name: string },
@@ -58,7 +69,7 @@ async function checkoutTrees(
   }
 
   const unavailable: UnavailableTree[] = [];
-  const valid: (CheckoutItem & { code: string; harga: number })[] = [];
+  const valid: (CheckoutItem & { harga: number; years: number })[] = [];
   for (const [code, item] of byCode) {
     try {
       const tree = await apiPost<Record<string, unknown> | null>(
@@ -67,7 +78,7 @@ async function checkoutTrees(
       );
       const harga = Number(tree?.harga) || 0;
       if (tree && String(tree.adopted) === "available" && harga > 0) {
-        valid.push({ ...item, code, harga });
+        valid.push({ ...item, code, harga, years: clampYears(item.years) });
       } else {
         unavailable.push({ code, localName: String(tree?.localname ?? code) });
       }
@@ -89,7 +100,7 @@ async function checkoutTrees(
     const basket = await apiPost<{ code?: string | number }>("tobasket", {
       id_pohon: t.code,
       id_member: session.userId,
-      years: 1,
+      years: t.years,
       nama: t.giftName?.trim() || "",
       pesan: t.giftNote?.trim() || "",
     });
@@ -104,7 +115,7 @@ async function checkoutTrees(
     }
   }
 
-  const subtotal = valid.reduce((s, t) => s + t.harga, 0);
+  const subtotal = valid.reduce((s, t) => s + t.harga * t.years, 0);
   const unique = 100 + Math.floor(Math.random() * 900);
 
   let email = "";
@@ -161,6 +172,7 @@ export async function createAdoption(
   const result = await checkoutTrees(session, [
     {
       code: treeCode,
+      years: Number(formData.get("years")) || 1,
       giftName: String(formData.get("nama") ?? ""),
       giftNote: String(formData.get("pesan") ?? ""),
     },
@@ -192,8 +204,8 @@ export async function checkoutCart(
   if (!Array.isArray(raw) || raw.length === 0) {
     return { error: "Keranjang kosong." };
   }
-  // Terima objek {code, giftName, giftNote} maupun format lama (array of
-  // string, atau objek ber-years dari era fitur durasi — diabaikan).
+  // Terima objek lengkap {code, years, giftName, giftNote} maupun legacy
+  // array of string (item keranjang lama sebelum fitur durasi).
   const items: CheckoutItem[] = [];
   for (const el of raw) {
     if (typeof el === "string") {
@@ -202,6 +214,7 @@ export async function checkoutCart(
       const o = el as Record<string, unknown>;
       items.push({
         code: String(o.code ?? ""),
+        years: Number(o.years) || 1,
         giftName: typeof o.giftName === "string" ? o.giftName : "",
         giftNote: typeof o.giftNote === "string" ? o.giftNote : "",
       });

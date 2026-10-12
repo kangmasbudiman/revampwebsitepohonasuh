@@ -263,7 +263,7 @@ assert(
   `${TREE_A} balik available`,
 );
 
-// ===== #7+#8 jalur keranjang: hadiah, durasi tetap 1 tahun =====
+// ===== #7+#8 jalur keranjang: hadiah + durasi via stepper (detail = 1 thn) =====
 await page.goto(`${BASE}/pohon/${TREE_B}`, { waitUntil: "networkidle" });
 await page.click("button:has-text('Adopsi sebagai hadiah')");
 await page.fill("#gift-name", "Kakak Tercinta");
@@ -275,20 +275,31 @@ assert(
   (cartBody.match(/Rp\s?[\d.]+/g) || []).some(
     (s) => s.replace(/\D/g, "") === String(HARGA_B),
   ),
-  `keranjang: total = harga×1`,
+  `keranjang: total = harga×1 (awal)`,
+);
+await page.click('button[aria-label^="Tambah durasi"]'); // 1 → 2 tahun di keranjang
+await page.waitForTimeout(300);
+const cartBody2 = await page.textContent("main");
+assert(
+  (cartBody2.match(/Rp\s?[\d.]+/g) || []).some(
+    (s) => s.replace(/\D/g, "") === String(HARGA_B * 2),
+  ),
+  `keranjang: stepper + → total = harga×2`,
 );
 
 await page.goto(`${BASE}/checkout`, { waitUntil: "networkidle" });
+await page.click('button[aria-label^="Tambah durasi"]'); // 2 → 3 tahun via stepper checkout
 await page.click("button:has-text('Buat Pesanan')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const confId2 = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];
 const inv2 = rows(`SELECT invoice FROM confirmation WHERE id=${confId2}`)[0][0];
-const [dur2, nama2] = rows(
-  `SELECT dur, nama FROM data_adopsi WHERE invoice='${inv2}' LIMIT 1`,
+const [dur2, price2, nama2] = rows(
+  `SELECT dur, price, nama FROM data_adopsi WHERE invoice='${inv2}' LIMIT 1`,
 )[0];
-assert(Number(dur2) === 1, `checkout → dur=1 (${dur2})`);
+assert(Number(dur2) === 3, `checkout stepper → dur=3 (${dur2})`);
+assert(Number(price2) === HARGA_B * 3, `price=${price2} = harga×3`);
 assert(nama2 === "Kakak Tercinta", `hadiah ikut checkout → nama=${nama2}`);
-await page.waitForSelector("text=Durasi 1 tahun", { timeout: 15000 });
+await page.waitForSelector("text=Durasi 3 tahun", { timeout: 15000 });
 await page.click("button:has-text('Batalkan Adopsi')");
 await page.waitForURL(`${BASE}/dashboard`, { timeout: 30000 });
 assert(

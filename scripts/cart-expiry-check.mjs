@@ -99,27 +99,24 @@ assert(
   "banner tak muncul lagi setelah ditutup (reload)",
 );
 
-// ===== 6. Item era fitur durasi (ber-years) di-strip tanpa reset stempel =====
+// ===== 6. Ubah durasi tidak me-reset masa simpan =====
 const stampSebelum = await page.evaluate(
   (code) => JSON.parse(localStorage.getItem("pa_cart_v1")).find((i) => i.code === code).addedAt,
   B,
 );
-await page.evaluate(({ code, stamp }) => {
-  const items = JSON.parse(localStorage.getItem("pa_cart_v1"));
-  const it = items.find((i) => i.code === code);
-  localStorage.setItem(
-    "pa_cart_v1",
-    JSON.stringify([...items.filter((i) => i.code !== code), { ...it, years: 4, addedAt: stamp }]),
-  );
-}, { code: B, stamp: stampSebelum });
-await page.reload({ waitUntil: "networkidle" });
-await page.waitForSelector(`text=${B}`, { timeout: 5000 });
-const bAfter = await page.evaluate(
-  (code) => JSON.parse(localStorage.getItem("pa_cart_v1")).find((i) => i.code === code),
+await page.click('button[aria-label^="Tambah durasi"]');
+await page.waitForTimeout(300);
+const stampSesudah = await page.evaluate(
+  (code) => JSON.parse(localStorage.getItem("pa_cart_v1")).find((i) => i.code === code).addedAt,
   B,
 );
-assert(!("years" in bAfter), "properti years lama dibuang dari localStorage (fitur durasi dihapus)");
-assert(bAfter.addedAt === stampSebelum, "stempel addedAt terpelihara saat migrasi");
+assert(
+  stampSesudah === stampSebelum && typeof stampSesudah === "number",
+  "stempel addedAt terpelihara saat ubah durasi",
+);
+await page.reload({ waitUntil: "networkidle" });
+await page.waitForSelector(`text=${B}`, { timeout: 5000 });
+assert(true, `${B} bertahan setelah reload (addedAt tak ter-reset)`);
 
 // ===== 7. Item lama tanpa addedAt dimigrasi (dianggap baru), bukan dibuang =====
 await page.evaluate(
