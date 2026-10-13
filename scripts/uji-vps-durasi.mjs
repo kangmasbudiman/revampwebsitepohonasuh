@@ -69,9 +69,10 @@ await page.click('button:has-text("Tambah ke Keranjang")');
 await page.waitForSelector('a[aria-label="Keranjang: 1 pohon"]:visible', { timeout: 8000 });
 assert(true, "pohon 12 tahun masuk keranjang");
 
-// keranjang: nilai 12, ubah ke 20
+// keranjang: nilai 12, ubah ke 20 (tunggu hidrasi — domcontentloaded terlalu cepat)
 await page.goto(`${BASE}/keranjang`, { waitUntil: "domcontentloaded" });
 const inCart = page.locator('input[aria-label^="Ubah durasi"]');
+await inCart.waitFor({ timeout: 15000 });
 assert((await inCart.count()) === 1, "keranjang: input durasi tampil");
 assert((await inCart.inputValue()) === "12", "keranjang mempertahankan 12 tahun");
 await inCart.fill("20");
@@ -81,6 +82,7 @@ assert((await inCart.inputValue()) === "20", "ubah 20 tahun di keranjang");
 // checkout: stepper ada, TANPA submit (jangan buat order di prod)
 await page.goto(`${BASE}/checkout`, { waitUntil: "domcontentloaded" });
 const inCo = page.locator('input[aria-label^="Ubah durasi"]');
+await inCo.waitFor({ timeout: 15000 });
 assert((await inCo.count()) === 1, "checkout: input durasi tampil");
 assert((await inCo.inputValue()) === "20", "checkout menunjukkan 20 tahun");
 
