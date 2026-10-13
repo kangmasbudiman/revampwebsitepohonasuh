@@ -182,6 +182,29 @@ export function mapTree(r: Record<string, unknown>): ApiTree {
   };
 }
 
+// Baris riwayatpohon (riwayat adopsi satu pohon di halaman detail).
+export type ApiRiwayatPohon = {
+  id: number;
+  nama: string;
+  hadiah: string | null;
+  tglAdopt: string | null;
+  tglExp: string | null;
+  dur: number;
+  aktif: boolean;
+};
+
+export function mapRiwayatPohon(r: Record<string, unknown>): ApiRiwayatPohon {
+  return {
+    id: Number(r.id),
+    nama: String(r.nama ?? "-"),
+    hadiah: r.hadiah == null || r.hadiah === "" ? null : String(r.hadiah),
+    tglAdopt: r.tgl_adopt ? String(r.tgl_adopt) : null,
+    tglExp: r.tgl_exp ? String(r.tgl_exp) : null,
+    dur: Number(r.dur) || 1,
+    aktif: !!r.aktif,
+  };
+}
+
 export function mapTrees(rows: Record<string, unknown>[]): ApiTree[] {
   return rows.map(mapTree);
 }

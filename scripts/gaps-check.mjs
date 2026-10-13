@@ -1,8 +1,8 @@
 // E2E 9 gap fitur website-lama (pohonasuh.org) yang diadopsi ke web baru:
 //  #1 pohon unggulan (admin toggle → beranda), #2 koreksi nama/memo order,
 //  #3 kirim pesan manual ke member, #4 catatan order tagging, #5 laporan
-//  dana per desa, #6 galeri multi-foto pohon, #7 adopsi 1 tahun (fitur
-//  durasi dihapus), #8 adopsi hadiah, #9 CRUD nomor WA admin.
+//  dana per desa, #6 galeri multi-foto pohon, #7 adopsi multi-tahun
+//  (stepper detail + keranjang + checkout), #8 adopsi hadiah, #9 CRUD nomor WA admin.
 // Butuh: web server (E2E_BASE, default :3000) + Laravel :8000 + MySQL.
 // Semua data uji dikembalikan/dibersihkan di akhir.
 import { chromium } from "playwright";
@@ -115,8 +115,9 @@ await page.waitForURL(`${BASE}/dashboard`, { timeout: 30000 });
 const memberId = rows(`SELECT id FROM member WHERE emaile='${email}'`)[0][0];
 assert(true, `donatur terdaftar id=${memberId}`);
 
-// ===== #7+#8: adopsi langsung (1 tahun, fitur durasi dihapus) + hadiah =====
+// ===== #7+#8: adopsi langsung 3 tahun (stepper detail) + hadiah =====
 await page.goto(`${BASE}/pohon/${TREE_A}`, { waitUntil: "networkidle" });
+await page.fill('input[aria-label="Durasi adopsi"]', "3");
 await page.click("button:has-text('Adopsi sebagai hadiah')");
 await page.fill("#gift-name", "Ibu Sinta");
 await page.fill("#gift-note", "Selamat hari ibu!");
@@ -126,15 +127,15 @@ const totalText = await page
   .locator("xpath=..")
   .textContent();
 assert(
-  (totalText.match(/\d/g) || []).join("") === String(HARGA_A),
-  `panel total = ${HARGA_A}×1`,
+  (totalText.match(/\d/g) || []).join("") === String(HARGA_A * 3),
+  `panel total = ${HARGA_A}×3`,
 );
 await page.click("button:has-text('Adopsi Sekarang')");
 await page.waitForURL(/\/dashboard\/adopsi\/\d+/, { timeout: 30000 });
 const confId1 = page.url().match(/\/dashboard\/adopsi\/(\d+)/)[1];
 await page.waitForSelector("text=Instruksi Pembayaran", { timeout: 15000 });
 const body1 = await page.textContent("main");
-assert(body1.includes("Durasi 1 tahun"), "invoice: Durasi 1 tahun");
+assert(body1.includes("Durasi 3 tahun"), "invoice: Durasi 3 tahun");
 assert(body1.includes("Ibu Sinta"), "invoice: sertifikat a.n. Ibu Sinta");
 assert(body1.includes("Selamat hari ibu"), "invoice: memo hadiah tampil");
 
@@ -144,14 +145,14 @@ const [inv1, price1] = rows(
 const [dur1, nama1, memo1, priceAd1] = rows(
   `SELECT dur, nama, memo, price FROM data_adopsi WHERE invoice='${inv1}'`,
 )[0];
-assert(Number(dur1) === 1, `data_adopsi.dur=1 (${dur1})`);
+assert(Number(dur1) === 3, `data_adopsi.dur=3 (${dur1})`);
 assert(nama1 === "Ibu Sinta", `data_adopsi.nama=${nama1}`);
 assert(memo1 === "Selamat hari ibu!", `data_adopsi.memo=${memo1}`);
-assert(Number(priceAd1) === HARGA_A, `price=${priceAd1} = harga×1`);
-const uniq1 = Number(price1) - HARGA_A;
+assert(Number(priceAd1) === HARGA_A * 3, `price=${priceAd1} = harga×3`);
+const uniq1 = Number(price1) - HARGA_A * 3;
 assert(
   uniq1 >= 100 && uniq1 <= 999,
-  `confirmation.price=${price1} = ${HARGA_A} + kode unik ${uniq1}`,
+  `confirmation.price=${price1} = ${HARGA_A * 3} + kode unik ${uniq1}`,
 );
 
 // ===== #4: catatan order tagging (petugas; order harus terverifikasi) =====

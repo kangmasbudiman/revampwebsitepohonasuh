@@ -1,9 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { apiPost, mapTree, mapTrees, slugify, type ApiTree } from "@/lib/api";
+import { TreePine } from "lucide-react";
+import {
+  apiPost,
+  mapTree,
+  mapTrees,
+  mapRiwayatPohon,
+  slugify,
+  type ApiTree,
+  type ApiRiwayatPohon,
+} from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { namaDesa, rupiah } from "@/lib/format";
-import { getDict } from "@/lib/i18n";
+import { getDict, getLocale } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import TreeCard from "@/components/tree-card";
 import AdoptPanel from "@/components/adopt-panel";
@@ -16,6 +25,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
   let tree: ApiTree | null = null;
   let others: ApiTree[] = [];
   let galeri: string[] = [];
+  let riwayat: ApiRiwayatPohon[] = [];
   try {
     const row = await apiPost<Record<string, unknown> | null>("pohonbykode", {
       idpohon: decodeURIComponent(code),
@@ -34,6 +44,11 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
     )
       .map((r) => String(r.urlnya ?? ""))
       .filter(Boolean);
+    riwayat = (
+      await apiPost<Record<string, unknown>[]>("riwayatpohon", {
+        idpohon: decodeURIComponent(code),
+      })
+    ).map(mapRiwayatPohon);
   } catch {
     // biarkan notFound di bawah yang menangani
   }
@@ -42,6 +57,17 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
   const dict = await getDict();
   const d = dict.pages.pohonDetail;
   const statusLabel = dict.tree;
+  const tglFmt = new Intl.DateTimeFormat((await getLocale()) === "en" ? "en-GB" : "id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  // "2018-01-27" diparse sebagai lokal (bukan UTC) agar tak bergeser -1 hari.
+  const tglTampil = (s: string | null) => {
+    if (!s) return "—";
+    const dt = new Date(s.includes("T") ? s : `${s}T00:00:00`);
+    return Number.isNaN(dt.getTime()) ? "—" : tglFmt.format(dt);
+  };
 
   const specs = [
     { label: d.diameter, value: tree.diameterCm ? `${tree.diameterCm} cm` : "—" },
@@ -127,6 +153,58 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
           </div>
         </div>
       </div>
+
+      {riwayat.length > 0 && (
+        <section className="mt-16" aria-labelledby="riwayat-adopsi">
+          <h2 id="riwayat-adopsi" className="text-xl font-bold text-emerald-950">
+            {d.riwayatTitle}
+          </h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            {d.riwayatSub.replaceAll("{n}", String(riwayat.length))}
+          </p>
+          <ol className="mt-6 space-y-3">
+            {riwayat.map((r) => (
+              <li
+                key={r.id}
+                data-testid="riwayat-item"
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm"
+              >
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                    r.aktif
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-zinc-100 text-zinc-500"
+                  }`}
+                >
+                  <TreePine className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-emerald-950">{r.nama}</p>
+                  {r.hadiah && (
+                    <p className="text-xs text-emerald-700">
+                      🎁 {d.riwayatGift.replaceAll("{name}", r.hadiah)}
+                    </p>
+                  )}
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    {r.dur} {r.dur === 1 ? statusLabel.year : statusLabel.years} ·{" "}
+                    {d.riwayatMulai} {tglTampil(r.tglAdopt)} · {d.riwayatAkhir}{" "}
+                    {tglTampil(r.tglExp)}
+                  </p>
+                </div>
+                <span
+                  className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${
+                    r.aktif
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-zinc-100 text-zinc-600"
+                  }`}
+                >
+                  {r.aktif ? d.riwayatAktif : d.riwayatSelesai}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {others.length > 0 && (
         <section className="mt-16">
