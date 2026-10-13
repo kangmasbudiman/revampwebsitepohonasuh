@@ -18,7 +18,7 @@ const certSans = Plus_Jakarta_Sans({
 });
 const certNunito = Nunito({
   subsets: ["latin"],
-  weight: "200",
+  weight: ["200", "400"],
   variable: "--font-cert-nunito",
 });
 const certTitle = Barlow_Semi_Condensed({
@@ -227,7 +227,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
               <p className="absolute top-[58.88%] left-[23.75%] font-[family-name:var(--font-cert-title)] text-[2.58cqw] font-medium text-[#208745]">
                 Message and Impression:
               </p>
-              <p className="absolute top-[63.9%] left-[23.99%] w-[72.4%] font-[family-name:var(--font-cert-nunito)] font-extralight text-[1.21cqw] leading-[1.47] text-[#545353]">
+              <p className="absolute top-[63.4%] left-[23.99%] w-[72.4%] font-[family-name:var(--font-cert-nunito)] text-[1.5cqw] leading-[1.4] text-[#3f3e3e]">
                 {memo}
               </p>
             </>
