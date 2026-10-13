@@ -404,6 +404,12 @@ export const dict = {
     adoptOther: "Adopsi pohon lain →",
     print: "Cetak / Simpan PDF",
     verifyNote: "Sertifikat ini dapat diverifikasi secara daring melalui nomor sertifikat di atas.",
+    memoTitle: "Pesan & Impresi",
+    memoDesc: "Tuliskan pesan Anda — akan tercetak di bagian “Message and Impression” sertifikat.",
+    memoPh: "Mis. Semoga pohon ini tumbuh subur dan menyerap banyak karbon…",
+    memoSave: "Simpan Pesan",
+    memoSaving: "Menyimpan…",
+    memoSaved: "Pesan tersimpan ✓",
   },
   pages: {
     keranjang: {

@@ -3,9 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Plus_Jakarta_Sans, Nunito, Barlow_Semi_Condensed } from "next/font/google";
 import { apiGet } from "@/lib/api";
+import { getSession } from "@/lib/auth";
 import { getDict } from "@/lib/i18n";
 import CertificateName from "@/components/sertifikat/certificate-name";
 import PrintButton from "@/components/sertifikat/print-button";
+import SertifikatMemoForm from "@/components/sertifikat-memo-form";
 
 // Font menyamai PDF template: body Plus Jakarta Sans, pesan Nunito ExtraLight,
 // nama & label Barlow SemiCondensed (pengganti Tw Cen MT Condensed).
@@ -37,6 +39,7 @@ type ApiSertifikat = {
   certnum?: string | null;
   nama?: string | null;
   memo?: string | null;
+  pengasuh?: number | string | null;
   jml_pohon?: number | string | null;
   invoice?: string | null;
   idpohon?: string | null;
@@ -87,6 +90,8 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
     .join(", ");
   const memo = (s.memo ?? "").trim();
   const adaMemo = memo !== "" && memo !== "-" && memo.toLowerCase() !== "null";
+  const session = await getSession();
+  const pemilik = !!session && Number(s.pengasuh) === session.userId;
 
   const tglAdopt = s.tgl_adopt ? new Date(s.tgl_adopt) : null;
   const jambi = tglAdopt
@@ -246,6 +251,8 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
           )}
         </div>
       </div>
+
+      {pemilik && <SertifikatMemoForm certnum={s.certnum ?? ""} memo={memo} />}
 
       <p className="no-print mt-4 text-center text-xs text-zinc-400">{t.verifyNote}</p>
     </main>

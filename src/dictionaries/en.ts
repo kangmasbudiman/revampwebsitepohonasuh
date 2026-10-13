@@ -403,6 +403,12 @@ export const dict: Dict = {
     adoptOther: "Adopt another tree →",
     print: "Print / Save PDF",
     verifyNote: "This certificate can be verified online using the certificate number above.",
+    memoTitle: "Message & Impression",
+    memoDesc: "Write your message — it will be printed in the certificate's “Message and Impression” section.",
+    memoPh: "e.g. May this tree grow strong and absorb lots of carbon…",
+    memoSave: "Save Message",
+    memoSaving: "Saving…",
+    memoSaved: "Message saved ✓",
   },
   pages: {
     keranjang: {
