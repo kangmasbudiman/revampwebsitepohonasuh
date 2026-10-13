@@ -409,6 +409,15 @@ export const dict: Dict = {
     memoSave: "Save Message",
     memoSaving: "Saving…",
     memoSaved: "Message saved ✓",
+    templateTitle: "Share Certificate",
+    templateDesc: "Pick a certificate background, then share the link — your choice shows in the link.",
+    templateDefault: "Default",
+    templateUtamaBadge: "Main",
+    copyLink: "Copy Link",
+    linkCopied: "Copied ✓",
+    shareWa: "Share on WhatsApp",
+    templateHint:
+      "The selected background is also printed (the Print button uses the active view), and the link you share displays this background.",
   },
   pages: {
     keranjang: {

@@ -80,7 +80,7 @@ assert(
   ["Ringkasan", "Dashboard Pemantauan", "Verifikasi Pembayaran", "Order Tagging", "Laporan Kegiatan", "Penugasan Petugas", "Posisi Petugas",
    "Kelola Peta Desa", "Kelola Pohon", "Kelola Blog", "Kelola Slider", "Kelola Sertifikat", "Kelola Keuangan",
    "Kelola User", "Pengaturan"].every((t) => navLinks.includes(t)),
-  `sidebar 22 menu (${navLinks.length} link)`
+  `sidebar 23 menu (${navLinks.length} link)`
 );
 assert((await page.locator("aside form button:has-text('Keluar')").count()) === 1, "shortcut Keluar di bawah sidebar");
 

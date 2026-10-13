@@ -2,12 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Plus_Jakarta_Sans, Nunito, Barlow_Semi_Condensed } from "next/font/google";
-import { apiGet } from "@/lib/api";
+import { apiGet, mapTemplatesertifikatList, type ApiTemplateSertifikat } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { getDict } from "@/lib/i18n";
 import CertificateName from "@/components/sertifikat/certificate-name";
 import PrintButton from "@/components/sertifikat/print-button";
 import SertifikatMemoForm from "@/components/sertifikat-memo-form";
+import TemplateShare from "@/components/sertifikat/template-share";
 
 // Font menyamai PDF template: body Plus Jakarta Sans, pesan Nunito ExtraLight,
 // nama & label Barlow SemiCondensed (pengganti Tw Cen MT Condensed).
@@ -66,6 +67,7 @@ const titleCase = (s: string) =>
 
 export default async function CertificatePage(props: PageProps<"/sertifikat/[...code]">) {
   const { code } = await props.params;
+  const sp = await props.searchParams;
   const certnum = code.map(decodeURIComponent).join("/");
   // Lembar sertifikat memakai teks Inggris tetap (kalibrasi template PDF) —
   // yang diterjemahkan hanya laman di sekelilingnya.
@@ -78,6 +80,22 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
     // notFound di bawah yang menangani
   }
   if (!s || !s.certnum) notFound();
+
+  // Template background: ?tpl=<id> (harus aktif) → template utama → bg.png
+  // bawaan. Template dihapus/nonaktif → link lama otomatis fallback.
+  let templates: ApiTemplateSertifikat[] = [];
+  try {
+    templates = mapTemplatesertifikatList(
+      await apiGet<Record<string, unknown>[]>("templatelist"),
+    ).filter((tpl) => tpl.aktif);
+  } catch {
+    templates = [];
+  }
+  const tplParam = Number(Array.isArray(sp?.tpl) ? sp?.tpl[0] : sp?.tpl);
+  const terpilih =
+    templates.find((tpl) => tpl.id === tplParam) ??
+    templates.find((tpl) => tpl.utama) ??
+    null;
 
   const jml = Number(s.jml_pohon) || 1;
   const lokasi = [
@@ -188,7 +206,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
         className={`pa-sertifikat relative mx-auto aspect-[828/585.6] w-full overflow-hidden rounded-lg bg-[#f5f5e3] shadow-xl [container-type:inline-size] print:w-[296mm] print:rounded-none print:shadow-none ${certSans.variable} ${certNunito.variable} ${certTitle.variable}`}
       >
         <Image
-          src="/images/sertifikat/bg.png"
+          src={terpilih?.imageUrl ?? "/images/sertifikat/bg.png"}
           alt=""
           fill
           priority
@@ -252,6 +270,9 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
         </div>
       </div>
 
+      {pemilik && (
+        <TemplateShare templates={templates} certnum={s.certnum ?? ""} terpilihId={terpilih?.id ?? null} />
+      )}
       {pemilik && <SertifikatMemoForm certnum={s.certnum ?? ""} memo={memo} />}
 
       <p className="no-print mt-4 text-center text-xs text-zinc-400">{t.verifyNote}</p>

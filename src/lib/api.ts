@@ -582,6 +582,36 @@ export function mapSliders(rows: Record<string, unknown>[]): ApiSlider[] {
   return rows.map(mapSlider);
 }
 
+// GET templatelist → template background sertifikat. Donatur memilih via
+// parameter ?tpl=<id> saat share (pilihan tidak persist di DB); resolusi
+// dilakukan web-side: ?tpl valid → template utama → bg.png bawaan.
+export type ApiTemplateSertifikat = {
+  id: number;
+  nama: string;
+  file: string; // filename di public/assets
+  imageUrl: string;
+  aktif: boolean;
+  utama: boolean;
+};
+
+export function mapTemplatesertifikat(r: Record<string, unknown>): ApiTemplateSertifikat {
+  const file = String(r.file ?? "").split("/").pop() ?? "";
+  return {
+    id: Number(r.id),
+    nama: String(r.nama ?? ""),
+    file,
+    imageUrl: file ? `${ASSET_ORIGIN}/assets/${file}` : "",
+    aktif: Number(r.aktif) === 1,
+    utama: Number(r.utama) === 1,
+  };
+}
+
+export function mapTemplatesertifikatList(
+  rows: Record<string, unknown>[],
+): ApiTemplateSertifikat[] {
+  return rows.map(mapTemplatesertifikat);
+}
+
 // Baris posisipetugas → posisi GPS petugas terakhir.
 export type ApiPosisiPetugas = {
   id: number;

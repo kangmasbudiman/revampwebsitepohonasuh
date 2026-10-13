@@ -410,6 +410,15 @@ export const dict = {
     memoSave: "Simpan Pesan",
     memoSaving: "Menyimpan…",
     memoSaved: "Pesan tersimpan ✓",
+    templateTitle: "Bagikan Sertifikat",
+    templateDesc: "Pilih latar sertifikat, lalu bagikan tautannya — latar pilihan ikut tampil di tautan.",
+    templateDefault: "Bawaan",
+    templateUtamaBadge: "Utama",
+    copyLink: "Salin Tautan",
+    linkCopied: "Tersalin ✓",
+    shareWa: "Bagikan WhatsApp",
+    templateHint:
+      "Latar terpilih ikut tercetak saat mencetak (tombol Cetak memakai tampilan aktif), dan tautan yang Anda bagikan menampilkan latar ini.",
   },
   pages: {
     keranjang: {
