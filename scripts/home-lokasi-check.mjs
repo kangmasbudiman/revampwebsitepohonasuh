@@ -52,16 +52,22 @@ assert(nKartu === desaAktif.length, `${nKartu} kartu lokasi = semua desa aktif`)
 const nFoto = await section.locator("a[href^='/lokasi/'] img").count();
 assert(nFoto === nKartu, `semua ${nKartu} kartu ber-foto hero`);
 
-// Desktop 1440: kartu pertama flush kiri, ≥4 kartu terlihat penuh, kartu
-// ke-5 TIDAK terlihat penuh (menyisakan ruang geser).
+// Desktop 1440: track di dalam kontainer max-w-6xl (sejajar konten lain),
+// TEPAT 4 kartu terlihat — kartu ke-5 sama sekali tidak mengintip.
 const bbox = await kartu.nth(0).boundingBox();
-assert(bbox.x < 8, `kartu pertama flush kiri (x=${Math.round(bbox.x)})`);
+assert(bbox.x > 100, `kartu pertama sejajar konten halaman (x=${Math.round(bbox.x)}, bukan nempel tepi layar)`);
 const terlihat = [];
 for (let i = 0; i < nKartu; i++) {
   const b = await kartu.nth(i).boundingBox();
   if (b.x >= 0 && b.x + b.width <= 1440) terlihat.push(i);
 }
 assert(terlihat.length === 4, `tepat 4 kartu terlihat penuh di 1440px (${terlihat.length})`);
+// Kartu ke-5 terpotong oleh scrollport track (boundingBox tetap memberi
+// posisi layout meski visual tersembunyi) — batasnya track, bukan viewport.
+const trackBox = await section.locator("div.overflow-x-auto").boundingBox();
+const trackKanan = trackBox.x + trackBox.width;
+const kelima = await kartu.nth(4).boundingBox();
+assert(kelima.x >= trackKanan - 1, `kartu ke-5 tersembunyi penuh di luar track (x=${Math.round(kelima.x)} ≥ batas ${Math.round(trackKanan)}) — lokasi lain via slide`);
 
 // Info adopsi + progress bar per kartu
 const kartuPertama = kartu.nth(0);
@@ -69,13 +75,19 @@ const teks = await kartuPertama.textContent();
 assert(/diadopsi/.test(teks) && /teradopsi/.test(teks), "kartu menampilkan 'X diadopsi · Y tersedia' + persen");
 assert((await kartuPertama.locator(".h-2").count()) === 1, "kartu punya progress bar adopsi");
 
-// Geser manual: tombol panah menambah scrollLeft
+// Geser manual: tombol panah menggeser PER SATU KARTU (≈270-280px)
 const track = section.locator("div.overflow-x-auto");
 const sebelum = await track.evaluate((el) => el.scrollLeft);
 await section.getByRole("button", { name: "Slide berikutnya" }).click();
 await page.waitForTimeout(900);
 const sesudah = await track.evaluate((el) => el.scrollLeft);
-assert(sesudah > sebelum + 100, `tombol panah menggeser track (${Math.round(sebelum)} → ${Math.round(sesudah)})`);
+const delta = sesudah - sebelum;
+assert(delta > 200 && delta < 400, `tombol panah menggeser satu kartu (${Math.round(sebelum)} → ${Math.round(sesudah)}, Δ${Math.round(delta)})`);
+const kelimaSetelah = await kartu.nth(4).boundingBox();
+assert(
+  kelimaSetelah.x >= trackBox.x - 1 && kelimaSetelah.x + kelimaSetelah.width <= trackKanan + 1,
+  `setelah geser, kartu ke-5 masuk jendela track menggantikan kartu pertama (x=${Math.round(kelimaSetelah.x)})`,
+);
 
 // Auto-advance 4 dtk — klik panah tadi memicu jeda 10 dtk (pausedUntil),
 // jadi tunggu masa jeda itu lewat + pointer keluar section.
@@ -101,8 +113,8 @@ const mSection = m.locator("[data-testid='section-lokasi']");
 await mSection.scrollIntoViewIfNeeded();
 const b1 = await mSection.locator("a[href^='/lokasi/']").nth(0).boundingBox();
 const b2 = await mSection.locator("a[href^='/lokasi/']").nth(1).boundingBox();
-assert(b1.width > 250 && b1.width < 360, `mobile: kartu pertama ${Math.round(b1.width)}px (85% dari 390)`);
-assert(b2.x < 390, `mobile: kartu kedua sebagian terlihat (x=${Math.round(b2.x)}) — hint bisa digeser`);
+assert(b1.width > 330 && b1.width < 370, `mobile: satu kartu penuh dalam konten (${Math.round(b1.width)}px)`);
+assert(b2.x >= 390, `mobile: kartu kedua tidak mengintip (x=${Math.round(b2.x)})`);
 await mSection.screenshot({ path: "screenshots/120-beranda-lokasi-mobile.png" });
 
 await section.scrollIntoViewIfNeeded();

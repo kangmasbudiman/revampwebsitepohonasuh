@@ -22,10 +22,18 @@ export default function LocationSlider({ locations }: { locations: ApiDesa[] }) 
     pausedUntil.current = Date.now() + 10_000;
   };
 
+  // Geser per satu kartu (lebar kartu + gap 24px).
+  const langkah = () => {
+    const track = trackRef.current;
+    if (!track) return 0;
+    const kartu = track.firstElementChild as HTMLElement | null;
+    return kartu ? kartu.offsetWidth + 24 : track.clientWidth * 0.9;
+  };
+
   const geser = (arah: 1 | -1) => {
     const track = trackRef.current;
     if (!track) return;
-    const target = track.scrollLeft + arah * track.clientWidth * 0.9;
+    const target = track.scrollLeft + arah * langkah();
     track.scrollTo({
       left: arah > 0 ? Math.min(target, track.scrollWidth) : Math.max(target, 0),
       behavior: "smooth",
@@ -40,7 +48,7 @@ export default function LocationSlider({ locations }: { locations: ApiDesa[] }) 
       if (track.scrollLeft >= ujung) {
         track.scrollTo({ left: 0, behavior: "smooth" });
       } else {
-        track.scrollBy({ left: track.clientWidth * 0.9, behavior: "smooth" });
+        track.scrollBy({ left: langkah(), behavior: "smooth" });
       }
     }, 4000);
     return () => clearInterval(id);
@@ -100,24 +108,25 @@ export default function LocationSlider({ locations }: { locations: ApiDesa[] }) 
         </div>
       </div>
 
-      <div
-        ref={trackRef}
-        className="mt-10 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
+      <div className="mx-auto max-w-6xl px-4">
+        <div
+          ref={trackRef}
+          className="mt-10 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
         {locations.map((loc) => {
           const pct = loc.total > 0 ? Math.round((loc.adopted / loc.total) * 100) : 0;
           return (
             <Link
               key={loc.slug}
               href={`/lokasi/${loc.slug}`}
-              className="group flex h-full w-[85%] flex-none snap-start flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg sm:w-[calc(50%-12px)] sm:max-w-[380px] lg:w-[calc(25%-18px)] lg:max-w-[340px]"
+              className="group flex h-full w-full flex-none snap-start flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]"
             >
               <span className="relative block h-40 w-full shrink-0 overflow-hidden">
                 <Image
                   src={loc.photoUrl ?? "/images/Lokasi-Pohon-Asuh-2023.jpg"}
                   alt={`Hutan ${namaDesa(loc.name)}`}
                   fill
-                  sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 270px"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </span>
@@ -160,6 +169,7 @@ export default function LocationSlider({ locations }: { locations: ApiDesa[] }) 
             </Link>
           );
         })}
+        </div>
       </div>
     </section>
   );
