@@ -123,6 +123,8 @@ export const dict: Dict = {
     locTitle: "Forest Locations",
     locTreeCount: "{n} trees",
     locVisit: "Visit the location page",
+    locAdoptedAvail: "{a} adopted · {s} available",
+    locAdoptedPct: "{n}% adopted",
     ctaTitle: "Start Becoming a Tree Fosterer Today",
     ctaDesc:
       "Every tree you adopt helps protect the forest, absorb carbon, and improve the economy of the communities who manage it.",

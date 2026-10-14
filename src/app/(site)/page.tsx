@@ -22,13 +22,13 @@ import {
   type ApiTestimoni,
   type ApiTree,
 } from "@/lib/api";
-import { namaDesa } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 import PostCard from "@/components/post-card";
 import HeroSlider, { type HeroSlide } from "@/components/hero-slider";
 import RecentAdopters from "@/components/recent-adopters";
+import LocationSlider from "@/components/location-slider";
 import LaporanSection from "@/components/laporan-section";
 import Reveal from "@/components/reveal";
 import CountUp from "@/components/count-up";
@@ -402,46 +402,8 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Lokasi */}
-      <section className="mx-auto max-w-6xl px-4 py-20">
-        <Reveal>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">
-                {d.locEyebrow}
-              </p>
-              <h2 className="mt-3 text-3xl font-bold text-emerald-950">{d.locTitle}</h2>
-            </div>
-            <Link
-              href="/lokasi"
-              className="rounded-full border border-emerald-200 px-5 py-2 text-sm font-semibold text-emerald-700 transition-all hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow"
-            >
-              {d.viewAll}
-            </Link>
-          </div>
-        </Reveal>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
-          {locations.map((loc, i) => (
-            <Reveal key={loc.slug} delay={(i % 2) * 150}>
-              <Link
-                href={`/lokasi/${loc.slug}`}
-                className="group block h-full rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-emerald-950">{namaDesa(loc.name)}</h3>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 transition-colors group-hover:bg-emerald-100">
-                    {d.locTreeCount.replaceAll("{n}", String(loc.total))}
-                  </span>
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-600">{loc.description}</p>
-                <p className="mt-4 flex items-center gap-1 text-sm font-medium text-emerald-700 transition-transform duration-300 group-hover:translate-x-1">
-                  <MapPin className="h-4 w-4" /> {d.locVisit}
-                </p>
-              </Link>
-            </Reveal>
-          ))}
-        </div>
-      </section>
+      {/* Lokasi — 4 kartu ber-foto terlihat, sisanya bergeser otomatis */}
+      {locations.length > 0 && <LocationSlider locations={locations} />}
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-4 pb-8">

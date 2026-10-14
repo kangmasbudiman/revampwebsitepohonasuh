@@ -124,6 +124,8 @@ export const dict = {
     locTitle: "Lokasi Hutan",
     locTreeCount: "{n} pohon",
     locVisit: "Kunjungi halaman lokasi",
+    locAdoptedAvail: "{a} diadopsi · {s} tersedia",
+    locAdoptedPct: "{n}% teradopsi",
     ctaTitle: "Mulai Jadi Pengasuh Pohon Hari Ini",
     ctaDesc:
       "Setiap pohon yang Anda adopsi membantu menjaga hutan, menyerap karbon, dan meningkatkan ekonomi masyarakat pengelola hutan.",
