@@ -180,7 +180,7 @@ export default async function LocationDetailPage(props: PageProps<"/lokasi/[slug
         {trees.map((tree, i) => (
           <TreeCard
             key={`${tree.code}-${i}`}
-            tree={{ ...tree, location: { name: tree.desa } }}
+            tree={{ ...tree, location: { name: tree.desa, label: desa.label } }}
           />
         ))}
       </div>
