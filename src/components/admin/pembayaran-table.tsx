@@ -14,8 +14,8 @@ import type { AdminState } from "@/lib/actions/admin";
 import type { ApiPembayaranRow } from "@/lib/api";
 import { rupiah } from "@/lib/format";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
+import RowsPerPage from "@/components/admin/rows-per-page";
 
-const PER_PAGE = 50;
 const METODE = ["Tunai", "Transfer", "QRIS", "Lainnya"];
 
 export default function PembayaranTable({ rows }: { rows: ApiPembayaranRow[] }) {
@@ -23,6 +23,7 @@ export default function PembayaranTable({ rows }: { rows: ApiPembayaranRow[] }) 
   const [desa, setDesa] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(50);
   const [dialog, setDialog] = useState<null | { mode: "create" | "edit"; row: ApiPembayaranRow }>(null);
 
   const desaOptions = useMemo(
@@ -44,9 +45,9 @@ export default function PembayaranTable({ rows }: { rows: ApiPembayaranRow[] }) 
     });
   }, [rows, cari, desa, status]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const pageSafe = Math.min(page, totalPages);
-  const pageRows = filtered.slice((pageSafe - 1) * PER_PAGE, pageSafe * PER_PAGE);
+  const pageRows = filtered.slice((pageSafe - 1) * perPage, pageSafe * perPage);
   const adaFilter = cari !== "" || desa !== "" || status !== "";
 
   return (
@@ -211,11 +212,20 @@ export default function PembayaranTable({ rows }: { rows: ApiPembayaranRow[] }) 
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+        <div className="flex flex-wrap items-center gap-4">
           <span className="text-zinc-500 dark:text-zinc-400">
             Halaman {pageSafe} dari {totalPages}
           </span>
+          <RowsPerPage
+            value={perPage}
+            onChange={(n) => {
+              setPerPage(n);
+              setPage(1);
+            }}
+          />
+        </div>
+        {totalPages > 1 && (
           <div className="flex gap-2">
             <button
               type="button"
@@ -234,8 +244,8 @@ export default function PembayaranTable({ rows }: { rows: ApiPembayaranRow[] }) 
               Berikutnya →
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {dialog && <FormPembayaran mode={dialog.mode} row={dialog.row} onClose={() => setDialog(null)} />}
     </div>

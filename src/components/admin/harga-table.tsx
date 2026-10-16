@@ -10,8 +10,8 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { ApiLokasi, ApiPriceRow } from "@/lib/api";
 import { namaDesa } from "@/lib/format";
 import HargaCharts from "@/components/admin/harga-charts";
+import RowsPerPage from "@/components/admin/rows-per-page";
 
-const PER_PAGE = 10;
 const rupiah = new Intl.NumberFormat("id-ID");
 
 const tierLabel = (harga: number) => `${Math.round(harga / 1000)}rb`;
@@ -26,6 +26,7 @@ export default function HargaTable({
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("semua");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   useEffect(() => {
     setPage(1);
@@ -86,9 +87,9 @@ export default function HargaTable({
   );
   const totalPohon = totalPerTier.reduce((s, n) => s + n, 0);
 
-  const totalPages = Math.max(1, Math.ceil(desaRows.length / PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(desaRows.length / perPage));
   const current = Math.min(page, totalPages);
-  const pageRows = desaRows.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+  const pageRows = desaRows.slice((current - 1) * perPage, current * perPage);
 
   return (
     <>
@@ -138,7 +139,7 @@ export default function HargaTable({
               {pageRows.map((d, i) => (
                 <tr key={d.nama} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                   <td className="px-3 py-3 text-xs text-zinc-400">
-                    {(current - 1) * PER_PAGE + i + 1}
+                    {(current - 1) * perPage + i + 1}
                   </td>
                   <td className="px-3 py-3">
                     <p className="font-semibold text-zinc-800 dark:text-zinc-100">{namaDesa(d.nama)}</p>
@@ -192,11 +193,20 @@ export default function HargaTable({
           </table>
         </div>
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-emerald-100 px-4 py-3 text-sm dark:border-night-700">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-emerald-100 px-4 py-3 text-sm dark:border-night-700">
+          <div className="flex flex-wrap items-center gap-4">
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
               Hal {current} dari {totalPages}
             </span>
+            <RowsPerPage
+              value={perPage}
+              onChange={(n) => {
+                setPerPage(n);
+                setPage(1);
+              }}
+            />
+          </div>
+          {totalPages > 1 && (
             <div className="flex gap-2">
               <button
                 type="button"
@@ -215,8 +225,8 @@ export default function HargaTable({
                 Berikutnya <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </>
   );

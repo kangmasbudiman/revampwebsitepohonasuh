@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { certUrl, type ApiSertifikatRow } from "@/lib/api";
+import RowsPerPage from "@/components/admin/rows-per-page";
 
-const PER_PAGE = 50;
 
 type Filter = "semua" | "aktif" | "kedaluwarsa";
 
@@ -30,6 +30,7 @@ export default function SertifikatTable({
   const [q, setQ] = useState(initialQuery);
   const [filter, setFilter] = useState<Filter>("semua");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(50);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -50,9 +51,9 @@ export default function SertifikatTable({
     });
   }, [rows, q, filter]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const current = Math.min(page, totalPages);
-  const pageRows = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+  const pageRows = filtered.slice((current - 1) * perPage, current * perPage);
 
   return (
     <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
@@ -167,11 +168,20 @@ export default function SertifikatTable({
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-emerald-100 px-4 py-3 text-sm dark:border-night-700">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-emerald-100 px-4 py-3 text-sm dark:border-night-700">
+        <div className="flex flex-wrap items-center gap-4">
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
             Hal {current} dari {totalPages}
           </span>
+          <RowsPerPage
+            value={perPage}
+            onChange={(n) => {
+              setPerPage(n);
+              setPage(1);
+            }}
+          />
+        </div>
+        {totalPages > 1 && (
           <div className="flex gap-2">
             <button
               type="button"
@@ -190,8 +200,8 @@ export default function SertifikatTable({
               Berikutnya <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

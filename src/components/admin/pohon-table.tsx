@@ -8,9 +8,9 @@ import type { ApiTree, TreeStatus } from "@/lib/api";
 import { namaDesa, rupiah, TREE_STATUS } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
+import RowsPerPage from "@/components/admin/rows-per-page";
 import { deleteTree, setTreeUnggulan, removeTreeUnggulan } from "@/lib/actions/tree";
 
-const PER_PAGE = 50;
 
 const selectClass =
   "rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
@@ -21,6 +21,7 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
   const [status, setStatus] = useState("semua");
   const [unggulan, setUnggulan] = useState("semua");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(50);
 
   const desaList = useMemo(
     () => [...new Set(trees.map((t) => t.desa).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
@@ -43,9 +44,9 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
     });
   }, [trees, q, desa, status, unggulan]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const current = Math.min(page, totalPages);
-  const pageTrees = filtered.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+  const pageTrees = filtered.slice((current - 1) * perPage, current * perPage);
   const adaFilter = q !== "" || desa !== "semua" || status !== "semua" || unggulan !== "semua";
 
   return (
@@ -252,11 +253,20 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-emerald-100 px-4 py-3 text-sm dark:border-night-700">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-emerald-100 px-4 py-3 text-sm dark:border-night-700">
+        <div className="flex flex-wrap items-center gap-4">
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
             Hal {current} dari {totalPages}
           </span>
+          <RowsPerPage
+            value={perPage}
+            onChange={(n) => {
+              setPerPage(n);
+              setPage(1);
+            }}
+          />
+        </div>
+        {totalPages > 1 && (
           <div className="flex gap-2">
             <button
               type="button"
@@ -275,8 +285,8 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
               Berikutnya <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
