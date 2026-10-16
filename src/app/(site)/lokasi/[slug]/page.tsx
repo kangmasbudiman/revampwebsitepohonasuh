@@ -12,7 +12,7 @@ import {
   type ApiPetaPohon,
   type ApiTree,
 } from "@/lib/api";
-import { namaDesa, rupiah } from "@/lib/format";
+import { labelLokasi, rupiah } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 import DesaMapLoader from "@/components/desa-map-loader";
@@ -60,7 +60,7 @@ export default async function LocationDetailPage(props: PageProps<"/lokasi/[slug
         {d.back}
       </Link>
 
-      <h1 className="mt-6 text-3xl font-bold text-emerald-950">{namaDesa(desa.name)}</h1>
+      <h1 className="mt-6 text-3xl font-bold text-emerald-950">{labelLokasi(desa)}</h1>
       <p className="mt-1 text-sm text-zinc-500">
         {[desa.kecamatan, desa.kabupaten, desa.provinsi].filter(Boolean).join(", ")}
       </p>
@@ -73,7 +73,7 @@ export default async function LocationDetailPage(props: PageProps<"/lokasi/[slug
         >
           <Image
             src={desa.photoUrl ?? "/images/Lokasi-Pohon-Asuh-2023.jpg"}
-            alt={`Hutan ${namaDesa(desa.name)}`}
+            alt={`Hutan ${labelLokasi(desa)}`}
             fill
             sizes="(max-width: 1023px) 100vw, 440px"
             className="object-cover"

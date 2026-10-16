@@ -213,6 +213,7 @@ export type ApiDesa = {
   id: number;
   name: string;
   slug: string;
+  label: string | null; // label tampilan khusus dari admin
   provinsi: string | null;
   kabupaten: string | null;
   kecamatan: string | null;
@@ -248,6 +249,7 @@ export function mapDesa(r: Record<string, unknown>): ApiDesa {
     id: Number(r.id),
     name,
     slug: slugify(name),
+    label: r.label ? String(r.label).trim() : null,
     provinsi: r.provinsi ? String(r.provinsi) : null,
     kabupaten: r.kabupaten ? String(r.kabupaten) : null,
     kecamatan: r.kecamatan ? String(r.kecamatan) : null,

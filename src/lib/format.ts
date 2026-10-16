@@ -8,6 +8,13 @@ export function namaDesa(name: string | null | undefined): string {
   return s.replace(/(^|[\s\-'])\p{L}/gu, (c) => c.toUpperCase());
 }
 
+// Nama tampilan lokasi di situs publik: "Label Tampilan" yang diisi admin
+// bila ada, selain itu nama desa Title Case.
+export function labelLokasi(d: { label?: string | null; name: string }): string {
+  const s = (d.label ?? "").trim().replace(/\s+/g, " ");
+  return s || namaDesa(d.name);
+}
+
 export function rupiah(value: number): string {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",

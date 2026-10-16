@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import type { ApiDesa } from "@/lib/api";
-import { namaDesa } from "@/lib/format";
+import { labelLokasi } from "@/lib/format";
 
 // Section "Lokasi Hutan" di beranda: 4 kartu ber-foto terlihat, sisanya
 // bergeser otomatis (pola slider pengadopsi terkini), berhenti saat
@@ -124,7 +124,7 @@ export default function LocationSlider({ locations }: { locations: ApiDesa[] }) 
               <span className="relative block h-40 w-full shrink-0 overflow-hidden">
                 <Image
                   src={loc.photoUrl ?? "/images/Lokasi-Pohon-Asuh-2023.jpg"}
-                  alt={`Hutan ${namaDesa(loc.name)}`}
+                  alt={`Hutan ${labelLokasi(loc)}`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -133,7 +133,7 @@ export default function LocationSlider({ locations }: { locations: ApiDesa[] }) 
               <span className="flex flex-1 flex-col p-5">
                 <span className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-emerald-950 group-hover:text-emerald-700">
-                    {namaDesa(loc.name)}
+                    {labelLokasi(loc)}
                   </h3>
                   <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
                     {t.locTreeCount.replaceAll("{n}", String(loc.total))}

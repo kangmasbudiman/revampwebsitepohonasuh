@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { apiGet, mapDesa, type ApiDesa } from "@/lib/api";
-import { namaDesa } from "@/lib/format";
+import { labelLokasi } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 
 export async function generateMetadata() {
@@ -38,7 +38,7 @@ export default async function LocationListPage() {
               >
                 <Image
                   src={desa.photoUrl ?? "/images/Lokasi-Pohon-Asuh-2023.jpg"}
-                  alt={`Hutan ${namaDesa(desa.name)}`}
+                  alt={`Hutan ${labelLokasi(desa)}`}
                   fill
                   sizes="(max-width: 640px) 100vw, 208px"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -48,7 +48,7 @@ export default async function LocationListPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Link href={`/lokasi/${desa.slug}`} className="group">
                     <h2 className="text-lg font-semibold text-emerald-950 group-hover:text-emerald-700">
-                      {namaDesa(desa.name)}
+                      {labelLokasi(desa)}
                     </h2>
                   </Link>
                   <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
