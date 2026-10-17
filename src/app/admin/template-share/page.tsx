@@ -83,8 +83,9 @@ export default async function AdminTemplateSharePage({
           </li>
           <li>JPG/PNG/WebP, maksimal 2MB.</li>
           <li>
-            Posisi teks pada design <strong>tetap</strong> (atas: nama pengadopsi, tengah: kartu info
-            pohon, bawah: nomor sertifikat) — sisakan ruang kosong di zona tersebut.
+            Posisi elemen design <strong>tetap</strong> — band header atas, nama pengadopsi
+            (script) di ±15%, pita hijau nama pohon di ±40%, memo di ±65%, band footer
+            nomor sertifikat — sisakan ruang kosong di zona tersebut.
           </li>
           <li>Satu template per desa bisa ditandai utama — jadi pilihan awal pengadopsi.</li>
           <li>Desa tanpa template aktif memakai latar gradasi bawaan.</li>

@@ -146,9 +146,9 @@ export default function TemplateSharePreview({
               <ShareDesignSample desa={desa} imageUrl={imageUrl} className="mx-auto w-[min(340px,75vw)]" />
             </div>
             <p className="mt-4 mx-auto max-w-[min(340px,75vw)] text-center text-xs text-zinc-500 dark:text-zinc-400">
-              Klik design untuk memperbesar. Posisi teks tetap — pastikan zona atas
-              (nama), tengah (kartu pohon), dan bawah (nomor sertifikat) pada template
-              Anda tidak tertutup elemen ramai.
+              Klik design untuk memperbesar. Posisi elemen tetap (band header, nama
+              script, pita nama pohon, band footer) — pastikan zona tersebut pada
+              template Anda tidak tertutup elemen ramai.
             </p>
           </div>
         </div>

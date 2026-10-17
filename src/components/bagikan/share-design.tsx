@@ -2,17 +2,19 @@
 
 import { useLayoutEffect, useRef } from "react";
 import Image from "next/image";
-import { Playfair_Display } from "next/font/google";
+import { Great_Vibes } from "next/font/google";
 
 // Design story "Bagikan Aksi Saya" (1080×1920 — IG Story / WA Status /
-// FB Story). Layout bersih sementara: brand atas, nama pengadopsi, kartu
-// info pohon, memo, CTA bawah — posisi % + font cqw (pola papan taging)
-// sehingga mudah dikalibrasi ke contoh design asli nanti.
+// FB Story), dikalibrasi dari contoh design asli Pohon Asuh: band header
+// gelap + logo, nama pengadopsi font script, pita hijau nama pohon, band
+// footer nomor sertifikat. Posisi % + font cqw (pola papan taging).
 // capture=true → ukuran px persis 1080×1920 untuk render offscreen PNG
 // (pola papan-batch-bar); template dirender via next/image agar src-nya
 // same-origin /_next/image — syarat html-to-image (asset API tanpa CORS).
-const playfair = Playfair_Display({
-  weight: ["600", "700", "900"],
+// Logo band dirender via CSS background (bukan <img>) agar asersi E2E
+// "gradient = tanpa <img>" tetap berlaku.
+const script = Great_Vibes({
+  weight: "400",
   subsets: ["latin"],
   display: "swap",
 });
@@ -76,7 +78,7 @@ export default function ShareDesign({ data, capture = false }: { data: ShareDesi
     <div
       className={`relative overflow-hidden bg-emerald-950 [container-type:inline-size] ${
         capture ? "" : "aspect-[9/16] w-full"
-      } ${playfair.className}`}
+      }`}
       style={capture ? { width: 1080, height: 1920 } : undefined}
     >
       {data.templateImage ? (
@@ -93,70 +95,82 @@ export default function ShareDesign({ data, capture = false }: { data: ShareDesi
       )}
 
       {/* Scrim agar teks terbaca di atas foto template apa pun */}
-      <div className="absolute inset-x-0 top-0 h-[26%] bg-gradient-to-b from-black/55 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-t from-black/65 to-transparent" />
+      <div className="absolute inset-x-0 top-[10%] h-[10%] bg-gradient-to-b from-black/45 to-transparent" />
+      <div className="absolute inset-x-0 bottom-[8%] h-[14%] bg-gradient-to-t from-black/50 to-transparent" />
 
-      {/* Brand */}
-      <div className={ZONE} style={{ top: "3.2%", height: "6%" }}>
-        <p className="text-[2.4cqw] font-bold tracking-[0.42em] text-emerald-100">POHON ASUH</p>
-        <p className="mt-[0.4cqw] text-[1.7cqw] font-semibold tracking-[0.18em] text-emerald-200/90">
+      {/* Band header: logo PA + wordmark + judul */}
+      <div className="absolute inset-x-0 top-0 flex h-[10%] items-center gap-[2.2cqw] bg-emerald-950 px-[5%]">
+        <span
+          aria-hidden
+          className="aspect-square h-[68%] shrink-0 bg-[url('/images/logo_putih.png')] bg-contain bg-center bg-no-repeat"
+        />
+        <span className="text-[2.6cqw] font-extrabold tracking-[0.06em] text-white">
+          POHON ASUH
+        </span>
+        <span className="ml-auto text-[1.45cqw] font-semibold tracking-[0.32em] text-emerald-200/90">
           BAGIKAN AKSI SAYA
+        </span>
+      </div>
+
+      {/* Nama pengadopsi — script kuning khas design asli */}
+      <div className={ZONE} style={{ top: "12.5%", height: "17%" }}>
+        <p className={`${script.className} text-[3.6cqw] leading-none text-amber-200/95`}>
+          Saya
+        </p>
+        <div className="mt-[0.5cqw] w-[80%]">
+          <FitText
+            value={data.nama || "-"}
+            className={`${script.className} text-[8cqw] leading-[1.1] text-amber-200 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]`}
+          />
+        </div>
+        <p className="mt-[0.9cqw] text-[2.3cqw] font-medium text-white/95 drop-shadow">
+          telah mengasuh pohon
         </p>
       </div>
 
-      {/* Nama pengadopsi */}
-      <div className={ZONE} style={{ top: "11.5%", height: "10%" }}>
-        <p className="text-[2.1cqw] font-semibold tracking-[0.22em] text-emerald-200">SAYA</p>
-        <div className="mt-[0.8cqw] w-[78%]">
-          <FitText value={data.nama || "-"} className="text-[6.4cqw] font-black leading-tight drop-shadow-lg" />
-        </div>
-        <p className="mt-[0.8cqw] text-[2.5cqw] font-medium text-white/90">mengasuh pohon di hutan desa</p>
-      </div>
-
-      {/* Kartu info pohon */}
-      <div
-        className="absolute inset-x-[10%] overflow-hidden rounded-[3cqw] border border-white/25 bg-black/35 shadow-2xl backdrop-blur-[2px]"
-        style={{ top: "30%", height: "34%" }}
-      >
-        <div className="flex h-full flex-col items-center justify-center gap-[1.1cqw] px-[6%] text-center">
-          <span className="rounded-full bg-emerald-500/90 px-[2.6cqw] py-[0.7cqw] text-[1.9cqw] font-bold tracking-widest text-white">
-            {data.idpohon || "-"}
-          </span>
-          <div className="w-full">
+      {/* Pita hijau nama pohon */}
+      <div className={ZONE} style={{ top: "35%", height: "17%" }}>
+        <div className="w-[86%]">
+          <div className="rounded-full bg-emerald-600/95 px-[6%] py-[2.2cqw] shadow-[0_10px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/25">
             <FitText
-              value={data.localName || "-"}
-              className="text-[5.6cqw] font-bold italic leading-tight text-emerald-50"
+              value={(data.localName || "-").toUpperCase()}
+              className="text-[3.1cqw] font-extrabold tracking-[0.08em] text-white"
             />
           </div>
-          {data.species && (
-            <p className="text-[2.2cqw] text-white/80">{data.species}</p>
-          )}
-          <p className="text-[2.6cqw] font-semibold text-emerald-200">{data.desaLabel}</p>
-          {data.tglAdopt && (
-            <p className="text-[1.9cqw] text-white/70">Diadopsi {fmtTglShare(data.tglAdopt)}</p>
-          )}
         </div>
+        <p className="mt-[1.6cqw] rounded-full bg-black/35 px-[2.8cqw] py-[0.6cqw] text-[1.9cqw] font-bold tracking-[0.22em] text-emerald-100 backdrop-blur-[2px]">
+          {data.idpohon || "-"}
+        </p>
+        {data.species && (
+          <p className="mt-[1.1cqw] text-[2.3cqw] italic text-white/90 drop-shadow">
+            {data.species}
+          </p>
+        )}
+        <p className="mt-[0.7cqw] text-[2.1cqw] font-medium text-white/85 drop-shadow">
+          {data.desaLabel}
+          {data.tglAdopt ? ` • Diadopsi ${fmtTglShare(data.tglAdopt)}` : ""}
+        </p>
       </div>
 
       {/* Memo / pesan untuk hutan */}
       {adaMemo && (
-        <div className={ZONE} style={{ top: "68%", height: "16%" }}>
-          <div className="w-[76%]">
-            <p className="text-[2.6cqw] leading-snug italic text-emerald-50 drop-shadow">
+        <div className={ZONE} style={{ top: "60%", height: "18%" }}>
+          <div className="w-[74%] rounded-2xl bg-black/30 px-[5%] py-[3%] backdrop-blur-[2px] ring-1 ring-white/15">
+            <p className="text-[2.5cqw] leading-snug italic text-emerald-50">
               &ldquo;{memo}&rdquo;
             </p>
           </div>
         </div>
       )}
 
-      {/* CTA bawah */}
-      <div className={ZONE} style={{ top: "90.5%", height: "7%" }}>
-        <p className="text-[1.8cqw] font-semibold tracking-[0.14em] text-white/85">
+      {/* Band footer: nomor sertifikat + situs */}
+      <div className="absolute inset-x-0 bottom-0 flex h-[8%] items-center justify-between bg-emerald-950 px-[5%]">
+        <span className="text-[1.85cqw] font-semibold tracking-[0.12em] text-white/90">
           {data.certnum}
-        </p>
-        <p className="mt-[0.5cqw] text-[1.7cqw] text-emerald-200/90">
-          Verifikasi & adopsi pohonmu di pohonasuh.io
-        </p>
+        </span>
+        <span className="text-[1.85cqw] font-bold tracking-[0.08em] text-emerald-300">
+          pohonasuh.io
+        </span>
       </div>
     </div>
   );

@@ -109,8 +109,8 @@ const target2 = String(p2.localname || p2.idpohon);
 await page.locator("[data-testid='chip-pohon'] button").nth(1).click();
 await page.waitForURL(new RegExp(`pohon=${encodeURIComponent(String(p2.idpohon))}`), { timeout: 15000 });
 await page.waitForFunction(
-  (t) => (document.querySelector("[data-testid='share-design']")?.textContent ?? "").includes(t),
-  target2,
+  (t) => (document.querySelector("[data-testid='share-design']")?.textContent ?? "").toLowerCase().includes(t),
+  target2.toLowerCase(),
   { timeout: 15000 },
 );
 ok("klik chip pohon ke-2 → design menampilkan pohon itu", true, target2);
