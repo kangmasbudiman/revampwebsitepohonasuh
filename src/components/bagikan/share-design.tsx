@@ -141,14 +141,14 @@ function TemplateFillDesign({
         <div className="w-[86%]">
           <FitText
             value={data.nama || "-"}
-            className={`${script.className} text-[7.5cqw] leading-[1.05] text-emerald-800 ${HALO}`}
+            className={`${script.className} text-[9.5cqw] leading-[1.05] text-emerald-800 ${HALO}`}
           />
         </div>
       </div>
 
       {/* Subtitle — baseline di garis putus pendek ±33% */}
       <div className="absolute inset-x-0 flex flex-col items-center justify-end text-center" style={{ top: "29.3%", height: "3.6%" }}>
-        <p className={`text-[2.2cqw] font-semibold text-emerald-800/90 ${HALO}`}>
+        <p className={`text-[2.6cqw] font-semibold text-emerald-800/90 ${HALO}`}>
           telah mengasuh pohon
         </p>
       </div>
@@ -158,7 +158,7 @@ function TemplateFillDesign({
         <div className="w-[86%]">
           <FitText
             value={(data.localName || data.idpohon || "-").toUpperCase()}
-            className={`text-[3.2cqw] font-extrabold tracking-[0.1em] text-emerald-900 ${HALO}`}
+            className={`text-[3.8cqw] font-extrabold tracking-[0.1em] text-emerald-900 ${HALO}`}
           />
         </div>
       </div>
@@ -178,7 +178,7 @@ function TemplateFillDesign({
           <div className="w-full px-[2%]">
             <FitText
               value={k.nilai}
-              className={`text-[2.7cqw] font-extrabold text-emerald-900 ${HALO}`}
+              className={`text-[3.2cqw] font-extrabold text-emerald-900 ${HALO}`}
             />
           </div>
         </div>
@@ -191,7 +191,7 @@ function TemplateFillDesign({
           style={{ top: "63.3%", height: "7.4%" }}
         >
           <p
-            className={`line-clamp-3 text-[2.3cqw] leading-relaxed italic text-emerald-900 ${HALO}`}
+            className={`line-clamp-3 text-[2.7cqw] leading-relaxed italic text-emerald-900 ${HALO}`}
           >
             &ldquo;{memo}&rdquo;
           </p>
@@ -201,7 +201,7 @@ function TemplateFillDesign({
       {/* Nomor sertifikat kecil di atas foto desa (caption penutup sudah
           tercetak di template) — pil gelap agar terbaca di template apa pun */}
       <div className="absolute inset-x-0 bottom-[1.2%] flex justify-center">
-        <span className="rounded-full bg-emerald-950/75 px-[2.6cqw] py-[0.8cqw] text-[1.5cqw] font-semibold tracking-[0.14em] text-white/95 backdrop-blur-[2px]">
+        <span className="rounded-full bg-emerald-950/75 px-[2.6cqw] py-[0.8cqw] text-[1.8cqw] font-semibold tracking-[0.14em] text-white/95 backdrop-blur-[2px]">
           {data.certnum} &nbsp;•&nbsp; pohonasuh.io
         </span>
       </div>
