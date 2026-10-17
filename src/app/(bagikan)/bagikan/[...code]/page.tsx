@@ -82,6 +82,7 @@ export default async function BagikanPage(props: PageProps<"/bagikan/[...code]">
     tglAdopt: s.tgl_adopt ?? null,
     memo: s.memo ?? "",
     certnum: s.certnum,
+    jmlPohon: Number(s.jml_pohon) || 1,
     templateImage: terpilih?.imageUrl || null,
   };
 

@@ -45,12 +45,26 @@ const publik = await (await fetch(`${API}/sertifikatpublik/${encodeURIComponent(
 const POHON = publik.pohon_list ?? [];
 console.log(`Fixture: certnum=${CERT} desa=${DESA} pemilik=${PEMILIK} pohon=${POHON.length}`);
 
-// Asset lokal yang sudah ada di public/assets (fixture INSERT, BUKAN upload)
-const ASSET_A = "1676383071330.jpg";
+// Asset lokal yang sudah ada di public/assets (fixture INSERT, BUKAN upload).
+// A: template putih polos 900×1600 dibuat dinamis (canvas → JPEG) supaya
+//    asersi piksel isi PNG deterministik; B: foto lokal.
+const ASSET_A = `e2e_tpl_putih_${Date.now()}.jpg`;
 const ASSET_B = "1676465306902.jpg";
 const shareUrl = `${BASE}/bagikan/${CERT}`;
 
 const browser = await chromium.launch();
+{
+  const b64 = await (await browser.newPage()).evaluate(() => {
+    const c = document.createElement("canvas");
+    c.width = 900;
+    c.height = 1600;
+    const x = c.getContext("2d");
+    x.fillStyle = "#ffffff";
+    x.fillRect(0, 0, 900, 1600);
+    return c.toDataURL("image/jpeg", 0.9).split(",")[1];
+  });
+  fs.writeFileSync(`/opt/homebrew/var/www/restApiPohonasuh/public/assets/${ASSET_A}`, Buffer.from(b64, "base64"));
+}
 
 // ===== 1. Guest: design + fallback gradient, tanpa kontrol =====
 const guest = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -115,6 +129,14 @@ await page.waitForFunction(
 );
 ok("klik chip pohon ke-2 → design menampilkan pohon itu", true, target2);
 
+// Kembali ke template A (putih polos) agar asersi piksel isi PNG deterministik
+await page.locator(`[data-testid='tile-template'] button:has-text("${tNama} A")`).click();
+await page.waitForFunction(
+  (f) => !!document.querySelector("[data-testid='share-design'] img")?.getAttribute("src")?.includes(f),
+  ASSET_A,
+  { timeout: 15000 },
+);
+
 // ===== 5. Unduh PNG → IHDR 1080×1920 =====
 const unduhBtn = page.locator("[data-testid='unduh-share']");
 await unduhBtn.waitFor({ timeout: 30000 }); // pre-generate blob di latar
@@ -125,8 +147,10 @@ const w = pngBuf.readUInt32BE(16);
 const h = pngBuf.readUInt32BE(20);
 ok(`unduh PNG ${w}×${h} (IHDR)`, w === 1080 && h === 1920, `${download.suggestedFilename()}`);
 
-// Isi PNG: overlay harus tampil (regresi: race canvas → hanya foto tanpa
-// band/teks). Sampel band header/footer (emerald-950) + pita (emerald-600).
+// Isi PNG mode template: teks dinamis TERISI di zona template (nama ±27%,
+// pohon ±40%, nilai kartu statistik ±53%, pil certnum bawah) dan band gelap
+// bawaan TIDAK meniban template (regresi race canvas + regresi layout band).
+// Template A putih polos → hitungan piksel teks gelap deterministik.
 const piksel = await page.evaluate(async (b64) => {
   const img = new Image();
   await new Promise((res, rej) => {
@@ -140,16 +164,39 @@ const piksel = await page.evaluate(async (b64) => {
   const ctx = c.getContext("2d");
   ctx.drawImage(img, 0, 0);
   const px = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data.slice(0, 3));
-  // Pita: beberapa titik kandidat (hindari glyph teks putih di tengah).
-  const pita = [110, 540, 970].flatMap((x) => [745, 765, 785].map((y) => px(x, y)));
-  return { header: px(540, 60), pita, footer: px(540, 1870) };
+  const hitung = (x0, y0, x1, y1, pred, step = 3) => {
+    let n = 0;
+    for (let y = y0; y < y1; y += step) for (let x = x0; x < x1; x += step) {
+      const [r, g, b] = px(x, y);
+      if (pred(r, g, b)) n++;
+    }
+    return n;
+  };
+  const teksGelap = (r, g, b) => r < 120 && g < 150 && b < 140;
+  const putih = (r, g, b) => r > 225 && g > 225 && b > 218;
+  return {
+    atas: px(540, 60),
+    bawah: px(80, 1870), // x=80 — di luar pil certnum yang terpusat
+    nama: hitung(80, 380, 1000, 530, teksGelap),
+    pohon: hitung(80, 660, 1000, 790, teksGelap),
+    stat: hitung(60, 960, 1020, 1080, teksGelap),
+    // emerald-950/75 di atas putih ≈ (65,97,89)
+    certPil: hitung(200, 1850, 880, 1900, (r, g, b) => r < 95 && g < 130 && b < 120 && g > r, 2),
+  };
 }, pngBuf.toString("base64"));
-const hijauGelap = (p) => p[1] > p[0] + 8 && p[1] > p[2] + 5 && p[0] < 90;
-const pitaHijau = (p) => p[1] > 100 && p[0] < 60 && p[1] > p[2] + 30;
+const bandGelap = (p) => p[1] > p[0] + 8 && p[1] > p[2] + 5 && p[0] < 90;
 ok(
-  "isi PNG: overlay tampil (band header/footer + pita hijau)",
-  hijauGelap(piksel.header) && hijauGelap(piksel.footer) && piksel.pita.some(pitaHijau),
-  `header=${piksel.header} footer=${piksel.footer} pitaHijau=${piksel.pita.filter(pitaHijau).length}/${piksel.pita.length}`,
+  "isi PNG: band gelap bawaan TIDAK meniban template",
+  !bandGelap(piksel.atas) && !bandGelap(piksel.bawah),
+  `atas=${piksel.atas} bawah=${piksel.bawah}`,
+);
+ok("isi PNG: nama pengadopsi terisi di zona ±27%", piksel.nama >= 250, `${piksel.nama} px gelap`);
+ok("isi PNG: nama pohon terisi di zona ±40%", piksel.pohon >= 150, `${piksel.pohon}`);
+ok("isi PNG: nilai kartu statistik terisi (pohon/lokasi/tahun)", piksel.stat >= 80, `${piksel.stat}`);
+ok("isi PNG: pil certnum tampil di bawah", piksel.certPil >= 100, `${piksel.certPil} px pil`);
+ok(
+  "design memuat certnum di teks",
+  ((await page.locator("[data-testid='share-design']").textContent()) ?? "").includes(CERT),
 );
 fs.rmSync(await download.path(), { force: true });
 
@@ -248,6 +295,7 @@ ok("API: petugas hapus template milik desanya", Number(hapusPtg.value) === 200);
 
 // ===== 9. Cleanup fixture =====
 execSync(`mysql -uroot -pkerabatkotak pohonasuh2 -e "DELETE FROM template_share WHERE id IN (${ID_A},${ID_B})" 2>/dev/null`);
+execSync(`rm -f /opt/homebrew/var/www/restApiPohonasuh/public/assets/${ASSET_A}`);
 ok("cleanup: fixture template_share dihapus", rows("SELECT COUNT(*) FROM template_share")[0][0] === "0");
 
 await browser.close();

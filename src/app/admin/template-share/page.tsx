@@ -83,9 +83,11 @@ export default async function AdminTemplateSharePage({
           </li>
           <li>JPG/PNG/WebP, maksimal 2MB.</li>
           <li>
-            Posisi elemen design <strong>tetap</strong> — band header atas, nama pengadopsi
-            (script) di ±15%, pita hijau nama pohon di ±40%, memo di ±65%, band footer
-            nomor sertifikat — sisakan ruang kosong di zona tersebut.
+            Template adalah <strong>design fill-in</strong>: header logo, 3 kartu statistik
+            (pohon/lokasi/tahun), kartu &ldquo;Pesan untuk Hutan&rdquo;, dan caption penutup
+            digambar di template; teks dinamis diisi sistem di zona tetap — nama pengadopsi
+            (script) di ±27%, subtitle ±33%, nama pohon ±40%, nilai kartu ±53%, memo di
+            ±63-71%. Sisakan zona tersebut kosong/tenang.
           </li>
           <li>Satu template per desa bisa ditandai utama — jadi pilihan awal pengadopsi.</li>
           <li>Desa tanpa template aktif memakai latar gradasi bawaan.</li>

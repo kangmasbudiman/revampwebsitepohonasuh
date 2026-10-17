@@ -17,6 +17,7 @@ export function sampleShareData(desa: string, imageUrl: string | null): ShareDes
     tglAdopt: "2026-10-17",
     memo: "Pesan contoh untuk hutan — zona memo akan tampil di sini.",
     certnum: "001/LPHD-PO/2026",
+    jmlPohon: 3,
     templateImage: imageUrl,
   };
 }
@@ -146,9 +147,9 @@ export default function TemplateSharePreview({
               <ShareDesignSample desa={desa} imageUrl={imageUrl} className="mx-auto w-[min(340px,75vw)]" />
             </div>
             <p className="mt-4 mx-auto max-w-[min(340px,75vw)] text-center text-xs text-zinc-500 dark:text-zinc-400">
-              Klik design untuk memperbesar. Posisi elemen tetap (band header, nama
-              script, pita nama pohon, band footer) — pastikan zona tersebut pada
-              template Anda tidak tertutup elemen ramai.
+              Klik design untuk memperbesar. Teks dinamis (nama, pohon, statistik, memo)
+              diisi di zona tetap ±27-71% tinggi — pastikan zona tersebut pada template
+              Anda tidak tertutup elemen ramai.
             </p>
           </div>
         </div>

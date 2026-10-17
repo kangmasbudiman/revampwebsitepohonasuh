@@ -5,11 +5,19 @@ import Image from "next/image";
 import { Great_Vibes } from "next/font/google";
 
 // Design story "Bagikan Aksi Saya" (1080×1920 — IG Story / WA Status /
-// FB Story), dikalibrasi dari contoh design asli Pohon Asuh: band header
-// gelap + logo, nama pengadopsi font script, pita hijau nama pohon, band
-// footer nomor sertifikat. Posisi % + font cqw (pola papan taging).
-// capture=true → ukuran px persis 1080×1920 untuk render offscreen PNG
-// (pola papan-batch-bar); template dirender via next/image agar src-nya
+// FB Story). Dua mode:
+// 1) TEMPLATE: template desa adalah design fill-in (ada sendiri: header
+//    logo, kartu statistik berlabel, kartu "Pesan untuk Hutan", caption
+//    penutup, foto desa) — overlay HANYA mengisi zona kosongnya: nama
+//    script di garis ±27%, subtitle ±33%, nama pohon ±40%, nilai 3 kartu
+//    statistik (pohon/lokasi/tahun) ±50-56%, memo di kartu krem ±63-71%.
+//    Zona diukur dari template resmi 900×1600 (kolom kartu x tengah
+//    21.2%/50.1%/78.9%). Halo putih tipis menjaga keterbacaan bila
+//    template ternyata foto polos tanpa zona putih.
+// 2) GRADIENT (tanpa template): design lengkap bawaan — band header
+//    gelap + logo, nama script, pita pohon, band footer.
+// Posisi % + font cqw (pola papan taging). capture=true → ukuran px persis
+// 1080×1920 untuk render offscreen PNG; template via next/image agar
 // same-origin /_next/image — syarat html-to-image (asset API tanpa CORS).
 // Logo band dirender via CSS background (bukan <img>) agar asersi E2E
 // "gradient = tanpa <img>" tetap berlaku.
@@ -28,6 +36,7 @@ export type ShareDesignData = {
   tglAdopt: string | null;
   memo: string | null;
   certnum: string;
+  jmlPohon?: number;
   templateImage: string | null; // imageUrl template desa; null = gradient
 };
 
@@ -70,10 +79,22 @@ function FitText({ value, className }: { value: string; className?: string }) {
 const ZONE =
   "absolute inset-x-0 flex flex-col items-center justify-center text-center text-white";
 
-export default function ShareDesign({ data, capture = false }: { data: ShareDesignData; capture?: boolean }) {
-  const memo = (data.memo ?? "").trim();
-  const adaMemo = memo !== "" && memo !== "-" && memo.toLowerCase() !== "null";
+// Halo putih tipis — teks gelap tetap terbaca bila template ternyata foto
+// polos (tanpa zona putih untuk diisi).
+const HALO =
+  "[text-shadow:0_1px_0_rgba(255,255,255,0.85),0_0_12px_rgba(255,255,255,0.7)]";
 
+function DesignRoot({
+  capture,
+  templateImage,
+  desaLabel,
+  children,
+}: {
+  capture: boolean;
+  templateImage: string | null;
+  desaLabel: string;
+  children: React.ReactNode;
+}) {
   return (
     <div
       className={`relative overflow-hidden bg-emerald-950 [container-type:inline-size] ${
@@ -81,10 +102,10 @@ export default function ShareDesign({ data, capture = false }: { data: ShareDesi
       }`}
       style={capture ? { width: 1080, height: 1920 } : undefined}
     >
-      {data.templateImage ? (
+      {templateImage ? (
         <Image
-          src={data.templateImage}
-          alt={`Template ${data.desaLabel}`}
+          src={templateImage}
+          alt={`Template ${desaLabel}`}
           width={1080}
           height={1920}
           priority
@@ -93,8 +114,115 @@ export default function ShareDesign({ data, capture = false }: { data: ShareDesi
       ) : (
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#10b981_0%,#065f46_45%,#022c22_100%)]" />
       )}
+      {children}
+    </div>
+  );
+}
 
-      {/* Scrim agar teks terbaca di atas foto template apa pun */}
+// ===== Mode TEMPLATE: hanya mengisi zona kosong design template =====
+function TemplateFillDesign({
+  data,
+  capture,
+}: {
+  data: ShareDesignData;
+  capture: boolean;
+}) {
+  const memo = (data.memo ?? "").trim();
+  const adaMemo = memo !== "" && memo !== "-" && memo.toLowerCase() !== "null";
+  const tahun =
+    /^(\d{4})/.exec((data.tglAdopt ?? "").trim())?.[1] ??
+    (data.certnum.split("/").pop() || "");
+
+  return (
+    <DesignRoot capture={capture} templateImage={data.templateImage} desaLabel={data.desaLabel}>
+      {/* Nama pengadopsi — script hijau, baseline di garis putus ±27%
+          (justify-end = teks duduk DI ATAS garisnya) */}
+      <div className="absolute inset-x-0 flex flex-col items-center justify-end text-center" style={{ top: "20%", height: "7.4%" }}>
+        <div className="w-[86%]">
+          <FitText
+            value={data.nama || "-"}
+            className={`${script.className} text-[7.5cqw] leading-[1.05] text-emerald-800 ${HALO}`}
+          />
+        </div>
+      </div>
+
+      {/* Subtitle — baseline di garis putus pendek ±33% */}
+      <div className="absolute inset-x-0 flex flex-col items-center justify-end text-center" style={{ top: "29.3%", height: "3.6%" }}>
+        <p className={`text-[2.2cqw] font-semibold text-emerald-800/90 ${HALO}`}>
+          telah mengasuh pohon
+        </p>
+      </div>
+
+      {/* Nama pohon — baseline di garis putus ±40% */}
+      <div className="absolute inset-x-0 flex flex-col items-center justify-end text-center" style={{ top: "35.7%", height: "4.5%" }}>
+        <div className="w-[86%]">
+          <FitText
+            value={(data.localName || data.idpohon || "-").toUpperCase()}
+            className={`text-[3.2cqw] font-extrabold tracking-[0.1em] text-emerald-900 ${HALO}`}
+          />
+        </div>
+      </div>
+
+      {/* Nilai 3 kartu statistik template (label & ikon sudah tercetak):
+          pohon • lokasi • tahun */}
+      {[
+        { kiri: "8.1%", lebar: "26.3%", nilai: String(data.jmlPohon ?? 1) },
+        { kiri: "35.8%", lebar: "28.7%", nilai: data.desaLabel || "-" },
+        { kiri: "65.8%", lebar: "26.3%", nilai: tahun || "-" },
+      ].map((k) => (
+        <div
+          key={k.kiri}
+          className="absolute flex items-center justify-center text-center"
+          style={{ top: "50.5%", height: "5.5%", left: k.kiri, width: k.lebar }}
+        >
+          <div className="w-full px-[2%]">
+            <FitText
+              value={k.nilai}
+              className={`text-[2.7cqw] font-extrabold text-emerald-900 ${HALO}`}
+            />
+          </div>
+        </div>
+      ))}
+
+      {/* Memo — isi kartu "Pesan untuk Hutan" (judul sudah tercetak) */}
+      {adaMemo && (
+        <div
+          className="absolute flex items-center justify-center px-[8%] text-center"
+          style={{ top: "63.3%", height: "7.4%" }}
+        >
+          <p
+            className={`line-clamp-3 text-[2.3cqw] leading-relaxed italic text-emerald-900 ${HALO}`}
+          >
+            &ldquo;{memo}&rdquo;
+          </p>
+        </div>
+      )}
+
+      {/* Nomor sertifikat kecil di atas foto desa (caption penutup sudah
+          tercetak di template) — pil gelap agar terbaca di template apa pun */}
+      <div className="absolute inset-x-0 bottom-[1.2%] flex justify-center">
+        <span className="rounded-full bg-emerald-950/75 px-[2.6cqw] py-[0.8cqw] text-[1.5cqw] font-semibold tracking-[0.14em] text-white/95 backdrop-blur-[2px]">
+          {data.certnum} &nbsp;•&nbsp; pohonasuh.io
+        </span>
+      </div>
+    </DesignRoot>
+  );
+}
+
+// ===== Mode GRADIENT: design lengkap bawaan (tanpa template) =====
+function GradientDesign({
+  data,
+  capture,
+}: {
+  data: ShareDesignData;
+  capture: boolean;
+}) {
+  const memo = (data.memo ?? "").trim();
+  const adaMemo = memo !== "" && memo !== "-" && memo.toLowerCase() !== "null";
+
+  return (
+    <DesignRoot capture={capture} templateImage={null} desaLabel={data.desaLabel}>
+      {/* Scrim agar teks terbaca di atas gradient */}
       <div className="absolute inset-x-0 top-[10%] h-[10%] bg-gradient-to-b from-black/45 to-transparent" />
       <div className="absolute inset-x-0 bottom-[8%] h-[14%] bg-gradient-to-t from-black/50 to-transparent" />
 
@@ -172,6 +300,20 @@ export default function ShareDesign({ data, capture = false }: { data: ShareDesi
           pohonasuh.io
         </span>
       </div>
-    </div>
+    </DesignRoot>
+  );
+}
+
+export default function ShareDesign({
+  data,
+  capture = false,
+}: {
+  data: ShareDesignData;
+  capture?: boolean;
+}) {
+  return data.templateImage ? (
+    <TemplateFillDesign data={data} capture={capture} />
+  ) : (
+    <GradientDesign data={data} capture={capture} />
   );
 }
