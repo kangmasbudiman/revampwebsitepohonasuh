@@ -166,12 +166,19 @@ const UI_ID = Number(rows(`SELECT id FROM template_share WHERE nama='${tNama} UI
 const UI_FILE = rows(`SELECT file FROM template_share WHERE id=${UI_ID}`)[0]?.[0];
 ok("admin: tambah via UI (upload) → row DB + file cover_*", !!UI_ID && /^cover_/.test(UI_FILE ?? ""), `id=${UI_ID} file=${UI_FILE}`);
 
-// Pratinjau design (modal) di baris tabel
+// Pratinjau design (modal) di baris tabel + lightbox besar saat design diklik
 await a.click(`tr:has-text("${tNama} UI") button:has-text("Pratinjau")`);
 ok(
   "admin: pratinjau design tampil dalam modal",
   (await a.locator("[data-testid='preview-modal'] [data-testid='share-design']").count()) === 1,
 );
+await a.click("[data-testid='preview-modal'] [data-testid='share-design']");
+ok(
+  "admin: klik design → lightbox besar (galeri)",
+  (await a.locator("[data-testid='preview-lightbox']").count()) === 1,
+);
+await a.click("[data-testid='lightbox-close']");
+await a.locator("[data-testid='preview-lightbox']").waitFor({ state: "detached" });
 await a.click("[data-testid='preview-close']");
 await a.locator("[data-testid='preview-modal']").waitFor({ state: "detached" });
 
