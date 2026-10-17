@@ -6,6 +6,7 @@ import {
   apiPost,
   adoptionStatus,
   certUrl,
+  shareUrl,
   mapAdopsiPohons,
   mapBank,
   mapConfirmations,
@@ -254,11 +255,20 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             {sertifikatRows.map((t) => (
               <Link
-                key={t.id}
+                key={`cert-${t.id}`}
                 href={certUrl(t.certnum!)}
                 className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
               >
                 {d.certificate} {t.idpohon}
+              </Link>
+            ))}
+            {sertifikatRows.map((t) => (
+              <Link
+                key={`share-${t.id}`}
+                href={`${shareUrl(t.certnum!)}?pohon=${encodeURIComponent(t.idpohon ?? "")}`}
+                className="inline-block rounded-full border border-emerald-300 px-6 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+              >
+                {d.share} {t.idpohon}
               </Link>
             ))}
           </div>

@@ -3,6 +3,7 @@ import { Bell } from "lucide-react";
 import {
   apiPost,
   certUrl,
+  shareUrl,
   mapAdopsiPohons,
   mapConfirmations,
   adoptionStatus,
@@ -150,6 +151,14 @@ export default async function DashboardPage() {
                         className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
                       >
                         {d.certificate}
+                      </Link>
+                    )}
+                    {r.certnum && (
+                      <Link
+                        href={shareUrl(r.certnum)}
+                        className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+                      >
+                        {d.share}
                       </Link>
                     )}
                   </div>

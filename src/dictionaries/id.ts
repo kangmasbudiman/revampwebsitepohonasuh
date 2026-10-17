@@ -232,6 +232,7 @@ export const dict = {
     colFee: "Biaya",
     detail: "Detail",
     certificate: "Sertifikat",
+    share: "Bagikan Aksi Saya",
     empty: "Belum ada adopsi.",
     emptyCta: "Mulai adopsi pohon pertama Anda →",
     backToDashboard: "← Kembali ke Dashboard",
@@ -421,6 +422,25 @@ export const dict = {
     shareWa: "Bagikan WhatsApp",
     templateHint:
       "Latar terpilih ikut tercetak saat mencetak (tombol Cetak memakai tampilan aktif), dan tautan yang Anda bagikan menampilkan latar ini.",
+  },
+  bagikan: {
+    title: "Bagikan Aksi Saya",
+    sub: "Design story 1080×1920 — siap untuk Instagram Story, WhatsApp Status, dan Facebook Story.",
+    guestHint: "Ini design share pengadopsi — buat versi Anda sendiri dengan mengadopsi pohon di Pohon Asuh 🌳",
+    pohonTitle: "Pilih Pohon",
+    pohonDesc: "Adopsi Anda mencakup beberapa pohon — pilih mana yang tampil di design.",
+    templateTitle: "Template Desa",
+    templateDesc: "Pilih latar design desa ini, lalu unduh atau bagikan — pilihan ikut tampil di tautan.",
+    templateUtamaBadge: "Utama",
+    templateEmpty: "Desa ini belum punya template — memakai latar bawaan.",
+    unduh: "Unduh Gambar",
+    bagikan: "Bagikan",
+    salinTautan: "Salin Tautan",
+    tautanTersalin: "Tersalin ✓",
+    bagikanWa: "WhatsApp",
+    shareText: "Aksi saya mengasuh pohon di Pohon Asuh 🌳",
+    templateHint: "Gambar 1080×1920 px — pas untuk Story Instagram, Status WhatsApp, dan Facebook Story.",
+    unduhGagal: "Gagal menyiapkan gambar — muat ulang halaman lalu coba lagi.",
   },
   pages: {
     keranjang: {

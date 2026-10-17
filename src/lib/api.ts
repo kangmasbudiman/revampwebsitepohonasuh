@@ -614,6 +614,67 @@ export function mapTemplatesertifikatList(
   return rows.map(mapTemplatesertifikat);
 }
 
+// Baris templatesharelist → template share "Bagikan Aksi Saya" (per desa).
+export type ApiTemplateShare = {
+  id: number;
+  desa: string; // = desa.nama
+  nama: string;
+  file: string; // filename di public/assets
+  imageUrl: string;
+  aktif: boolean;
+  utama: boolean; // default desa itu
+};
+
+export function mapTemplateShare(r: Record<string, unknown>): ApiTemplateShare {
+  const file = String(r.file ?? "").split("/").pop() ?? "";
+  return {
+    id: Number(r.id),
+    desa: String(r.desa ?? ""),
+    nama: String(r.nama ?? ""),
+    file,
+    imageUrl: file ? `${ASSET_ORIGIN}/assets/${file}` : "",
+    aktif: Number(r.aktif) === 1,
+    utama: Number(r.utama) === 1,
+  };
+}
+
+export function mapTemplateShareList(rows: Record<string, unknown>[]): ApiTemplateShare[] {
+  return rows.map(mapTemplateShare);
+}
+
+// Respons sertifikatpublik/{certnum} (bentuk sama dengan type inline di
+// halaman sertifikat — dipakai halaman /bagikan tanpa menyentuh yang lama).
+export type ApiPohonSertifikatPublik = {
+  idpohon?: string | null;
+  localname?: string | null;
+  species?: string | null;
+  diameter?: number | string | null;
+  tonase?: number | string | null;
+};
+
+export type ApiSertifikatPublik = {
+  certnum?: string | null;
+  nama?: string | null;
+  memo?: string | null;
+  pengasuh?: number | string | null;
+  jml_pohon?: number | string | null;
+  invoice?: string | null;
+  idpohon?: string | null;
+  desa?: string | null;
+  kecamatan?: string | null;
+  kabupaten?: string | null;
+  provinsi?: string | null;
+  tgl_adopt?: string | null;
+  tgl_exp?: string | null;
+  pohon_list?: ApiPohonSertifikatPublik[] | null;
+};
+
+// Link halaman share "Bagikan Aksi Saya" — certnum mengandung '/' →
+// encode per segmen (pola certUrl).
+export function shareUrl(certnum: string): string {
+  return `/bagikan/${certnum.split("/").map(encodeURIComponent).join("/")}`;
+}
+
 // Baris posisipetugas → posisi GPS petugas terakhir.
 export type ApiPosisiPetugas = {
   id: number;

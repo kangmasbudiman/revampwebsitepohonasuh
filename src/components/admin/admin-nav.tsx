@@ -23,6 +23,7 @@ import {
   Newspaper,
   NotebookPen,
   Settings,
+  Share2,
   Tag,
   TreePine,
   UserCog,
@@ -63,6 +64,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/slider", label: "Kelola Slider", icon: Images },
       { href: "/admin/sertifikat", label: "Kelola Sertifikat", icon: Award },
       { href: "/admin/template-sertifikat", label: "Template Sertifikat", icon: LayoutTemplate },
+      { href: "/admin/template-share", label: "Template Share", icon: Share2 },
       { href: "/admin/testimoni", label: "Testimoni & Partner", icon: MessageSquareQuote },
     ],
   },
@@ -78,7 +80,12 @@ const GROUPS: { title: string; items: Item[] }[] = [
 ];
 
 // Petugas (level 2): Order Tagging, laporan kegiatan sendiri, + peta offline.
-const PETUGAS_HREFS = new Set(["/admin/tagging", "/admin/laporan", "/admin/peta"]);
+const PETUGAS_HREFS = new Set([
+  "/admin/tagging",
+  "/admin/laporan",
+  "/admin/peta",
+  "/admin/template-share",
+]);
 const ALL_ITEMS: Item[] = GROUPS.flatMap((g) => g.items);
 
 const isActive = (href: string, pathname: string) =>

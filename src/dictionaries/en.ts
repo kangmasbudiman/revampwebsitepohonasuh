@@ -231,6 +231,7 @@ export const dict: Dict = {
     colFee: "Fee",
     detail: "Detail",
     certificate: "Certificate",
+    share: "Share My Action",
     empty: "No adoptions yet.",
     emptyCta: "Start your first tree adoption →",
     backToDashboard: "← Back to Dashboard",
@@ -420,6 +421,26 @@ export const dict: Dict = {
     shareWa: "Share on WhatsApp",
     templateHint:
       "The selected background is also printed (the Print button uses the active view), and the link you share displays this background.",
+  },
+  bagikan: {
+    title: "Share My Action",
+    sub: "1080×1920 story design — ready for Instagram Story, WhatsApp Status, and Facebook Story.",
+    guestHint:
+      "This is a adopter's share design — make your own by adopting a tree with Pohon Asuh 🌳",
+    pohonTitle: "Choose Tree",
+    pohonDesc: "Your adoption covers several trees — pick which one appears on the design.",
+    templateTitle: "Village Templates",
+    templateDesc: "Pick this village's design background, then download or share — your choice shows in the link.",
+    templateUtamaBadge: "Main",
+    templateEmpty: "This village has no templates yet — using the default background.",
+    unduh: "Download Image",
+    bagikan: "Share",
+    salinTautan: "Copy Link",
+    tautanTersalin: "Copied ✓",
+    bagikanWa: "WhatsApp",
+    shareText: "My action adopting a tree with Pohon Asuh 🌳",
+    templateHint: "1080×1920 px image — fits Instagram Story, WhatsApp Status, and Facebook Story.",
+    unduhGagal: "Failed to prepare the image — reload the page and try again.",
   },
   pages: {
     keranjang: {
