@@ -2,9 +2,9 @@
 
 import { useRef, useState } from "react";
 import { useSyncExternalStore } from "react";
-import { toBlob } from "html-to-image";
 import JSZip from "jszip";
 import { Download, Loader2, X } from "lucide-react";
+import { renderNodeToPng } from "@/lib/capture-png";
 import type { ApiOrderRow } from "@/lib/api";
 import {
   clearPapanSelection,
@@ -62,8 +62,7 @@ export default function PapanBatchBar({ taggedIds = [] }: { taggedIds?: number[]
           });
         }
         try {
-          const blob = await toBlob(node, { width: LEBAR, height: TINGGI, pixelRatio: 1 });
-          if (!blob) throw new Error("blob null");
+          const blob = await renderNodeToPng(node, LEBAR, TINGGI);
           zip.file(namaFile(list[i]), blob);
           sukses++;
         } catch {

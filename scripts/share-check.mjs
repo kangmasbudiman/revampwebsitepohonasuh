@@ -124,6 +124,33 @@ const pngBuf = fs.readFileSync(await download.path());
 const w = pngBuf.readUInt32BE(16);
 const h = pngBuf.readUInt32BE(20);
 ok(`unduh PNG ${w}×${h} (IHDR)`, w === 1080 && h === 1920, `${download.suggestedFilename()}`);
+
+// Isi PNG: overlay harus tampil (regresi: race canvas → hanya foto tanpa
+// band/teks). Sampel band header/footer (emerald-950) + pita (emerald-600).
+const piksel = await page.evaluate(async (b64) => {
+  const img = new Image();
+  await new Promise((res, rej) => {
+    img.onload = res;
+    img.onerror = rej;
+    img.src = `data:image/png;base64,${b64}`;
+  });
+  const c = document.createElement("canvas");
+  c.width = img.width;
+  c.height = img.height;
+  const ctx = c.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  const px = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data.slice(0, 3));
+  // Pita: beberapa titik kandidat (hindari glyph teks putih di tengah).
+  const pita = [110, 540, 970].flatMap((x) => [745, 765, 785].map((y) => px(x, y)));
+  return { header: px(540, 60), pita, footer: px(540, 1870) };
+}, pngBuf.toString("base64"));
+const hijauGelap = (p) => p[1] > p[0] + 8 && p[1] > p[2] + 5 && p[0] < 90;
+const pitaHijau = (p) => p[1] > 100 && p[0] < 60 && p[1] > p[2] + 30;
+ok(
+  "isi PNG: overlay tampil (band header/footer + pita hijau)",
+  hijauGelap(piksel.header) && hijauGelap(piksel.footer) && piksel.pita.some(pitaHijau),
+  `header=${piksel.header} footer=${piksel.footer} pitaHijau=${piksel.pita.filter(pitaHijau).length}/${piksel.pita.length}`,
+);
 fs.rmSync(await download.path(), { force: true });
 
 // ===== 6. Semua template nonaktif → fallback gradient =====

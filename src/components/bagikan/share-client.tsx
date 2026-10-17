@@ -7,8 +7,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { toBlob } from "html-to-image";
 import { Download, ImageUp, Link2, Loader2, Share2, TreePine } from "lucide-react";
+import { renderNodeToPng } from "@/lib/capture-png";
 import type { ApiTemplateShare } from "@/lib/api";
 import { useI18n } from "@/components/i18n-provider";
 import SertifikatMemoForm from "@/components/sertifikat-memo-form";
@@ -61,7 +61,7 @@ export default function ShareClient({
             img.addEventListener("error", r, { once: true });
           });
         }
-        const blob = await toBlob(node, { width: 1080, height: 1920, pixelRatio: 1 });
+        const blob = await renderNodeToPng(node, 1080, 1920);
         if (!batal) setPng(blob);
       } catch {
         if (!batal) setGagal(true);
