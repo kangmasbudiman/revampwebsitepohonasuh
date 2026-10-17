@@ -166,6 +166,15 @@ const UI_ID = Number(rows(`SELECT id FROM template_share WHERE nama='${tNama} UI
 const UI_FILE = rows(`SELECT file FROM template_share WHERE id=${UI_ID}`)[0]?.[0];
 ok("admin: tambah via UI (upload) → row DB + file cover_*", !!UI_ID && /^cover_/.test(UI_FILE ?? ""), `id=${UI_ID} file=${UI_FILE}`);
 
+// Pratinjau design (modal) di baris tabel
+await a.click(`tr:has-text("${tNama} UI") button:has-text("Pratinjau")`);
+ok(
+  "admin: pratinjau design tampil dalam modal",
+  (await a.locator("[data-testid='preview-modal'] [data-testid='share-design']").count()) === 1,
+);
+await a.click("[data-testid='preview-close']");
+await a.locator("[data-testid='preview-modal']").waitFor({ state: "detached" });
+
 // Edit: ganti nama + jadikan utama → A kehilangan utama
 await a.goto(`${BASE}/admin/template-share/${UI_ID}/edit`, { waitUntil: "networkidle" });
 await a.fill('input[name="nama"]', `${tNama} UI2`);

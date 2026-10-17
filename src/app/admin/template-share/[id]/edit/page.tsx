@@ -1,9 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/guard";
 import { apiGet, mapTemplateShareList } from "@/lib/api";
 import TemplateShareForm from "@/components/admin/template-share-form";
+import { ShareDesignSample } from "@/components/admin/template-share-preview";
 
 export const metadata = { title: "Edit Template Share | Pohon Asuh" };
 
@@ -42,14 +42,8 @@ export default async function EditTemplateSharePage(
       </h1>
 
       {template.imageUrl && (
-        <div className="relative mt-4 aspect-[9/16] w-40 overflow-hidden rounded-2xl bg-emerald-50 dark:bg-night-800">
-          <Image
-            src={template.imageUrl}
-            alt={template.nama}
-            fill
-            sizes="160px"
-            className="object-cover"
-          />
+        <div className="mt-4 w-48 overflow-hidden rounded-2xl">
+          <ShareDesignSample desa={template.desa} imageUrl={template.imageUrl} className="w-full" />
         </div>
       )}
 

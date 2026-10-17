@@ -15,10 +15,12 @@ export default function FileInput({
   name,
   accept = "image/jpeg,image/png,image/webp",
   className = "mt-1",
+  onFileChange,
 }: {
   name: string;
   accept?: string;
   className?: string;
+  onFileChange?: (file: File | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<{ nama: string; ukuran: number } | null>(null);
@@ -43,16 +45,19 @@ export default function FileInput({
     if (!f) {
       setError(null);
       setSiap(null);
+      onFileChange?.(null);
       return;
     }
     if (f.size > MAX_UPLOAD_BYTES) {
       setSiap(null);
       setError({ nama: f.name, ukuran: f.size });
       e.currentTarget.value = "";
+      onFileChange?.(null);
       return;
     }
     setError(null);
     setSiap({ nama: f.name, ukuran: f.size });
+    onFileChange?.(f);
   };
 
   return (

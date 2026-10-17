@@ -9,6 +9,7 @@ import {
   type ApiTemplateShare,
 } from "@/lib/api";
 import TemplateShareForm from "@/components/admin/template-share-form";
+import TemplateSharePreview from "@/components/admin/template-share-preview";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { deleteTemplateShare } from "@/lib/actions/template-share";
 
@@ -162,6 +163,7 @@ export default async function AdminTemplateSharePage({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
+                        <TemplateSharePreview nama={tpl.nama} desa={tpl.desa} imageUrl={tpl.imageUrl} />
                         <Link
                           href={`/admin/template-share/${tpl.id}/edit`}
                           className="rounded-lg border border-emerald-200 dark:border-night-700 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:hover:bg-night-800"
