@@ -84,9 +84,9 @@ await guest.close();
 const tNama = `E2E Share ${Date.now()}`;
 execSync(
   `mysql -uroot -pkerabatkotak pohonasuh2 -e "
-   INSERT INTO template_share (desa,nama,file,aktif,utama,created_at,updated_at) VALUES ('${DESA}','${tNama} A','${ASSET_A}',1,1,NOW(),NOW());
+   INSERT INTO template_share (desa,nama,subtext,file,aktif,utama,created_at,updated_at) VALUES ('${DESA}','${tNama} A','Hutan Uji E2E','${ASSET_A}',1,1,NOW(),NOW());
    SET @a = LAST_INSERT_ID();
-   INSERT INTO template_share (desa,nama,file,aktif,utama,created_at,updated_at) VALUES ('${DESA}','${tNama} B','${ASSET_B}',1,0,NOW(),NOW());
+   INSERT INTO template_share (desa,nama,subtext,file,aktif,utama,created_at,updated_at) VALUES ('${DESA}','${tNama} B','','${ASSET_B}',1,0,NOW(),NOW());
    SELECT @a; SELECT LAST_INSERT_ID();" 2>/dev/null`,
 );
 const ID_A = Number(rows(`SELECT id FROM template_share WHERE nama='${tNama} A'`)[0][0]);
@@ -105,6 +105,19 @@ ok("pemilik: form memo reuse tampil", (await page.locator('textarea[name="memo"]
 const bgImg = page.locator("[data-testid='share-design'] img").first();
 await bgImg.waitFor({ timeout: 10000 });
 ok("template utama (A) jadi latar default", (await bgImg.getAttribute("src")).includes(ASSET_A));
+
+// Format hadiah: donor (nama_pengasuh) + penerima (nama) + subtext template.
+const DONOR = String(publik.nama_pengasuh ?? "").trim();
+const PENERIMA = String(publik.nama ?? "").trim();
+const teksDesign = await page.locator("[data-testid='share-design']").textContent();
+if (DONOR && PENERIMA && DONOR.toLowerCase() !== PENERIMA.toLowerCase()) {
+  ok("format hadiah: nama donatur tampil", teksDesign.includes(DONOR), DONOR);
+  ok("format hadiah: nama penerima tampil", teksDesign.includes(PENERIMA), PENERIMA);
+  ok("format hadiah: kalimat 'Menghadiahkan pohon'", teksDesign.includes("Menghadiahkan pohon"));
+} else {
+  ok("format mandiri: nama pengadopsi tampil", teksDesign.includes(PENERIMA || DONOR));
+}
+ok("subtext template tampil di kartu lokasi", teksDesign.includes("Hutan Uji E2E"));
 
 // Ganti template via tile → ?tpl= + img src berganti
 await page.locator(`[data-testid='tile-template'] button:has-text("${tNama} B")`).click();
@@ -147,10 +160,11 @@ const w = pngBuf.readUInt32BE(16);
 const h = pngBuf.readUInt32BE(20);
 ok(`unduh PNG ${w}×${h} (IHDR)`, w === 1080 && h === 1920, `${download.suggestedFilename()}`);
 
-// Isi PNG mode template: teks dinamis TERISI di zona template (nama ±27%,
-// pohon ±40%, nilai kartu statistik ±53%, pil certnum bawah) dan band gelap
-// bawaan TIDAK meniban template (regresi race canvas + regresi layout band).
-// Template A putih polos → hitungan piksel teks gelap deterministik.
+// Isi PNG mode template format hadiah: teks dinamis TERISI di zona template
+// (donatur ±27%, kalimat ±28-33%, penerima ±39%, nilai kartu ±50-56%, pil
+// certnum bawah) dan band gelap bawaan TIDAK meniban template (regresi race
+// canvas + regresi layout band). Template A putih polos → hitungan piksel
+// teks gelap deterministik.
 const piksel = await page.evaluate(async (b64) => {
   const img = new Image();
   await new Promise((res, rej) => {
@@ -177,9 +191,10 @@ const piksel = await page.evaluate(async (b64) => {
   return {
     atas: px(540, 60),
     bawah: px(80, 1870), // x=80 — di luar pil certnum yang terpusat
-    nama: hitung(80, 380, 1000, 530, teksGelap),
-    pohon: hitung(80, 660, 1000, 790, teksGelap),
-    stat: hitung(60, 960, 1020, 1080, teksGelap),
+    donatur: hitung(80, 380, 1000, 530, teksGelap),
+    kalimat: hitung(80, 545, 1000, 650, teksGelap),
+    penerima: hitung(80, 650, 1000, 762, teksGelap),
+    stat: hitung(60, 940, 1020, 1115, teksGelap),
     // emerald-950/75 di atas putih ≈ (65,97,89)
     certPil: hitung(200, 1850, 880, 1900, (r, g, b) => r < 95 && g < 130 && b < 120 && g > r, 2),
   };
@@ -190,9 +205,10 @@ ok(
   !bandGelap(piksel.atas) && !bandGelap(piksel.bawah),
   `atas=${piksel.atas} bawah=${piksel.bawah}`,
 );
-ok("isi PNG: nama pengadopsi terisi di zona ±27%", piksel.nama >= 250, `${piksel.nama} px gelap`);
-ok("isi PNG: nama pohon terisi di zona ±40%", piksel.pohon >= 150, `${piksel.pohon}`);
-ok("isi PNG: nilai kartu statistik terisi (pohon/lokasi/tahun)", piksel.stat >= 80, `${piksel.stat}`);
+ok("isi PNG: nama donatur terisi di garis ±27%", piksel.donatur >= 250, `${piksel.donatur} px gelap`);
+ok("isi PNG: kalimat hadiah terisi ±28-33%", piksel.kalimat >= 100, `${piksel.kalimat}`);
+ok("isi PNG: nama penerima terisi di garis ±39%", piksel.penerima >= 200, `${piksel.penerima}`);
+ok("isi PNG: nilai kartu statistik terisi (pohon/desa/tahun)", piksel.stat >= 80, `${piksel.stat}`);
 ok("isi PNG: pil certnum tampil di bawah", piksel.certPil >= 100, `${piksel.certPil} px pil`);
 ok(
   "design memuat certnum di teks",
@@ -229,6 +245,7 @@ ok("admin: halaman list + grup desa tampil", (await a.locator("h2", { hasText: D
 await a.click("summary:has-text('Tambah Template')");
 await a.selectOption('select[name="desa"]', DESA);
 await a.fill('input[name="nama"]', `${tNama} UI`);
+await a.fill('input[name="subtext"]', "Hutan Adat Uji UI");
 const PNG1x1 = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
   "base64",
@@ -239,6 +256,8 @@ await a.waitForURL("**/admin/template-share?created=1", { timeout: 30000 });
 const UI_ID = Number(rows(`SELECT id FROM template_share WHERE nama='${tNama} UI'`)[0]?.[0]);
 const UI_FILE = rows(`SELECT file FROM template_share WHERE id=${UI_ID}`)[0]?.[0];
 ok("admin: tambah via UI (upload) → row DB + file cover_*", !!UI_ID && /^cover_/.test(UI_FILE ?? ""), `id=${UI_ID} file=${UI_FILE}`);
+const UI_SUBTEXT = rows(`SELECT subtext FROM template_share WHERE id=${UI_ID}`)[0]?.[0];
+ok("admin: subtext tersimpan via UI", UI_SUBTEXT === "Hutan Adat Uji UI", `subtext=${UI_SUBTEXT}`);
 
 // Pratinjau design (modal) di baris tabel + lightbox besar saat design diklik
 await a.click(`tr:has-text("${tNama} UI") button:has-text("Pratinjau")`);
@@ -258,6 +277,7 @@ await a.locator("[data-testid='preview-modal']").waitFor({ state: "detached" });
 
 // Edit: ganti nama + jadikan utama → A kehilangan utama
 await a.goto(`${BASE}/admin/template-share/${UI_ID}/edit`, { waitUntil: "networkidle" });
+ok("admin: edit form memuat subtext", (await a.inputValue('input[name="subtext"]')) === "Hutan Adat Uji UI");
 await a.fill('input[name="nama"]', `${tNama} UI2`);
 await a.check('input[name="utama"]');
 await a.click('form:has(input[name="nama"]) button[type=submit]');

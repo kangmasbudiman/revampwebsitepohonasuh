@@ -29,6 +29,7 @@ export default function TemplateShareForm({
 
   // Pratinjau live: gambar yang dipilih (objectURL) atau template saat ini.
   const [desa, setDesa] = useState(template?.desa ?? "");
+  const [subtext, setSubtext] = useState(template?.subtext ?? "");
   const [previewSrc, setPreviewSrc] = useState<string | null>(template?.imageUrl ?? null);
   const objUrl = useRef<string | null>(null);
   const gantiGambar = (file: File | null) => {
@@ -96,6 +97,23 @@ export default function TemplateShareForm({
       </div>
       <div>
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          Subtext lokasi <span className="text-zinc-400 dark:text-zinc-500">(opsional)</span>
+        </label>
+        <input
+          name="subtext"
+          type="text"
+          maxLength={150}
+          value={subtext}
+          onChange={(e) => setSubtext(e.target.value)}
+          className={inputClass}
+          placeholder="Mis. Hutan Adat Depati Karo Jayo Tuo — tampil di bawah nama desa"
+        />
+        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+          Nama hutan adat/area desa — ditampilkan kecil di kartu lokasi design.
+        </p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">
           Gambar latar <span className="text-zinc-400 dark:text-zinc-500">(jpg/png/webp, maks 2MB)</span>
         </label>
         <FileInput name="gambar" onFileChange={gantiGambar} />
@@ -146,7 +164,7 @@ export default function TemplateShareForm({
         </p>
         {desa ? (
           <div className="mt-2 overflow-hidden rounded-xl">
-            <ShareDesignSample desa={desa} imageUrl={previewSrc} className="w-full" />
+            <ShareDesignSample desa={desa} imageUrl={previewSrc} subtext={subtext} className="w-full" />
           </div>
         ) : (
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">

@@ -43,7 +43,7 @@ export default async function EditTemplateSharePage(
 
       {template.imageUrl && (
         <div className="mt-4 w-48 overflow-hidden rounded-2xl">
-          <ShareDesignSample desa={template.desa} imageUrl={template.imageUrl} className="w-full" />
+          <ShareDesignSample desa={template.desa} imageUrl={template.imageUrl} subtext={template.subtext} className="w-full" />
         </div>
       )}
 

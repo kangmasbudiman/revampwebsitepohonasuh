@@ -73,16 +73,23 @@ export default async function BagikanPage(props: PageProps<"/bagikan/[...code]">
   }
 
   const memo = (s.memo ?? "").trim();
+  // Durasi adopsi (kartu "tahun" template) — selisih tahun adopt→exp.
+  const thnA = Number(/^(\d{4})/.exec((s.tgl_adopt ?? "").trim())?.[1] ?? 0);
+  const thnE = Number(/^(\d{4})/.exec((s.tgl_exp ?? "").trim())?.[1] ?? 0);
+  const durasiTahun = thnA > 0 && thnE > thnA ? thnE - thnA : 1;
   const design = {
     nama: s.nama ?? "",
+    donorName: (s.nama_pengasuh ?? "").trim() || null,
     idpohon: terpilihPohon.idpohon,
     localName: terpilihPohon.localname || (detailPohon?.localname ?? ""),
     species: detailPohon?.species ? String(detailPohon.species) : null,
     desaLabel,
+    lokasiSub: terpilih?.subtext || null,
     tglAdopt: s.tgl_adopt ?? null,
     memo: s.memo ?? "",
     certnum: s.certnum,
     jmlPohon: Number(s.jml_pohon) || 1,
+    durasiTahun,
     templateImage: terpilih?.imageUrl || null,
   };
 

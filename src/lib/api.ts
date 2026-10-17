@@ -619,6 +619,7 @@ export type ApiTemplateShare = {
   id: number;
   desa: string; // = desa.nama
   nama: string;
+  subtext: string; // subtext kartu lokasi (mis. nama hutan adat) — opsional
   file: string; // filename di public/assets
   imageUrl: string;
   aktif: boolean;
@@ -631,6 +632,7 @@ export function mapTemplateShare(r: Record<string, unknown>): ApiTemplateShare {
     id: Number(r.id),
     desa: String(r.desa ?? ""),
     nama: String(r.nama ?? ""),
+    subtext: String(r.subtext ?? ""),
     file,
     imageUrl: file ? `${ASSET_ORIGIN}/assets/${file}` : "",
     aktif: Number(r.aktif) === 1,
@@ -655,6 +657,7 @@ export type ApiPohonSertifikatPublik = {
 export type ApiSertifikatPublik = {
   certnum?: string | null;
   nama?: string | null;
+  nama_pengasuh?: string | null; // nama member donor (hadiah)
   memo?: string | null;
   pengasuh?: number | string | null;
   jml_pohon?: number | string | null;

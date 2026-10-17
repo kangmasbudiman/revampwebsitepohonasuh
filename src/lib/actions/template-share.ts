@@ -57,6 +57,7 @@ export async function createTemplateShare(
     const res = await apiPost<{ value?: string | number; pesan?: string }>("tambahtemplateshare", {
       desa,
       nama,
+      subtext: String(formData.get("subtext") ?? "").trim(),
       file: gambar,
       utama: bendera(formData, "utama"),
       ...(idpetugas ? { idpetugas } : {}),
@@ -96,6 +97,7 @@ export async function updateTemplateShare(
     const res = await apiPost<{ value?: string | number; pesan?: string }>("edittemplateshare", {
       id,
       nama,
+      subtext: String(formData.get("subtext") ?? "").trim(),
       file: gambar,
       utama: bendera(formData, "utama"),
       aktif: bendera(formData, "aktif"),

@@ -83,11 +83,13 @@ export default async function AdminTemplateSharePage({
           </li>
           <li>JPG/PNG/WebP, maksimal 2MB.</li>
           <li>
-            Template adalah <strong>design fill-in</strong>: header logo, 3 kartu statistik
-            (pohon/lokasi/tahun), kartu &ldquo;Pesan untuk Hutan&rdquo;, dan caption penutup
-            digambar di template; teks dinamis diisi sistem di zona tetap — nama pengadopsi
-            (script) di ±27%, subtitle ±33%, nama pohon ±40%, nilai kartu ±53%, memo di
-            ±63-71%. Sisakan zona tersebut kosong/tenang.
+            Template adalah <strong>design fill-in</strong>: header logo, garis putus,
+            3 kartu statistik (pohon/lokasi/tahun), kartu &ldquo;Pesan untuk Hutan&rdquo;,
+            dan caption penutup digambar di template; teks dinamis diisi sistem di zona
+            tetap — nama donatur di ±27%, kalimat &ldquo;Menghadiahkan pohon … untuk&rdquo;
+            di ±28-33%, nama penerima hadiah di ±39%, nilai kartu (jumlah pohon / desa +
+            subtext / durasi tahun) di ±50-56%, memo tulisan tangan di ±65-73%.
+            Sisakan zona tersebut kosong/tenang.
           </li>
           <li>Satu template per desa bisa ditandai utama — jadi pilihan awal pengadopsi.</li>
           <li>Desa tanpa template aktif memakai latar gradasi bawaan.</li>
@@ -166,7 +168,7 @@ export default async function AdminTemplateSharePage({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
-                        <TemplateSharePreview nama={tpl.nama} desa={tpl.desa} imageUrl={tpl.imageUrl} />
+                        <TemplateSharePreview nama={tpl.nama} desa={tpl.desa} imageUrl={tpl.imageUrl} subtext={tpl.subtext} />
                         <Link
                           href={`/admin/template-share/${tpl.id}/edit`}
                           className="rounded-lg border border-emerald-200 dark:border-night-700 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:hover:bg-night-800"

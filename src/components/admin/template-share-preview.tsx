@@ -5,19 +5,27 @@ import { Eye, X, ZoomIn } from "lucide-react";
 import ShareDesign, { type ShareDesignData } from "@/components/bagikan/share-design";
 import { namaDesa } from "@/lib/format";
 
-// Data contoh agar admin melihat posisi SELURUH zona teks (nama, kartu
-// pohon, memo, certnum) di atas template yang diunggah/unggahnya.
-export function sampleShareData(desa: string, imageUrl: string | null): ShareDesignData {
+// Data contoh agar admin melihat posisi SELURUH zona teks (donatur,
+// penerima, kartu statistik, memo, certnum) di atas template yang
+// diunggah/unggahnya — format hadiah sama seperti design asli.
+export function sampleShareData(
+  desa: string,
+  imageUrl: string | null,
+  subtext = "",
+): ShareDesignData {
   return {
-    nama: "Nama Pengadopsi Contoh",
+    nama: "Andi Irawan",
+    donorName: "Rahmat Hidayat",
     idpohon: "SRE052",
-    localName: "Kasiah Baranak",
+    localName: "Nyawit Merah",
     species: "Rhodoleia championii",
     desaLabel: namaDesa(desa),
+    lokasiSub: subtext,
     tglAdopt: "2026-10-17",
-    memo: "Pesan contoh untuk hutan — zona memo akan tampil di sini.",
+    memo: "Tumbuhlah subur, meneduhkan banyak orang.",
     certnum: "001/LPHD-PO/2026",
-    jmlPohon: 3,
+    jmlPohon: 8,
+    durasiTahun: 8,
     templateImage: imageUrl,
   };
 }
@@ -27,10 +35,12 @@ export function sampleShareData(desa: string, imageUrl: string | null): ShareDes
 export function ShareDesignSample({
   desa,
   imageUrl,
+  subtext = "",
   className = "w-56",
 }: {
   desa: string;
   imageUrl: string | null;
+  subtext?: string;
   className?: string;
 }) {
   const [zoom, setZoom] = useState(false);
@@ -43,7 +53,7 @@ export function ShareDesignSample({
         onClick={() => setZoom(true)}
       >
         <div data-testid="share-design">
-          <ShareDesign data={sampleShareData(desa, imageUrl)} />
+          <ShareDesign data={sampleShareData(desa, imageUrl, subtext)} />
         </div>
         <span className="pointer-events-none absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white opacity-0 shadow-lg backdrop-blur transition-opacity group-hover:opacity-100">
           <ZoomIn className="h-4 w-4" />
@@ -61,7 +71,7 @@ export function ShareDesignSample({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-[min(94vw,calc(94vh*9/16))]">
-              <ShareDesign data={sampleShareData(desa, imageUrl)} />
+              <ShareDesign data={sampleShareData(desa, imageUrl, subtext)} />
             </div>
             <button
               type="button"
@@ -87,10 +97,12 @@ export default function TemplateSharePreview({
   nama,
   desa,
   imageUrl,
+  subtext = "",
 }: {
   nama: string;
   desa: string;
   imageUrl: string | null;
+  subtext?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -144,12 +156,12 @@ export default function TemplateSharePreview({
               </button>
             </div>
             <div className="mt-4">
-              <ShareDesignSample desa={desa} imageUrl={imageUrl} className="mx-auto w-[min(340px,75vw)]" />
+              <ShareDesignSample desa={desa} imageUrl={imageUrl} subtext={subtext} className="mx-auto w-[min(340px,75vw)]" />
             </div>
             <p className="mt-4 mx-auto max-w-[min(340px,75vw)] text-center text-xs text-zinc-500 dark:text-zinc-400">
-              Klik design untuk memperbesar. Teks dinamis (nama, pohon, statistik, memo)
-              diisi di zona tetap ±27-71% tinggi — pastikan zona tersebut pada template
-              Anda tidak tertutup elemen ramai.
+              Klik design untuk memperbesar. Teks dinamis (donatur, penerima, pohon,
+              statistik, memo) diisi di zona tetap ±19-73% tinggi — pastikan zona tersebut
+              pada template Anda tidak tertutup elemen ramai.
             </p>
           </div>
         </div>

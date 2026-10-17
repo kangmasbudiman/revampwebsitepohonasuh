@@ -7,12 +7,15 @@ import { Great_Vibes } from "next/font/google";
 // Design story "Bagikan Aksi Saya" (1080×1920 — IG Story / WA Status /
 // FB Story). Dua mode:
 // 1) TEMPLATE: template desa adalah design fill-in (ada sendiri: header
-//    logo, kartu statistik berlabel, kartu "Pesan untuk Hutan", caption
-//    penutup, foto desa) — overlay HANYA mengisi zona kosongnya: nama
-//    script di garis ±27%, subtitle ±33%, nama pohon ±40%, nilai 3 kartu
-//    statistik (pohon/lokasi/tahun) ±50-56%, memo di kartu krem ±63-71%.
-//    Zona diukur dari template resmi 900×1600 (kolom kartu x tengah
-//    21.2%/50.1%/78.9%). Halo putih tipis menjaga keterbacaan bila
+//    logo, garis putus ±27%/±39%, kartu statistik berlabel "pohon"/"tahun"
+//    + kartu lokasi polos, kartu "Pesan untuk Hutan" bergaris tulis,
+//    caption penutup, foto desa) — overlay mengisi zona kosongnya dengan
+//    FORMAT HADIAH: nama donatur bold sans gelap rata kiri baseline garis
+//    ±27%, kalimat "Menghadiahkan pohon X untuk" ±28-33%, nama penerima
+//    baseline garis ±39% (adopsi mandiri: satu nama + "Telah mengasuh"),
+//    nilai kartu (jumlah / "Desa X"+subtext hutan / durasi tahun) ±50-56%,
+//    memo cursive hijau di garis tulis kartu krem ±65-73%. Zona diukur dari
+//    template resmi 900×1600. Halo putih tipis menjaga keterbacaan bila
 //    template ternyata foto polos tanpa zona putih.
 // 2) GRADIENT (tanpa template): design lengkap bawaan — band header
 //    gelap + logo, nama script, pita pohon, band footer.
@@ -28,15 +31,18 @@ const script = Great_Vibes({
 });
 
 export type ShareDesignData = {
-  nama: string;
+  nama: string; // penerima hadiah (= pengadopsi bila mandiri)
+  donorName?: string | null; // nama member donatur — format hadiah template
   idpohon: string;
   localName: string;
   species: string | null;
   desaLabel: string;
+  lokasiSub?: string | null; // subtext kartu lokasi template (mis. hutan adat)
   tglAdopt: string | null;
   memo: string | null;
   certnum: string;
   jmlPohon?: number;
+  durasiTahun?: number; // durasi adopsi (kartu "tahun" template)
   templateImage: string | null; // imageUrl template desa; null = gradient
 };
 
@@ -51,7 +57,16 @@ export function fmtTglShare(raw: string | null): string {
 }
 
 // FittedBox.scaleDown ala papan — teks menyusut agar muat satu baris.
-function FitText({ value, className }: { value: string; className?: string }) {
+// children bisa mengandung <span> bold; fitKey = teks untuk re-fit.
+function FitText({
+  children,
+  fitKey,
+  className,
+}: {
+  children: React.ReactNode;
+  fitKey?: string;
+  className?: string;
+}) {
   const ref = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     const el = ref.current;
@@ -68,10 +83,10 @@ function FitText({ value, className }: { value: string; className?: string }) {
     const ro = new ResizeObserver(fit);
     ro.observe(parent);
     return () => ro.disconnect();
-  }, [value]);
+  }, [fitKey]);
   return (
     <span ref={ref} className={`inline-block max-w-full whitespace-nowrap ${className ?? ""}`}>
-      {value}
+      {children}
     </span>
   );
 }
@@ -119,7 +134,7 @@ function DesignRoot({
   );
 }
 
-// ===== Mode TEMPLATE: hanya mengisi zona kosong design template =====
+// ===== Mode TEMPLATE: format hadiah — hanya mengisi zona kosong template =====
 function TemplateFillDesign({
   data,
   capture,
@@ -129,71 +144,133 @@ function TemplateFillDesign({
 }) {
   const memo = (data.memo ?? "").trim();
   const adaMemo = memo !== "" && memo !== "-" && memo.toLowerCase() !== "null";
-  const tahun =
-    /^(\d{4})/.exec((data.tglAdopt ?? "").trim())?.[1] ??
-    (data.certnum.split("/").pop() || "");
+  const donor = (data.donorName ?? "").trim();
+  const penerima = (data.nama ?? "").trim();
+  // Hadiah = ada donor DAN penerima yang berbeda. Adopsi mandiri (nama
+  // kosong/fallback = nama member) → cukup satu nama + "Telah mengasuh".
+  const hadiah =
+    donor !== "" &&
+    penerima !== "" &&
+    penerima.toLowerCase() !== "null" &&
+    penerima.toLowerCase() !== donor.toLowerCase();
+  const namaAtas = (hadiah ? donor : penerima) || "-";
+  const pohon = data.localName || data.idpohon || "-";
+  const durasi = data.durasiTahun && data.durasiTahun > 0 ? data.durasiTahun : 1;
+  const lokasiSub = (data.lokasiSub ?? "").trim();
+  const jml = String(data.jmlPohon ?? 1);
 
   return (
     <DesignRoot capture={capture} templateImage={data.templateImage} desaLabel={data.desaLabel}>
-      {/* Nama pengadopsi — script hijau, baseline di garis putus ±27%
-          (justify-end = teks duduk DI ATAS garisnya) */}
-      <div className="absolute inset-x-0 flex flex-col items-center justify-end text-center" style={{ top: "20%", height: "7.4%" }}>
-        <div className="w-[86%]">
-          <FitText
-            value={data.nama || "-"}
-            className={`${script.className} text-[9.5cqw] leading-[1.05] text-emerald-800 ${HALO}`}
-          />
-        </div>
-      </div>
-
-      {/* Subtitle — baseline di garis putus pendek ±33% */}
-      <div className="absolute inset-x-0 flex flex-col items-center justify-end text-center" style={{ top: "29.3%", height: "3.6%" }}>
-        <p className={`text-[2.6cqw] font-semibold text-emerald-800/90 ${HALO}`}>
-          telah mengasuh pohon
-        </p>
-      </div>
-
-      {/* Nama pohon — baseline di garis putus ±40% */}
-      <div className="absolute inset-x-0 flex flex-col items-center justify-end text-center" style={{ top: "35.7%", height: "4.5%" }}>
-        <div className="w-[86%]">
-          <FitText
-            value={(data.localName || data.idpohon || "-").toUpperCase()}
-            className={`text-[3.8cqw] font-extrabold tracking-[0.1em] text-emerald-900 ${HALO}`}
-          />
-        </div>
-      </div>
-
-      {/* Nilai 3 kartu statistik template (label & ikon sudah tercetak):
-          pohon • lokasi • tahun */}
-      {[
-        { kiri: "8.1%", lebar: "26.3%", nilai: String(data.jmlPohon ?? 1) },
-        { kiri: "35.8%", lebar: "28.7%", nilai: data.desaLabel || "-" },
-        { kiri: "65.8%", lebar: "26.3%", nilai: tahun || "-" },
-      ].map((k) => (
-        <div
-          key={k.kiri}
-          className="absolute flex items-center justify-center text-center"
-          style={{ top: "50.5%", height: "5.5%", left: k.kiri, width: k.lebar }}
+      {/* Nama donatur (hadiah) / pengadopsi (mandiri) — bold sans gelap rata
+          kiri, baseline di garis putus ±27% (justify-end = duduk di atas garis) */}
+      <div
+        className="absolute left-[9%] flex w-[82%] flex-col justify-end"
+        style={{ top: "19.5%", height: "7.5%" }}
+      >
+        <FitText
+          fitKey={namaAtas}
+          className={`text-[5.2cqw] font-extrabold leading-none text-emerald-950 ${HALO}`}
         >
-          <div className="w-full px-[2%]">
-            <FitText
-              value={k.nilai}
-              className={`text-[3.2cqw] font-extrabold text-emerald-900 ${HALO}`}
-            />
-          </div>
-        </div>
-      ))}
+          {namaAtas}
+        </FitText>
+      </div>
 
-      {/* Memo — isi kartu "Pesan untuk Hutan" (judul sudah tercetak) */}
+      {/* Kalimat pengantar — nama pohon bold, zona antara garis ±27-39% */}
+      <div className="absolute left-[9%] w-[82%]" style={{ top: "28.2%", height: "5.2%" }}>
+        <FitText
+          fitKey={pohon}
+          className={`text-[2.7cqw] font-semibold leading-tight text-emerald-900 ${HALO}`}
+        >
+          {hadiah ? (
+            <>
+              Menghadiahkan pohon{" "}
+              <span className="font-extrabold text-emerald-950">{pohon}</span> untuk
+            </>
+          ) : (
+            <>
+              Telah mengasuh pohon{" "}
+              <span className="font-extrabold text-emerald-950">{pohon}</span>
+            </>
+          )}
+        </FitText>
+      </div>
+
+      {/* Nama penerima hadiah — baseline di garis putus ±39% */}
+      {hadiah && (
+        <div
+          className="absolute left-[9%] flex w-[82%] flex-col justify-end"
+          style={{ top: "33.4%", height: "5.9%" }}
+        >
+          <FitText
+            fitKey={penerima}
+            className={`text-[4.6cqw] font-extrabold leading-none text-emerald-950 ${HALO}`}
+          >
+            {penerima}
+          </FitText>
+        </div>
+      )}
+
+      {/* Kartu 1 — jumlah pohon (label "pohon" & ikon tercetak di template) */}
+      <div
+        className="absolute flex items-center justify-center text-center"
+        style={{ top: "50.5%", height: "5.5%", left: "8.1%", width: "26.3%" }}
+      >
+        <div className="w-full px-[2%]">
+          <FitText
+            fitKey={jml}
+            className={`text-[3.2cqw] font-extrabold text-emerald-900 ${HALO}`}
+          >
+            {jml}
+          </FitText>
+        </div>
+      </div>
+
+      {/* Kartu 2 — lokasi: "Desa X" + subtext (kartu polos tanpa label) */}
+      <div
+        className="absolute flex flex-col items-center justify-center px-[2%] text-center"
+        style={{ top: "49.3%", height: "8.7%", left: "35.8%", width: "28.7%" }}
+      >
+        <FitText
+          fitKey={data.desaLabel}
+          className={`text-[2.9cqw] font-extrabold leading-tight text-emerald-900 ${HALO}`}
+        >
+          Desa {data.desaLabel || "-"}
+        </FitText>
+        {lokasiSub !== "" && (
+          <p
+            className={`mt-[0.5cqw] line-clamp-2 text-[1.7cqw] font-medium leading-tight text-emerald-800/90 ${HALO}`}
+          >
+            {lokasiSub}
+          </p>
+        )}
+      </div>
+
+      {/* Kartu 3 — durasi (label "tahun" & ikon tercetak di template) */}
+      <div
+        className="absolute flex items-center justify-center text-center"
+        style={{ top: "50.5%", height: "5.5%", left: "65.8%", width: "26.3%" }}
+      >
+        <div className="w-full px-[2%]">
+          <FitText
+            fitKey={String(durasi)}
+            className={`text-[3.2cqw] font-extrabold text-emerald-900 ${HALO}`}
+          >
+            {durasi}
+          </FitText>
+        </div>
+      </div>
+
+      {/* Memo — tulisan tangan cursive hijau di garis tulis kartu
+          "Pesan untuk Hutan" (judul sudah tercetak) */}
       {adaMemo && (
         <div
-          className="absolute flex items-center justify-center px-[8%] text-center"
-          style={{ top: "63.3%", height: "7.4%" }}
+          className="absolute inset-x-0 flex items-center justify-center px-[14%] text-center"
+          style={{ top: "64.6%", height: "8.6%" }}
         >
           <p
-            className={`line-clamp-3 text-[2.7cqw] leading-relaxed italic text-emerald-900 ${HALO}`}
+            className={`${script.className} line-clamp-3 text-[3.4cqw] leading-[1.5] text-emerald-800 ${HALO}`}
           >
-            &ldquo;{memo}&rdquo;
+            {memo}
           </p>
         </div>
       )}
@@ -247,9 +324,11 @@ function GradientDesign({
         </p>
         <div className="mt-[0.5cqw] w-[80%]">
           <FitText
-            value={data.nama || "-"}
+            fitKey={data.nama}
             className={`${script.className} text-[8cqw] leading-[1.1] text-amber-200 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]`}
-          />
+          >
+            {data.nama || "-"}
+          </FitText>
         </div>
         <p className="mt-[0.9cqw] text-[2.3cqw] font-medium text-white/95 drop-shadow">
           telah mengasuh pohon
@@ -261,9 +340,11 @@ function GradientDesign({
         <div className="w-[86%]">
           <div className="rounded-full bg-emerald-600/95 px-[6%] py-[2.2cqw] shadow-[0_10px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/25">
             <FitText
-              value={(data.localName || "-").toUpperCase()}
+              fitKey={data.localName}
               className="text-[3.1cqw] font-extrabold tracking-[0.08em] text-white"
-            />
+            >
+              {(data.localName || "-").toUpperCase()}
+            </FitText>
           </div>
         </div>
         <p className="mt-[1.6cqw] rounded-full bg-black/35 px-[2.8cqw] py-[0.6cqw] text-[1.9cqw] font-bold tracking-[0.22em] text-emerald-100 backdrop-blur-[2px]">
