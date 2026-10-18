@@ -44,14 +44,16 @@ export default async function TentangPage() {
   });
 
   const judul = data?.judul || t.fallbackJudul;
-  const deskripsiParagraf = (data?.deskripsi || t.fallbackDeskripsi)
-    .split("\n\n")
-    .map((p) => p.trim())
-    .filter(Boolean);
-  const mekanismeParagraf = (data?.mekanisme || t.fallbackMekanisme)
-    .split("\n\n")
-    .map((p) => p.trim())
-    .filter(Boolean);
+  // Normalisasi CRLF (\r\n) dari admin + pecah di tiap baris baru agar
+  // tampilan publik sama persis dengan yang dilihat admin di textarea.
+  const paragraf = (s: string) =>
+    s
+      .replace(/\r\n?/g, "\n")
+      .split(/\n+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+  const deskripsiParagraf = paragraf(data?.deskripsi || t.fallbackDeskripsi);
+  const mekanismeParagraf = paragraf(data?.mekanisme || t.fallbackMekanisme);
   const langkah =
     data && data.langkah.length > 0
       ? data.langkah.map((l) => ({ judul: l.judul, isi: l.isi }))
