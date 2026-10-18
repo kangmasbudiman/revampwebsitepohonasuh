@@ -461,6 +461,11 @@ export const dict = {
       title: "Pertanyaan Umum (FAQ)",
       heading: "Pertanyaan Umum",
       desc: "Temukan jawaban atas pertanyaan yang sering diajukan seputar program Pohon Asuh.",
+      empty: "Belum ada pertanyaan yang ditampilkan.",
+      ctaTitle: "Pertanyaan Anda belum terjawab?",
+      ctaSub: "Pelajari lebih lanjut tentang program ini atau langsung mulai mengadopsi pohon.",
+      ctaTentang: "Tentang Pohon Asuh",
+      ctaAdopsi: "Adopsi Pohon",
     },
     tentang: {
       title: "Tentang Pohon Asuh",
@@ -472,6 +477,8 @@ export const dict = {
       cta: "Adopsi Pohon Sekarang",
       ctaSub:
         "Sudah paham programnya? Pilih pohon Anda sekarang — semua pohon terdata dengan lokasi dan statusnya.",
+      faqMore: "Lihat semua pertanyaan",
+      faqLink: "Punya pertanyaan lain? Lihat FAQ",
       fallbackJudul: "Tentang Pohon Asuh",
       fallbackDeskripsi:
         "Pohon Asuh adalah program adopsi pohon yang menghubungkan donatur dengan pohon sungguhan yang tumbuh di hutan adat dan hutan desa di Provinsi Jambi, Indonesia.\n\nPohon tetap berdiri di habitat aslinya dan dirawat bersama masyarakat pengelola hutan. Melalui adopsi, Anda menanggung biaya perawatan tahunan satu pohon — dari pemantauan kesehatan, pengamanan area, hingga kegiatan restorasi — sementara masyarakat desa mendapat manfaat ekonomi langsung dari perawatan itu.\n\nSetiap pohon yang diadopsi tercatat lengkap: kode pohon, spesies, diameter, dan estimasi penyerapan karbonnya — semuanya dapat dilihat di halaman Data Pohon.",

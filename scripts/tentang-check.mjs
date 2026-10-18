@@ -88,8 +88,8 @@ ok("DB: reorder tersimpan (Kedua duluan)", dbLangkah[0][0] === "Langkah Kedua" &
 await anon.goto(`${BASE}/tentang`, { waitUntil: "networkidle" });
 const teksIsi = await anon.locator("main").textContent();
 ok("/tentang: judul admin tampil", teksIsi.includes("Tentang Pohon Asuh E2E"));
-ok("/tentang: deskripsi paragraf terpisah", (await anon.locator("main section p.whitespace-pre-line").first().textContent()).includes("Paragraf kedua"));
-ok("/tentang: mekanisme tampil", teksIsi.includes("Mekanisme uji singkat."));
+ok("/tentang: deskripsi paragraf terpisah", (await anon.locator("main p", { hasText: "Paragraf kedua" }).count()) === 1);
+ok("/tentang: mekanisme tampil sebagai kartu bernomor", teksIsi.includes("Mekanisme uji singkat."));
 const liTeks = await anon.locator("main ol li").allTextContents();
 ok("/tentang: 2 langkah urutan hasil reorder", liTeks.length === 2 && liTeks[0].includes("Langkah Kedua") && liTeks[1].includes("Langkah Pertama"),
   liTeks.map((t) => t.slice(0, 20)).join(" | "));

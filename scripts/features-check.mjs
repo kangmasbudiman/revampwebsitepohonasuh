@@ -305,7 +305,7 @@ for (let i = 0; i < (await groupBtns.count()); i++) {
 }
 const navLinks = await a.locator("aside nav a").allTextContents();
 assert(
-  navLinks.length === 25 &&
+  navLinks.length === 26 &&
     navLinks.includes("Kelola Spesies") &&
     navLinks.includes("Cerita Dampak") &&
     navLinks.includes("Testimoni & Partner") &&
@@ -313,8 +313,9 @@ assert(
     navLinks.includes("Backup Database") &&
     navLinks.includes("Template Sertifikat") &&
     navLinks.includes("Template Share") &&
-    navLinks.includes("Tentang Pohon Asuh"),
-  `sidebar admin 25 menu (termasuk Kelola Spesies, Cerita Dampak, Testimoni & Partner, Laporan Kegiatan, Backup Database, Template Sertifikat, Template Share, Tentang Pohon Asuh) — ${navLinks.length} link`,
+    navLinks.includes("Tentang Pohon Asuh") &&
+    navLinks.includes("Kelola FAQ"),
+  `sidebar admin 26 menu (termasuk Kelola Spesies, Cerita Dampak, Testimoni & Partner, Laporan Kegiatan, Backup Database, Template Sertifikat, Template Share, Tentang Pohon Asuh, Kelola FAQ) — ${navLinks.length} link`,
 );
 
 // ---- CRUD testimoni: section beranda muncul lalu hilang ----

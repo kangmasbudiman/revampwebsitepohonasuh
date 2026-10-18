@@ -8,10 +8,11 @@ datasource db {
 }
 
 model Faq {
-  id        Int    @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   question  String
   answer    String
-  sortOrder Int    @default(0)
+  sortOrder Int     @default(0)
+  aktif     Boolean @default(true)
 }
 
 model Expense {

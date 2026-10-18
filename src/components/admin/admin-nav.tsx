@@ -8,6 +8,7 @@ import {
   BadgeCheck,
   BookHeart,
   ChevronDown,
+  CircleHelp,
   Coins,
   DatabaseBackup,
   HeartHandshake,
@@ -68,6 +69,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/template-share", label: "Template Share", icon: Share2 },
       { href: "/admin/testimoni", label: "Testimoni & Partner", icon: MessageSquareQuote },
       { href: "/admin/tentang", label: "Tentang Pohon Asuh", icon: Info },
+      { href: "/admin/faq", label: "Kelola FAQ", icon: CircleHelp },
     ],
   },
   {

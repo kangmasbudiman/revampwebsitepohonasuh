@@ -461,6 +461,11 @@ export const dict: Dict = {
       title: "Frequently Asked Questions (FAQ)",
       heading: "Frequently Asked Questions",
       desc: "Find answers to commonly asked questions about the Pohon Asuh program.",
+      empty: "No questions are being shown yet.",
+      ctaTitle: "Didn't find your answer?",
+      ctaSub: "Learn more about the program or start adopting a tree right away.",
+      ctaTentang: "About Pohon Asuh",
+      ctaAdopsi: "Adopt a Tree",
     },
     tentang: {
       title: "About Pohon Asuh",
@@ -472,6 +477,8 @@ export const dict: Dict = {
       cta: "Adopt a Tree Now",
       ctaSub:
         "Already familiar with the program? Pick your tree now — every tree is listed with its location and status.",
+      faqMore: "See all questions",
+      faqLink: "Have another question? See the FAQ",
       fallbackJudul: "About Pohon Asuh",
       fallbackDeskripsi:
         "Pohon Asuh is a tree adoption program that connects donors with real trees growing in customary and village forests in Jambi Province, Indonesia.\n\nThe trees remain in their native habitat, cared for together with the local forest-managing communities. Through adoption, you cover one tree's annual care cost — from health monitoring and area protection to restoration work — while village communities gain direct economic benefits from that care.\n\nEvery adopted tree is fully recorded: tree code, species, diameter, and estimated carbon absorption — all visible on the Tree Data page.",
