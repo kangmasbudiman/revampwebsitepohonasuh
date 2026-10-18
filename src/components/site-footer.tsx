@@ -52,6 +52,7 @@ export default async function SiteFooter() {
             <li><Link href="/cerita-dampak" className="hover:text-white">{t.impactStories}</Link></li>
             <li><Link href="/keuangan" className="hover:text-white">{t.financeReport}</Link></li>
             <li><Link href="/faq" className="hover:text-white">{t.faq}</Link></li>
+            <li><Link href="/tentang" className="hover:text-white">{t.tentang}</Link></li>
           </ul>
         </div>
 

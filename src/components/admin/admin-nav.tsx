@@ -12,6 +12,7 @@ import {
   DatabaseBackup,
   HeartHandshake,
   Images,
+  Info,
   LayoutDashboard,
   LayoutTemplate,
   Leaf,
@@ -66,6 +67,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/template-sertifikat", label: "Template Sertifikat", icon: LayoutTemplate },
       { href: "/admin/template-share", label: "Template Share", icon: Share2 },
       { href: "/admin/testimoni", label: "Testimoni & Partner", icon: MessageSquareQuote },
+      { href: "/admin/tentang", label: "Tentang Pohon Asuh", icon: Info },
     ],
   },
   {

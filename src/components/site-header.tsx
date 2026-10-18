@@ -26,6 +26,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
     { href: "/kalkulator-karbon", label: dict.nav.carbonCalc },
     { href: "/lokasi", label: dict.nav.locations },
     { href: "/blog", label: dict.nav.blog },
+    { href: "/tentang", label: dict.nav.tentang },
   ];
   // Menu sekunder — dropdown "Informasi" agar bar utama tidak dempet.
   const INFO_NAV = [

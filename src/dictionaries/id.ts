@@ -23,6 +23,7 @@ export const dict = {
     carbonCalc: "Kalkulator Karbon",
     locations: "Lokasi",
     blog: "Blog & Artikel",
+    tentang: "Tentang",
     info: "Informasi",
     faq: "FAQ",
     impact: "Cerita Dampak",
@@ -51,6 +52,7 @@ export const dict = {
     financeReport: "Laporan Keuangan",
     impactStories: "Cerita Dampak",
     faq: "FAQ",
+    tentang: "Tentang Pohon Asuh",
     wa: "WA",
     phone: "Telp",
     terms: "Syarat & Ketentuan",
@@ -459,6 +461,44 @@ export const dict = {
       title: "Pertanyaan Umum (FAQ)",
       heading: "Pertanyaan Umum",
       desc: "Temukan jawaban atas pertanyaan yang sering diajukan seputar program Pohon Asuh.",
+    },
+    tentang: {
+      title: "Tentang Pohon Asuh",
+      metaDesc:
+        "Kenali program Pohon Asuh — apa itu adopsi pohon, bagaimana mekanisme dananya bekerja, dan langkah demi langkah cara mengasuh pohon.",
+      apaItuTitle: "Apa itu Pohon Asuh?",
+      mekanismeTitle: "Mekanisme Program",
+      caraTitle: "Cara Mengasuh Pohon",
+      cta: "Adopsi Pohon Sekarang",
+      ctaSub:
+        "Sudah paham programnya? Pilih pohon Anda sekarang — semua pohon terdata dengan lokasi dan statusnya.",
+      fallbackJudul: "Tentang Pohon Asuh",
+      fallbackDeskripsi:
+        "Pohon Asuh adalah program adopsi pohon yang menghubungkan donatur dengan pohon sungguhan yang tumbuh di hutan adat dan hutan desa di Provinsi Jambi, Indonesia.\n\nPohon tetap berdiri di habitat aslinya dan dirawat bersama masyarakat pengelola hutan. Melalui adopsi, Anda menanggung biaya perawatan tahunan satu pohon — dari pemantauan kesehatan, pengamanan area, hingga kegiatan restorasi — sementara masyarakat desa mendapat manfaat ekonomi langsung dari perawatan itu.\n\nSetiap pohon yang diadopsi tercatat lengkap: kode pohon, spesies, diameter, dan estimasi penyerapan karbonnya — semuanya dapat dilihat di halaman Data Pohon.",
+      fallbackMekanisme:
+        "Anda memilih pohon dari katalog, lalu membayar biaya perawatan untuk satu tahun.\n\nDana adopsi dikelola secara transparan oleh Yayasan KKI Warsi bersama LPHD (Lembaga Pengelola Hutan Desa). Sebagian besar dialirkan langsung ke masyarakat desa pengelola hutan sebagai imbal kerja perawatan dan pengamanan pohon.\n\nPetugas lapangan melakukan tagging dan pemantauan berkala — hasilnya didokumentasikan dalam Laporan Kegiatan, dan penggunaan dana dipublikasikan di Laporan Keuangan.\n\nSetelah pembayaran diverifikasi, Anda menerima sertifikat adopsi bernomor unik yang menampilkan data lengkap pohon Anda. Masa perawatan berlaku satu tahun dan dapat diperpanjang.",
+      fallbackLangkah: [
+        {
+          judul: "Pilih pohon Anda",
+          isi: "Jelajahi halaman Data Pohon atau Lokasi Hutan — filter per desa, lihat spesies, diameter, dan estimasi serapan karbon. Setiap pohon punya kode uniknya sendiri.",
+        },
+        {
+          judul: "Checkout & bayar",
+          isi: "Masukkan pohon pilihan ke keranjang, isi data diri, lalu selesaikan pembayaran melalui transfer bank atau gateway pembayaran resmi.",
+        },
+        {
+          judul: "Verifikasi admin",
+          isi: "Tim kami memverifikasi bukti pembayaran Anda — prosesnya biasanya selesai dalam beberapa hari kerja.",
+        },
+        {
+          judul: "Terima sertifikat",
+          isi: "Sertifikat adopsi bernomor unik diterbitkan atas nama Anda, lengkap dengan data pohon. Bisa diunduh, dicetak, atau dibagikan.",
+        },
+        {
+          judul: "Pantau & perpanjang",
+          isi: "Ikuti perkembangan pohon lewat laporan kegiatan petugas. Masa perawatan berlaku satu tahun — perpanjang kapan saja agar pohon tetap terawat.",
+        },
+      ],
     },
     kalkulator: {
       title: "Kalkulator Karbon",

@@ -558,6 +558,45 @@ export function mapKontak(r: Record<string, unknown>): ApiKontak {
   };
 }
 
+// Konten halaman "Tentang Pohon Asuh" (tentangpublik/tentangkonten) —
+// row tunggal + daftar langkah "cara mengasuh".
+export type ApiTentangLangkah = {
+  id?: number;
+  judul: string;
+  isi: string;
+  aktif?: number; // hanya versi konten (admin)
+};
+
+export type ApiTentang = {
+  judul: string | null;
+  deskripsi: string | null;
+  mekanisme: string | null;
+  langkah: ApiTentangLangkah[];
+};
+
+export function mapTentang(r: Record<string, unknown> | null | undefined): ApiTentang {
+  const langkah = Array.isArray(r?.langkah) ? (r?.langkah as Record<string, unknown>[]) : [];
+  return {
+    judul: r?.judul ? String(r.judul) : null,
+    deskripsi: r?.deskripsi ? String(r.deskripsi) : null,
+    mekanisme: r?.mekanisme ? String(r.mekanisme) : null,
+    langkah: langkah.map((l) => ({
+      ...(Number(l.id) ? { id: Number(l.id) } : {}),
+      judul: String(l.judul ?? ""),
+      isi: String(l.isi ?? ""),
+      ...(l.aktif !== undefined ? { aktif: Number(l.aktif) } : {}),
+    })),
+  };
+}
+
+export async function getTentangPublik(): Promise<ApiTentang> {
+  return mapTentang(await apiGet<Record<string, unknown>>("tentangpublik"));
+}
+
+export async function getTentangKonten(): Promise<ApiTentang> {
+  return mapTentang(await apiGet<Record<string, unknown>>("tentangkonten"));
+}
+
 // GET slider → hero slide beranda (satu slider untuk web & mobile).
 // DB menyimpan filename polos; endpoint mengembalikan URL prod domain —
 // rebuild dari origin API agar upload lokal langsung terlihat di dev.

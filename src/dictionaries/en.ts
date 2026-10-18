@@ -22,6 +22,7 @@ export const dict: Dict = {
     carbonCalc: "Carbon Calculator",
     locations: "Locations",
     blog: "Blog & Articles",
+    tentang: "About",
     info: "Information",
     faq: "FAQ",
     impact: "Impact Stories",
@@ -50,6 +51,7 @@ export const dict: Dict = {
     financeReport: "Financial Reports",
     impactStories: "Impact Stories",
     faq: "FAQ",
+    tentang: "About Pohon Asuh",
     wa: "WA",
     phone: "Phone",
     terms: "Terms & Conditions",
@@ -459,6 +461,44 @@ export const dict: Dict = {
       title: "Frequently Asked Questions (FAQ)",
       heading: "Frequently Asked Questions",
       desc: "Find answers to commonly asked questions about the Pohon Asuh program.",
+    },
+    tentang: {
+      title: "About Pohon Asuh",
+      metaDesc:
+        "Get to know the Pohon Asuh program — what tree adoption is, how the funding mechanism works, and how to adopt a tree, step by step.",
+      apaItuTitle: "What is Pohon Asuh?",
+      mekanismeTitle: "How the Program Works",
+      caraTitle: "How to Adopt a Tree",
+      cta: "Adopt a Tree Now",
+      ctaSub:
+        "Already familiar with the program? Pick your tree now — every tree is listed with its location and status.",
+      fallbackJudul: "About Pohon Asuh",
+      fallbackDeskripsi:
+        "Pohon Asuh is a tree adoption program that connects donors with real trees growing in customary and village forests in Jambi Province, Indonesia.\n\nThe trees remain in their native habitat, cared for together with the local forest-managing communities. Through adoption, you cover one tree's annual care cost — from health monitoring and area protection to restoration work — while village communities gain direct economic benefits from that care.\n\nEvery adopted tree is fully recorded: tree code, species, diameter, and estimated carbon absorption — all visible on the Tree Data page.",
+      fallbackMekanisme:
+        "You choose a tree from the catalog, then pay the care fee for one year.\n\nAdoption funds are managed transparently by the KKI Warsi Foundation together with the LPHD (Village Forest Management Institution). Most of it flows directly to the forest-managing village communities as compensation for tree care and protection work.\n\nField officers carry out periodic tagging and monitoring — documented in the Activity Reports — and fund usage is published in the Financial Reports.\n\nOnce your payment is verified, you receive a unique numbered adoption certificate showing your tree's complete data. The care period lasts one year and can be renewed.",
+      fallbackLangkah: [
+        {
+          judul: "Pick your tree",
+          isi: "Browse the Tree Data or Forest Locations page — filter by village, check species, diameter, and estimated carbon absorption. Every tree has its own unique code.",
+        },
+        {
+          judul: "Checkout & pay",
+          isi: "Add your chosen tree to the cart, fill in your details, then complete payment via bank transfer or an official payment gateway.",
+        },
+        {
+          judul: "Admin verification",
+          isi: "Our team verifies your payment proof — the process is usually completed within a few business days.",
+        },
+        {
+          judul: "Receive your certificate",
+          isi: "A unique numbered adoption certificate is issued in your name, complete with the tree's data. Download, print, or share it.",
+        },
+        {
+          judul: "Monitor & renew",
+          isi: "Follow the tree's progress through field officers' activity reports. The care period lasts one year — renew anytime to keep the tree cared for.",
+        },
+      ],
     },
     kalkulator: {
       title: "Carbon Calculator",
