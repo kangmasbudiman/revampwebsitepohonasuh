@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/guard";
-import { apiGet, mapLaporans, mapLokasi } from "@/lib/api";
+import {
+  apiGet,
+  getKandidatPohon,
+  mapLaporanDetail,
+  mapLaporans,
+  mapLokasi,
+  type ApiLaporanDetail,
+} from "@/lib/api";
 import LaporanForm from "@/components/admin/laporan-form";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { deleteLaporan } from "@/lib/actions/laporan";
@@ -17,11 +24,16 @@ export default async function EditLaporanPage(
   const idLaporan = Number(id);
   if (!idLaporan) notFound();
 
-  let laporan;
+  let laporan: ApiLaporanDetail | undefined;
   try {
-    laporan = mapLaporans(await apiGet<Record<string, unknown>[]>(`laporanlist?id=${idLaporan}`))[0];
+    laporan = mapLaporanDetail(await apiGet<Record<string, unknown>>(`laporandetail?id=${idLaporan}`));
   } catch {
-    notFound();
+    laporan = undefined;
+  }
+  if (!laporan) {
+    laporan = mapLaporans(await apiGet<Record<string, unknown>[]>(`laporanlist?id=${idLaporan}`))[0] as
+      | ApiLaporanDetail
+      | undefined;
   }
   if (!laporan) notFound();
   // Petugas hanya boleh membuka laporan miliknya sendiri.
@@ -35,16 +47,25 @@ export default async function EditLaporanPage(
   } catch {
     desaList = [];
   }
+  const kandidatPohon = laporan.jenis === "tagging" ? await getKandidatPohon() : [];
 
   return (
     <main className="w-full px-6 py-8 lg:px-10">
       <div className="w-full">
-        <Link
-          href="/admin/laporan"
-          className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-300"
-        >
-          ← Daftar Laporan Kegiatan
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/admin/laporan"
+            className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+          >
+            ← Daftar Laporan Kegiatan
+          </Link>
+          <Link
+            href={`/admin/laporan/${laporan.id}`}
+            className="text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+          >
+            Lihat halaman detail →
+          </Link>
+        </div>
         <h1 className="mt-3 text-xl font-bold pa-hgrad">Edit Laporan Kegiatan</h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
           {laporan.petugas || `#${laporan.idpetugas}`} · {laporan.tanggal}
@@ -67,7 +88,13 @@ export default async function EditLaporanPage(
         {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
 
         <div className="mt-5 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
-          <LaporanForm laporan={laporan} desaList={desaList} level={session.level ?? 1} />
+          <LaporanForm
+            laporan={laporan}
+            desaList={desaList}
+            level={session.level ?? 1}
+            kandidatPohon={kandidatPohon}
+            pilihanAwal={laporan.pohon?.map((p) => p.idadopsi) ?? []}
+          />
         </div>
 
         <div className="mt-6 rounded-2xl border border-red-100 bg-red-50/40 p-5 dark:border-red-900/40 dark:bg-red-950/20">

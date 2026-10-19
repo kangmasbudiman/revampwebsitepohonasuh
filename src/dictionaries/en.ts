@@ -847,6 +847,7 @@ export const dict: Dict = {
       jenis: "Activity type",
       petugas: "Officer",
       dana: "Funds used",
+      pohonTagging: "{n} trees tagged",
       hasilTitle: "Activity Results",
       galeri: "Activity Gallery",
     },

@@ -50,12 +50,14 @@ export default function AdminShell({
   level,
   userId,
   photo,
+  laporanMenunggu,
   children,
 }: {
   name: string;
   level?: number;
   userId: number;
   photo?: string | null;
+  laporanMenunggu?: number;
   children: ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -131,7 +133,7 @@ export default function AdminShell({
       </div>
       <div className="flex min-h-0 flex-1 flex-col p-4">
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <AdminNav level={level} />
+          <AdminNav level={level} laporanMenunggu={laporanMenunggu} />
         </div>
         <AdminSidebarFooter name={name} level={level} />
       </div>
@@ -181,7 +183,7 @@ export default function AdminShell({
               </div>
               <div className="flex min-h-0 flex-1 flex-col p-4">
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                  <AdminNav level={level} />
+                  <AdminNav level={level} laporanMenunggu={laporanMenunggu} />
                 </div>
                 <AdminSidebarFooter name={name} level={level} />
               </div>
@@ -308,7 +310,7 @@ export default function AdminShell({
             </div>
           </div>
           <nav className="flex items-center gap-1 overflow-x-auto border-t border-emerald-100 px-4 py-2 md:hidden dark:border-night-700">
-            <AdminNavMobile level={level} />
+            <AdminNavMobile level={level} laporanMenunggu={laporanMenunggu} />
           </nav>
         </header>
         {children}

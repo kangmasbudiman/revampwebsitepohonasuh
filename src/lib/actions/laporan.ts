@@ -42,6 +42,12 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
   const desa = String(formData.get("desa") ?? "").trim();
   const dana = String(formData.get("dana") ?? "").replace(/[^\d]/g, "");
   const hasil = String(formData.get("hasil") ?? "").trim();
+  const jabatan = String(formData.get("jabatan") ?? "").trim();
+  const tempat = String(formData.get("tempat") ?? "").trim();
+  const timTagging = String(formData.get("tim_tagging") ?? "").trim();
+  const rekeningAt = String(formData.get("rekening_at") ?? "").trim();
+  const rekeningBank = String(formData.get("rekening_bank") ?? "").trim();
+  const rekeningNorek = String(formData.get("rekening_norek") ?? "").trim();
 
   if (!JENIS_KEYS.has(jenis)) return { ok: false, error: "Jenis kegiatan tidak valid." };
   if (status !== "draft" && (!judul || !isi || !tanggal)) {
@@ -60,6 +66,12 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
     desa,
     tanggal,
     tanggal_selesai: tanggalSelesai,
+    jabatan,
+    tempat,
+    tim_tagging: timTagging,
+    rekening_at: rekeningAt,
+    rekening_bank: rekeningBank,
+    rekening_norek: rekeningNorek,
     isi,
     dana,
     hasil,
@@ -73,6 +85,7 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
       if (!boleh) return { ok: false, error: "Anda hanya bisa mengubah laporan milik sendiri." };
       const res = await apiPost<{ value?: string | number; pesan?: string }>("editlaporan", {
         id,
+        oleh: session.userId,
         ...payload,
       });
       if (Number(res.value) !== 200) {
@@ -191,7 +204,10 @@ export async function approveLaporan(formData: FormData) {
   }
 
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>("approvelaporan", { id });
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("approvelaporan", {
+      id,
+      oleh: session.userId,
+    });
     if (Number(res.value) !== 200) {
       redirect(`/admin/laporan?error=${encodeURIComponent(res.pesan ?? "Gagal menyetujui laporan.")}`);
     }
@@ -202,5 +218,156 @@ export async function approveLaporan(formData: FormData) {
 
   revalidatePath("/admin/laporan");
   revalidatePath(`/admin/laporan/${id}/edit`);
-  redirect("/admin/laporan?disetujui=1");
+  redirect(`/admin/laporan/${id}?diverifikasi=1`);
+}
+
+// Minta revisi laporan terkirim (admin saja) — kembali ke petugas dengan
+// catatan apa yang harus diperbaiki.
+export async function revisiLaporan(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/admin/laporan?error=Laporan+tidak+ditemukan");
+
+  const session = await requireAdmin();
+  if ((session.level ?? 1) !== 1) {
+    redirect("/admin/laporan?error=Hanya+admin+yang+bisa+meminta+revisi");
+  }
+  const catatan = String(formData.get("catatan") ?? "").trim();
+  if (!catatan) {
+    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("Catatan revisi wajib diisi.")}`);
+  }
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("revisilaporan", {
+      id,
+      catatan,
+      oleh: session.userId,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/laporan/${id}?error=${encodeURIComponent(res.pesan ?? "Gagal meminta revisi.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect(`/admin/laporan/${id}?error=Gagal+meminta+revisi`);
+  }
+
+  revalidatePath("/admin/laporan");
+  revalidatePath(`/admin/laporan/${id}`);
+  redirect(`/admin/laporan/${id}?revisi=1`);
+}
+
+// Simpan daftar pohon hasil tagging milik laporan (replace-set). Dipanggil
+// imperatif dari pohon picker setelah baris laporan ada (pola foto).
+export async function simpanPohonLaporan(
+  idlaporan: number,
+  idadopsi: number[],
+): Promise<FotoResult> {
+  if (!idlaporan) return { ok: false, error: "Laporan tidak ditemukan." };
+  const { laporan, boleh } = await laporanMilik(idlaporan).catch(() => ({ laporan: undefined, boleh: false }));
+  if (!laporan) return { ok: false, error: "Laporan tidak ditemukan." };
+  if (!boleh) return { ok: false, error: "Anda hanya bisa mengubah laporan milik sendiri." };
+  if (laporan.status === "disetujui") {
+    return { ok: false, error: "Laporan sudah diverifikasi — daftar pohon tidak bisa diubah." };
+  }
+
+  const fd = new FormData();
+  fd.append("idlaporan", String(idlaporan));
+  for (const id of idadopsi) fd.append("idadopsi[]", String(id));
+  try {
+    const res = await apiPostForm<{ value?: string | number; pesan?: string }>("setpohonlaporan", fd);
+    if (Number(res.value) !== 200) {
+      return { ok: false, error: res.pesan ?? "Gagal menyimpan daftar pohon." };
+    }
+  } catch {
+    return { ok: false, error: "Gagal menyimpan daftar pohon. Coba lagi." };
+  }
+  revalidatePath("/admin/laporan");
+  revalidatePath(`/admin/laporan/${idlaporan}`);
+  revalidatePath(`/admin/laporan/${idlaporan}/edit`);
+  return { ok: true };
+}
+
+// Terbitkan / perbarui Memo Pencairan (admin saja) — hanya untuk laporan
+// yang BTOR-nya sudah diverifikasi.
+export async function simpanMemo(formData: FormData) {
+  const session = await requireAdmin();
+  if ((session.level ?? 1) !== 1) {
+    redirect("/admin/laporan?error=Hanya+admin+yang+bisa+menerbitkan+memo");
+  }
+  const id = Number(formData.get("idlaporan"));
+  const memoId = Number(formData.get("id_memo")) || null;
+  if (!id) redirect("/admin/laporan?error=Laporan+tidak+ditemukan");
+
+  const { laporan } = await laporanMilik(id).catch(() => ({ laporan: undefined }));
+  if (!laporan) redirect(`/admin/laporan/${id}?error=Laporan+tidak+ditemukan`);
+  if (laporan.status !== "disetujui") {
+    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("BTOR harus diverifikasi dulu sebelum memo diterbitkan.")}`);
+  }
+
+  const jumlah = String(formData.get("jumlah") ?? "").replace(/[^\d]/g, "");
+  const penerima = String(formData.get("penerima") ?? "").trim();
+  if (!jumlah || !penerima) {
+    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("Jumlah dana dan penerima wajib diisi.")}`);
+  }
+
+  const payload = {
+    tanggal: String(formData.get("tanggal") ?? "").trim(),
+    jumlah,
+    penerima,
+    bank: String(formData.get("bank") ?? "").trim(),
+    norek: String(formData.get("norek") ?? "").trim(),
+    keperluan: String(formData.get("keperluan") ?? "").trim(),
+    ttd_nama: String(formData.get("ttd_nama") ?? "").trim(),
+    ttd_jabatan: String(formData.get("ttd_jabatan") ?? "").trim(),
+    catatan_pencairan: String(formData.get("catatan_pencairan") ?? "").trim(),
+    oleh: session.userId,
+  };
+
+  try {
+    const res = memoId
+      ? await apiPost<{ value?: string | number; pesan?: string }>("editmemo", { id: memoId, ...payload })
+      : await apiPost<{ value?: string | number; pesan?: string }>("tambahmemo", { idlaporan: id, ...payload });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/laporan/${id}?error=${encodeURIComponent(res.pesan ?? "Gagal menyimpan memo.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect(`/admin/laporan/${id}?error=Gagal+menyimpan+memo`);
+  }
+
+  revalidatePath("/admin/laporan");
+  revalidatePath(`/admin/laporan/${id}`);
+  redirect(`/admin/laporan/${id}?memo=1`);
+}
+
+// Perbarui status pencairan dana memo (admin saja).
+export async function updatePencairan(formData: FormData) {
+  const session = await requireAdmin();
+  if ((session.level ?? 1) !== 1) {
+    redirect("/admin/laporan?error=Hanya+admin+yang+bisa+memperbarui+pencairan");
+  }
+  const idlaporan = Number(formData.get("idlaporan"));
+  const idMemo = Number(formData.get("id_memo"));
+  const status = String(formData.get("status_pencairan") ?? "").trim();
+  if (!idlaporan || !idMemo || !["menunggu", "diproses", "dicairkan"].includes(status)) {
+    redirect(`/admin/laporan/${idlaporan || ""}?error=Status+pencairan+tidak+valid`);
+  }
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("editmemo", {
+      id: idMemo,
+      status_pencairan: status,
+      catatan_pencairan: String(formData.get("catatan_pencairan") ?? "").trim(),
+      oleh: session.userId,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/laporan/${idlaporan}?error=${encodeURIComponent(res.pesan ?? "Gagal memperbarui pencairan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect(`/admin/laporan/${idlaporan}?error=Gagal+memperbarui+pencairan`);
+  }
+
+  revalidatePath("/admin/laporan");
+  revalidatePath(`/admin/laporan/${idlaporan}`);
+  redirect(`/admin/laporan/${idlaporan}?pencairan=1`);
 }

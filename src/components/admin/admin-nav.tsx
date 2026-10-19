@@ -121,7 +121,17 @@ const itemCls = (active: boolean) =>
       : "text-emerald-100/80 hover:bg-white/10 hover:text-white"
   }`;
 
-export default function AdminNav({ level }: { level?: number }) {
+// Badge jumlah item butuh perhatian pada baris menu (sidebar selalu gelap).
+const badgeCls =
+  "ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-[10px] font-bold leading-none text-emerald-950";
+
+export default function AdminNav({
+  level,
+  laporanMenunggu,
+}: {
+  level?: number;
+  laporanMenunggu?: number;
+}) {
   const pathname = usePathname();
   // Grup yang memuat halaman aktif terbuka secara bawaan; sisanya collapsed.
   const [open, setOpen] = useState<Record<string, boolean>>(() =>
@@ -174,6 +184,11 @@ export default function AdminNav({ level }: { level?: number }) {
                   >
                     <NavIcon item={item} active={isActive(item.href, pathname)} />
                     {item.label}
+                    {item.href === "/admin/laporan" && !!laporanMenunggu && (
+                      <span className={badgeCls} data-testid="nav-badge-laporan">
+                        {laporanMenunggu > 99 ? "99+" : laporanMenunggu}
+                      </span>
+                    )}
                   </Link>
                 ))}
               </nav>
@@ -221,7 +236,13 @@ export function AdminSidebarFooter({ name, level }: { name: string; level?: numb
 }
 
 // Versi chip horizontal untuk layar kecil (tanpa judul grup).
-export function AdminNavMobile({ level }: { level?: number }) {
+export function AdminNavMobile({
+  level,
+  laporanMenunggu,
+}: {
+  level?: number;
+  laporanMenunggu?: number;
+}) {
   const pathname = usePathname();
 
   const items = level === 2 ? ALL_ITEMS.filter((i) => PETUGAS_HREFS.has(i.href)) : ALL_ITEMS;
@@ -242,6 +263,11 @@ export function AdminNavMobile({ level }: { level?: number }) {
           >
             <Icon className="h-3.5 w-3.5" />
             {item.label}
+            {item.href === "/admin/laporan" && level !== 2 && !!laporanMenunggu && (
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-[9px] font-bold leading-none text-emerald-950">
+                {laporanMenunggu > 99 ? "99+" : laporanMenunggu}
+              </span>
+            )}
           </Link>
         );
       })}

@@ -1225,21 +1225,84 @@ export const LAPORAN_JENIS_LABEL: Record<string, string> = Object.fromEntries(
 
 export type ApiLaporanFoto = { id: number; url: string };
 
+export type ApiLaporanMemo = {
+  id: number;
+  nomor: string;
+  tanggal: string;
+  jumlah: number;
+  penerima: string;
+  bank: string;
+  norek: string;
+  keperluan: string;
+  ttdNama: string;
+  ttdJabatan: string;
+  statusPencairan: string;
+  catatanPencairan: string;
+  createdAt: string;
+};
+
+function mapMemo(r: Record<string, unknown> | null | undefined): ApiLaporanMemo | null {
+  if (!r) return null;
+  return {
+    id: Number(r.id ?? 0),
+    nomor: String(r.nomor ?? ""),
+    tanggal: String(r.tanggal ?? ""),
+    jumlah: Number(r.jumlah ?? 0),
+    penerima: String(r.penerima ?? ""),
+    bank: String(r.bank ?? ""),
+    norek: String(r.norek ?? ""),
+    keperluan: String(r.keperluan ?? ""),
+    ttdNama: String(r.ttd_nama ?? ""),
+    ttdJabatan: String(r.ttd_jabatan ?? ""),
+    statusPencairan: String(r.status_pencairan ?? "menunggu"),
+    catatanPencairan: String(r.catatan_pencairan ?? ""),
+    createdAt: String(r.created_at ?? ""),
+  };
+}
+
+export type ApiLaporanPohon = {
+  idadopsi: number;
+  idpohon: string;
+  invoice: string;
+  donatur: string;
+  desa: string;
+  localname: string;
+  species: string;
+  jmlFoto: number;
+  tglTagging: string | null;
+};
+
+export type ApiLaporanRiwayat = { aksi: string; catatan: string; oleh: string; waktu: string };
+
 export type ApiLaporan = {
   id: number;
   idpetugas: number;
   petugas: string;
+  jabatan: string;
   judul: string;
   jenis: string;
   desa: string;
   tanggal: string;
   tanggalSelesai: string;
+  tempat: string;
+  timTagging: string;
+  rekeningAt: string;
+  rekeningBank: string;
+  rekeningNorek: string;
   isi: string;
   dana: number | null;
   hasil: string;
   status: string;
+  catatanRevisi: string;
   createdAt: string;
+  jmlPohon: number;
+  memo: ApiLaporanMemo | null;
   foto: ApiLaporanFoto[];
+};
+
+export type ApiLaporanDetail = ApiLaporan & {
+  pohon: ApiLaporanPohon[];
+  riwayat: ApiLaporanRiwayat[];
 };
 
 export function mapLaporans(rows: Record<string, unknown>[]): ApiLaporan[] {
@@ -1247,18 +1310,27 @@ export function mapLaporans(rows: Record<string, unknown>[]): ApiLaporan[] {
     id: Number(r.id),
     idpetugas: Number(r.idpetugas) || 0,
     petugas: String(r.petugas ?? ""),
+    jabatan: String(r.jabatan ?? ""),
     judul: String(r.judul ?? ""),
     jenis: String(r.jenis ?? "lainnya"),
     desa: String(r.desa ?? ""),
     tanggal: String(r.tanggal ?? ""),
     tanggalSelesai: String(r.tanggal_selesai ?? ""),
+    tempat: String(r.tempat ?? ""),
+    timTagging: String(r.tim_tagging ?? ""),
+    rekeningAt: String(r.rekening_at ?? ""),
+    rekeningBank: String(r.rekening_bank ?? ""),
+    rekeningNorek: String(r.rekening_norek ?? ""),
     isi: String(r.isi ?? ""),
     dana: r.dana === null || r.dana === undefined || r.dana === "" ? null : Number(r.dana),
     hasil: String(r.hasil ?? ""),
-    status: ["draft", "disetujui"].includes(String(r.status ?? ""))
+    status: ["draft", "disetujui", "revisi"].includes(String(r.status ?? ""))
       ? String(r.status)
       : "terkirim",
+    catatanRevisi: String(r.catatan_revisi ?? ""),
     createdAt: String(r.created_at ?? ""),
+    jmlPohon: Number(r.jml_pohon ?? 0),
+    memo: mapMemo(r.memo as Record<string, unknown> | null | undefined),
     foto: Array.isArray(r.foto)
       ? (r.foto as Record<string, unknown>[])
           .map((f) => ({
@@ -1268,6 +1340,35 @@ export function mapLaporans(rows: Record<string, unknown>[]): ApiLaporan[] {
           .filter((f) => f.url !== "")
       : [],
   }));
+}
+
+// laporandetail → satu laporan lengkap (BTOR + pohon + memo + riwayat)
+// untuk halaman periksa admin/petugas.
+export function mapLaporanDetail(r: Record<string, unknown>): ApiLaporanDetail {
+  return {
+    ...mapLaporans([r])[0],
+    pohon: Array.isArray(r.pohon)
+      ? (r.pohon as Record<string, unknown>[]).map((p) => ({
+          idadopsi: Number(p.idadopsi ?? 0),
+          idpohon: String(p.idpohon ?? ""),
+          invoice: String(p.invoice ?? ""),
+          donatur: String(p.donatur ?? ""),
+          desa: String(p.desa ?? ""),
+          localname: String(p.localname ?? p.idpohon ?? ""),
+          species: String(p.species ?? ""),
+          jmlFoto: Number(p.jml_foto ?? 0),
+          tglTagging: p.tgl_tagging ? String(p.tgl_tagging) : null,
+        }))
+      : [],
+    riwayat: Array.isArray(r.riwayat)
+      ? (r.riwayat as Record<string, unknown>[]).map((h) => ({
+          aksi: String(h.aksi ?? ""),
+          catatan: String(h.catatan ?? ""),
+          oleh: String(h.oleh ?? ""),
+          waktu: String(h.waktu ?? ""),
+        }))
+      : [],
+  };
 }
 
 // partnerlist → section "Didukung Oleh" beranda. Endpoint membalas logo
@@ -1386,4 +1487,27 @@ export function mapPembayaranRows(res: {
         : null,
     };
   });
+}
+
+// Kandidat pohon "sudah ditagging" untuk picker Laporan Kegiatan jenis
+// tagging (laporan ↔ pohon hasil tagging dipilih manual petugas).
+export type ApiKandidatPohon = {
+  idadopsi: number;
+  idpohon: string;
+  localname: string;
+  desa: string;
+  donatur: string;
+  tglTagging: string | null;
+};
+
+export async function getKandidatPohon(): Promise<ApiKandidatPohon[]> {
+  const res = await apiGet<{ value?: number; data?: Record<string, unknown>[] }>("pembayaranlist");
+  return mapPembayaranRows(res).map((r) => ({
+    idadopsi: r.idadopsi,
+    idpohon: r.idpohon,
+    localname: r.localname,
+    desa: r.desa,
+    donatur: r.nama,
+    tglTagging: r.tglTagging,
+  }));
 }
