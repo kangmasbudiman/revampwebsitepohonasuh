@@ -133,6 +133,9 @@ export async function buatBtorPdf(
   const valueW = W - M * 2 - labelW;
   const xV = M + labelW + 8;
   const LH = 13;
+  // Jeda antarparagraf — ukurParas & gambarParas wajib memakai nilai sama
+  // agar tinggi baris tabel akurat.
+  const GAP = 7;
 
   const ukurParas = (paras: Paragraf[]): number => {
     let tinggi = 0;
@@ -146,9 +149,9 @@ export async function buatBtorPdf(
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       const lines = doc.splitTextToSize(p.text || " ", valueW - 14 - prefixW) as string[];
-      tinggi += lines.length * LH + 5;
+      tinggi += lines.length * LH + GAP;
     }
-    return Math.max(tinggi - 5, LH);
+    return Math.max(tinggi - GAP, LH);
   };
 
   const gambarParas = (paras: Paragraf[], yStart: number): number => {
@@ -166,9 +169,9 @@ export async function buatBtorPdf(
       const lines = doc.splitTextToSize(p.text || " ", valueW - 14 - prefixW) as string[];
       doc.text(lines[0] ?? "", xV + prefixW, ty);
       if (lines.length > 1) doc.text(lines.slice(1), xV, ty + LH);
-      ty += lines.length * LH + 5;
+      ty += lines.length * LH + GAP;
     }
-    return ty - 5;
+    return ty - GAP;
   };
 
   doc.setDrawColor(120);
@@ -188,22 +191,23 @@ export async function buatBtorPdf(
     y += rowH;
   }
 
-  // Tanda tangan petugas di kanan bawah.
-  if (y > 620) {
+  // Tanda tangan petugas mengalir setelah tabel — pindah halaman hanya bila
+  // sisa ruang tak cukup untuk blok tanda tangan utuh.
+  if (y + 130 > 790) {
     doc.addPage();
     y = M;
   }
-  y = Math.max(y + 40, 640);
+  y += 48;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(`Lunang, ${fmtTanggal(laporan.tanggalSelesai || laporan.tanggal)}`, W - M - 160, y);
+  doc.text(`Lunang, ${fmtTanggal(laporan.tanggalSelesai || laporan.tanggal)}`, W - M, y, { align: "right" });
   y += 46;
   doc.setFont("helvetica", "bold");
-  doc.text(laporan.petugas || "-", W - M - 160, y);
+  doc.text(laporan.petugas || "-", W - M, y, { align: "right" });
   y += 12;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(laporan.jabatan || "Petugas", W - M - 160, y);
+  doc.text(laporan.jabatan || "Petugas", W - M, y, { align: "right" });
 
   // Lampiran foto dokumentasi — grid 2 kolom per halaman. Foto hasil
   // tagging per pohon (caption kode pohon) didahulukan, foto kegiatan
@@ -265,6 +269,17 @@ export async function buatBtorPdf(
       kolom = kolom === 1 ? 0 : 1;
     }
   }
+
+  // Nomor halaman di semua halaman (utama + lampiran).
+  const jmlHal = doc.getNumberOfPages();
+  for (let i = 1; i <= jmlHal; i++) {
+    doc.setPage(i);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(130);
+    doc.text(`Halaman ${i} dari ${jmlHal}`, W / 2, 815, { align: "center" });
+  }
+  doc.setTextColor(20);
 
   return doc;
 }
