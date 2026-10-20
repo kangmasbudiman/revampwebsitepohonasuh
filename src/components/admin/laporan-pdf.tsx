@@ -42,6 +42,24 @@ async function muatFotoJpeg(url: string): Promise<{ data: string; rasio: number 
   }
 }
 
+// Logo Pohon Asuh untuk kop PDF (PNG same-origin). Null bila gagal dimuat —
+// kop tetap tersusun tanpa logo.
+async function muatLogo(): Promise<string | null> {
+  try {
+    const res = await fetch("/images/logo_icon.png");
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result));
+      fr.onerror = () => resolve(null);
+      fr.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 // Paragraf catatan per hari: heading tanggal di awal paragraf ("08 April:")
 // digambar bold inline, sisanya normal — mengikuti lembar BTOR asli.
 // horizontal: usahakan muat satu baris — font mengecil bertahap — dipakai
@@ -81,13 +99,16 @@ export async function buatBtorPdf(
   const M = 48;
   let y = M;
 
+  const logo = await muatLogo();
+  if (logo) doc.addImage(logo, "PNG", M, y - 14, 36, 36);
+  const xKop = logo ? M + 44 : M;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
-  doc.text("POHON ASUH", M, y);
+  doc.text("POHON ASUH", xKop, y);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(110);
-  doc.text("Laporan Kegiatan Petugas Tagging", M, y + 14);
+  doc.text("Laporan Kegiatan Petugas Tagging", xKop, y + 14);
   doc.setDrawColor(30, 92, 63);
   doc.setLineWidth(2);
   doc.line(M, y + 24, W - M, y + 24);
@@ -211,7 +232,7 @@ export async function buatBtorPdf(
   y += 48;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(`Lunang, ${fmtTanggal(laporan.tanggalSelesai || laporan.tanggal)}`, W - M, y, { align: "right" });
+  doc.text(`${laporan.desa || "Lunang"}, ${fmtTanggal(laporan.tanggalSelesai || laporan.tanggal)}`, W - M, y, { align: "right" });
   y += 46;
   doc.setFont("helvetica", "bold");
   doc.text(laporan.petugas || "-", W - M, y, { align: "right" });
