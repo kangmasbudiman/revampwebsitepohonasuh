@@ -44,7 +44,9 @@ async function muatFotoJpeg(url: string): Promise<{ data: string; rasio: number 
 
 // Paragraf catatan per hari: heading tanggal di awal paragraf ("08 April:")
 // digambar bold inline, sisanya normal — mengikuti lembar BTOR asli.
-type Paragraf = { prefix?: string; text: string };
+// horizontal: usahakan muat satu baris — font mengecil bertahap — dipakai
+// daftar nama tim (3 orang atau lebih) agar tidak turun ke bawah.
+type Paragraf = { prefix?: string; text: string; horizontal?: boolean };
 
 function paragrafCatatan(isi: string): Paragraf[] {
   const paras = isi
@@ -121,7 +123,7 @@ export async function buatBtorPdf(
     { label: "Rekening LPHN", paras: [{ text: rekening || "-" }] },
     {
       label: "Tim Tagging",
-      paras: [{ text: (laporan.timTagging || "-").replace(/\n/g, ", ") }],
+      paras: [{ text: (laporan.timTagging || "-").replace(/\r\n?/g, ", "), horizontal: true }],
     },
     { label: "Catatan Penting", paras: paragrafCatatan(laporan.isi) },
   ];
@@ -136,6 +138,15 @@ export async function buatBtorPdf(
   // Jeda antarparagraf — ukurParas & gambarParas wajib memakai nilai sama
   // agar tinggi baris tabel akurat.
   const GAP = 7;
+  // Ukuran font terbesar yang membuat teks muat satu baris (batas bawah 8pt).
+  const ukuranMuat = (teks: string, maxW: number): number => {
+    for (let u = 10; u >= 8; u -= 0.5) {
+      doc.setFontSize(u);
+      if (doc.getTextWidth(teks) <= maxW) return u;
+    }
+    doc.setFontSize(8);
+    return 8;
+  };
 
   const ukurParas = (paras: Paragraf[]): number => {
     let tinggi = 0;
@@ -147,7 +158,7 @@ export async function buatBtorPdf(
         prefixW = doc.getTextWidth(`${p.prefix} `);
       }
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
+      doc.setFontSize(p.horizontal ? ukuranMuat(p.text || " ", valueW - 14 - prefixW) : 10);
       const lines = doc.splitTextToSize(p.text || " ", valueW - 14 - prefixW) as string[];
       tinggi += lines.length * LH + GAP;
     }
@@ -165,7 +176,7 @@ export async function buatBtorPdf(
         doc.text(p.prefix, xV, ty);
       }
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
+      doc.setFontSize(p.horizontal ? ukuranMuat(p.text || " ", valueW - 14 - prefixW) : 10);
       const lines = doc.splitTextToSize(p.text || " ", valueW - 14 - prefixW) as string[];
       doc.text(lines[0] ?? "", xV + prefixW, ty);
       if (lines.length > 1) doc.text(lines.slice(1), xV, ty + LH);
