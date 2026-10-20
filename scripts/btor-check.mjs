@@ -120,7 +120,17 @@ await a.fill('textarea[name="tim_tagging"]', "Saprudin\nJal\nYus");
 await a.fill('input[name="rekening_at"]', "LPHN Pondok Parian (E2E)");
 await a.fill('input[name="rekening_bank"]', "BRI");
 await a.fill('input[name="rekening_norek"]', NOREK);
-await a.fill('textarea[name="isi"]', "08 April: perjalanan dan mendirikan camp di Pondok Parian.\n09 April: tagging 65 pohon bersama tim kelompok tani.");
+// editor timeline: 2 entri bertanggal → serialisasi "08 April: …\n09 April: …"
+await a.click('[data-testid="tambah-hari"]');
+await a.fill('[data-testid="entri-tanggal-0"]', `${new Date().getFullYear()}-04-08`);
+await a.fill('[data-testid="entri-teks-0"]', "perjalanan dan mendirikan camp di Pondok Parian.");
+await a.click('[data-testid="tambah-hari"]');
+await a.fill('[data-testid="entri-tanggal-1"]', `${new Date().getFullYear()}-04-09`);
+await a.fill('[data-testid="entri-teks-1"]', "tagging 65 pohon bersama tim kelompok tani.");
+ok(
+  "form: entri terurut naik by tanggal (08 sebelum 09)",
+  (await a.locator('[data-testid="entri-tanggal-0"]').inputValue()) < (await a.locator('[data-testid="entri-tanggal-1"]').inputValue()),
+);
 await a.fill('input[name="dana"]', "1500000");
 await a.fill('textarea[name="hasil"]', "65 pohon tertandai papan nama; 3 anggota kelompok tani terlatih.");
 

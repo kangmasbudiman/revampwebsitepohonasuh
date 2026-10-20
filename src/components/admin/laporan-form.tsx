@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -24,6 +24,11 @@ import {
 import { LAPORAN_JENIS, type ApiLaporan } from "@/lib/api";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
 import LaporanPohonPicker, { type KandidatPohon } from "@/components/admin/laporan-pohon-picker";
+import LaporanCatatanEditor, {
+  parseIsi,
+  serializeEntri,
+  type CatatanEntri,
+} from "@/components/admin/laporan-catatan-editor";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40";
@@ -91,7 +96,10 @@ export default function LaporanForm({
 
   const [jenis, setJenis] = useState(laporan?.jenis ?? "tagging");
   const [terpilihPohon, setTerpilihPohon] = useState<number[]>(pilihanAwal);
-  const [isi, setIsi] = useState(laporan?.isi ?? "");
+  const [entri, setEntri] = useState<CatatanEntri[]>(() =>
+    parseIsi(laporan?.isi ?? "", Number((laporan?.tanggal ?? new Date().toISOString()).slice(0, 4))),
+  );
+  const isi = useMemo(() => serializeEntri(entri), [entri]);
   const [hasil, setHasil] = useState(laporan?.hasil ?? "");
   const [dana, setDana] = useState(laporan?.dana ? String(Math.round(laporan.dana)) : "");
   const [staged, setStaged] = useState<Staged[]>([]);
@@ -441,21 +449,9 @@ export default function LaporanForm({
           </>
         )}
 
-        <Step n={++n} title="Ceritakan kegiatan" helper="Tuliskan apa yang dikerjakan selama kegiatan.">
-          <textarea
-            name="isi"
-            rows={4}
-            maxLength={500}
-            value={isi}
-            onChange={(e) => setIsi(e.target.value)}
-            placeholder="Siapa yang terlibat, di mana dilakukan, dan apa saja yang dikerjakan…"
-            className={inputClass}
-          />
-          <p className="mt-1 text-right text-xs text-zinc-400">{isi.length}/500</p>
-          <Contoh>
-            Boleh per hari — mis. “08 April: perjalanan dan mendirikan camp. 09 April: tagging 65
-            pohon.”
-          </Contoh>
+        <Step n={++n} title="Ceritakan kegiatan" helper="Catat per hari — klik Tambah Hari, pilih tanggal, lalu tulis uraiannya.">
+          <input type="hidden" name="isi" value={isi} />
+          <LaporanCatatanEditor value={entri} onChange={setEntri} maxTotal={500} />
         </Step>
 
         <Step n={++n} title="Berapa dana yang digunakan?" helper="Perkiraan total belanja untuk kegiatan ini.">

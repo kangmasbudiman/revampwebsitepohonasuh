@@ -67,7 +67,8 @@ assert((await p.locator("ol > li").count()) === 10, "form 10 langkah bernomor ta
 await p.fill('form input[name="judul"]', JUDUL);
 await p.selectOption('form select[name="jenis"]', "pemantauan");
 await p.fill('form input[name="tanggal"]', HARI);
-await p.fill('form textarea[name="isi"]', "Smoke test laporan kegiatan produksi.");
+await p.click('[data-testid="tambah-hari"]');
+await p.fill('[data-testid="entri-teks-0"]', "Smoke test laporan kegiatan produksi.");
 await p.setInputFiles('form input[type=file][accept^="image"]', {
   name: "uji-laporan.png", mimeType: "image/png",
   buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64"),
