@@ -6,6 +6,7 @@ import Image from "next/image";
 import { CalendarDays, Camera, Coins, FileText, MapPin, NotebookPen, Search, UserRound } from "lucide-react";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import LaporanFotoPopup from "@/components/admin/laporan-foto-popup";
+import { LihatBtorButton } from "@/components/admin/laporan-pdf";
 import { deleteLaporan, approveLaporan } from "@/lib/actions/laporan";
 import { LAPORAN_JENIS, LAPORAN_JENIS_LABEL, type ApiLaporan, type ApiLaporanFoto } from "@/lib/api";
 import { namaDesa, rupiah } from "@/lib/format";
@@ -304,6 +305,13 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
+                        {isAdmin && (
+                          <LihatBtorButton
+                            laporan={r}
+                            label="BTOR"
+                            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"
+                          />
+                        )}
                         <Link
                           href={`/admin/laporan/${r.id}/edit`}
                           className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"
@@ -401,6 +409,13 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                   </div>
                 )}
                 <div className="mt-3 flex gap-2">
+                  {isAdmin && (
+                    <LihatBtorButton
+                      laporan={r}
+                      label="BTOR"
+                      className="flex-1 rounded-lg border border-emerald-200 px-3 py-2 text-center text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"
+                    />
+                  )}
                   <Link
                     href={`/admin/laporan/${r.id}/edit`}
                     className="flex-1 rounded-lg border border-emerald-200 px-3 py-2 text-center text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"

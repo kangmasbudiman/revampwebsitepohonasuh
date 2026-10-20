@@ -286,6 +286,26 @@ export async function simpanPohonLaporan(
   return { ok: true };
 }
 
+// Foto hasil tagging satu pohon (endpoint lihatfototaging, query per
+// idpohon → seluruh riwayat foto pohon). Dipanggil lazy dari halaman
+// detail saat galeri pohon dibuka.
+export async function ambilFotoTaggingPohon(
+  idpohon: string,
+): Promise<{ ok: boolean; foto?: { id: number; url: string }[]; error?: string }> {
+  await requireAdmin();
+  try {
+    const fd = new FormData();
+    fd.append("idpohon", idpohon);
+    const rows = await apiPostForm<{ urlGambar?: string }[]>("lihatfototaging", fd);
+    const foto = rows
+      .map((r, i) => ({ id: i + 1, url: String(r.urlGambar ?? "").trim() }))
+      .filter((f) => f.url !== "");
+    return { ok: true, foto };
+  } catch {
+    return { ok: false, error: "Gagal memuat foto tagging. Coba lagi." };
+  }
+}
+
 // Terbitkan / perbarui Memo Pencairan (admin saja) — hanya untuk laporan
 // yang BTOR-nya sudah diverifikasi.
 export async function simpanMemo(formData: FormData) {

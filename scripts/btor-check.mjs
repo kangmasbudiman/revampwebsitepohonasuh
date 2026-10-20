@@ -70,8 +70,20 @@ const infoPicker = (await a.locator('[data-testid="picker-info"]').textContent()
 const jmlKandidat = Number(infoPicker.match(/^(\d+)/)?.[1] ?? 0);
 ok("form: picker memuat kandidat pohon hasil tagging", jmlKandidat > 0, `${jmlKandidat} kandidat`);
 const cek = a.locator("li:has(input[type=checkbox]) input[type=checkbox]");
-await cek.nth(0).check();
-await cek.nth(1).check();
+// Pilih 2 kandidat yang punya foto hasil tagging — dipakai menguji galeri
+// foto tagging di halaman detail.
+const plResp = await (await fetch(`${API}/pembayaranlist`)).json();
+const plRows = Array.isArray(plResp) ? plResp : (plResp.data ?? []);
+const berfoto = plRows.filter((k) => Number(k.jml_foto ?? 0) > 0).slice(0, 2);
+if (berfoto.length < 2) throw new Error("butuh minimal 2 kandidat pohon berfoto tagging");
+const liSemua = a.locator("li:has(input[type=checkbox])");
+const nLi = await liSemua.count();
+for (let i = 0; i < nLi; i++) {
+  const kode = ((await liSemua.nth(i).locator("span.font-mono").first().textContent()) ?? "").trim();
+  if (berfoto.some((k) => String(k.idpohon) === kode)) {
+    await liSemua.nth(i).locator("input[type=checkbox]").check();
+  }
+}
 ok("form: 2 pohon dipilih", ((await a.locator('[data-testid="picker-terpilih"]').textContent()) ?? "").includes("2 pohon dipilih"));
 
 await a.fill('textarea[name="isi"]', "08 April: perjalanan dan mendirikan camp di Pondok Parian.\n09 April: tagging 65 pohon bersama tim kelompok tani.");
@@ -108,9 +120,28 @@ ok("detail: stepper tahap 2 belum", !(await stepDone(2)));
 ok("detail: info strip memuat tempat BTOR", (await a.locator("main").textContent()).includes(TEMPAT));
 ok("detail: aksi Verifikasi BTOR tampil", (await a.locator('button:has-text("Verifikasi BTOR")').count()) === 1);
 ok("detail: aksi Minta Revisi tampil", (await a.locator('summary:has-text("Minta Revisi")').count()) === 1);
+ok("detail: tombol Lihat BTOR tampil", (await a.locator('[data-testid="lihat-btor"]').count()) === 1);
+{
+  const [pdfTab] = await Promise.all([
+    adminCtx.waitForEvent("page", { timeout: 15000 }),
+    a.click('[data-testid="lihat-btor"]'),
+  ]);
+  ok("detail: pratinjau BTOR (PDF) terbuka di tab baru", Boolean(pdfTab));
+  await pdfTab?.close();
+}
 ok("detail: 5 tab tersedia", (await a.locator('[data-testid="laporan-tabs"] [role=tab]').count()) === 5);
 ok("detail: tab Ringkasan jumlah pohon", ((await a.locator('[data-testid="detail-jml-pohon"]').textContent()) ?? "").trim() === "2 pohon");
 ok("detail: dana terformat", ((await a.locator('[data-testid="detail-dana"]').textContent()) ?? "").includes("1.500.000"));
+
+// Galeri foto hasil tagging pohon (admin periksa bukti tagging per pohon).
+await a.locator('[data-testid="lihat-foto-tagging"]').first().click();
+await a.waitForSelector('[data-testid="popup-foto-laporan"]', { timeout: 15000 });
+ok(
+  "detail: counter galeri foto tagging aktif",
+  ((await a.locator('[data-testid="popup-foto-counter"]').textContent()) ?? "").includes("1 /"),
+);
+await a.keyboard.press("Escape");
+ok("detail: galeri foto tagging tertutup", (await a.locator('[data-testid="popup-foto-laporan"]').count()) === 0);
 
 await a.click('button[role=tab]:has-text("Memo")');
 ok("detail: tab Memo empty state sebelum verifikasi", (await a.locator('[data-testid="tab-panel-memo"]').textContent()).includes("setelah BTOR diverifikasi"));
@@ -201,6 +232,14 @@ ok("publik: data finansial (rekening) tidak bocor", !publikTeks.includes(NOREK))
 
 // ===== 12. Cleanup: hapus laporan uji =====
 await a.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
+{
+  const [pdfTab] = await Promise.all([
+    adminCtx.waitForEvent("page", { timeout: 15000 }),
+    a.locator(`tr:has-text("${JUDUL}") [data-testid="lihat-btor"]`).first().click(),
+  ]);
+  ok("tabel: tombol BTOR buka pratinjau di tab baru", Boolean(pdfTab));
+  await pdfTab?.close();
+}
 await a.locator(`tr:has-text("${JUDUL}") button:has-text("Hapus")`).first().click();
 await a.locator("[data-confirm-submit]").click();
 await a.waitForURL(/\?deleted=1/, { timeout: 30000 });

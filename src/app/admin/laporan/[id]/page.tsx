@@ -25,8 +25,9 @@ import {
 import { namaDesa, rupiah } from "@/lib/format";
 import LaporanGaleri from "@/components/laporan-galeri";
 import LaporanDetailTabs from "@/components/admin/laporan-detail-tabs";
-import LaporanPdfButton from "@/components/admin/laporan-pdf";
+import LaporanPdfButton, { LihatBtorButton } from "@/components/admin/laporan-pdf";
 import MemoForm from "@/components/admin/memo-form";
+import PohonFotoTaggingButton from "@/components/admin/pohon-foto-tagging-button";
 import MemoPdfButton from "@/components/admin/memo-pdf";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { approveLaporan, revisiLaporan, updatePencairan } from "@/lib/actions/laporan";
@@ -233,7 +234,7 @@ export default async function DetailLaporanPage(props: Props) {
                       <th className="pb-2 pr-4 font-semibold">Pohon</th>
                       <th className="pb-2 pr-4 font-semibold">Desa</th>
                       <th className="pb-2 pr-4 font-semibold">Donatur</th>
-                      <th className="pb-2 font-semibold">Foto Tagging</th>
+                      <th className="pb-2 font-semibold">Hasil Tagging</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
@@ -253,10 +254,21 @@ export default async function DetailLaporanPage(props: Props) {
                         </td>
                         <td className="py-2.5 pr-4 text-zinc-600 dark:text-zinc-400">{p.donatur || "—"}</td>
                         <td className="py-2.5 text-zinc-600 dark:text-zinc-400">
-                          <span className="inline-flex items-center gap-1">
-                            <Camera className="h-3.5 w-3.5" />
-                            {p.jmlFoto}
-                          </span>
+                          {p.jmlFoto > 0 ? (
+                            <PohonFotoTaggingButton
+                              idpohon={p.idpohon}
+                              jml={p.jmlFoto}
+                              label={`${p.idpohon} · ${p.localname}`}
+                            />
+                          ) : (
+                            <span
+                              className="inline-flex items-center gap-1"
+                              title="Belum ada foto hasil tagging untuk pohon ini"
+                            >
+                              <Camera className="h-3.5 w-3.5" />
+                              0
+                            </span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -509,6 +521,7 @@ export default async function DetailLaporanPage(props: Props) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <LihatBtorButton laporan={laporan} />
           <LaporanPdfButton laporan={laporan} />
           {(isAdmin || laporan.idpetugas === session.userId) && laporan.status !== "disetujui" && (
             <Link
