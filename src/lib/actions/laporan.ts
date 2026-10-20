@@ -3,7 +3,16 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/guard";
-import { apiGet, apiPost, apiPostForm, mapLaporans, LAPORAN_JENIS, type ApiLaporan } from "@/lib/api";
+import {
+  apiAssetUrl,
+  apiGet,
+  apiPost,
+  apiPostForm,
+  mapLaporanDetail,
+  mapLaporans,
+  LAPORAN_JENIS,
+  type ApiLaporan,
+} from "@/lib/api";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
 
 const JENIS_KEYS = new Set(LAPORAN_JENIS.map((j) => j.key));
@@ -83,6 +92,24 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
       const { laporan, boleh } = await laporanMilik(id);
       if (!laporan) return { ok: false, error: "Laporan tidak ditemukan." };
       if (!boleh) return { ok: false, error: "Anda hanya bisa mengubah laporan milik sendiri." };
+      if (jenis === "tagging" && status !== "draft") {
+        try {
+          const detail = await apiGet<{ pohon?: { jml_foto?: number }[] }>(`laporandetail?id=${id}`);
+          const pohon = detail.pohon ?? [];
+          const tanpaFoto = pohon.filter((p) => Number(p.jml_foto ?? 0) === 0);
+          // Legacy: laporan lama berfoto manual (seluruh pohonnya memang tanpa
+          // foto tagging) tetap boleh dikirim ulang.
+          const legacy = tanpaFoto.length === pohon.length && (laporan.foto?.length ?? 0) > 0;
+          if (!legacy && tanpaFoto.length > 0) {
+            return {
+              ok: false,
+              error: `Ada ${tanpaFoto.length} pohon belum punya foto tagging — unggah fotonya per kode pohon di menu Order Tagging sebelum mengirim.`,
+            };
+          }
+        } catch {
+          // detail tak terbaca — lanjut, guard backend jadi lapis berikutnya
+        }
+      }
       const res = await apiPost<{ value?: string | number; pesan?: string }>("editlaporan", {
         id,
         oleh: session.userId,
@@ -108,6 +135,78 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
   } catch {
     return { ok: false, error: "Gagal menyimpan laporan. Coba lagi." };
   }
+}
+
+// Buat DRAF Laporan Kegiatan (jenis tagging) dari seleksi pohon di menu
+// Order Tagging — draft menjadi "daftar pohon akan ditagging"; foto per
+// kode pohon diunggah di Order Tagging, BTOR dilengkapi di form edit.
+export async function buatLaporanDariTagging(formData: FormData) {
+  const session = await requireAdmin();
+  const ids = formData
+    .getAll("idadopsi[]")
+    .map((v) => Number(v))
+    .filter((v) => v > 0);
+  if (!ids.length) redirect("/admin/tagging?error=Pilih+minimal+satu+pohon");
+
+  const desaList = formData
+    .getAll("desa[]")
+    .map((v) => String(v).trim())
+    .filter(Boolean);
+  const desa = desaList.sort(
+    (a, b) => desaList.filter((v) => v === b).length - desaList.filter((v) => v === a).length,
+  )[0];
+  const now = new Date();
+  const stamp = `${now.toISOString().slice(0, 10)} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const judul = `Kegiatan Tagging — ${desa || "Pohon Asuh"} (${stamp})`;
+
+  let id = 0;
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string; id?: number }>(
+      "tambahlaporan",
+      {
+        idpetugas: session.userId,
+        judul,
+        jenis: "tagging",
+        desa,
+        tanggal: now.toISOString().slice(0, 10),
+        tanggal_selesai: "",
+        jabatan: "",
+        tempat: "",
+        tim_tagging: "",
+        rekening_at: "",
+        rekening_bank: "",
+        rekening_norek: "",
+        isi: "",
+        dana: "0",
+        hasil: "",
+        status: "draft",
+      },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/tagging?error=${encodeURIComponent(res.pesan ?? "Gagal membuat laporan.")}`);
+    }
+    id = Number(res.id) || 0;
+    if (!id) redirect("/admin/tagging?error=Gagal+membuat+laporan");
+
+    const fd = new FormData();
+    fd.append("idlaporan", String(id));
+    for (const idadopsi of ids) fd.append("idadopsi[]", String(idadopsi));
+    const set = await apiPostForm<{ value?: string | number; pesan?: string }>(
+      "setpohonlaporan",
+      fd,
+    );
+    if (Number(set.value) !== 200) {
+      redirect(
+        `/admin/tagging?error=${encodeURIComponent(set.pesan ?? "Gagal menyimpan daftar pohon.")}`,
+      );
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/tagging?error=Gagal+membuat+laporan");
+  }
+
+  revalidatePath("/admin/laporan");
+  redirect(`/admin/laporan/${id}/edit?created=1`);
 }
 
 export async function unggahFotoLaporan(idlaporan: number, file: File): Promise<FotoResult> {
@@ -303,6 +402,46 @@ export async function ambilFotoTaggingPohon(
     return { ok: true, foto };
   } catch {
     return { ok: false, error: "Gagal memuat foto tagging. Coba lagi." };
+  }
+}
+
+// Lampiran otomatis BTOR jenis tagging: foto hasil tagging per pohon
+// terpilih (scope siklus order via fototagingorder), maks 3 foto per pohon
+// demi ukuran PDF. Dipanggil lazy dari tombol PDF di detail maupun tabel.
+export async function ambilLampiranTagging(
+  idlaporan: number,
+): Promise<{ ok: boolean; lampiran?: { idpohon: string; foto: string[] }[] }> {
+  await requireAdmin();
+  try {
+    const detail = mapLaporanDetail(
+      await apiGet<Record<string, unknown>>(`laporandetail?id=${idlaporan}`),
+    );
+    const pohon = detail.pohon ?? [];
+    const lampiran: { idpohon: string; foto: string[] }[] = [];
+    await Promise.all(
+      [...new Set(pohon.map((p) => p.invoice).filter(Boolean))].map(async (inv) => {
+        try {
+          const rows = await apiPost<
+            { idadopsi?: number | string; foto?: { url?: string }[] }[]
+          >("fototagingorder", { invoice: inv });
+          for (const r of rows) {
+            const p = pohon.find((x) => x.idadopsi === Number(r.idadopsi));
+            if (!p) continue;
+            const foto = (r.foto ?? [])
+              .map((f) => apiAssetUrl(f.url) ?? "")
+              .filter(Boolean)
+              .slice(0, 3);
+            if (foto.length) lampiran.push({ idpohon: p.idpohon, foto });
+          }
+        } catch {
+          // pohon tanpa lampiran foto
+        }
+      }),
+    );
+    lampiran.sort((a, b) => a.idpohon.localeCompare(b.idpohon));
+    return { ok: true, lampiran };
+  } catch {
+    return { ok: false };
   }
 }
 

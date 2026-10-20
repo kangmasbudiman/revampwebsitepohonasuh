@@ -6,9 +6,10 @@ import type { ApiKandidatPohon } from "@/lib/api";
 
 export type KandidatPohon = ApiKandidatPohon;
 
-// Pemilih pohon hasil tagging untuk Laporan Kegiatan jenis tagging —
-// kandidat = pohon "sudah ditagging" (endpoint pembayaranlist), petugas
-// mencentang pohon yang dikerjakan pada kegiatan ini.
+// Pemilih pohon untuk Laporan Kegiatan jenis tagging — kandidat = order
+// adopsi terverifikasi dalam desa ampu petugas (dari menu Order Tagging);
+// pohon ditentukan SEBELUM pemasangan banner, chip status menunjukkan
+// apakah foto tagging per kode pohon sudah diunggah.
 export default function LaporanPohonPicker({
   kandidat,
   terpilih,
@@ -80,7 +81,8 @@ export default function LaporanPohonPicker({
       </div>
 
       <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400" data-testid="picker-info">
-        {kandidat.length} pohon sudah ditagging · {filtered.length} tampil
+        {kandidat.length} pohon · {kandidat.filter((k) => k.jmlFoto > 0).length} sudah difoto ·{" "}
+        {filtered.length} tampil
       </p>
 
       <div className="mt-2 max-h-72 overflow-y-auto rounded-xl border border-zinc-200 dark:border-night-700">
@@ -119,6 +121,15 @@ export default function LaporanPohonPicker({
                           .filter(Boolean)
                           .join(" · ")}
                       </span>
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        k.jmlFoto > 0
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                          : "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                      }`}
+                    >
+                      {k.jmlFoto > 0 ? `${k.jmlFoto} foto` : "belum difoto"}
                     </span>
                   </label>
                 </li>

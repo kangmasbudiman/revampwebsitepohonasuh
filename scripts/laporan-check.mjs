@@ -99,15 +99,15 @@ const p = await ctxP.newPage();
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 const navP = await p.locator("aside nav a").allTextContents();
 assert(
-  navP.length === 3 && navP.includes("Laporan Kegiatan"),
-  `sidebar petugas 3 menu termuat (${navP})`,
+  navP.length === 4 && navP.includes("Laporan Kegiatan"),
+  `sidebar petugas 4 menu termuat (${navP})`,
 );
 assert(await p.locator("h1", { hasText: "Laporan Kegiatan" }).count() >= 1, "halaman /admin/laporan termuat");
 assert((await p.locator('select[aria-label="Filter status"]').count()) === 1, "petugas punya filter status");
 
 // 2. Validasi kirim kosong ditolak client-side
 await p.goto(`${BASE}/admin/laporan/baru`, { waitUntil: "networkidle" });
-assert((await p.locator("ol > li").count()) === 7, "form 7 langkah bernomor tampil");
+assert((await p.locator("ol > li").count()) === 10, "form 10 langkah bernomor tampil (default jenis tagging)");
 assert((await p.locator('button:has-text("Setujui")').count()) === 0, "form petugas: tanpa tombol setujui");
 await p.click('button:has-text("Kirim Laporan")');
 await p.waitForTimeout(400);
@@ -355,7 +355,7 @@ assert(
 
 // 11. Admin menyetujui laporan terkirim petugas via tombol cepat
 await a.click(`table form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);
-await a.waitForURL(/disetujui=1/, { timeout: 30000 });
+await a.waitForURL(/diverifikasi=1/, { timeout: 30000 });
 await waitForDb(
   () => rows(`SELECT status FROM laporan_kegiatan WHERE id=${ID}`)[0]?.[0] === "disetujui",
   20000, "status=disetujui via tombol cepat",

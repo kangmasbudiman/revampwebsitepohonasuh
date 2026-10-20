@@ -36,7 +36,8 @@ const tglIndo = (ymd) => {
 
 // ================= Fixture =================
 const INVOICE = "TAGGING-E2E";
-const FOTO_URL = "http://127.0.0.1:8000/assets/pohon1.jpg";
+const API = process.env.API_BASE_URL ?? "http://127.0.0.1:8000/api";
+const FOTO_URL = `${API.replace(/\/api\/?$/, "")}/assets/pohon1.jpg`;
 
 // cleanup sisa run gagal sebelumnya
 rows(`DELETE FROM foto_tagging WHERE urlGambar LIKE '%?e2etag=%'`);
@@ -95,7 +96,7 @@ rows(`INSERT INTO foto_tagging (idpohon,tanggal,foto,keterangan,idmember,caption
 assert(true, `fixture: P1 proses=2 + 3 foto (+1 legacy), P2 proses=1 tanpa foto`);
 
 // ===== API: scope idadopsi =====
-const api = await fetch("http://127.0.0.1:8000/api/fototagingorder", {
+const api = await fetch(`${API}/fototagingorder`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ invoice: INVOICE }),

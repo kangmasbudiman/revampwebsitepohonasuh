@@ -61,7 +61,7 @@ assert(
 );
 await p.click('a:has-text("Tambah Laporan")');
 await p.waitForURL(/\/admin\/laporan\/baru/, { timeout: 30000 });
-assert((await p.locator("ol > li").count()) === 7, "form 7 langkah bernomor tampil");
+assert((await p.locator("ol > li").count()) === 10, "form 10 langkah bernomor tampil");
 
 // buat DRAF + 1 foto bertahap
 await p.fill('form input[name="judul"]', JUDUL);

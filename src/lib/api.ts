@@ -1489,8 +1489,10 @@ export function mapPembayaranRows(res: {
   });
 }
 
-// Kandidat pohon "sudah ditagging" untuk picker Laporan Kegiatan jenis
-// tagging (laporan ↔ pohon hasil tagging dipilih manual petugas).
+// Kandidat pohon untuk picker Laporan Kegiatan jenis tagging = order adopsi
+// TERVERIFIKASI dalam desa ampu petugas (belum selesai tagging pun boleh —
+// pohon justru ditentukan SEBELUM pemasangan banner). jmlFoto di-scope
+// per idadopsi (siklus order ini) selaras chip Order Tagging.
 export type ApiKandidatPohon = {
   idadopsi: number;
   idpohon: string;
@@ -1498,16 +1500,46 @@ export type ApiKandidatPohon = {
   desa: string;
   donatur: string;
   tglTagging: string | null;
+  invoice: string;
+  proses: number;
+  jmlFoto: number;
 };
 
-export async function getKandidatPohon(): Promise<ApiKandidatPohon[]> {
-  const res = await apiGet<{ value?: number; data?: Record<string, unknown>[] }>("pembayaranlist");
-  return mapPembayaranRows(res).map((r) => ({
-    idadopsi: r.idadopsi,
+export async function getKandidatPohonTagging(
+  iduser: number,
+  semua: boolean,
+): Promise<ApiKandidatPohon[]> {
+  const rows = mapOrderRows(
+    await apiPost<Record<string, unknown>[]>("ordercustomerbypengurus", {
+      iduser,
+      ...(semua ? { semua: 1 } : {}),
+    }),
+  ).filter((r) => r.confirmation === "yes");
+  const kandidat = rows.map((r) => ({
+    idadopsi: r.id,
     idpohon: r.idpohon,
-    localname: r.localname,
+    localname: r.localName,
     desa: r.desa,
     donatur: r.nama,
-    tglTagging: r.tglTagging,
+    tglTagging: null as string | null,
+    invoice: r.invoice,
+    proses: r.proses,
+    jmlFoto: 0,
   }));
+  await Promise.all(
+    [...new Set(kandidat.map((k) => k.invoice))].map(async (inv) => {
+      try {
+        const fotos = await apiPost<
+          { idadopsi?: number | string; foto?: unknown[] }[]
+        >("fototagingorder", { invoice: inv });
+        for (const r of fotos) {
+          const k = kandidat.find((c) => c.idadopsi === Number(r.idadopsi));
+          if (k) k.jmlFoto = Array.isArray(r.foto) ? r.foto.length : 0;
+        }
+      } catch {
+        // kandidat tetap tampil tanpa hitungan foto
+      }
+    }),
+  );
+  return kandidat;
 }

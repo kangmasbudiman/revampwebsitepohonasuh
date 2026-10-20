@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -104,6 +105,13 @@ export default function LaporanForm({
   const danaDigits = dana.replace(/\D/g, "");
   const danaDisplay = danaDigits ? Number(danaDigits).toLocaleString("id-ID") : "";
 
+  // Foto tagging per pohon (scope siklus order, dari Order Tagging) — dasar
+  // lampiran otomatis & validasi kirim untuk jenis tagging.
+  const jmlFotoOf = (idadopsi: number) =>
+    kandidatPohon.find((k) => k.idadopsi === idadopsi)?.jmlFoto ?? 0;
+  const berfoto = terpilihPohon.filter((id) => jmlFotoOf(id) > 0).length;
+  const belumFoto = terpilihPohon.filter((id) => jmlFotoOf(id) === 0);
+
   const pilihFile = (files: FileList | null) => {
     if (!files?.length) return;
     const err: string[] = [];
@@ -170,10 +178,18 @@ export default function LaporanForm({
         setError("Pilih minimal satu pohon hasil tagging yang dikerjakan pada kegiatan ini.");
         return;
       }
-      const jmlFoto = (laporan?.foto.length ?? 0) + staged.length;
-      if (!terkirim && jmlFoto === 0) {
-        setError("Unggah minimal satu foto kegiatan sebelum mengirim laporan.");
+      if (jenis === "tagging" && (laporan?.foto.length ?? 0) === 0 && berfoto < terpilihPohon.length) {
+        setError(
+          `Semua pohon terpilih harus sudah punya foto tagging (${berfoto} dari ${terpilihPohon.length}) — unggah fotonya per kode pohon di menu Order Tagging.`,
+        );
         return;
+      }
+      if (jenis !== "tagging") {
+        const jmlFoto = (laporan?.foto.length ?? 0) + staged.length;
+        if (!terkirim && jmlFoto === 0) {
+          setError("Unggah minimal satu foto kegiatan sebelum mengirim laporan.");
+          return;
+        }
       }
     }
 
@@ -480,6 +496,47 @@ export default function LaporanForm({
           </Contoh>
         </Step>
 
+        {jenis === "tagging" ? (
+          <Step
+            n={++n}
+            className="xl:col-span-2"
+            title="Lampiran Foto Kegiatan"
+            helper="Foto dokumentasi diambil otomatis dari foto hasil tagging per pohon — tidak perlu unggah manual."
+          >
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3.5 dark:border-night-700 dark:bg-night-800/50">
+              <p
+                className="text-sm font-semibold text-emerald-900 dark:text-emerald-100"
+                data-testid="progress-foto-tagging"
+              >
+                {terpilihPohon.length === 0
+                  ? "Pilih dulu pohon yang akan ditagging."
+                  : `${berfoto} dari ${terpilihPohon.length} pohon sudah punya foto tagging`}
+              </p>
+              {belumFoto.length > 0 && (
+                <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
+                  Belum difoto:{" "}
+                  <span className="font-mono font-semibold">
+                    {belumFoto
+                      .map((id) => kandidatPohon.find((k) => k.idadopsi === id)?.idpohon ?? `#${id}`)
+                      .join(", ")}
+                  </span>{" "}
+                  — unggah di menu{" "}
+                  <Link
+                    href="/admin/tagging"
+                    className="font-semibold text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-300"
+                  >
+                    Order Tagging
+                  </Link>{" "}
+                  setelah pemasangan banner.
+                </p>
+              )}
+              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                Setiap pohon harus sudah punya foto tagging sebelum laporan dikirim; foto tersebut
+                otomatis menjadi lampiran BTOR (PDF).
+              </p>
+            </div>
+          </Step>
+        ) : (
         <Step n={++n} className="xl:col-span-2" title="Foto Kegiatan" helper="Foto asli kegiatan lebih dipercaya pembaca daripada foto stok.">
           <input
             ref={fileInputRef}
@@ -554,6 +611,7 @@ export default function LaporanForm({
           ) : null}
           {progress && <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">{progress}</p>}
         </Step>
+        )}
             </>
           );
         })()}

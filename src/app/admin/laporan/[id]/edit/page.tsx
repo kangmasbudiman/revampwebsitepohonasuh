@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/guard";
 import {
   apiGet,
-  getKandidatPohon,
+  getKandidatPohonTagging,
   mapLaporanDetail,
   mapLaporans,
   mapLokasi,
@@ -47,7 +47,10 @@ export default async function EditLaporanPage(
   } catch {
     desaList = [];
   }
-  const kandidatPohon = laporan.jenis === "tagging" ? await getKandidatPohon() : [];
+  const kandidatPohon =
+    laporan.jenis === "tagging"
+      ? await getKandidatPohonTagging(session.userId, (session.level ?? 1) === 1).catch(() => [])
+      : [];
 
   return (
     <main className="w-full px-6 py-8 lg:px-10">

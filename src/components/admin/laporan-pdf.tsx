@@ -3,6 +3,7 @@
 import { Download, Eye } from "lucide-react";
 import type { jsPDF } from "jspdf";
 import type { ApiLaporan } from "@/lib/api";
+import { ambilLampiranTagging } from "@/lib/actions/laporan";
 
 function fmtTanggal(s: string): string {
   if (!s) return "-";
@@ -62,8 +63,16 @@ type BarisTabel = { label: string; paras: Paragraf[] };
 
 // Susun dokumen BTOR (Back To Office Report) dari data laporan — dipakai
 // tombol unduh maupun pratinjau. Identitas kegiatan dalam tabel bertepi
-// garis, disusul lampiran foto dokumentasi di halaman berikutnya.
-export async function buatBtorPdf(laporan: ApiLaporan): Promise<jsPDF> {
+// garis, disusul lampiran foto dokumentasi di halaman berikutnya. Untuk
+// jenis tagging, lampiran utama = foto hasil tagging per pohon (diambil
+// otomatis dari Order Tagging, caption kode pohon); foto manual laporan
+// (legacy) menyusul di belakangnya.
+export type LampiranPohon = { idpohon: string; foto: string[] };
+
+export async function buatBtorPdf(
+  laporan: ApiLaporan,
+  lampiranTagging?: LampiranPohon[],
+): Promise<jsPDF> {
   const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
@@ -196,10 +205,18 @@ export async function buatBtorPdf(laporan: ApiLaporan): Promise<jsPDF> {
   doc.setFontSize(9);
   doc.text(laporan.jabatan || "Petugas", W - M - 160, y);
 
-  // Lampiran foto dokumentasi — grid 2 kolom per halaman.
-  const fotoUrl = (laporan.foto ?? []).map((f) => f.url).filter(Boolean);
-  if (fotoUrl.length > 0) {
-    const termuat = await Promise.all(fotoUrl.map((u) => muatFotoJpeg(u)));
+  // Lampiran foto dokumentasi — grid 2 kolom per halaman. Foto hasil
+  // tagging per pohon (caption kode pohon) didahulukan, foto kegiatan
+  // manual menyusul.
+  const items: { url: string; caption: string }[] = [];
+  for (const l of lampiranTagging ?? []) {
+    l.foto.forEach((u, i) => items.push({ url: u, caption: `${l.idpohon} — Foto ${i + 1}` }));
+  }
+  (laporan.foto ?? []).forEach((f, i) => {
+    if (f.url) items.push({ url: f.url, caption: `Foto dokumentasi ${i + 1}` });
+  });
+  if (items.length > 0) {
+    const termuat = await Promise.all(items.map((it) => muatFotoJpeg(it.url)));
     doc.addPage();
     y = M;
     doc.setFont("helvetica", "bold");
@@ -242,7 +259,7 @@ export async function buatBtorPdf(laporan: ApiLaporan): Promise<jsPDF> {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(110);
-      doc.text(`Foto ${i + 1}`, x, y + ch + 13);
+      doc.text(items[i].caption, x, y + ch + 13, { maxWidth: cw });
       doc.setTextColor(20);
       if (kolom === 1) y += ch + 28;
       kolom = kolom === 1 ? 0 : 1;
@@ -256,10 +273,22 @@ function namaFileBtor(laporan: ApiLaporan): string {
   return `btor-${laporan.id}-${(laporan.judul || "laporan").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}.pdf`;
 }
 
+// Lampiran tagging hanya untuk jenis tagging — gagal memuat → undefined,
+// PDF tetap tersusun dengan foto manual (legacy).
+async function muatLampiranTagging(laporan: ApiLaporan): Promise<LampiranPohon[] | undefined> {
+  if (laporan.jenis !== "tagging") return undefined;
+  try {
+    const r = await ambilLampiranTagging(laporan.id);
+    return r.ok ? r.lampiran : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Unduh Laporan (BTOR) sebagai PDF, format mengikuti lembar BTOR lapangan.
 export default function LaporanPdfButton({ laporan }: { laporan: ApiLaporan }) {
   const unduh = async () => {
-    const doc = await buatBtorPdf(laporan);
+    const doc = await buatBtorPdf(laporan, await muatLampiranTagging(laporan));
     doc.save(namaFileBtor(laporan));
   };
 
@@ -290,7 +319,7 @@ export function LihatBtorButton({
   title?: string;
 }) {
   const lihat = async () => {
-    const doc = await buatBtorPdf(laporan);
+    const doc = await buatBtorPdf(laporan, await muatLampiranTagging(laporan));
     const url = doc.output("bloburl");
     const tab = window.open(url, "_blank");
     if (!tab) {

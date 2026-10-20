@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/guard";
-import { apiGet, getKandidatPohon, mapLokasi } from "@/lib/api";
+import { apiGet, getKandidatPohonTagging, mapLokasi } from "@/lib/api";
 import LaporanForm from "@/components/admin/laporan-form";
 
 export const metadata = { title: "Tambah Laporan Kegiatan | Pohon Asuh" };
@@ -16,7 +16,10 @@ export default async function LaporanBaruPage() {
   } catch {
     desaList = [];
   }
-  const kandidatPohon = await getKandidatPohon().catch(() => []);
+  const kandidatPohon = await getKandidatPohonTagging(
+    session.userId,
+    (session.level ?? 1) === 1,
+  ).catch(() => []);
 
   return (
     <main className="w-full px-6 py-8 lg:px-10">

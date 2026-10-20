@@ -1,5 +1,7 @@
-// E2E alur BTOR + Memo Pencairan (Laporan Kegiatan jenis tagging):
-// petugas kirim BTOR lengkap (form + picker pohon + foto) → widget/badge
+// E2E alur Order Tagging → BTOR + Memo Pencairan (Laporan Kegiatan jenis
+// tagging): kelompok pilih pohon di /admin/tagging → draft laporan otomatis
+// (lampiran = foto tagging per kode pohon, tanpa unggah manual) → lengkapi
+// BTOR → kirim (validasi: semua pohon wajib berfoto) → widget/badge
 // notifikasi admin → detail (stepper + tab) → minta revisi → kirim ulang →
 // verifikasi → terbitkan memo → status pencairan dicairkan → riwayat →
 // publik /laporan/[id] → hapus. Jalankan:
@@ -28,7 +30,13 @@ const signToken = (payload) =>
 const bersihkan = async () => {
   const rows = await (await fetch(`${API}/laporanlist`)).json();
   for (const r of rows) {
-    if (String(r.judul ?? "").startsWith("E2E BTOR")) {
+    const judul = String(r.judul ?? "");
+    // Draft otomatis dari Order Tagging (run gagal sebelum sempat diganti
+    // judul) ikut dibersihkan — hanya milik akun E2E.
+    if (
+      judul.startsWith("E2E BTOR") ||
+      (judul.startsWith("Kegiatan Tagging — ") && Number(r.idpetugas) === 2682)
+    ) {
       await fetch(`${API}/hapuslaporan`, {
         method: "POST",
         body: new URLSearchParams({ id: String(r.id) }),
@@ -52,10 +60,57 @@ const NOREK = "5482-01-014034-53-3";
 const CATATAN_REVISI = `Lengkapi foto dokumentasi tagging. (${Date.now()})`;
 const hariIni = new Date().toISOString().slice(0, 10);
 
-// ===== 1. Buat laporan tagging lengkap via form /admin/laporan/baru =====
-await a.goto(`${BASE}/admin/laporan/baru`, { waitUntil: "networkidle" });
+// ===== 1. Order Tagging: pilih pohon → draft Laporan Kegiatan → kirim =====
+// Kandidat = order adopsi terverifikasi + foto tagging per kode pohon
+// (scope siklus order) — sumber sama dengan menu Order Tagging.
+const ordResp = await (
+  await fetch(`${API}/ordercustomerbypengurus`, {
+    method: "POST",
+    body: new URLSearchParams({ iduser: "2682", semua: "1" }),
+  })
+).json();
+const ords = ordResp.filter((o) => String(o.confirmasi ?? "") === "yes");
+const fotoByAdopsi = {};
+await Promise.all(
+  [...new Set(ords.map((o) => o.invoice))].map(async (inv) => {
+    const rows = await (
+      await fetch(`${API}/fototagingorder`, {
+        method: "POST",
+        body: new URLSearchParams({ invoice: inv }),
+      })
+    ).json();
+    for (const r of rows) fotoByAdopsi[Number(r.idadopsi)] = (r.foto ?? []).length;
+  }),
+);
+const berfoto = ords.filter((o) => (fotoByAdopsi[Number(o.id)] ?? 0) > 0).slice(0, 2);
+if (berfoto.length < 2) throw new Error("butuh minimal 2 order terverifikasi berfoto tagging");
+const belum = ords.find(
+  (o) => (fotoByAdopsi[Number(o.id)] ?? 0) === 0 && Number(o.proses) !== 3,
+);
+
+await a.goto(`${BASE}/admin/tagging`, { waitUntil: "domcontentloaded", timeout: 60000 });
+await a.waitForSelector('[data-testid="check-laporan"]', { timeout: 60000 });
+for (const k of berfoto) {
+  await a
+    .locator(
+      `div.rounded-2xl:has(span.font-mono:text-is("${k.idpohon}")) [data-testid="check-laporan"] input`,
+    )
+    .check();
+}
+ok(
+  "tagging: bar buat laporan muncul",
+  (await a.locator('[data-testid="buat-laporan-tagging"]').count()) === 1,
+);
+await a.click('[data-testid="buat-laporan-tagging"]');
+await a.waitForURL(/\/admin\/laporan\/\d+\/edit\?created=1/, { timeout: 60000 });
+const id = Number(a.url().match(/\/admin\/laporan\/(\d+)\/edit/)?.[1]);
+ok("tagging: draft laporan dibuat dari seleksi pohon", id > 0, `id=${id}`);
+const judulAwal = (await a.locator('input[name="judul"]').inputValue()) ?? "";
+ok("tagging: judul draft otomatis", judulAwal.startsWith("Kegiatan Tagging — "), judulAwal.slice(0, 44));
+
+// Lengkapi BTOR pada draft.
 await a.fill('input[name="judul"]', JUDUL);
-ok("form: jenis default tagging", (await a.locator('select[name="jenis"]').inputValue()) === "tagging");
+ok("form: jenis tagging", (await a.locator('select[name="jenis"]').inputValue()) === "tagging");
 await a.locator('select[name="desa"]').selectOption({ index: 1 });
 await a.fill('input[name="tanggal"]', hariIni);
 await a.fill('input[name="tanggal_selesai"]', hariIni);
@@ -65,39 +120,44 @@ await a.fill('textarea[name="tim_tagging"]', "Saprudin\nJal\nYus");
 await a.fill('input[name="rekening_at"]', "LPHN Pondok Parian (E2E)");
 await a.fill('input[name="rekening_bank"]', "BRI");
 await a.fill('input[name="rekening_norek"]', NOREK);
-
-const infoPicker = (await a.locator('[data-testid="picker-info"]').textContent()) ?? "";
-const jmlKandidat = Number(infoPicker.match(/^(\d+)/)?.[1] ?? 0);
-ok("form: picker memuat kandidat pohon hasil tagging", jmlKandidat > 0, `${jmlKandidat} kandidat`);
-const cek = a.locator("li:has(input[type=checkbox]) input[type=checkbox]");
-// Pilih 2 kandidat yang punya foto hasil tagging — dipakai menguji galeri
-// foto tagging di halaman detail.
-const plResp = await (await fetch(`${API}/pembayaranlist`)).json();
-const plRows = Array.isArray(plResp) ? plResp : (plResp.data ?? []);
-const berfoto = plRows.filter((k) => Number(k.jml_foto ?? 0) > 0).slice(0, 2);
-if (berfoto.length < 2) throw new Error("butuh minimal 2 kandidat pohon berfoto tagging");
-const liSemua = a.locator("li:has(input[type=checkbox])");
-const nLi = await liSemua.count();
-for (let i = 0; i < nLi; i++) {
-  const kode = ((await liSemua.nth(i).locator("span.font-mono").first().textContent()) ?? "").trim();
-  if (berfoto.some((k) => String(k.idpohon) === kode)) {
-    await liSemua.nth(i).locator("input[type=checkbox]").check();
-  }
-}
-ok("form: 2 pohon dipilih", ((await a.locator('[data-testid="picker-terpilih"]').textContent()) ?? "").includes("2 pohon dipilih"));
-
 await a.fill('textarea[name="isi"]', "08 April: perjalanan dan mendirikan camp di Pondok Parian.\n09 April: tagging 65 pohon bersama tim kelompok tani.");
 await a.fill('input[name="dana"]', "1500000");
 await a.fill('textarea[name="hasil"]', "65 pohon tertandai papan nama; 3 anggota kelompok tani terlatih.");
-await a.setInputFiles('input[type=file]', "public/images/logo_pohonasuh_baru_hijau.jpg");
 
-// Validasi: kirim tanpa foto gagal? (tidak diuji — foto sudah dilampirkan)
+ok(
+  "form: picker preselect 2 pohon dari draft",
+  ((await a.locator('[data-testid="picker-terpilih"]').textContent()) ?? "").includes("2 pohon dipilih"),
+);
+ok(
+  "form: lampiran otomatis 2 dari 2 pohon berfoto",
+  ((await a.locator('[data-testid="progress-foto-tagging"]').textContent()) ?? "").includes("2 dari 2"),
+);
+ok("form: tanpa unggah foto manual", (await a.locator('form input[type=file]').count()) === 0);
+
+// Validasi: pohon yang belum difoto menahan pengiriman.
+const cekKode = (kode) =>
+  a
+    .locator("ul.divide-y")
+    .getByText(kode, { exact: true })
+    .first()
+    .locator("xpath=ancestor::li[1]")
+    .locator("input[type=checkbox]");
+let validasiOk = true;
+if (belum) {
+  await cekKode(berfoto[0].idpohon).uncheck();
+  await cekKode(belum.idpohon).check();
+  await a.click('button[value="terkirim"]');
+  await a.waitForSelector("text=harus sudah punya foto tagging", { timeout: 15000 });
+  await cekKode(belum.idpohon).uncheck();
+  await cekKode(berfoto[0].idpohon).check();
+} else {
+  validasiOk = false;
+}
+ok("validasi: pohon belum difoto menahan kirim", validasiOk, belum ? "" : "dilewati: semua order sudah berfoto");
+
 await a.click('button[value="terkirim"]');
-await a.waitForURL(/\/admin\/laporan\/\d+\/edit\?created=1/, { timeout: 60000 });
-const id = Number(a.url().match(/\/admin\/laporan\/(\d+)\/edit/)?.[1]);
-ok("form: laporan terkirim, redirect ke edit", id > 0, `id=${id}`);
-await a.waitForSelector('img[alt="Foto laporan"]', { timeout: 30000 });
-ok("form: foto kegiatan terunggah", true);
+await a.waitForURL(/\?dikirim=1/, { timeout: 60000 });
+ok("form: laporan terkirim dari draft", true);
 
 // ===== 2. Notifikasi admin: widget dashboard + badge menu =====
 await a.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
@@ -138,6 +198,7 @@ ok("detail: tombol Lihat BTOR tampil", (await a.locator('[data-testid="lihat-bto
   const pdf = fs.readFileSync(await dl.path()).toString("latin1");
   ok("pdf: tabel identitas memuat Catatan Penting", pdf.includes("Catatan Penting"));
   ok("pdf: halaman lampiran foto ada", pdf.includes("LAMPIRAN FOTO"));
+  ok("pdf: lampiran memuat kode pohon terpilih", pdf.includes(berfoto[0].idpohon));
   ok("pdf: minimal 2 halaman (utama + lampiran)", (pdf.match(/\/Type\s*\/Page(?![s])/g) ?? []).length >= 2);
 }
 ok("detail: 5 tab tersedia", (await a.locator('[data-testid="laporan-tabs"] [role=tab]').count()) === 5);
