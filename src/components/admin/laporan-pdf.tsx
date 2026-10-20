@@ -11,8 +11,58 @@ function fmtTanggal(s: string): string {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 }
 
+// Muat byte foto lewat proxy same-origin (hindari blokir CORS /upload/*),
+// dekode dengan createImageBitmap lalu konversi ke JPEG data URL agar bisa
+// di-embed jspdf dan ukurannya terkendali. Null bila gagal → placeholder.
+async function muatFotoJpeg(url: string): Promise<{ data: string; rasio: number } | null> {
+  try {
+    const res = await fetch(`/upload-proxy?url=${encodeURIComponent(url)}`);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const bmp = await createImageBitmap(blob);
+    const skala = Math.min(1, 1200 / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * skala));
+    const h = Math.max(1, Math.round(bmp.height * skala));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      bmp.close();
+      return null;
+    }
+    ctx.fillStyle = "#ffffff"; // ratakan latar transparan (PNG) sebelum JPEG
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close();
+    return { data: canvas.toDataURL("image/jpeg", 0.82), rasio: w / h };
+  } catch {
+    return null;
+  }
+}
+
+// Paragraf catatan per hari: heading tanggal di awal paragraf ("08 April:")
+// digambar bold inline, sisanya normal — mengikuti lembar BTOR asli.
+type Paragraf = { prefix?: string; text: string };
+
+function paragrafCatatan(isi: string): Paragraf[] {
+  const paras = isi
+    .replace(/\r\n?/g, "\n")
+    .split(/\n+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map<Paragraf>((p) => {
+      const m = p.match(/^(\d{1,2}[ ./-][A-Za-z]+|\d{4}-\d{2}-\d{2})\s*[:-]\s*/);
+      return m ? { prefix: m[0].trim(), text: p.slice(m[0].length) } : { text: p };
+    });
+  return paras.length ? paras : [{ text: "-" }];
+}
+
+type BarisTabel = { label: string; paras: Paragraf[] };
+
 // Susun dokumen BTOR (Back To Office Report) dari data laporan — dipakai
-// tombol unduh maupun pratinjau.
+// tombol unduh maupun pratinjau. Identitas kegiatan dalam tabel bertepi
+// garis, disusul lampiran foto dokumentasi di halaman berikutnya.
 export async function buatBtorPdf(laporan: ApiLaporan): Promise<jsPDF> {
   const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -40,7 +90,7 @@ export async function buatBtorPdf(laporan: ApiLaporan): Promise<jsPDF> {
   doc.setDrawColor(200);
   doc.setLineWidth(0.6);
   doc.line(M, y, M + 220, y);
-  y += 18;
+  y += 22;
 
   const waktu =
     laporan.tanggalSelesai && laporan.tanggalSelesai !== laporan.tanggal
@@ -53,68 +103,90 @@ export async function buatBtorPdf(laporan: ApiLaporan): Promise<jsPDF> {
   ]
     .filter(Boolean)
     .join(" · ");
-  const rows: [string, string][] = [
-    ["Nama", laporan.petugas || "-"],
-    ["Jabatan", laporan.jabatan || "-"],
-    ["Judul Kegiatan", laporan.judul],
-    ["Jenis", laporan.jenis === "tagging" ? "Tagging Pohon" : laporan.jenis],
-    ["Waktu Kegiatan", waktu],
-    ["Tempat Kegiatan", laporan.tempat || laporan.desa || "-"],
-    ["Rekening LPHN", rekening || "-"],
-    ["Tim Tagging", (laporan.timTagging || "-").replace(/\n/g, ", ")],
+  const rows: BarisTabel[] = [
+    { label: "Nama", paras: [{ text: laporan.petugas || "-" }] },
+    { label: "Jabatan", paras: [{ text: laporan.jabatan || "-" }] },
+    { label: "Judul Kegiatan", paras: [{ text: laporan.judul }] },
+    { label: "Waktu Kegiatan", paras: [{ text: waktu }] },
+    { label: "Tempat Kegiatan", paras: [{ text: laporan.tempat || laporan.desa || "-" }] },
+    { label: "Rekening LPHN", paras: [{ text: rekening || "-" }] },
+    {
+      label: "Tim Tagging",
+      paras: [{ text: (laporan.timTagging || "-").replace(/\n/g, ", ") }],
+    },
+    { label: "Catatan Penting", paras: paragrafCatatan(laporan.isi) },
   ];
-  doc.setFontSize(10);
-  for (const [k, v] of rows) {
-    const lines = doc.splitTextToSize(v, W - M * 2 - 130) as string[];
-    doc.setFont("helvetica", "bold");
-    doc.text(k, M, y);
-    doc.setFont("helvetica", "normal");
-    doc.text(lines, M + 130, y);
-    y += Math.max(lines.length, 1) * 14 + 4;
-    if (y > 720) {
-      doc.addPage();
-      y = M;
-    }
-  }
-
-  y += 8;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("Catatan Penting", M, y);
-  y += 16;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  for (const p of laporan.isi
-    .replace(/\r\n?/g, "\n")
-    .split(/\n+/)
-    .map((s) => s.trim())
-    .filter(Boolean)) {
-    const lines = doc.splitTextToSize(p, W - M * 2) as string[];
-    if (y + lines.length * 13 > 760) {
-      doc.addPage();
-      y = M;
-    }
-    doc.text(lines, M, y);
-    y += lines.length * 13 + 6;
-  }
-
   if (laporan.hasil.trim()) {
-    y += 6;
-    doc.setFont("helvetica", "bold");
-    doc.text("Hasil / Manfaat Kegiatan", M, y);
-    y += 14;
-    doc.setFont("helvetica", "normal");
-    const lines = doc.splitTextToSize(laporan.hasil, W - M * 2) as string[];
-    doc.text(lines, M, y);
-    y += lines.length * 13 + 6;
+    rows.push({ label: "Hasil / Manfaat", paras: [{ text: laporan.hasil }] });
   }
 
-  // Tanda tangan petugas di kanan bawah halaman terakhir.
+  const labelW = 118;
+  const valueW = W - M * 2 - labelW;
+  const xV = M + labelW + 8;
+  const LH = 13;
+
+  const ukurParas = (paras: Paragraf[]): number => {
+    let tinggi = 0;
+    for (const p of paras) {
+      let prefixW = 0;
+      if (p.prefix) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        prefixW = doc.getTextWidth(`${p.prefix} `);
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const lines = doc.splitTextToSize(p.text || " ", valueW - 14 - prefixW) as string[];
+      tinggi += lines.length * LH + 5;
+    }
+    return Math.max(tinggi - 5, LH);
+  };
+
+  const gambarParas = (paras: Paragraf[], yStart: number): number => {
+    let ty = yStart;
+    for (const p of paras) {
+      let prefixW = 0;
+      if (p.prefix) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        prefixW = doc.getTextWidth(`${p.prefix} `);
+        doc.text(p.prefix, xV, ty);
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const lines = doc.splitTextToSize(p.text || " ", valueW - 14 - prefixW) as string[];
+      doc.text(lines[0] ?? "", xV + prefixW, ty);
+      if (lines.length > 1) doc.text(lines.slice(1), xV, ty + LH);
+      ty += lines.length * LH + 5;
+    }
+    return ty - 5;
+  };
+
+  doc.setDrawColor(120);
+  doc.setLineWidth(0.6);
+  for (const row of rows) {
+    const rowH = ukurParas(row.paras) + 10;
+    if (y + rowH > 780) {
+      doc.addPage();
+      y = M;
+    }
+    doc.rect(M, y, labelW, rowH);
+    doc.rect(M + labelW, y, valueW, rowH);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.text(row.label, M + 8, y + 15);
+    gambarParas(row.paras, y + 15);
+    y += rowH;
+  }
+
+  // Tanda tangan petugas di kanan bawah.
   if (y > 620) {
     doc.addPage();
     y = M;
   }
   y = Math.max(y + 40, 640);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
   doc.text(`Lunang, ${fmtTanggal(laporan.tanggalSelesai || laporan.tanggal)}`, W - M - 160, y);
   y += 46;
   doc.setFont("helvetica", "bold");
@@ -123,6 +195,59 @@ export async function buatBtorPdf(laporan: ApiLaporan): Promise<jsPDF> {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.text(laporan.jabatan || "Petugas", W - M - 160, y);
+
+  // Lampiran foto dokumentasi — grid 2 kolom per halaman.
+  const fotoUrl = (laporan.foto ?? []).map((f) => f.url).filter(Boolean);
+  if (fotoUrl.length > 0) {
+    const termuat = await Promise.all(fotoUrl.map((u) => muatFotoJpeg(u)));
+    doc.addPage();
+    y = M;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(20);
+    doc.text("LAMPIRAN FOTO", M, y + 8);
+    doc.setDrawColor(30, 92, 63);
+    doc.setLineWidth(1.5);
+    doc.line(M, y + 16, W - M, y + 16);
+    y += 36;
+    const gap = 16;
+    const cw = (W - M * 2 - gap) / 2;
+    const ch = 165;
+    let kolom = 0;
+    for (let i = 0; i < termuat.length; i++) {
+      if (kolom === 0 && y + ch + 24 > 790) {
+        doc.addPage();
+        y = M;
+      }
+      const x = M + kolom * (cw + gap);
+      const f = termuat[i];
+      if (f) {
+        let iw = cw;
+        let ih = cw / f.rasio;
+        if (ih > ch) {
+          ih = ch;
+          iw = ch * f.rasio;
+        }
+        doc.addImage(f.data, "JPEG", x + (cw - iw) / 2, y, iw, ih);
+      } else {
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.6);
+        doc.rect(x, y, cw, ch);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(130);
+        doc.text("Gagal memuat foto", x + cw / 2, y + ch / 2, { align: "center" });
+        doc.setTextColor(20);
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(110);
+      doc.text(`Foto ${i + 1}`, x, y + ch + 13);
+      doc.setTextColor(20);
+      if (kolom === 1) y += ch + 28;
+      kolom = kolom === 1 ? 0 : 1;
+    }
+  }
 
   return doc;
 }

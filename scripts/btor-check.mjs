@@ -129,6 +129,17 @@ ok("detail: tombol Lihat BTOR tampil", (await a.locator('[data-testid="lihat-bto
   ok("detail: pratinjau BTOR (PDF) terbuka di tab baru", Boolean(pdfTab));
   await pdfTab?.close();
 }
+{
+  const [dl] = await Promise.all([
+    a.waitForEvent("download", { timeout: 30000 }),
+    a.click('[data-testid="unduh-laporan-pdf"]'),
+  ]);
+  ok("pdf: nama file btor", dl.suggestedFilename().startsWith("btor-"), dl.suggestedFilename());
+  const pdf = fs.readFileSync(await dl.path()).toString("latin1");
+  ok("pdf: tabel identitas memuat Catatan Penting", pdf.includes("Catatan Penting"));
+  ok("pdf: halaman lampiran foto ada", pdf.includes("LAMPIRAN FOTO"));
+  ok("pdf: minimal 2 halaman (utama + lampiran)", (pdf.match(/\/Type\s*\/Page(?![s])/g) ?? []).length >= 2);
+}
 ok("detail: 5 tab tersedia", (await a.locator('[data-testid="laporan-tabs"] [role=tab]').count()) === 5);
 ok("detail: tab Ringkasan jumlah pohon", ((await a.locator('[data-testid="detail-jml-pohon"]').textContent()) ?? "").trim() === "2 pohon");
 ok("detail: dana terformat", ((await a.locator('[data-testid="detail-dana"]').textContent()) ?? "").includes("1.500.000"));
