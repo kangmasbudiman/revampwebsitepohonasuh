@@ -62,6 +62,23 @@ export async function apiPostForm<T>(path: string, formData: FormData): Promise<
   return fetchJson<T>(`${BASE}/${path}`, { method: "POST", body: formData });
 }
 
+// Varian yang tidak melempar pada status non-2xx: endpoint validasi (mis.
+// duplikat nama role → 409) mengirim {value, pesan} di body, dan pesannya
+// perlu sampai ke form. Body non-JSON tetap dilempar sebagai ApiError.
+export async function apiPostFormLax<T>(path: string, formData: FormData): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/${path}`, { method: "POST", body: formData, cache: "no-store" });
+  } catch {
+    throw new ApiError("Tidak dapat menghubungi server. Periksa koneksi Anda.");
+  }
+  try {
+    return (await res.json()) as T;
+  } catch {
+    throw new ApiError(`Server menolak permintaan (${res.status}).`);
+  }
+}
+
 // Health check endpoint (dashboard pemantauan): ukur latency sampai header
 // respons diterima. Tidak melempar — hasil ok/status dikembalikan.
 export async function pingEndpoint(
@@ -829,6 +846,7 @@ export type ApiMember = {
   emaile: string;
   hp: string;
   admin: number; // 0 donatur, 1 admin, 2 petugas
+  idrole: number | null;
   aktif: boolean;
   tanggal: string | null;
   address: string | null;
@@ -841,10 +859,38 @@ export function mapMembers(rows: Record<string, unknown>[]): ApiMember[] {
     emaile: String(r.emaile ?? ""),
     hp: String(r.hp ?? ""),
     admin: Number(r.admin) || 0,
+    idrole: r.idrole === undefined || r.idrole === null || r.idrole === "" ? null : Number(r.idrole),
     aktif: r.aktif === undefined || r.aktif === null ? true : Number(r.aktif) === 1,
     tanggal: r.tanggal ? String(r.tanggal) : null,
     address: r.address ? String(r.address) : null,
   }));
+}
+
+// rolelist → daftar role + jumlah anggota utk kelola role web admin.
+export type ApiRole = {
+  id: number;
+  nama: string;
+  izin: string[];
+  jumlah: number;
+};
+
+export function mapRoles(rows: Record<string, unknown>[]): ApiRole[] {
+  return rows.map((r) => {
+    let izin: string[] = [];
+    if (Array.isArray(r.izin)) izin = r.izin.map(String);
+    else if (typeof r.izin === "string" && r.izin) {
+      try {
+        const p = JSON.parse(r.izin) as unknown;
+        if (Array.isArray(p)) izin = p.map(String);
+      } catch {}
+    }
+    return {
+      id: Number(r.id),
+      nama: String(r.nama ?? ""),
+      izin,
+      jumlah: Number(r.jumlah) || 0,
+    };
+  });
 }
 
 // allcertificate → daftar sertifikat utk kelola sertifikat web admin.

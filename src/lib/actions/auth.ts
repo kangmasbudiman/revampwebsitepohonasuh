@@ -14,6 +14,7 @@ type LoginResponse = {
   name?: string;
   id?: string | number;
   admin?: string | number;
+  hak?: string[];
   foto?: string;
 };
 
@@ -63,6 +64,7 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
     name: String(login.name ?? name),
     role: admin >= 1 ? "ADMIN" : "DONOR",
     level: admin >= 1 ? admin : undefined,
+    hak: admin >= 1 && Array.isArray(login.hak) ? login.hak : undefined,
     photo: login.foto || null,
   });
   if (next.startsWith("/") && !next.startsWith("//")) redirect(next);
@@ -87,6 +89,7 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
     name: String(res.name ?? ""),
     role: admin >= 1 ? "ADMIN" : "DONOR",
     level: admin >= 1 ? admin : undefined,
+    hak: admin >= 1 && Array.isArray(res.hak) ? res.hak : undefined,
     photo: res.foto || null,
   });
   if (next.startsWith("/") && !next.startsWith("//")) redirect(next);

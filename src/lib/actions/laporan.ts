@@ -14,6 +14,7 @@ import {
   type ApiLaporan,
 } from "@/lib/api";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
+import { bolehMemo } from "@/lib/hak";
 
 const JENIS_KEYS = new Set(LAPORAN_JENIS.map((j) => j.key));
 
@@ -445,12 +446,12 @@ export async function ambilLampiranTagging(
   }
 }
 
-// Terbitkan / perbarui Memo Pencairan (admin saja) — hanya untuk laporan
-// yang BTOR-nya sudah diverifikasi.
+// Terbitkan / perbarui Memo Pencairan (admin atau role ber-hak memo) — hanya
+// untuk laporan yang BTOR-nya sudah diverifikasi.
 export async function simpanMemo(formData: FormData) {
   const session = await requireAdmin();
-  if ((session.level ?? 1) !== 1) {
-    redirect("/admin/laporan?error=Hanya+admin+yang+bisa+menerbitkan+memo");
+  if (!bolehMemo(session)) {
+    redirect("/admin/laporan?error=Tidak+punya+izin+menerbitkan+memo");
   }
   const id = Number(formData.get("idlaporan"));
   const memoId = Number(formData.get("id_memo")) || null;
@@ -498,11 +499,11 @@ export async function simpanMemo(formData: FormData) {
   redirect(`/admin/laporan/${id}?memo=1`);
 }
 
-// Perbarui status pencairan dana memo (admin saja).
+// Perbarui status pencairan dana memo (admin atau role ber-hak memo).
 export async function updatePencairan(formData: FormData) {
   const session = await requireAdmin();
-  if ((session.level ?? 1) !== 1) {
-    redirect("/admin/laporan?error=Hanya+admin+yang+bisa+memperbarui+pencairan");
+  if (!bolehMemo(session)) {
+    redirect("/admin/laporan?error=Tidak+punya+izin+memperbarui+pencairan");
   }
   const idlaporan = Number(formData.get("idlaporan"));
   const idMemo = Number(formData.get("id_memo"));

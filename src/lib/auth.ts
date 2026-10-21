@@ -11,6 +11,8 @@ export type Session = {
   role: string;
   /** 1 = admin, 2 = petugas. Session lama tanpa level diperlakukan sebagai admin. */
   level?: number;
+  /** Izin dari role member (mis. ["memo"]); level 1 selalu boleh semua. */
+  hak?: string[];
   /** URL foto profil member (upload/profil di server API); kosong = avatar inisial. */
   photo?: string | null;
 };
@@ -51,6 +53,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
       name: payload.name,
       role: payload.role,
       level: typeof payload.level === "number" ? payload.level : undefined,
+      hak: Array.isArray(payload.hak) ? payload.hak.filter((h): h is string => typeof h === "string") : undefined,
       photo: typeof payload.photo === "string" && payload.photo !== "" ? payload.photo : null,
     };
   } catch {

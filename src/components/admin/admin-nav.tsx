@@ -26,6 +26,7 @@ import {
   NotebookPen,
   Settings,
   Share2,
+  ShieldCheck,
   Tag,
   TreePine,
   UserCog,
@@ -77,6 +78,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
     items: [
       { href: "/admin/keuangan", label: "Kelola Keuangan", icon: Wallet },
       { href: "/admin/user", label: "Kelola User", icon: Users },
+      { href: "/admin/role", label: "Kelola Role", icon: ShieldCheck },
       { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
       { href: "/admin/backup", label: "Backup Database", icon: DatabaseBackup },
     ],

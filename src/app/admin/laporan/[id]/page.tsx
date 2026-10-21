@@ -31,6 +31,7 @@ import PohonFotoTaggingButton from "@/components/admin/pohon-foto-tagging-button
 import MemoPdfButton from "@/components/admin/memo-pdf";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { approveLaporan, revisiLaporan, updatePencairan } from "@/lib/actions/laporan";
+import { bolehMemo } from "@/lib/hak";
 import { LAPORAN_JENIS_LABEL } from "@/lib/api";
 
 export const metadata = { title: "Detail Laporan Kegiatan | Pohon Asuh" };
@@ -119,6 +120,7 @@ export default async function DetailLaporanPage(props: Props) {
   const idLaporan = Number(id);
   if (!Number.isInteger(idLaporan) || idLaporan <= 0) notFound();
   const isAdmin = (session.level ?? 1) === 1;
+  const bolehMemoUser = bolehMemo(session);
 
   let laporan: ApiLaporanDetail | undefined;
   try {
@@ -131,8 +133,11 @@ export default async function DetailLaporanPage(props: Props) {
     laporan = row ? { ...row, pohon: [], riwayat: [] } : undefined;
   }
   if (!laporan) notFound();
-  // Petugas hanya boleh membuka laporan miliknya sendiri.
-  if (!isAdmin && laporan.idpetugas !== session.userId) notFound();
+  // Petugas hanya boleh membuka laporan miliknya sendiri — kecuali yang
+  // ber-hak memo: boleh membuka laporan terverifikasi (tahap memo) milik siapa pun.
+  if (!isAdmin && laporan.idpetugas !== session.userId && !(bolehMemoUser && laporan.status === "disetujui")) {
+    notFound();
+  }
 
   const memo = laporan.memo;
   const waktu =
@@ -383,7 +388,7 @@ export default async function DetailLaporanPage(props: Props) {
                 </div>
               </div>
 
-              {isAdmin && (
+              {bolehMemoUser && (
                 <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-night-700 dark:bg-night-900">
                   <h3 className="flex items-center gap-2 text-sm font-bold text-emerald-900 dark:text-emerald-100">
                     <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -434,7 +439,7 @@ export default async function DetailLaporanPage(props: Props) {
             </p>
           )}
 
-          {isAdmin && laporan.status === "disetujui" && <MemoForm laporan={laporan} />}
+          {bolehMemoUser && laporan.status === "disetujui" && <MemoForm laporan={laporan} />}
         </div>
       ),
     },
