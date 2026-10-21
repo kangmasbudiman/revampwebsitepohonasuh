@@ -847,7 +847,6 @@ export const dict = {
       jenis: "Jenis kegiatan",
       petugas: "Petugas",
       dana: "Dana digunakan",
-      pohonTagging: "{n} pohon ditagging",
       hasilTitle: "Hasil Kegiatan",
       galeri: "Galeri Kegiatan",
     },

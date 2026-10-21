@@ -3,10 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CalendarDays, Camera, Coins, FileText, MapPin, NotebookPen, Search, UserRound } from "lucide-react";
+import { CalendarDays, Camera, Coins, MapPin, NotebookPen, Search, UserRound } from "lucide-react";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import LaporanFotoPopup from "@/components/admin/laporan-foto-popup";
-import { LihatBtorButton } from "@/components/admin/laporan-pdf";
 import { deleteLaporan, approveLaporan } from "@/lib/actions/laporan";
 import { LAPORAN_JENIS, LAPORAN_JENIS_LABEL, type ApiLaporan, type ApiLaporanFoto } from "@/lib/api";
 import { namaDesa, rupiah } from "@/lib/format";
@@ -22,19 +21,6 @@ const STATUS_CHIP: Record<string, string> = {
   draft: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
   terkirim: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
   disetujui: "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300",
-  revisi: "bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300",
-};
-
-const PENCAIRAN_CHIP: Record<string, string> = {
-  menunggu: "bg-zinc-100 text-zinc-600 dark:bg-night-800 dark:text-zinc-300",
-  diproses: "bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300",
-  dicairkan: "bg-emerald-600 text-white",
-};
-
-const PENCAIRAN_LABEL: Record<string, string> = {
-  menunggu: "Menunggu",
-  diproses: "Diproses",
-  dicairkan: "Dicairkan",
 };
 
 const inputClass =
@@ -120,7 +106,6 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
         <option value="">Semua status</option>
         <option value="draft">Draft</option>
         <option value="terkirim">Terkirim</option>
-        <option value="revisi">Perlu Revisi</option>
         <option value="disetujui">Disetujui</option>
       </select>
       {adaFilter && (
@@ -157,28 +142,9 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
         STATUS_CHIP[s] ?? STATUS_CHIP.terkirim
       }`}
     >
-      {s === "draft"
-        ? "Draft"
-        : s === "disetujui"
-          ? "Disetujui"
-          : s === "revisi"
-            ? "Perlu Revisi"
-            : "Terkirim"}
+      {s === "draft" ? "Draft" : s === "disetujui" ? "Disetujui" : "Terkirim"}
     </span>
   );
-
-  const memoChip = (r: ApiLaporan) =>
-    r.memo ? (
-      <span
-        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
-          PENCAIRAN_CHIP[r.memo.statusPencairan] ?? PENCAIRAN_CHIP.menunggu
-        }`}
-        title={`Memo ${r.memo.nomor}`}
-      >
-        <FileText className="h-3 w-3" />
-        {PENCAIRAN_LABEL[r.memo.statusPencairan] ?? r.memo.statusPencairan}
-      </span>
-    ) : null;
 
   const tanggalRange = (r: ApiLaporan) =>
     r.tanggalSelesai && r.tanggalSelesai !== r.tanggal
@@ -248,21 +214,15 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                     </td>
                     <td className="max-w-[260px] px-4 py-3">
                       <Link
-                        href={`/admin/laporan/${r.id}`}
+                        href={`/admin/laporan/${r.id}/edit`}
                         className="line-clamp-1 font-medium text-emerald-900 hover:underline dark:text-emerald-100"
-                        title="Buka halaman detail laporan"
                       >
                         {r.judul}
                       </Link>
                       <p className="line-clamp-1 text-xs text-zinc-400">{r.isi}</p>
                     </td>
                     <td className="px-4 py-3">{jenisChip(r.jenis)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col items-start gap-1.5">
-                        {statusChip(r.status)}
-                        {memoChip(r)}
-                      </div>
-                    </td>
+                    <td className="px-4 py-3">{statusChip(r.status)}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
                       {r.desa ? namaDesa(r.desa) : "—"}
                     </td>
@@ -305,13 +265,6 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
-                        {isAdmin && (
-                          <LihatBtorButton
-                            laporan={r}
-                            label="BTOR"
-                            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"
-                          />
-                        )}
                         <Link
                           href={`/admin/laporan/${r.id}/edit`}
                           className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"
@@ -343,11 +296,10 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                   <span className="flex flex-wrap gap-1.5">
                     {jenisChip(r.jenis)}
                     {statusChip(r.status)}
-                    {memoChip(r)}
                   </span>
                 </div>
                 <Link
-                  href={`/admin/laporan/${r.id}`}
+                  href={`/admin/laporan/${r.id}/edit`}
                   className="mt-2 block font-semibold text-emerald-900 hover:underline dark:text-emerald-100"
                 >
                   {r.judul}
@@ -409,13 +361,6 @@ export default function LaporanTable({ rows, level }: { rows: ApiLaporan[]; leve
                   </div>
                 )}
                 <div className="mt-3 flex gap-2">
-                  {isAdmin && (
-                    <LihatBtorButton
-                      laporan={r}
-                      label="BTOR"
-                      className="flex-1 rounded-lg border border-emerald-200 px-3 py-2 text-center text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"
-                    />
-                  )}
                   <Link
                     href={`/admin/laporan/${r.id}/edit`}
                     className="flex-1 rounded-lg border border-emerald-200 px-3 py-2 text-center text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"

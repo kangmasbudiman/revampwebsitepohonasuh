@@ -7,14 +7,7 @@ import {
   TreePine,
   type LucideIcon,
 } from "lucide-react";
-import {
-  apiGet,
-  adoptionStatus,
-  mapDesa,
-  mapLaporans,
-  mapOrderRows,
-  type ApiOrderRow,
-} from "@/lib/api";
+import { apiGet, adoptionStatus, mapDesa, mapOrderRows, type ApiOrderRow } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
 import { rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
@@ -52,16 +45,6 @@ export default async function AdminHomePage() {
       .map((r) => r.confirmasiId),
   );
   const activeCount = rows.filter((r) => r.confirmation === "yes").length;
-
-  // BTOR terkirim menunggu pemeriksaan/verifikasi admin.
-  let laporanMenunggu = 0;
-  try {
-    laporanMenunggu = mapLaporans(
-      await apiGet<Record<string, unknown>[]>("laporanlist?status=terkirim"),
-    ).length;
-  } catch {
-    // biarkan 0
-  }
 
   const stats: {
     label: string;
@@ -158,19 +141,6 @@ export default async function AdminHomePage() {
             Ada {pendingIds.size} pembayaran menunggu verifikasi.
           </p>
           <span className="text-sm font-bold">Verifikasi sekarang →</span>
-        </Link>
-      )}
-
-      {laporanMenunggu > 0 && (
-        <Link
-          href="/admin/laporan"
-          data-testid="widget-laporan-menunggu"
-          className="mt-4 flex items-center justify-between rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-5 text-white shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-0.5 hover:shadow-xl"
-        >
-          <p className="text-sm font-semibold">
-            Ada {laporanMenunggu} laporan kegiatan (BTOR) menunggu verifikasi.
-          </p>
-          <span className="text-sm font-bold">Periksa sekarang →</span>
         </Link>
       )}
 

@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -11,24 +10,12 @@ import {
   Info,
   Lightbulb,
   Send,
-  TriangleAlert,
   Wallet,
   X,
 } from "lucide-react";
-import {
-  simpanLaporan,
-  simpanPohonLaporan,
-  unggahFotoLaporan,
-  hapusFotoLaporan,
-} from "@/lib/actions/laporan";
+import { simpanLaporan, unggahFotoLaporan, hapusFotoLaporan } from "@/lib/actions/laporan";
 import { LAPORAN_JENIS, type ApiLaporan } from "@/lib/api";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
-import LaporanPohonPicker, { type KandidatPohon } from "@/components/admin/laporan-pohon-picker";
-import LaporanCatatanEditor, {
-  parseIsi,
-  serializeEntri,
-  type CatatanEntri,
-} from "@/components/admin/laporan-catatan-editor";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40";
@@ -78,28 +65,18 @@ export default function LaporanForm({
   laporan,
   desaList,
   level,
-  kandidatPohon = [],
-  pilihanAwal = [],
 }: {
   laporan?: ApiLaporan;
   desaList: { nama: string; label: string }[];
   level: number;
-  kandidatPohon?: KandidatPohon[];
-  pilihanAwal?: number[];
 }) {
   const router = useRouter();
   const edit = Boolean(laporan);
   const terkirim = edit && laporan!.status !== "draft";
   const isAdmin = level === 1;
   const sudahDisetujui = edit && laporan!.status === "disetujui";
-  const perluRevisi = edit && laporan!.status === "revisi";
 
-  const [jenis, setJenis] = useState(laporan?.jenis ?? "tagging");
-  const [terpilihPohon, setTerpilihPohon] = useState<number[]>(pilihanAwal);
-  const [entri, setEntri] = useState<CatatanEntri[]>(() =>
-    parseIsi(laporan?.isi ?? "", Number((laporan?.tanggal ?? new Date().toISOString()).slice(0, 4))),
-  );
-  const isi = useMemo(() => serializeEntri(entri), [entri]);
+  const [isi, setIsi] = useState(laporan?.isi ?? "");
   const [hasil, setHasil] = useState(laporan?.hasil ?? "");
   const [dana, setDana] = useState(laporan?.dana ? String(Math.round(laporan.dana)) : "");
   const [staged, setStaged] = useState<Staged[]>([]);
@@ -112,13 +89,6 @@ export default function LaporanForm({
 
   const danaDigits = dana.replace(/\D/g, "");
   const danaDisplay = danaDigits ? Number(danaDigits).toLocaleString("id-ID") : "";
-
-  // Foto tagging per pohon (scope siklus order, dari Order Tagging) — dasar
-  // lampiran otomatis & validasi kirim untuk jenis tagging.
-  const jmlFotoOf = (idadopsi: number) =>
-    kandidatPohon.find((k) => k.idadopsi === idadopsi)?.jmlFoto ?? 0;
-  const berfoto = terpilihPohon.filter((id) => jmlFotoOf(id) > 0).length;
-  const belumFoto = terpilihPohon.filter((id) => jmlFotoOf(id) === 0);
 
   const pilihFile = (files: FileList | null) => {
     if (!files?.length) return;
@@ -182,22 +152,10 @@ export default function LaporanForm({
         setError("Isi hasil atau manfaat kegiatan sebelum mengirim laporan.");
         return;
       }
-      if (jenis === "tagging" && terpilihPohon.length === 0) {
-        setError("Pilih minimal satu pohon hasil tagging yang dikerjakan pada kegiatan ini.");
+      const jmlFoto = (laporan?.foto.length ?? 0) + staged.length;
+      if (!terkirim && jmlFoto === 0) {
+        setError("Unggah minimal satu foto kegiatan sebelum mengirim laporan.");
         return;
-      }
-      if (jenis === "tagging" && (laporan?.foto.length ?? 0) === 0 && berfoto < terpilihPohon.length) {
-        setError(
-          `Semua pohon terpilih harus sudah punya foto tagging (${berfoto} dari ${terpilihPohon.length}) — unggah fotonya per kode pohon di menu Order Tagging.`,
-        );
-        return;
-      }
-      if (jenis !== "tagging") {
-        const jmlFoto = (laporan?.foto.length ?? 0) + staged.length;
-        if (!terkirim && jmlFoto === 0) {
-          setError("Unggah minimal satu foto kegiatan sebelum mengirim laporan.");
-          return;
-        }
       }
     }
 
@@ -208,16 +166,6 @@ export default function LaporanForm({
       setPending(null);
       setError(r.error ?? "Gagal menyimpan laporan.");
       return;
-    }
-    if (jenis === "tagging" && !sudahDisetujui) {
-      setProgress("Menyimpan daftar pohon…");
-      const p = await simpanPohonLaporan(r.id, terpilihPohon);
-      setProgress(null);
-      if (!p.ok) {
-        setPending(null);
-        setError(p.error ?? "Gagal menyimpan daftar pohon.");
-        return;
-      }
     }
     const gagal: string[] = [];
     for (let i = 0; i < staged.length; i++) {
@@ -256,20 +204,6 @@ export default function LaporanForm({
           Draf — laporan belum dikirim ke tim Pohon Asuh.
         </p>
       )}
-      {perluRevisi && (
-        <div className="mb-4 rounded-xl bg-amber-50 px-4 py-3.5 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-          <p className="flex items-center gap-2 font-semibold">
-            <TriangleAlert className="h-4 w-4 shrink-0 text-amber-500" />
-            Perlu revisi — tim Pohon Asuh meminta perbaikan sebelum diverifikasi.
-          </p>
-          {laporan!.catatanRevisi && (
-            <p className="mt-1.5 whitespace-pre-line pl-6 leading-6">“{laporan!.catatanRevisi}”</p>
-          )}
-          <p className="mt-1.5 pl-6 text-xs text-amber-700 dark:text-amber-200/80">
-            Perbaiki lalu kirim ulang; kirim ulang akan menghapus catatan revisi.
-          </p>
-        </div>
-      )}
       {sudahDisetujui && (
         <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
           <BadgeCheck className="h-3.5 w-3.5" />
@@ -294,11 +228,7 @@ export default function LaporanForm({
       </div>
 
       <ol className="mt-8 grid gap-9 xl:grid-cols-2 xl:gap-x-10">
-        {(() => {
-          let n = 0;
-          return (
-            <>
-        <Step n={++n} title="Nama Kegiatan" helper="Beri nama singkat dan jelas.">
+        <Step n={1} title="Nama Kegiatan" helper="Beri nama singkat dan jelas.">
           <input
             name="judul"
             type="text"
@@ -307,19 +237,14 @@ export default function LaporanForm({
             className={inputClass}
           />
           <Contoh>
-            Tagging Pohon Asuh Pondok Parian Lunang 2026 · Penyaluran sembako Ramadan · Patroli
-            hutan · Pembelian alat kelompok
+            Penyaluran sembako Ramadan · Dukungan pendidikan anak · Patroli hutan · Pembelian alat
+            kelompok
           </Contoh>
         </Step>
 
-        <Step n={++n} title="Jenis & Lokasi Kegiatan" helper="Pilih jenis kegiatan dan desa lokasi.">
+        <Step n={2} title="Jenis & Lokasi Kegiatan" helper="Pilih jenis kegiatan dan desa lokasi.">
           <div className="grid gap-3 sm:grid-cols-2">
-            <select
-              name="jenis"
-              value={jenis}
-              onChange={(e) => setJenis(e.target.value)}
-              className={inputClass}
-            >
+            <select name="jenis" defaultValue={laporan?.jenis ?? "tagging"} className={inputClass}>
               {LAPORAN_JENIS.map((j) => (
                 <option key={j.key} value={j.key}>
                   {j.label}
@@ -337,7 +262,7 @@ export default function LaporanForm({
           </div>
         </Step>
 
-        <Step n={++n} title="Kapan kegiatan dilakukan?" helper="Tanggal selesai boleh dikosongkan bila kegiatan selesai di hari yang sama.">
+        <Step n={3} title="Kapan kegiatan dilakukan?" helper="Tanggal selesai boleh dikosongkan bila kegiatan selesai di hari yang sama.">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-sm text-zinc-600 dark:text-zinc-300">
               Mulai
@@ -360,101 +285,23 @@ export default function LaporanForm({
           </div>
         </Step>
 
-        {jenis === "tagging" && (
-          <>
-            <Step n={++n} title="Tempat & Tim Tagging" helper="Detail BTOR — di mana kegiatan berlangsung dan siapa saja timnya.">
-              <label className="block text-sm text-zinc-600 dark:text-zinc-300">
-                Jabatan Anda
-                <input
-                  name="jabatan"
-                  type="text"
-                  defaultValue={laporan?.jabatan ?? ""}
-                  placeholder="mis. Pengelola Desa / Ketua LPHN"
-                  className={inputClass}
-                />
-              </label>
-              <label className="mt-3 block text-sm text-zinc-600 dark:text-zinc-300">
-                Tempat kegiatan
-                <input
-                  name="tempat"
-                  type="text"
-                  defaultValue={laporan?.tempat ?? ""}
-                  placeholder="mis. Hutan Nagari Pondok Parian Lunang"
-                  className={inputClass}
-                />
-              </label>
-              <label className="mt-3 block text-sm text-zinc-600 dark:text-zinc-300">
-                Tim tagging <span className="text-zinc-400">(satu nama per baris)</span>
-                <textarea
-                  name="tim_tagging"
-                  rows={4}
-                  defaultValue={laporan?.timTagging ?? ""}
-                  placeholder={"Saprudin\nJal\nYus"}
-                  className={inputClass}
-                />
-              </label>
-            </Step>
-
-            <Step n={++n} title="Rekening Pencairan" helper="Rekening LPHN/pengelola sebagai dasar memo pencairan dana.">
-              <label className="block text-sm text-zinc-600 dark:text-zinc-300">
-                a.n. (nama pemilik rekening)
-                <input
-                  name="rekening_at"
-                  type="text"
-                  defaultValue={laporan?.rekeningAt ?? ""}
-                  placeholder="mis. LPHN Pondok Parian Lunang"
-                  className={inputClass}
-                />
-              </label>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="block text-sm text-zinc-600 dark:text-zinc-300">
-                  Bank
-                  <input
-                    name="rekening_bank"
-                    type="text"
-                    defaultValue={laporan?.rekeningBank ?? ""}
-                    placeholder="mis. BRI"
-                    className={inputClass}
-                  />
-                </label>
-                <label className="block text-sm text-zinc-600 dark:text-zinc-300">
-                  Nomor rekening
-                  <input
-                    name="rekening_norek"
-                    type="text"
-                    defaultValue={laporan?.rekeningNorek ?? ""}
-                    placeholder="mis. 5482-01-014034-53-3"
-                    className={inputClass}
-                  />
-                </label>
-              </div>
-              <Contoh>
-                Setelah BTOR diverifikasi, admin menerbitkan Memo Pencairan ke rekening ini.
-              </Contoh>
-            </Step>
-
-            <Step
-              n={++n}
-              className="xl:col-span-2"
-              title="Pohon yang Ditagging"
-              helper="Centang pohon hasil tagging yang dikerjakan pada kegiatan ini — minimal satu pohon saat laporan dikirim."
-            >
-              <LaporanPohonPicker
-                kandidat={kandidatPohon}
-                terpilih={terpilihPohon}
-                onChange={setTerpilihPohon}
-                disabled={sudahDisetujui}
-              />
-            </Step>
-          </>
-        )}
-
-        <Step n={++n} title="Ceritakan kegiatan" helper="Catat per hari — klik Tambah Hari, pilih tanggal, lalu tulis uraiannya.">
-          <input type="hidden" name="isi" value={isi} />
-          <LaporanCatatanEditor value={entri} onChange={setEntri} maxTotal={500} />
+        <Step n={4} title="Ceritakan kegiatan" helper="Tuliskan apa yang dikerjakan selama kegiatan.">
+          <textarea
+            name="isi"
+            rows={4}
+            maxLength={500}
+            value={isi}
+            onChange={(e) => setIsi(e.target.value)}
+            placeholder="Siapa yang terlibat, di mana dilakukan, dan apa saja yang dikerjakan…"
+            className={inputClass}
+          />
+          <p className="mt-1 text-right text-xs text-zinc-400">{isi.length}/500</p>
+          <Contoh>
+            Siapa yang terlibat, di mana dilakukan, dan apa saja yang dikerjakan.
+          </Contoh>
         </Step>
 
-        <Step n={++n} title="Berapa dana yang digunakan?" helper="Perkiraan total belanja untuk kegiatan ini.">
+        <Step n={5} title="Berapa dana yang digunakan?" helper="Perkiraan total belanja untuk kegiatan ini.">
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm font-semibold text-zinc-500">
               Rp
@@ -475,7 +322,7 @@ export default function LaporanForm({
           </div>
         </Step>
 
-        <Step n={++n} title="Apa hasil atau manfaat?" helper="Ceritakan dampak kegiatan bagi warga atau pohon.">
+        <Step n={6} title="Apa hasil atau manfaat?" helper="Ceritakan dampak kegiatan bagi warga atau pohon.">
           <textarea
             name="hasil"
             rows={4}
@@ -492,48 +339,7 @@ export default function LaporanForm({
           </Contoh>
         </Step>
 
-        {jenis === "tagging" ? (
-          <Step
-            n={++n}
-            className="xl:col-span-2"
-            title="Lampiran Foto Kegiatan"
-            helper="Foto dokumentasi diambil otomatis dari foto hasil tagging per pohon — tidak perlu unggah manual."
-          >
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3.5 dark:border-night-700 dark:bg-night-800/50">
-              <p
-                className="text-sm font-semibold text-emerald-900 dark:text-emerald-100"
-                data-testid="progress-foto-tagging"
-              >
-                {terpilihPohon.length === 0
-                  ? "Pilih dulu pohon yang akan ditagging."
-                  : `${berfoto} dari ${terpilihPohon.length} pohon sudah punya foto tagging`}
-              </p>
-              {belumFoto.length > 0 && (
-                <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
-                  Belum difoto:{" "}
-                  <span className="font-mono font-semibold">
-                    {belumFoto
-                      .map((id) => kandidatPohon.find((k) => k.idadopsi === id)?.idpohon ?? `#${id}`)
-                      .join(", ")}
-                  </span>{" "}
-                  — unggah di menu{" "}
-                  <Link
-                    href="/admin/tagging"
-                    className="font-semibold text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-300"
-                  >
-                    Order Tagging
-                  </Link>{" "}
-                  setelah pemasangan banner.
-                </p>
-              )}
-              <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                Setiap pohon harus sudah punya foto tagging sebelum laporan dikirim; foto tersebut
-                otomatis menjadi lampiran BTOR (PDF).
-              </p>
-            </div>
-          </Step>
-        ) : (
-        <Step n={++n} className="xl:col-span-2" title="Foto Kegiatan" helper="Foto asli kegiatan lebih dipercaya pembaca daripada foto stok.">
+        <Step n={7} className="xl:col-span-2" title="Foto Kegiatan" helper="Foto asli kegiatan lebih dipercaya pembaca daripada foto stok.">
           <input
             ref={fileInputRef}
             type="file"
@@ -607,10 +413,6 @@ export default function LaporanForm({
           ) : null}
           {progress && <p className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">{progress}</p>}
         </Step>
-        )}
-            </>
-          );
-        })()}
       </ol>
 
       <div className="mt-10 flex flex-col gap-5 border-t border-zinc-100 pt-6 dark:border-night-800 sm:flex-row">

@@ -10,8 +10,6 @@ import CancelProsesButton from "@/components/admin/cancel-proses-button";
 import PapanCheck from "@/components/admin/papan-check";
 import PapanCheckAll from "@/components/admin/papan-check-all";
 import PapanBatchBar from "@/components/admin/papan-batch-bar";
-import LaporanPohonCheck from "@/components/admin/laporan-pohon-check";
-import LaporanBatchBar from "@/components/admin/laporan-batch-bar";
 import DesaFilter from "@/components/admin/desa-filter";
 import { updateOrderNote } from "@/lib/actions/tagging";
 
@@ -270,7 +268,6 @@ export default async function TaggingPage({
                 ) : (
                   <PapanCheck order={order} />
                 )}
-                <LaporanPohonCheck order={order} />
                 <Link
                   href={`/admin/tagging/${order.id}/papan`}
                   className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
@@ -350,12 +347,7 @@ export default async function TaggingPage({
         )}
       </div>
 
-      {filtered.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col items-center gap-2 px-4 pb-4 print:hidden">
-          <LaporanBatchBar />
-          <PapanBatchBar taggedIds={taggedIds} />
-        </div>
-      )}
+      {filtered.length > 0 && <PapanBatchBar taggedIds={taggedIds} />}
     </main>
   );
 }

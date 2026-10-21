@@ -61,14 +61,13 @@ assert(
 );
 await p.click('a:has-text("Tambah Laporan")');
 await p.waitForURL(/\/admin\/laporan\/baru/, { timeout: 30000 });
-assert((await p.locator("ol > li").count()) === 10, "form 10 langkah bernomor tampil");
+assert((await p.locator("ol > li").count()) === 7, "form 7 langkah bernomor tampil");
 
 // buat DRAF + 1 foto bertahap
 await p.fill('form input[name="judul"]', JUDUL);
 await p.selectOption('form select[name="jenis"]', "pemantauan");
 await p.fill('form input[name="tanggal"]', HARI);
-await p.click('[data-testid="tambah-hari"]');
-await p.fill('[data-testid="entri-teks-0"]', "Smoke test laporan kegiatan produksi.");
+await p.fill('form textarea[name="isi"]', "Smoke test laporan kegiatan produksi.");
 await p.setInputFiles('form input[type=file][accept^="image"]', {
   name: "uji-laporan.png", mimeType: "image/png",
   buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64"),

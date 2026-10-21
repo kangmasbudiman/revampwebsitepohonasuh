@@ -103,7 +103,8 @@ export default function PapanBatchBar({ taggedIds = [] }: { taggedIds?: number[]
         </div>
       </div>
 
-      <div className="pa-card flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-emerald-200 px-4 py-3 shadow-lg dark:border-night-700">
+      <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4 print:hidden">
+        <div className="pa-card flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-emerald-200 px-4 py-3 shadow-lg dark:border-night-700">
           <p className="text-sm font-semibold text-emerald-950 dark:text-emerald-50">
             {proses
               ? `Menyiapkan papan ${Math.min(selesai + 1, list.length)} dari ${list.length}…`
@@ -137,6 +138,7 @@ export default function PapanBatchBar({ taggedIds = [] }: { taggedIds?: number[]
           >
             <X className="h-3.5 w-3.5" /> Kosongkan
           </button>
+        </div>
       </div>
     </>
   );

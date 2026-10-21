@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgeCheck, CalendarDays, Coins, MapPin, TreePine, User } from "lucide-react";
+import { BadgeCheck, CalendarDays, Coins, MapPin, User } from "lucide-react";
 import {
   apiGet,
   mapLaporans,
@@ -47,25 +47,13 @@ export default async function LaporanDetailPage(props: Props) {
   const [d, locale] = await Promise.all([getDict(), getLocale()]);
   const dd = d.pages.laporanDetail;
 
-  const lokasi = [
-    laporan.tempat.trim(),
-    laporan.desa.trim() && namaDesa(laporan.desa),
-  ]
-    .filter(Boolean)
-    .join(", ");
-
   const meta = [
-    lokasi && { icon: MapPin, text: lokasi },
+    laporan.desa.trim() && { icon: MapPin, text: namaDesa(laporan.desa) },
     (laporan.tanggal || laporan.tanggalSelesai) && {
       icon: CalendarDays,
       text: `${dd.periode}: ${periodeLaporan(laporan.tanggal, laporan.tanggalSelesai, locale)}`,
     },
     laporan.petugas && { icon: User, text: `${dd.petugas}: ${laporan.petugas}` },
-    // Ringkasan hasil tagging (tanpa rincian finansial seperti rekening/memo).
-    laporan.jmlPohon > 0 && {
-      icon: TreePine,
-      text: dd.pohonTagging.replaceAll("{n}", String(laporan.jmlPohon)),
-    },
   ].filter(Boolean) as { icon: typeof MapPin; text: string }[];
 
   return (

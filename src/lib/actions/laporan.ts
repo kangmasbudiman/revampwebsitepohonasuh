@@ -3,18 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/guard";
-import {
-  apiAssetUrl,
-  apiGet,
-  apiPost,
-  apiPostForm,
-  mapLaporanDetail,
-  mapLaporans,
-  LAPORAN_JENIS,
-  type ApiLaporan,
-} from "@/lib/api";
+import { apiGet, apiPost, apiPostForm, mapLaporans, LAPORAN_JENIS, type ApiLaporan } from "@/lib/api";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
-import { bolehMemo } from "@/lib/hak";
 
 const JENIS_KEYS = new Set(LAPORAN_JENIS.map((j) => j.key));
 
@@ -52,12 +42,6 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
   const desa = String(formData.get("desa") ?? "").trim();
   const dana = String(formData.get("dana") ?? "").replace(/[^\d]/g, "");
   const hasil = String(formData.get("hasil") ?? "").trim();
-  const jabatan = String(formData.get("jabatan") ?? "").trim();
-  const tempat = String(formData.get("tempat") ?? "").trim();
-  const timTagging = String(formData.get("tim_tagging") ?? "").trim();
-  const rekeningAt = String(formData.get("rekening_at") ?? "").trim();
-  const rekeningBank = String(formData.get("rekening_bank") ?? "").trim();
-  const rekeningNorek = String(formData.get("rekening_norek") ?? "").trim();
 
   if (!JENIS_KEYS.has(jenis)) return { ok: false, error: "Jenis kegiatan tidak valid." };
   if (status !== "draft" && (!judul || !isi || !tanggal)) {
@@ -76,12 +60,6 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
     desa,
     tanggal,
     tanggal_selesai: tanggalSelesai,
-    jabatan,
-    tempat,
-    tim_tagging: timTagging,
-    rekening_at: rekeningAt,
-    rekening_bank: rekeningBank,
-    rekening_norek: rekeningNorek,
     isi,
     dana,
     hasil,
@@ -93,27 +71,8 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
       const { laporan, boleh } = await laporanMilik(id);
       if (!laporan) return { ok: false, error: "Laporan tidak ditemukan." };
       if (!boleh) return { ok: false, error: "Anda hanya bisa mengubah laporan milik sendiri." };
-      if (jenis === "tagging" && status !== "draft") {
-        try {
-          const detail = await apiGet<{ pohon?: { jml_foto?: number }[] }>(`laporandetail?id=${id}`);
-          const pohon = detail.pohon ?? [];
-          const tanpaFoto = pohon.filter((p) => Number(p.jml_foto ?? 0) === 0);
-          // Legacy: laporan lama berfoto manual (seluruh pohonnya memang tanpa
-          // foto tagging) tetap boleh dikirim ulang.
-          const legacy = tanpaFoto.length === pohon.length && (laporan.foto?.length ?? 0) > 0;
-          if (!legacy && tanpaFoto.length > 0) {
-            return {
-              ok: false,
-              error: `Ada ${tanpaFoto.length} pohon belum punya foto tagging — unggah fotonya per kode pohon di menu Order Tagging sebelum mengirim.`,
-            };
-          }
-        } catch {
-          // detail tak terbaca — lanjut, guard backend jadi lapis berikutnya
-        }
-      }
       const res = await apiPost<{ value?: string | number; pesan?: string }>("editlaporan", {
         id,
-        oleh: session.userId,
         ...payload,
       });
       if (Number(res.value) !== 200) {
@@ -136,78 +95,6 @@ export async function simpanLaporan(formData: FormData): Promise<SimpanResult> {
   } catch {
     return { ok: false, error: "Gagal menyimpan laporan. Coba lagi." };
   }
-}
-
-// Buat DRAF Laporan Kegiatan (jenis tagging) dari seleksi pohon di menu
-// Order Tagging — draft menjadi "daftar pohon akan ditagging"; foto per
-// kode pohon diunggah di Order Tagging, BTOR dilengkapi di form edit.
-export async function buatLaporanDariTagging(formData: FormData) {
-  const session = await requireAdmin();
-  const ids = formData
-    .getAll("idadopsi[]")
-    .map((v) => Number(v))
-    .filter((v) => v > 0);
-  if (!ids.length) redirect("/admin/tagging?error=Pilih+minimal+satu+pohon");
-
-  const desaList = formData
-    .getAll("desa[]")
-    .map((v) => String(v).trim())
-    .filter(Boolean);
-  const desa = desaList.sort(
-    (a, b) => desaList.filter((v) => v === b).length - desaList.filter((v) => v === a).length,
-  )[0];
-  const now = new Date();
-  const stamp = `${now.toISOString().slice(0, 10)} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  const judul = `Kegiatan Tagging — ${desa || "Pohon Asuh"} (${stamp})`;
-
-  let id = 0;
-  try {
-    const res = await apiPost<{ value?: string | number; pesan?: string; id?: number }>(
-      "tambahlaporan",
-      {
-        idpetugas: session.userId,
-        judul,
-        jenis: "tagging",
-        desa,
-        tanggal: now.toISOString().slice(0, 10),
-        tanggal_selesai: "",
-        jabatan: "",
-        tempat: "",
-        tim_tagging: "",
-        rekening_at: "",
-        rekening_bank: "",
-        rekening_norek: "",
-        isi: "",
-        dana: "0",
-        hasil: "",
-        status: "draft",
-      },
-    );
-    if (Number(res.value) !== 200) {
-      redirect(`/admin/tagging?error=${encodeURIComponent(res.pesan ?? "Gagal membuat laporan.")}`);
-    }
-    id = Number(res.id) || 0;
-    if (!id) redirect("/admin/tagging?error=Gagal+membuat+laporan");
-
-    const fd = new FormData();
-    fd.append("idlaporan", String(id));
-    for (const idadopsi of ids) fd.append("idadopsi[]", String(idadopsi));
-    const set = await apiPostForm<{ value?: string | number; pesan?: string }>(
-      "setpohonlaporan",
-      fd,
-    );
-    if (Number(set.value) !== 200) {
-      redirect(
-        `/admin/tagging?error=${encodeURIComponent(set.pesan ?? "Gagal menyimpan daftar pohon.")}`,
-      );
-    }
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect("/admin/tagging?error=Gagal+membuat+laporan");
-  }
-
-  revalidatePath("/admin/laporan");
-  redirect(`/admin/laporan/${id}/edit?created=1`);
 }
 
 export async function unggahFotoLaporan(idlaporan: number, file: File): Promise<FotoResult> {
@@ -304,10 +191,7 @@ export async function approveLaporan(formData: FormData) {
   }
 
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>("approvelaporan", {
-      id,
-      oleh: session.userId,
-    });
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("approvelaporan", { id });
     if (Number(res.value) !== 200) {
       redirect(`/admin/laporan?error=${encodeURIComponent(res.pesan ?? "Gagal menyetujui laporan.")}`);
     }
@@ -318,229 +202,5 @@ export async function approveLaporan(formData: FormData) {
 
   revalidatePath("/admin/laporan");
   revalidatePath(`/admin/laporan/${id}/edit`);
-  redirect(`/admin/laporan/${id}?diverifikasi=1`);
-}
-
-// Minta revisi laporan terkirim (admin saja) — kembali ke petugas dengan
-// catatan apa yang harus diperbaiki.
-export async function revisiLaporan(formData: FormData) {
-  const id = Number(formData.get("id"));
-  if (!id) redirect("/admin/laporan?error=Laporan+tidak+ditemukan");
-
-  const session = await requireAdmin();
-  if ((session.level ?? 1) !== 1) {
-    redirect("/admin/laporan?error=Hanya+admin+yang+bisa+meminta+revisi");
-  }
-  const catatan = String(formData.get("catatan") ?? "").trim();
-  if (!catatan) {
-    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("Catatan revisi wajib diisi.")}`);
-  }
-
-  try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>("revisilaporan", {
-      id,
-      catatan,
-      oleh: session.userId,
-    });
-    if (Number(res.value) !== 200) {
-      redirect(`/admin/laporan/${id}?error=${encodeURIComponent(res.pesan ?? "Gagal meminta revisi.")}`);
-    }
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect(`/admin/laporan/${id}?error=Gagal+meminta+revisi`);
-  }
-
-  revalidatePath("/admin/laporan");
-  revalidatePath(`/admin/laporan/${id}`);
-  redirect(`/admin/laporan/${id}?revisi=1`);
-}
-
-// Simpan daftar pohon hasil tagging milik laporan (replace-set). Dipanggil
-// imperatif dari pohon picker setelah baris laporan ada (pola foto).
-export async function simpanPohonLaporan(
-  idlaporan: number,
-  idadopsi: number[],
-): Promise<FotoResult> {
-  if (!idlaporan) return { ok: false, error: "Laporan tidak ditemukan." };
-  const { laporan, boleh } = await laporanMilik(idlaporan).catch(() => ({ laporan: undefined, boleh: false }));
-  if (!laporan) return { ok: false, error: "Laporan tidak ditemukan." };
-  if (!boleh) return { ok: false, error: "Anda hanya bisa mengubah laporan milik sendiri." };
-  if (laporan.status === "disetujui") {
-    return { ok: false, error: "Laporan sudah diverifikasi — daftar pohon tidak bisa diubah." };
-  }
-
-  const fd = new FormData();
-  fd.append("idlaporan", String(idlaporan));
-  for (const id of idadopsi) fd.append("idadopsi[]", String(id));
-  try {
-    const res = await apiPostForm<{ value?: string | number; pesan?: string }>("setpohonlaporan", fd);
-    if (Number(res.value) !== 200) {
-      return { ok: false, error: res.pesan ?? "Gagal menyimpan daftar pohon." };
-    }
-  } catch {
-    return { ok: false, error: "Gagal menyimpan daftar pohon. Coba lagi." };
-  }
-  revalidatePath("/admin/laporan");
-  revalidatePath(`/admin/laporan/${idlaporan}`);
-  revalidatePath(`/admin/laporan/${idlaporan}/edit`);
-  return { ok: true };
-}
-
-// Foto hasil tagging satu pohon (endpoint lihatfototaging, query per
-// idpohon → seluruh riwayat foto pohon). Dipanggil lazy dari halaman
-// detail saat galeri pohon dibuka.
-export async function ambilFotoTaggingPohon(
-  idpohon: string,
-): Promise<{ ok: boolean; foto?: { id: number; url: string }[]; error?: string }> {
-  await requireAdmin();
-  try {
-    const fd = new FormData();
-    fd.append("idpohon", idpohon);
-    const rows = await apiPostForm<{ urlGambar?: string }[]>("lihatfototaging", fd);
-    const foto = rows
-      .map((r, i) => ({ id: i + 1, url: String(r.urlGambar ?? "").trim() }))
-      .filter((f) => f.url !== "");
-    return { ok: true, foto };
-  } catch {
-    return { ok: false, error: "Gagal memuat foto tagging. Coba lagi." };
-  }
-}
-
-// Lampiran otomatis BTOR jenis tagging: foto hasil tagging per pohon
-// terpilih (scope siklus order via fototagingorder), maks 3 foto per pohon
-// demi ukuran PDF. Dipanggil lazy dari tombol PDF di detail maupun tabel.
-export async function ambilLampiranTagging(
-  idlaporan: number,
-): Promise<{ ok: boolean; lampiran?: { idpohon: string; foto: string[] }[] }> {
-  await requireAdmin();
-  try {
-    const detail = mapLaporanDetail(
-      await apiGet<Record<string, unknown>>(`laporandetail?id=${idlaporan}`),
-    );
-    const pohon = detail.pohon ?? [];
-    const lampiran: { idpohon: string; foto: string[] }[] = [];
-    await Promise.all(
-      [...new Set(pohon.map((p) => p.invoice).filter(Boolean))].map(async (inv) => {
-        try {
-          const rows = await apiPost<
-            { idadopsi?: number | string; foto?: { url?: string }[] }[]
-          >("fototagingorder", { invoice: inv });
-          for (const r of rows) {
-            const p = pohon.find((x) => x.idadopsi === Number(r.idadopsi));
-            if (!p) continue;
-            const foto = (r.foto ?? [])
-              .map((f) => apiAssetUrl(f.url) ?? "")
-              .filter(Boolean)
-              .slice(0, 3);
-            if (foto.length) lampiran.push({ idpohon: p.idpohon, foto });
-          }
-        } catch {
-          // pohon tanpa lampiran foto
-        }
-      }),
-    );
-    lampiran.sort((a, b) => a.idpohon.localeCompare(b.idpohon));
-    return { ok: true, lampiran };
-  } catch {
-    return { ok: false };
-  }
-}
-
-// Terbitkan / perbarui Memo Pencairan (admin atau role ber-hak memo) — hanya
-// untuk laporan yang BTOR-nya sudah diverifikasi.
-export async function simpanMemo(formData: FormData) {
-  const session = await requireAdmin();
-  if (!bolehMemo(session)) {
-    redirect("/admin/laporan?error=Tidak+punya+izin+menerbitkan+memo");
-  }
-  const id = Number(formData.get("idlaporan"));
-  const memoId = Number(formData.get("id_memo")) || null;
-  if (!id) redirect("/admin/laporan?error=Laporan+tidak+ditemukan");
-
-  const { laporan } = await laporanMilik(id).catch(() => ({ laporan: undefined }));
-  if (!laporan) redirect(`/admin/laporan/${id}?error=Laporan+tidak+ditemukan`);
-  if (laporan.status !== "disetujui") {
-    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("BTOR harus diverifikasi dulu sebelum memo diterbitkan.")}`);
-  }
-
-  const dari = String(formData.get("dari") ?? "").trim();
-  const kepada = String(formData.get("kepada") ?? "").trim();
-  if (!dari || !kepada) {
-    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("Dari dan Kepada wajib diisi.")}`);
-  }
-  const dana = laporan.dana ?? 0;
-  if (dana <= 0) {
-    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("Dana BTOR belum diisi — lengkapi dulu laporan kegiatan.")}`);
-  }
-
-  // Data pencairan otomatis dari BTOR; form hanya mengisi bagian memorandum.
-  const payload = {
-    tanggal: String(formData.get("tanggal") ?? "").trim(),
-    dari,
-    kepada,
-    proyek: String(formData.get("proyek") ?? "").trim(),
-    isi: String(formData.get("isi") ?? "").trim(),
-    jumlah: String(dana),
-    penerima: laporan.rekeningAt || laporan.petugas,
-    bank: laporan.rekeningBank,
-    norek: laporan.rekeningNorek,
-    keperluan: `Pencairan dana kegiatan ${laporan.judul}`,
-    ttd_nama: String(formData.get("ttd_nama") ?? "").trim(),
-    ttd_jabatan: String(formData.get("ttd_jabatan") ?? "").trim(),
-    // Catatan pencairan dikelola form pencairan terpisah — jangan timpa saat
-    // edit memo bila fieldnya tidak ada di form memorandum.
-    ...(formData.has("catatan_pencairan")
-      ? { catatan_pencairan: String(formData.get("catatan_pencairan")).trim() }
-      : {}),
-    oleh: session.userId,
-  };
-
-  try {
-    const res = memoId
-      ? await apiPost<{ value?: string | number; pesan?: string }>("editmemo", { id: memoId, ...payload })
-      : await apiPost<{ value?: string | number; pesan?: string }>("tambahmemo", { idlaporan: id, ...payload });
-    if (Number(res.value) !== 200) {
-      redirect(`/admin/laporan/${id}?error=${encodeURIComponent(res.pesan ?? "Gagal menyimpan memo.")}`);
-    }
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect(`/admin/laporan/${id}?error=Gagal+menyimpan+memo`);
-  }
-
-  revalidatePath("/admin/laporan");
-  revalidatePath(`/admin/laporan/${id}`);
-  redirect(`/admin/laporan/${id}?memo=1`);
-}
-
-// Perbarui status pencairan dana memo (admin atau role ber-hak memo).
-export async function updatePencairan(formData: FormData) {
-  const session = await requireAdmin();
-  if (!bolehMemo(session)) {
-    redirect("/admin/laporan?error=Tidak+punya+izin+memperbarui+pencairan");
-  }
-  const idlaporan = Number(formData.get("idlaporan"));
-  const idMemo = Number(formData.get("id_memo"));
-  const status = String(formData.get("status_pencairan") ?? "").trim();
-  if (!idlaporan || !idMemo || !["menunggu", "diproses", "dicairkan"].includes(status)) {
-    redirect(`/admin/laporan/${idlaporan || ""}?error=Status+pencairan+tidak+valid`);
-  }
-
-  try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>("editmemo", {
-      id: idMemo,
-      status_pencairan: status,
-      catatan_pencairan: String(formData.get("catatan_pencairan") ?? "").trim(),
-      oleh: session.userId,
-    });
-    if (Number(res.value) !== 200) {
-      redirect(`/admin/laporan/${idlaporan}?error=${encodeURIComponent(res.pesan ?? "Gagal memperbarui pencairan.")}`);
-    }
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect(`/admin/laporan/${idlaporan}?error=Gagal+memperbarui+pencairan`);
-  }
-
-  revalidatePath("/admin/laporan");
-  revalidatePath(`/admin/laporan/${idlaporan}`);
-  redirect(`/admin/laporan/${idlaporan}?pencairan=1`);
+  redirect("/admin/laporan?disetujui=1");
 }

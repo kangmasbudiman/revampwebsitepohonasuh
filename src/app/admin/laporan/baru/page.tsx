@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/guard";
-import { apiGet, getKandidatPohonTagging, mapLokasi } from "@/lib/api";
+import { apiGet, mapLokasi } from "@/lib/api";
 import LaporanForm from "@/components/admin/laporan-form";
 
 export const metadata = { title: "Tambah Laporan Kegiatan | Pohon Asuh" };
@@ -16,10 +16,6 @@ export default async function LaporanBaruPage() {
   } catch {
     desaList = [];
   }
-  const kandidatPohon = await getKandidatPohonTagging(
-    session.userId,
-    (session.level ?? 1) === 1,
-  ).catch(() => []);
 
   return (
     <main className="w-full px-6 py-8 lg:px-10">
@@ -35,11 +31,7 @@ export default async function LaporanBaruPage() {
           Ceritakan kegiatan yang sudah dilakukan menggunakan dukungan dana Pohon Asuh.
         </p>
         <div className="mt-5 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
-          <LaporanForm
-            desaList={desaList}
-            level={session.level ?? 1}
-            kandidatPohon={kandidatPohon}
-          />
+          <LaporanForm desaList={desaList} level={session.level ?? 1} />
         </div>
       </div>
     </main>

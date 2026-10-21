@@ -99,15 +99,15 @@ const p = await ctxP.newPage();
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 const navP = await p.locator("aside nav a").allTextContents();
 assert(
-  navP.length === 4 && navP.includes("Laporan Kegiatan"),
-  `sidebar petugas 4 menu termuat (${navP})`,
+  navP.length === 3 && navP.includes("Laporan Kegiatan"),
+  `sidebar petugas 3 menu termuat (${navP})`,
 );
 assert(await p.locator("h1", { hasText: "Laporan Kegiatan" }).count() >= 1, "halaman /admin/laporan termuat");
 assert((await p.locator('select[aria-label="Filter status"]').count()) === 1, "petugas punya filter status");
 
 // 2. Validasi kirim kosong ditolak client-side
 await p.goto(`${BASE}/admin/laporan/baru`, { waitUntil: "networkidle" });
-assert((await p.locator("ol > li").count()) === 10, "form 10 langkah bernomor tampil (default jenis tagging)");
+assert((await p.locator("ol > li").count()) === 7, "form 7 langkah bernomor tampil");
 assert((await p.locator('button:has-text("Setujui")').count()) === 0, "form petugas: tanpa tombol setujui");
 await p.click('button:has-text("Kirim Laporan")');
 await p.waitForTimeout(400);
@@ -121,13 +121,8 @@ assert(rows(`SELECT COUNT(*) FROM laporan_kegiatan WHERE judul LIKE 'E2E Lap%'`)
 await p.fill('form input[name="judul"]', "E2E Laporan Kegiatan");
 await p.selectOption('form select[name="jenis"]', "pemantauan");
 await p.fill('form input[name="tanggal"]', HARI);
-await p.click('[data-testid="tambah-hari"]');
-await p.fill('[data-testid="entri-teks-0"]', "Uraian kegiatan uji end-to-end.");
-assert(
-  (await p.locator('[data-testid="isi-counter"]').textContent()).includes("/500"),
-  "counter isi N/500 tampil di editor timeline",
-);
-assert((await p.locator("form p", { hasText: /\/500/ }).count()) >= 1, "counter N/500 tampil di form");
+await p.fill('form textarea[name="isi"]', "Uraian kegiatan uji end-to-end.");
+assert((await p.locator("form p", { hasText: /\/500/ }).count()) === 2, "counter N/500 tampil di 2 textarea");
 await p.setInputFiles('form input[type=file][accept^="image"]', "/tmp/laporan-e2e.png");
 assert((await p.locator('button[aria-label^="Buang foto baru"]').count()) === 1, "thumbnail foto baru muncul di dropzone");
 await p.click('button:has-text("Simpan sebagai Draft")');
@@ -360,7 +355,7 @@ assert(
 
 // 11. Admin menyetujui laporan terkirim petugas via tombol cepat
 await a.click(`table form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);
-await a.waitForURL(/diverifikasi=1/, { timeout: 30000 });
+await a.waitForURL(/disetujui=1/, { timeout: 30000 });
 await waitForDb(
   () => rows(`SELECT status FROM laporan_kegiatan WHERE id=${ID}`)[0]?.[0] === "disetujui",
   20000, "status=disetujui via tombol cepat",
@@ -381,8 +376,7 @@ assert(
 await a.fill('form input[name="judul"]', "E2E Laporan Langsung");
 await a.selectOption('form select[name="jenis"]', "pemantauan");
 await a.fill('form input[name="tanggal"]', HARI);
-await a.click('[data-testid="tambah-hari"]');
-await a.fill('[data-testid="entri-teks-0"]', "Uraian laporan admin.");
+await a.fill('form textarea[name="isi"]', "Uraian laporan admin.");
 await a.fill('form input[name="dana"]', "500000");
 await a.fill('form textarea[name="hasil"]', "Hasil laporan admin.");
 await a.setInputFiles('form input[type=file][accept^="image"]', "/tmp/laporan-e2e.png");
