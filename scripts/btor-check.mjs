@@ -93,8 +93,9 @@ assert(kandidatDb.length >= 3, `fixture siap: ${kandidatDb.length} order kandida
 // 2 order utama (dengan foto dari petugas lain → uji badge), 1 untuk BTOR kedua
 const [ORD_A, ORD_B, ORD_C] = kandidatDb;
 assert(
-  rows(`SELECT id FROM desa_petugas WHERE iddesa=${DESA_ID} AND idpetugas=${PETUGAS_ID}`).length === 1,
-  "petugas 2683 ditugaskan di desa 1",
+  rows(`SELECT id FROM desa_petugas WHERE idpetugas=${PETUGAS_ID}`).length === 1 &&
+    rows(`SELECT id FROM desa_petugas WHERE iddesa=${DESA_ID} AND idpetugas=${PETUGAS_ID}`).length === 1,
+  "petugas 2683 ditugaskan di desa 1 SAJA (prasyarat desa otomatis)",
 );
 
 const secret = new TextEncoder().encode(
@@ -151,13 +152,21 @@ assert((await p.locator('button:has-text("Verifikasi BTOR")').count()) === 0, "f
 await p.click('[data-testid="kirim-btor"]');
 await p.waitForTimeout(400);
 assert(
-  (await p.locator("form p", { hasText: "Pilih desa lokasi tagging" }).count()) >= 1,
+  (await p.locator("form p", { hasText: "Centang minimal satu order" }).count()) >= 1,
   "kirim BTOR kosong → pesan validasi",
 );
 assert(rows(`SELECT COUNT(*) FROM btor WHERE judul LIKE 'E2E BTOR%'`)[0][0] === "0", "tidak ada row tersimpan saat validasi gagal");
 
-// 3. Pilih desa → kandidat order termuat
-await p.selectOption('select[aria-label="Pilih desa penugasan"]', String(DESA_ID));
+// 3. Desa otomatis dari penugasan → kandidat order langsung termuat
+const desaAuto = p.locator('[data-testid="desa-otomatis"]');
+assert(
+  (await desaAuto.count()) === 1 && ((await desaAuto.inputValue()) ?? "").length > 0,
+  "desa terisi otomatis dari penugasan petugas (tanpa pilih desa)",
+);
+assert(
+  (await p.locator('select[aria-label="Pilih desa penugasan"]').count()) === 0,
+  "pemilih desa tidak tampil untuk petugas yang hanya ditugaskan 1 desa",
+);
 await p.waitForSelector(`[data-testid="kandidat-${ORD_A.id}"]`, { timeout: 15000 });
 const jmlK = await p.locator('[data-testid="jml-kandidat"]').textContent();
 assert(/order selesai/.test(jmlK), `checklist kandidat termuat (${jmlK})`);

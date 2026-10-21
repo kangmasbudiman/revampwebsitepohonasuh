@@ -95,6 +95,12 @@ export default function BtorForm({
     () => penugasan.desa.filter((d) => d.petugas.some((p) => p.id === idpetugas)),
     [penugasan.desa, idpetugas],
   );
+  const desaTunggal = desaOptions.length === 1 ? desaOptions[0] : null;
+
+  // Desa mengikuti penugasan petugas: bila hanya 1 desa, pilih otomatis.
+  useEffect(() => {
+    if (desaTunggal && iddesa !== desaTunggal.id) setIdDesa(desaTunggal.id);
+  }, [desaTunggal, iddesa]);
 
   const muatKandidat = async (pid: number, did: number) => {
     if (!pid || !did) {
@@ -211,7 +217,7 @@ export default function BtorForm({
       </div>
 
       <ol className="mt-8 grid gap-9 xl:grid-cols-2 xl:gap-x-10">
-        <Step n={1} title="Petugas & Desa" helper="BTOR terikat pada satu petugas di satu desa.">
+        <Step n={1} title="Petugas & Desa" helper="Desa otomatis mengikuti penugasan petugas.">
           <div className="grid gap-3 sm:grid-cols-2">
             {isAdmin ? (
               <select
@@ -234,23 +240,34 @@ export default function BtorForm({
             ) : (
               <input type="text" value={petugasSaya.nama} readOnly className={inputClass} />
             )}
-            <select
-              aria-label="Pilih desa penugasan"
-              value={iddesa}
-              onChange={(e) => {
-                setIdDesa(Number(e.target.value));
-                setTerpilih(new Set());
-              }}
-              className={inputClass}
-              disabled={!idpetugas}
-            >
-              <option value="">— Pilih desa —</option>
-              {desaOptions.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {namaDesa(d.nama)}
-                </option>
-              ))}
-            </select>
+            {desaTunggal ? (
+              <input
+                type="text"
+                readOnly
+                aria-label="Desa penugasan (otomatis)"
+                data-testid="desa-otomatis"
+                value={namaDesa(desaTunggal.nama)}
+                className={`${inputClass} cursor-not-allowed bg-zinc-50 dark:bg-night-900`}
+              />
+            ) : (
+              <select
+                aria-label="Pilih desa penugasan"
+                value={iddesa}
+                onChange={(e) => {
+                  setIdDesa(Number(e.target.value));
+                  setTerpilih(new Set());
+                }}
+                className={inputClass}
+                disabled={!idpetugas}
+              >
+                <option value="">— Pilih desa —</option>
+                {desaOptions.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {namaDesa(d.nama)}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           {!isAdmin && desaOptions.length === 0 && (
             <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
