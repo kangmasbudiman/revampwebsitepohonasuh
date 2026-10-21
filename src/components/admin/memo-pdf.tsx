@@ -19,16 +19,22 @@ const SATUAN = [
 ];
 
 function terbilang(n: number): string {
-  if (n < 12) return SATUAN[n] || "nol";
-  if (n < 20) return `${terbilang(n - 10)} belas`;
-  if (n < 100) return `${terbilang(Math.floor(n / 10))} puluh ${terbilang(n % 10)}`.trim();
-  if (n < 200) return `seratus ${terbilang(n - 100)}`.trim();
-  if (n < 1000) return `${terbilang(Math.floor(n / 100))} ratus ${terbilang(n % 100)}`.trim();
-  if (n < 2000) return `seribu ${terbilang(n - 1000)}`.trim();
-  if (n < 1_000_000) return `${terbilang(Math.floor(n / 1000))} ribu ${terbilang(n % 1000)}`.trim();
-  if (n < 1_000_000_000)
-    return `${terbilang(Math.floor(n / 1_000_000))} juta ${terbilang(n % 1_000_000)}`.trim();
-  return `${terbilang(Math.floor(n / 1_000_000_000))} miliar ${terbilang(n % 1_000_000_000)}`.trim();
+  // Helper rekursif mengembalikan "" untuk 0 agar tidak muncul "nol" liar
+  // di posisi tengah (mis. 2.750.000 → "dua juta tujuh ratus lima puluh ribu").
+  const t = (x: number): string => {
+    if (x === 0) return "";
+    if (x < 12) return SATUAN[x];
+    if (x < 20) return `${t(x - 10)} belas`;
+    if (x < 100) return `${t(Math.floor(x / 10))} puluh ${t(x % 10)}`.trim();
+    if (x < 200) return `seratus ${t(x - 100)}`.trim();
+    if (x < 1000) return `${t(Math.floor(x / 100))} ratus ${t(x % 100)}`.trim();
+    if (x < 2000) return `seribu ${t(x - 1000)}`.trim();
+    if (x < 1_000_000) return `${t(Math.floor(x / 1000))} ribu ${t(x % 1000)}`.trim();
+    if (x < 1_000_000_000)
+      return `${t(Math.floor(x / 1_000_000))} juta ${t(x % 1_000_000)}`.trim();
+    return `${t(Math.floor(x / 1_000_000_000))} miliar ${t(x % 1_000_000_000)}`.trim();
+  };
+  return t(n) || "nol";
 }
 
 function fmtTanggal(s: string): string {
@@ -38,8 +44,25 @@ function fmtTanggal(s: string): string {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 }
 
-// Unduh Memo Pencairan sebagai PDF — dokumen resmi dasar pencairan dana
-// kegiatan setelah BTOR diverifikasi.
+async function muatLogo(): Promise<string | null> {
+  try {
+    const res = await fetch("/images/logo_icon.png");
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result));
+      fr.onerror = () => resolve(null);
+      fr.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+// Unduh Memo (format memorandum) sebagai PDF — dokumen dasar pencairan dana
+// kegiatan setelah BTOR diverifikasi. Memo lama tanpa kolom memorandum memakai
+// fallback dari data laporan/keperluan.
 export default function MemoPdfButton({
   laporan,
   memo,
@@ -48,65 +71,126 @@ export default function MemoPdfButton({
   memo: ApiLaporanMemo;
 }) {
   const unduh = async () => {
-    const { default: jsPDF } = await import("jspdf");
+    const [{ default: jsPDF }, logo] = await Promise.all([import("jspdf"), muatLogo()]);
     const doc = new jsPDF({ unit: "pt", format: "a4" });
     const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
     const M = 48;
     let y = M;
 
+    // Kop
+    if (logo) doc.addImage(logo, "PNG", M, y - 14, 36, 36);
+    const xKop = logo ? M + 44 : M;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(15);
-    doc.text("POHON ASUH", M, y);
+    doc.text("POHON ASUH", xKop, y);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(110);
-    doc.text("Memo Pencairan Dana Kegiatan", M, y + 14);
+    doc.text("Memorandum Kegiatan", xKop, y + 14);
     doc.setDrawColor(30, 92, 63);
     doc.setLineWidth(2);
     doc.line(M, y + 24, W - M, y + 24);
     doc.setTextColor(20);
-    y += 56;
+    y += 52;
 
+    // Judul memorandum
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    doc.text("MEMO PENCAIRAN DANA", M, y);
+    doc.text("MEMORANDUM", M, y);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(`Nomor: ${memo.nomor}`, M, y + 16);
     y += 40;
 
+    const dari = memo.dari || laporan.petugas;
+    const kepada = memo.kepada || "Pohon Asuh";
+    const proyek = memo.proyek || laporan.judul;
+    const info: [string, string][] = [
+      ["Tanggal", fmtTanggal(memo.tanggal)],
+      ["Dari", dari],
+      ["Kepada", kepada],
+      ["Proyek", proyek],
+    ];
+    for (const [k, v] of info) {
+      const lines = doc.splitTextToSize(v, W - M * 2 - 90) as string[];
+      doc.setFont("helvetica", "bold");
+      doc.text(k, M, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(lines, M + 90, y);
+      y += Math.max(lines.length, 1) * 14 + 2;
+    }
+
+    y += 6;
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.6);
+    doc.line(M, y, W - M, y);
+    y += 22;
+
+    // Isi memorandum per paragraf
+    const isi = memo.isi || memo.keperluan || "";
+    if (isi) {
+      for (const para of isi.split(/\n{2,}/)) {
+        const teks = para.replace(/\n/g, " ").trim();
+        if (!teks) continue;
+        const lines = doc.splitTextToSize(teks, W - M * 2) as string[];
+        if (y + lines.length * 14 > H - 60) {
+          doc.addPage();
+          y = M;
+        }
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(lines, M, y);
+        y += lines.length * 14 + 10;
+      }
+      y += 8;
+    }
+
+    // Blok pencairan dana
+    if (y + 150 > H - 130) {
+      doc.addPage();
+      y = M;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("PENCAIRAN DANA", M, y);
+    y += 6;
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.6);
+    doc.line(M, y, M + 130, y);
+    y += 16;
+
     const jumlahRp = `Rp ${memo.jumlah.toLocaleString("id-ID")}`;
     const rows: [string, string][] = [
-      ["Tanggal", fmtTanggal(memo.tanggal)],
-      ["Kegiatan", laporan.judul],
-      ["Petugas / Pengelola", `${laporan.petugas}${laporan.jabatan ? ` (${laporan.jabatan})` : ""}`],
       ["Jumlah Dana", `${jumlahRp} (${terbilang(Math.round(memo.jumlah))} rupiah)`],
       ["Penerima", memo.penerima],
       ["Rekening", [memo.bank, memo.norek].filter(Boolean).join(" · ") || "-"],
-      ["Keperluan", memo.keperluan || "-"],
       ["Status Pencairan", memo.statusPencairan.toUpperCase()],
       ...(memo.catatanPencairan ? ([["Catatan", memo.catatanPencairan]] as [string, string][]) : []),
     ];
     for (const [k, v] of rows) {
-      const lines = doc.splitTextToSize(v, W - M * 2 - 140) as string[];
+      const lines = doc.splitTextToSize(v, W - M * 2 - 110) as string[];
       doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
       doc.text(k, M, y);
       doc.setFont("helvetica", "normal");
-      doc.text(lines, M + 140, y);
-      y += Math.max(lines.length, 1) * 14 + 4;
+      doc.text(lines, M + 110, y);
+      y += Math.max(lines.length, 1) * 13 + 3;
     }
 
-    y = Math.max(y + 50, 560);
+    // Tanda tangan dua kolom
+    y = Math.max(y + 40, H - 150);
+    doc.setFontSize(10);
     doc.text("Penerima Dana,", M, y);
-    doc.text(`Diterbitkan oleh,`, W - M - 140, y);
+    doc.text("Diterbitkan oleh,", W - M - 130, y);
     y += 56;
     doc.setFont("helvetica", "bold");
     doc.text(memo.penerima, M, y);
-    doc.text(memo.ttdNama || "-", W - M - 140, y);
+    doc.text(memo.ttdNama || dari, W - M - 130, y);
     y += 12;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(memo.ttdJabatan || "", W - M - 140, y);
+    doc.text(memo.ttdJabatan || "", W - M - 130, y);
 
     doc.save(`${memo.nomor.replace(/\//g, "-")}.pdf`);
   };

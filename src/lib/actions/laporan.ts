@@ -463,22 +463,35 @@ export async function simpanMemo(formData: FormData) {
     redirect(`/admin/laporan/${id}?error=${encodeURIComponent("BTOR harus diverifikasi dulu sebelum memo diterbitkan.")}`);
   }
 
-  const jumlah = String(formData.get("jumlah") ?? "").replace(/[^\d]/g, "");
-  const penerima = String(formData.get("penerima") ?? "").trim();
-  if (!jumlah || !penerima) {
-    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("Jumlah dana dan penerima wajib diisi.")}`);
+  const dari = String(formData.get("dari") ?? "").trim();
+  const kepada = String(formData.get("kepada") ?? "").trim();
+  if (!dari || !kepada) {
+    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("Dari dan Kepada wajib diisi.")}`);
+  }
+  const dana = laporan.dana ?? 0;
+  if (dana <= 0) {
+    redirect(`/admin/laporan/${id}?error=${encodeURIComponent("Dana BTOR belum diisi — lengkapi dulu laporan kegiatan.")}`);
   }
 
+  // Data pencairan otomatis dari BTOR; form hanya mengisi bagian memorandum.
   const payload = {
     tanggal: String(formData.get("tanggal") ?? "").trim(),
-    jumlah,
-    penerima,
-    bank: String(formData.get("bank") ?? "").trim(),
-    norek: String(formData.get("norek") ?? "").trim(),
-    keperluan: String(formData.get("keperluan") ?? "").trim(),
+    dari,
+    kepada,
+    proyek: String(formData.get("proyek") ?? "").trim(),
+    isi: String(formData.get("isi") ?? "").trim(),
+    jumlah: String(dana),
+    penerima: laporan.rekeningAt || laporan.petugas,
+    bank: laporan.rekeningBank,
+    norek: laporan.rekeningNorek,
+    keperluan: `Pencairan dana kegiatan ${laporan.judul}`,
     ttd_nama: String(formData.get("ttd_nama") ?? "").trim(),
     ttd_jabatan: String(formData.get("ttd_jabatan") ?? "").trim(),
-    catatan_pencairan: String(formData.get("catatan_pencairan") ?? "").trim(),
+    // Catatan pencairan dikelola form pencairan terpisah — jangan timpa saat
+    // edit memo bila fieldnya tidak ada di form memorandum.
+    ...(formData.has("catatan_pencairan")
+      ? { catatan_pencairan: String(formData.get("catatan_pencairan")).trim() }
+      : {}),
     oleh: session.userId,
   };
 

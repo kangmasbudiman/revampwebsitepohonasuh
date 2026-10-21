@@ -109,6 +109,7 @@ ok("ber-hak: tombol Verifikasi BTOR TIDAK tampil", (await p.locator('button:has-
 await p.click('button[role=tab]:has-text("Memo")');
 const memoForm = p.locator('form:has(input[name="ttd_nama"])');
 ok("ber-hak: form memo tampil untuk petugas", (await memoForm.count()) === 1);
+ok("ber-hak: form memorandum (dari/kepada/proyek/isi)", (await memoForm.locator('input[name="dari"]').count()) === 1 && (await memoForm.locator('input[name="kepada"]').count()) === 1 && (await memoForm.locator('input[name="proyek"]').count()) === 1 && (await memoForm.locator('textarea[name="isi"]').count()) === 1);
 await memoForm.locator('input[name="ttd_nama"]').fill("Petugas Taging");
 await memoForm.locator('input[name="ttd_jabatan"]').fill("Petugas Lapangan");
 await memoForm.locator('button:has-text("Terbitkan Memo")').click();

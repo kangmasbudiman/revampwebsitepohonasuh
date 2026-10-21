@@ -1275,6 +1275,10 @@ export type ApiLaporanMemo = {
   id: number;
   nomor: string;
   tanggal: string;
+  dari: string;
+  kepada: string;
+  proyek: string;
+  isi: string;
   jumlah: number;
   penerima: string;
   bank: string;
@@ -1293,6 +1297,10 @@ function mapMemo(r: Record<string, unknown> | null | undefined): ApiLaporanMemo 
     id: Number(r.id ?? 0),
     nomor: String(r.nomor ?? ""),
     tanggal: String(r.tanggal ?? ""),
+    dari: String(r.dari ?? ""),
+    kepada: String(r.kepada ?? ""),
+    proyek: String(r.proyek ?? ""),
+    isi: String(r.isi ?? ""),
     jumlah: Number(r.jumlah ?? 0),
     penerima: String(r.penerima ?? ""),
     bank: String(r.bank ?? ""),

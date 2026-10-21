@@ -271,6 +271,9 @@ await a.waitForURL(/\?memo=1/, { timeout: 30000 });
 // Redirect me-reset tab ke Ringkasan — buka kembali tab Memo.
 await a.click('button[role=tab]:has-text("Memo")');
 ok("memo: kartu memo + nomor tampil", (await a.locator('[data-testid="memo-card"]').textContent()).includes("MEMO/"));
+const teksMemoCard = (await a.locator('[data-testid="memo-card"]').textContent()) ?? "";
+ok("memo: format memorandum (Dari/Kepada)", teksMemoCard.includes("Dari") && teksMemoCard.includes("Kepada") && teksMemoCard.includes("Proyek"));
+ok("memo: isi template tagging terisi", teksMemoCard.includes("banner tagging"));
 ok("memo: jumlah = dana BTOR", ((await a.locator('[data-testid="memo-jumlah"]').textContent()) ?? "").includes("1.500.000"));
 ok("memo: status awal menunggu", ((await a.locator('[data-testid="memo-status"]').textContent()) ?? "").includes("Menunggu"));
 ok("memo: tombol unduh PDF tampil", (await a.locator('[data-testid="unduh-memo-pdf"]').count()) === 1);

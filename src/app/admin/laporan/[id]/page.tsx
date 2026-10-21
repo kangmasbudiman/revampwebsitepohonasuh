@@ -333,7 +333,7 @@ export default async function DetailLaporanPage(props: Props) {
                   <div>
                     <p className="flex items-center gap-2 text-sm font-bold text-emerald-900 dark:text-emerald-100">
                       <FileSignature className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      Memo Pencairan {memo.nomor}
+                      Memorandum {memo.nomor}
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                       Diterbitkan {fmtTanggal(memo.tanggal)}
@@ -348,41 +348,60 @@ export default async function DetailLaporanPage(props: Props) {
                 </div>
                 <dl className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                   <div className="flex justify-between gap-4 sm:block">
-                    <dt className="text-zinc-500 dark:text-zinc-400">Jumlah dana</dt>
-                    <dd className="font-bold text-emerald-800 dark:text-emerald-300" data-testid="memo-jumlah">
-                      {rupiah(memo.jumlah)}
-                    </dd>
+                    <dt className="text-zinc-500 dark:text-zinc-400">Dari</dt>
+                    <dd className="text-zinc-700 dark:text-zinc-200">{memo.dari || laporan.petugas}</dd>
                   </div>
                   <div className="flex justify-between gap-4 sm:block">
-                    <dt className="text-zinc-500 dark:text-zinc-400">Penerima</dt>
-                    <dd className="text-zinc-700 dark:text-zinc-200">{memo.penerima}</dd>
+                    <dt className="text-zinc-500 dark:text-zinc-400">Kepada</dt>
+                    <dd className="text-zinc-700 dark:text-zinc-200">{memo.kepada || "Pohon Asuh"}</dd>
                   </div>
-                  <div className="flex justify-between gap-4 sm:block">
-                    <dt className="text-zinc-500 dark:text-zinc-400">Rekening</dt>
-                    <dd className="text-zinc-700 dark:text-zinc-200">
-                      {[memo.bank, memo.norek].filter(Boolean).join(" · ") || "—"}
-                    </dd>
+                  <div className="flex justify-between gap-4 sm:block sm:col-span-2">
+                    <dt className="text-zinc-500 dark:text-zinc-400">Proyek</dt>
+                    <dd className="text-zinc-700 dark:text-zinc-200">{memo.proyek || laporan.judul}</dd>
                   </div>
-                  <div className="flex justify-between gap-4 sm:block">
-                    <dt className="text-zinc-500 dark:text-zinc-400">Keperluan</dt>
-                    <dd className="text-zinc-700 dark:text-zinc-200">{memo.keperluan || "—"}</dd>
-                  </div>
-                  {memo.ttdNama && (
+                </dl>
+                <p className="mt-3 whitespace-pre-line rounded-xl bg-zinc-50 px-4 py-3 text-sm leading-relaxed text-zinc-700 dark:bg-night-950 dark:text-zinc-200">
+                  {memo.isi || memo.keperluan || "—"}
+                </p>
+                <div className="mt-4 rounded-xl border border-emerald-100 px-4 py-3 dark:border-emerald-900/50">
+                  <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
+                    <Wallet className="h-3.5 w-3.5" />
+                    Pencairan Dana
+                  </h4>
+                  <dl className="mt-2 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                     <div className="flex justify-between gap-4 sm:block">
-                      <dt className="text-zinc-500 dark:text-zinc-400">Penandatangan</dt>
-                      <dd className="text-zinc-700 dark:text-zinc-200">
-                        {memo.ttdNama}
-                        {memo.ttdJabatan ? ` (${memo.ttdJabatan})` : ""}
+                      <dt className="text-zinc-500 dark:text-zinc-400">Jumlah dana</dt>
+                      <dd className="font-bold text-emerald-800 dark:text-emerald-300" data-testid="memo-jumlah">
+                        {rupiah(memo.jumlah)}
                       </dd>
                     </div>
-                  )}
-                  {memo.catatanPencairan && (
                     <div className="flex justify-between gap-4 sm:block">
-                      <dt className="text-zinc-500 dark:text-zinc-400">Catatan</dt>
-                      <dd className="text-zinc-700 dark:text-zinc-200">{memo.catatanPencairan}</dd>
+                      <dt className="text-zinc-500 dark:text-zinc-400">Penerima</dt>
+                      <dd className="text-zinc-700 dark:text-zinc-200">{memo.penerima}</dd>
                     </div>
-                  )}
-                </dl>
+                    <div className="flex justify-between gap-4 sm:block">
+                      <dt className="text-zinc-500 dark:text-zinc-400">Rekening</dt>
+                      <dd className="text-zinc-700 dark:text-zinc-200">
+                        {[memo.bank, memo.norek].filter(Boolean).join(" · ") || "—"}
+                      </dd>
+                    </div>
+                    {memo.ttdNama && (
+                      <div className="flex justify-between gap-4 sm:block">
+                        <dt className="text-zinc-500 dark:text-zinc-400">Penandatangan</dt>
+                        <dd className="text-zinc-700 dark:text-zinc-200">
+                          {memo.ttdNama}
+                          {memo.ttdJabatan ? ` (${memo.ttdJabatan})` : ""}
+                        </dd>
+                      </div>
+                    )}
+                    {memo.catatanPencairan && (
+                      <div className="flex justify-between gap-4 sm:block sm:col-span-2">
+                        <dt className="text-zinc-500 dark:text-zinc-400">Catatan</dt>
+                        <dd className="text-zinc-700 dark:text-zinc-200">{memo.catatanPencairan}</dd>
+                      </div>
+                    )}
+                  </dl>
+                </div>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <MemoPdfButton laporan={laporan} memo={memo} />
                 </div>
@@ -434,7 +453,7 @@ export default async function DetailLaporanPage(props: Props) {
             </>
           ) : (
             <p className="rounded-2xl border border-dashed border-amber-300 bg-amber-50/60 px-4 py-8 text-center text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
-              Memo Pencairan diterbitkan admin setelah BTOR diverifikasi — memo menjadi dasar
+              Memo diterbitkan setelah BTOR diverifikasi dan disetujui — memo menjadi dasar
               pencairan dana kegiatan.
             </p>
           )}
