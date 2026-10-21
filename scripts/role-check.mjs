@@ -1,12 +1,12 @@
 // E2E fitur Kelola Role & Izin: role ber-izin "memo" bisa menerbitkan memo +
-// update pencairan pada laporan ORANG LAIN yang sudah diverifikasi, petugas
+// update pencairan pada BTOR ORANG LAIN yang sudah diverifikasi, petugas
 // tanpa izin tetap tidak bisa, admin tetap superuser.
 // Jalankan: API_BASE_URL=http://127.0.0.1:8001/api E2E_BASE=http://localhost:3001 node scripts/role-check.mjs
 import { chromium } from "playwright";
 import { SignJWT } from "jose";
 import fs from "node:fs";
 
-const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
+const BASE = process.env.E2E_BASE ?? "http://localhost:3001";
 const API = process.env.API_BASE_URL ?? "http://127.0.0.1:8001/api";
 const PREFIX = "E2E Role";
 
@@ -41,8 +41,8 @@ const apiGet = async (path) => {
 for (const r of await apiGet("rolelist")) {
   if (String(r.nama).startsWith(PREFIX)) await apiPost("hapusrole", { id: r.id });
 }
-for (const l of await apiGet("laporanlist")) {
-  if (String(l.judul).startsWith(PREFIX)) await apiPost("hapuslaporan", { id: l.id });
+for (const b of await apiGet("btorlist")) {
+  if (String(b.judul).startsWith(PREFIX)) await apiPost("hapusbtor", { id: b.id });
 }
 
 // ===== 1. Buat role ber-izin memo + tempel ke petugas 2683 (via API) =====
@@ -82,28 +82,29 @@ await a.click('[data-testid="simpan-role"]');
 await a.waitForSelector('[data-testid="role-error"]', { timeout: 30000 });
 ok("halaman role: nama duplikat ditolak", (await a.locator('[data-testid="role-error"]').textContent()).includes("sudah dipakai"));
 
-// ===== 3. Fixture laporan milik ADMIN (bukan milik petugas) → disetujui =====
+// ===== 3. Fixture BTOR milik ADMIN (bukan milik petugas) → disetujui =====
 const HARI = new Date().toISOString().slice(0, 10);
-const buat = await apiPost("tambahlaporan", {
+const kand = (await apiGet("btororderkandidat?idpetugas=2682&iddesa=1")).filter(Boolean);
+ok("fixture: tersedia ≥2 order kandidat desa 1", kand.length >= 2, `${kand.length} kandidat`);
+const buat = await apiPost("tambahbtor", {
   idpetugas: 2682,
-  judul: `${PREFIX} Laporan ${Date.now()}`,
-  jenis: "lainnya",
-  tanggal: HARI,
+  iddesa: 1,
+  judul: `${PREFIX} BTOR ${Date.now()}`,
   isi: `${HARI}: Uji izin memo lintas petugas.`,
-  hasil: "Hasil uji role.",
   dana: "275000",
   status: "terkirim",
+  "idorder[]": kand[0].idadopsi,
 });
-ok("fixture: laporan terkirim dibuat", buat.value === "200" && !!buat.id);
-ok("fixture: laporan disetujui admin", (await apiPost("approvelaporan", { id: buat.id, oleh: 2682 })).value === "200");
+ok("fixture: BTOR terkirim dibuat", buat.value === "200" && !!buat.id);
+ok("fixture: BTOR disetujui admin", (await apiPost("approvebtor", { id: buat.id, oleh: 2682 })).value === "200");
 const ID = Number(buat.id);
 
 // ===== 4. Petugas ber-hak memo (level 2 + hak) =====
 const ctxP = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 await ctxP.addCookies([{ name: "pa_session", value: await signToken({ userId: 2683, name: "Petugas Taging", role: "ADMIN", level: 2, hak: ["memo"] }), url: BASE }]);
 const p = await ctxP.newPage();
-await p.goto(`${BASE}/admin/laporan/${ID}`, { waitUntil: "networkidle" });
-ok("ber-hak: bisa buka laporan orang lain yg disetujui", ((await p.locator('[data-testid="detail-status"]').textContent()) ?? "").trim() === "Disetujui");
+await p.goto(`${BASE}/admin/btor/${ID}`, { waitUntil: "networkidle" });
+ok("ber-hak: bisa buka BTOR orang lain yg disetujui", ((await p.locator('[data-testid="detail-status"]').textContent()) ?? "").trim() === "Disetujui");
 ok("ber-hak: tombol Verifikasi BTOR TIDAK tampil", (await p.locator('button:has-text("Verifikasi BTOR")').count()) === 0);
 
 await p.click('button[role=tab]:has-text("Memo")');
@@ -135,25 +136,25 @@ ok("ber-hak: petugas update pencairan → dicairkan", (await p.locator('[data-te
 const ctxN = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 await ctxN.addCookies([{ name: "pa_session", value: await signToken({ userId: 2683, name: "Petugas Taging", role: "ADMIN", level: 2 }), url: BASE }]);
 const n = await ctxN.newPage();
-const resp = await n.goto(`${BASE}/admin/laporan/${ID}`);
+const resp = await n.goto(`${BASE}/admin/btor/${ID}`);
 const body404 = (await n.locator("body").textContent()).includes("not be found");
-ok("tanpa hak: laporan orang lain → 404", resp.status() === 404 || body404, `status=${resp.status()}`);
+ok("tanpa hak: BTOR orang lain → 404", resp.status() === 404 || body404, `status=${resp.status()}`);
 
-// Laporan sendiri yg disetujui: bisa buka, tapi TANPA form memo
-const buat2 = await apiPost("tambahlaporan", {
+// BTOR sendiri yg disetujui: bisa buka, tapi TANPA form memo
+const buat2 = await apiPost("tambahbtor", {
   idpetugas: 2683,
-  judul: `${PREFIX} Laporan Sendiri ${Date.now()}`,
-  jenis: "lainnya",
-  tanggal: HARI,
-  isi: `${HARI}: Laporan milik sendiri.`,
-  hasil: "Hasil.",
+  iddesa: 1,
+  judul: `${PREFIX} BTOR Sendiri ${Date.now()}`,
+  isi: `${HARI}: BTOR milik sendiri.`,
   dana: "150000",
   status: "terkirim",
+  "idorder[]": kand[1].idadopsi,
 });
-await apiPost("approvelaporan", { id: buat2.id, oleh: 2682 });
-await n.goto(`${BASE}/admin/laporan/${buat2.id}`, { waitUntil: "networkidle" });
+await apiPost("approvebtor", { id: buat2.id, oleh: 2682 });
+await n.goto(`${BASE}/admin/btor/${buat2.id}`, { waitUntil: "networkidle" });
 await n.click('button[role=tab]:has-text("Memo")');
-ok("tanpa hak: laporan sendiri terbuka TAPI form memo tidak ada", (await n.locator('form:has(input[name="ttd_nama"])').count()) === 0);
+ok("tanpa hak: BTOR sendiri terbuka TAPI form memo tidak ada", (await n.locator('form:has(input[name="ttd_nama"])').count()) === 0);
+ok("tanpa hak: form pencairan tidak tampil", (await n.locator('select[name="status_pencairan"]').count()) === 0);
 
 // ===== 6. Hapus role via UI → staf kembali tanpa role =====
 await a.goto(`${BASE}/admin/role`, { waitUntil: "networkidle" });
@@ -172,9 +173,9 @@ ok("hapus role: role hilang dari halaman", !(await a.locator("main").textContent
 ok("hapus role: staf 2683 kembali Tanpa role", (await a.locator('[data-testid="tabel-staf"] tr', { hasText: "Petugas Taging" }).textContent()).includes("Tanpa role"));
 
 // ===== 7. Cleanup =====
-await apiPost("hapuslaporan", { id: buat.id });
-await apiPost("hapuslaporan", { id: buat2.id });
-ok("cleanup: 0 laporan uji tersisa", !(await apiGet("laporanlist")).some((l) => String(l.judul).startsWith(PREFIX)));
+await apiPost("hapusbtor", { id: buat.id });
+await apiPost("hapusbtor", { id: buat2.id });
+ok("cleanup: 0 BTOR uji tersisa", !(await apiGet("btorlist")).some((b) => String(b.judul).startsWith(PREFIX)));
 
 await browser.close();
 console.log(gagal === 0 ? "\n=== E2E KELOLA ROLE & IZIN MEMO LULUS ===" : `\n=== GAGAL: ${gagal} assertion ===`);

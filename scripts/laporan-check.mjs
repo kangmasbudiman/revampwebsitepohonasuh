@@ -99,8 +99,8 @@ const p = await ctxP.newPage();
 await p.goto(`${BASE}/admin/laporan`, { waitUntil: "networkidle" });
 const navP = await p.locator("aside nav a").allTextContents();
 assert(
-  navP.length === 3 && navP.includes("Laporan Kegiatan"),
-  `sidebar petugas 3 menu termuat (${navP})`,
+  navP.length === 5 && navP.includes("Laporan Kegiatan") && navP.includes("Laporan BTOR"),
+  `sidebar petugas 5 menu termuat (${navP})`,
 );
 assert(await p.locator("h1", { hasText: "Laporan Kegiatan" }).count() >= 1, "halaman /admin/laporan termuat");
 assert((await p.locator('select[aria-label="Filter status"]').count()) === 1, "petugas punya filter status");
