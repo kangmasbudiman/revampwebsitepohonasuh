@@ -1316,6 +1316,187 @@ export function mapLaporans(rows: Record<string, unknown>[]): ApiLaporan[] {
   }));
 }
 
+// btorlist/btordetail → Laporan BTOR (dibangkitkan dari order tagging
+// selesai per desa × per petugas; alur verifikasi + memo pencairan).
+export type ApiBtorMemo = {
+  id: number;
+  nomor: string;
+  tanggal: string;
+  dari: string;
+  kepada: string;
+  proyek: string;
+  isi: string;
+  jumlah: number;
+  penerima: string;
+  bank: string;
+  norek: string;
+  keperluan: string;
+  ttdNama: string;
+  ttdJabatan: string;
+  statusPencairan: string;
+  catatanPencairan: string;
+  createdAt: string;
+};
+
+function mapBtorMemo(r: Record<string, unknown> | null | undefined): ApiBtorMemo | null {
+  if (!r) return null;
+  return {
+    id: Number(r.id ?? 0),
+    nomor: String(r.nomor ?? ""),
+    tanggal: String(r.tanggal ?? ""),
+    dari: String(r.dari ?? ""),
+    kepada: String(r.kepada ?? ""),
+    proyek: String(r.proyek ?? ""),
+    isi: String(r.isi ?? ""),
+    jumlah: Number(r.jumlah ?? 0),
+    penerima: String(r.penerima ?? ""),
+    bank: String(r.bank ?? ""),
+    norek: String(r.norek ?? ""),
+    keperluan: String(r.keperluan ?? ""),
+    ttdNama: String(r.ttd_nama ?? ""),
+    ttdJabatan: String(r.ttd_jabatan ?? ""),
+    statusPencairan: String(r.status_pencairan ?? "menunggu"),
+    catatanPencairan: String(r.catatan_pencairan ?? ""),
+    createdAt: String(r.created_at ?? ""),
+  };
+}
+
+export type ApiBtorOrder = {
+  idadopsi: number;
+  idpohon: string;
+  invoice: string;
+  donatur: string;
+  price: number;
+  proses: number;
+  localname: string;
+  jmlFoto: number;
+  tglTagging: string | null;
+  foto: { id: number; url: string }[];
+};
+
+export type ApiBtorRiwayat = { aksi: string; catatan: string; oleh: string; waktu: string };
+
+export type ApiBtor = {
+  id: number;
+  idpetugas: number;
+  petugas: string;
+  iddesa: number;
+  desa: string;
+  judul: string;
+  tanggal: string;
+  tanggalSelesai: string;
+  isi: string;
+  dana: number | null;
+  hasil: string;
+  status: string;
+  catatanRevisi: string;
+  jabatan: string;
+  timTagging: string;
+  rekeningAt: string;
+  rekeningBank: string;
+  rekeningNorek: string;
+  createdAt: string;
+  jmlOrder: number;
+  totalPrice: number;
+  memo: ApiBtorMemo | null;
+};
+
+export type ApiBtorDetail = ApiBtor & {
+  orders: ApiBtorOrder[];
+  riwayat: ApiBtorRiwayat[];
+};
+
+export function mapBtors(rows: Record<string, unknown>[]): ApiBtor[] {
+  return rows.map((r) => ({
+    id: Number(r.id),
+    idpetugas: Number(r.idpetugas) || 0,
+    petugas: String(r.petugas ?? ""),
+    iddesa: Number(r.iddesa) || 0,
+    desa: String(r.desa ?? ""),
+    judul: String(r.judul ?? ""),
+    tanggal: String(r.tanggal ?? ""),
+    tanggalSelesai: String(r.tanggal_selesai ?? ""),
+    isi: String(r.isi ?? ""),
+    dana: r.dana === null || r.dana === undefined || r.dana === "" ? null : Number(r.dana),
+    hasil: String(r.hasil ?? ""),
+    status: ["draft", "disetujui", "revisi"].includes(String(r.status ?? ""))
+      ? String(r.status)
+      : "terkirim",
+    catatanRevisi: String(r.catatan_revisi ?? ""),
+    jabatan: String(r.jabatan ?? ""),
+    timTagging: String(r.tim_tagging ?? ""),
+    rekeningAt: String(r.rekening_at ?? ""),
+    rekeningBank: String(r.rekening_bank ?? ""),
+    rekeningNorek: String(r.rekening_norek ?? ""),
+    createdAt: String(r.created_at ?? ""),
+    jmlOrder: Number(r.jml_order ?? 0),
+    totalPrice: Number(r.total_price ?? 0),
+    memo: mapBtorMemo(r.memo as Record<string, unknown> | null | undefined),
+  }));
+}
+
+// btordetail → satu BTOR lengkap (orders + memo + riwayat) untuk halaman
+// periksa admin/petugas.
+export function mapBtorDetail(r: Record<string, unknown>): ApiBtorDetail {
+  return {
+    ...mapBtors([r])[0],
+    orders: Array.isArray(r.orders)
+      ? (r.orders as Record<string, unknown>[]).map((o) => ({
+          idadopsi: Number(o.idadopsi ?? 0),
+          idpohon: String(o.idpohon ?? ""),
+          invoice: String(o.invoice ?? ""),
+          donatur: String(o.donatur ?? ""),
+          price: Number(o.price ?? 0),
+          proses: Number(o.proses ?? 0),
+          localname: String(o.localname ?? o.idpohon ?? ""),
+          jmlFoto: Number(o.jml_foto ?? 0),
+          tglTagging: o.tgl_tagging ? String(o.tgl_tagging) : null,
+          foto: Array.isArray(o.foto)
+            ? (o.foto as Record<string, unknown>[])
+                .map((f) => ({
+                  id: Number(f.id),
+                  url: apiAssetUrl(f.url as string | null) ?? "",
+                }))
+                .filter((f) => f.url !== "")
+            : [],
+        }))
+      : [],
+    riwayat: Array.isArray(r.riwayat)
+      ? (r.riwayat as Record<string, unknown>[]).map((h) => ({
+          aksi: String(h.aksi ?? ""),
+          catatan: String(h.catatan ?? ""),
+          oleh: String(h.oleh ?? ""),
+          waktu: String(h.waktu ?? ""),
+        }))
+      : [],
+  };
+}
+
+// btororderkandidat → order tagging selesai yang belum pernah masuk BTOR.
+export type ApiBtorKandidat = {
+  idadopsi: number;
+  idpohon: string;
+  invoice: string;
+  donatur: string;
+  price: number;
+  localname: string;
+  jmlFoto: number;
+  punyaFoto: boolean;
+};
+
+export function mapBtorKandidats(rows: Record<string, unknown>[]): ApiBtorKandidat[] {
+  return rows.map((r) => ({
+    idadopsi: Number(r.idadopsi),
+    idpohon: String(r.idpohon ?? ""),
+    invoice: String(r.invoice ?? ""),
+    donatur: String(r.donatur ?? ""),
+    price: Number(r.price ?? 0),
+    localname: String(r.localname ?? r.idpohon ?? ""),
+    jmlFoto: Number(r.jml_foto ?? 0),
+    punyaFoto: Boolean(r.punya_foto),
+  }));
+}
+
 // partnerlist → section "Didukung Oleh" beranda. Endpoint membalas logo
 // ceritalist → halaman publik /cerita-dampak (kisah penerima manfaat).
 // Endpoint membalas foto URL penuh dari host API; rebuild dari origin

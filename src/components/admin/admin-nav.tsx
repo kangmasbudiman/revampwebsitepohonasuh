@@ -8,6 +8,7 @@ import {
   BadgeCheck,
   BookHeart,
   ChevronDown,
+  ClipboardCheck,
   CircleHelp,
   Coins,
   DatabaseBackup,
@@ -48,6 +49,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/pemantauan", label: "Dashboard Pemantauan", icon: Activity },
       { href: "/admin/verifikasi", label: "Verifikasi Pembayaran", icon: BadgeCheck },
       { href: "/admin/tagging", label: "Order Tagging", icon: Tag },
+      { href: "/admin/btor", label: "Laporan BTOR", icon: ClipboardCheck },
       { href: "/admin/laporan", label: "Laporan Kegiatan", icon: NotebookPen },
       { href: "/admin/adopsi", label: "Data Adopsi", icon: HeartHandshake },
       { href: "/admin/penugasan", label: "Penugasan Petugas", icon: UserCog },
@@ -85,9 +87,11 @@ const GROUPS: { title: string; items: Item[] }[] = [
   },
 ];
 
-// Petugas (level 2): Order Tagging, laporan kegiatan sendiri, + peta offline.
+// Petugas (level 2): Order Tagging, BTOR miliknya, laporan kegiatan sendiri,
+// + peta offline.
 const PETUGAS_HREFS = new Set([
   "/admin/tagging",
+  "/admin/btor",
   "/admin/laporan",
   "/admin/peta",
   "/admin/template-share",
@@ -123,7 +127,20 @@ const itemCls = (active: boolean) =>
       : "text-emerald-100/80 hover:bg-white/10 hover:text-white"
   }`;
 
-export default function AdminNav({ level }: { level?: number }) {
+// Badge jumlah BTOR menunggu verifikasi (admin saja) di baris menu BTOR.
+const badgeCls =
+  "ml-auto rounded-full bg-amber-400/90 px-1.5 py-0.5 text-[10px] font-bold text-emerald-950";
+
+function NavBadge({ item, btorTerkirim }: { item: Item; btorTerkirim?: number }) {
+  if (item.href !== "/admin/btor" || !btorTerkirim) return null;
+  return (
+    <span className={badgeCls} data-testid="nav-badge-btor">
+      {btorTerkirim}
+    </span>
+  );
+}
+
+export default function AdminNav({ level, btorTerkirim }: { level?: number; btorTerkirim?: number }) {
   const pathname = usePathname();
   // Grup yang memuat halaman aktif terbuka secara bawaan; sisanya collapsed.
   const [open, setOpen] = useState<Record<string, boolean>>(() =>
@@ -176,6 +193,7 @@ export default function AdminNav({ level }: { level?: number }) {
                   >
                     <NavIcon item={item} active={isActive(item.href, pathname)} />
                     {item.label}
+                    <NavBadge item={item} btorTerkirim={btorTerkirim} />
                   </Link>
                 ))}
               </nav>
@@ -223,7 +241,7 @@ export function AdminSidebarFooter({ name, level }: { name: string; level?: numb
 }
 
 // Versi chip horizontal untuk layar kecil (tanpa judul grup).
-export function AdminNavMobile({ level }: { level?: number }) {
+export function AdminNavMobile({ level, btorTerkirim }: { level?: number; btorTerkirim?: number }) {
   const pathname = usePathname();
 
   const items = level === 2 ? ALL_ITEMS.filter((i) => PETUGAS_HREFS.has(i.href)) : ALL_ITEMS;
@@ -244,6 +262,14 @@ export function AdminNavMobile({ level }: { level?: number }) {
           >
             <Icon className="h-3.5 w-3.5" />
             {item.label}
+            {item.href === "/admin/btor" && !!btorTerkirim && (
+              <span
+                className="rounded-full bg-amber-400/90 px-1.5 py-0.5 text-[10px] font-bold text-emerald-950"
+                data-testid="nav-badge-btor"
+              >
+                {btorTerkirim}
+              </span>
+            )}
           </Link>
         );
       })}
