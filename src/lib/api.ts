@@ -477,6 +477,7 @@ export type ApiOrderRow = {
   price: number; // subtotal pohon
   total: number; // total confirmation (dengan kode unik)
   proses: number;
+  acc: boolean; // permintaan "Mulai Proses" sudah di-acc admin (form foto/catatan terbuka)
   confirmation: string;
   confirmasiId: number;
   fotoBuktiUrl: string | null;
@@ -510,6 +511,7 @@ export function mapOrderRow(r: Record<string, unknown>): ApiOrderRow {
     price: Number(r.price) || 0,
     total: Number(r.total) || 0,
     proses: Number(r.proses) || 0,
+    acc: Number(r.acc) === 1,
     confirmation: String(r.confirmasi ?? ""),
     confirmasiId: Number(r.confirmasiid) || 0,
     fotoBuktiUrl: assetUrl(r.fotopembayaran as string | null),

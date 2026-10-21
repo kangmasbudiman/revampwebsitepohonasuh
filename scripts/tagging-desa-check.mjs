@@ -41,8 +41,9 @@ const [desaLain, pohonLain] = rows(
 assert(!!desaLain && !!pohonLain, `pohon available di desa non-rantaukermas ditemukan (${pohonLain} @ ${desaLain})`);
 const kecamatanLain = one(`SELECT IFNULL(kecamatan,'') FROM desa WHERE nama='${desaLain}'`);
 
+// Default halaman kini tab Baru (proses=1) — marker harus order proses=1.
 const marker = one(
-  `SELECT a.invoice FROM data_adopsi a JOIN confirmation c ON c.invoice=a.invoice WHERE c.confirmation='yes' AND a.desa='rantaukermas' AND a.proses IN (1,2,3) ORDER BY a.id DESC LIMIT 1`,
+  `SELECT a.invoice FROM data_adopsi a JOIN confirmation c ON c.invoice=a.invoice WHERE c.confirmation='yes' AND a.desa='rantaukermas' AND a.proses IN (1,2,3) ORDER BY (a.proses=1) DESC, a.id DESC LIMIT 1`,
 );
 assert(!!marker, "ada order rantaukermas terverifikasi sebagai penanda");
 
@@ -95,7 +96,8 @@ assert(lower.includes("semua desa") && lower.includes(desaLain.toLowerCase()) &&
   `dropdown filter memuat semua desa (${options.join(", ")})`);
 
 await sel.selectOption(desaLain);
-await a.waitForURL(`**/admin/tagging?desa=${encodeURIComponent(desaLain)}`);
+// Filter desa mempertahankan tab proses aktif (default kini tab Baru)
+await a.waitForURL(`**/admin/tagging?proses=1&desa=${encodeURIComponent(desaLain)}`);
 await a.waitForTimeout(800);
 assert((await a.getByText(marker).count()) === 0, `filter ${desaLain}: order rantaukermas hilang`);
 assert((await a.getByText(INV).count()) >= 1, `filter ${desaLain}: order desa lain tetap tampil`);
@@ -109,11 +111,9 @@ await sel.selectOption("");
 await a.waitForURL("**/admin/tagging?proses=1");
 await a.waitForTimeout(800);
 assert((await a.getByText(INV).count()) >= 1, "kembali ke Semua desa: order desa lain tampil kembali");
-// tab "Semua" membawa URL bersih tanpa filter
-await a.getByRole("link", { name: /^Semua \(\d+\)$/ }).click();
-await a.waitForURL("**/admin/tagging");
-await a.waitForTimeout(800);
-assert((await a.getByText(marker).count()) >= 1, "tanpa filter: semua order tampil");
+assert((await a.getByText(marker).count()) >= 1, "tanpa filter desa: order rantaukermas tampil di tab Baru");
+// Tab kini hanya Baru/Diproses/Selesai — tab "Semua" sudah dihapus
+assert((await a.getByRole("link", { name: /^Semua/ }).count()) === 0, 'tab "Semua" dihapus dari Order Tagging');
 
 // ================= 3. UI petugas: tetap desa tugas, tanpa filter =================
 const petugasCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });

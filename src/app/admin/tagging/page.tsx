@@ -11,12 +11,12 @@ import PapanCheck from "@/components/admin/papan-check";
 import PapanCheckAll from "@/components/admin/papan-check-all";
 import PapanBatchBar from "@/components/admin/papan-batch-bar";
 import DesaFilter from "@/components/admin/desa-filter";
-import { updateOrderNote } from "@/lib/actions/tagging";
+import { updateOrderNote, accTagging } from "@/lib/actions/tagging";
+import ConfirmSubmit from "@/components/admin/confirm-submit";
 
 export const metadata = { title: "Order Tagging | Pohon Asuh" };
 
 const TABS = [
-  { value: "", label: "Semua" },
   { value: "1", label: "Baru" },
   { value: "2", label: "Diproses" },
   { value: "3", label: "Selesai" },
@@ -33,7 +33,7 @@ export default async function TaggingPage({
 }: PageProps<"/admin/tagging">) {
   const session = await requireAdmin();
   const sp = await searchParams;
-  const prosesFilter = ["1", "2", "3"].includes(String(sp.proses)) ? String(sp.proses) : "";
+  const prosesFilter = ["1", "2", "3"].includes(String(sp.proses)) ? String(sp.proses) : "1";
   const desaFilter = String((Array.isArray(sp?.desa) ? sp.desa[0] : sp?.desa) ?? "").trim();
   // Admin program (level 1) melihat order tagging dari SEMUA desa (param
   // `semua` di endpoint) + filter desa; petugas tetap hanya desa tugasnya.
@@ -96,15 +96,13 @@ export default async function TaggingPage({
     }),
   );
 
-  const countFor = (v: string) =>
-    v ? dalamDesa.filter((o) => String(o.proses) === v).length : dalamDesa.length;
+  const countFor = (v: string) => dalamDesa.filter((o) => String(o.proses) === v).length;
 
   const tabHref = (v: string) => {
     const p = new URLSearchParams();
-    if (v) p.set("proses", v);
+    p.set("proses", v);
     if (isAdmin && desaFilter) p.set("desa", desaFilter);
-    const q = p.toString();
-    return `/admin/tagging${q ? `?${q}` : ""}`;
+    return `/admin/tagging?${p.toString()}`;
   };
 
   // Pohon "sudah ditagging" = punya foto tagging ATAU proses selesai —
@@ -122,8 +120,9 @@ export default async function TaggingPage({
     <main className="w-full px-6 py-8 lg:px-10">
       <h1 className="text-xl font-bold pa-hgrad">Order Tagging</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Pohon terverifikasi yang menunggu ditandai di lapangan. Unggah foto tagging lalu tandai
-        selesai — sertifikat donatur terbit otomatis setelah selesai (paritas aplikasi mobile).
+        Pohon terverifikasi yang menunggu ditandai di lapangan. Petugas klik <span className="font-semibold text-emerald-700 dark:text-emerald-300">Mulai
+        Proses</span>, tunggu acc admin, lalu unggah foto tagging dan tandai selesai — sertifikat
+        donatur terbit otomatis setelah selesai (paritas aplikasi mobile).
         Conteng kartu <span className="font-semibold text-emerald-700 dark:text-emerald-300">Papan</span> untuk
         mengunduh beberapa papan taging sekaligus dalam satu file ZIP — pohon yang sudah memiliki
         foto tagging otomatis dikeluarkan dari unduhan massal.
@@ -134,9 +133,19 @@ export default async function TaggingPage({
         </p>
       )}
 
-      {sp?.proses && (
+      {sp?.mulai && (
         <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
-          Order ditandai sedang diproses.
+          Permintaan proses dikirim — menunggu persetujuan admin.
+        </p>
+      )}
+      {sp?.acc && (
+        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+          Permintaan disetujui — petugas dapat mengunggah foto dan catatan.
+        </p>
+      )}
+      {sp?.tolak && (
+        <p className="mt-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+          Permintaan ditolak — order kembali ke daftar Baru.
         </p>
       )}
       {sp?.selesai && (
@@ -236,10 +245,20 @@ export default async function TaggingPage({
                     </p>
                   </div>
                 </div>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${badge.className}`}
-                >
-                  {badge.label}
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${badge.className}`}
+                  >
+                    {badge.label}
+                  </span>
+                  {order.proses === 2 && !order.acc && (
+                    <span
+                      data-testid="chip-menunggu-acc"
+                      className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                    >
+                      Menunggu Acc Admin
+                    </span>
+                  )}
                 </span>
               </div>
 
@@ -311,32 +330,98 @@ export default async function TaggingPage({
                 </div>
               )}
 
-              <form
-                action={updateOrderNote}
-                className="mt-3 flex flex-wrap items-end gap-2 rounded-xl bg-emerald-50/60 px-3 py-2.5 dark:bg-night-800/50"
-              >
-                <input type="hidden" name="id" value={order.id} />
-                <label className="min-w-0 flex-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                  Catatan order
-                  <input
-                    name="note"
-                    defaultValue={notes[order.id] ?? ""}
-                    maxLength={200}
-                    placeholder="Catatan internal untuk order ini (mis. kondisi pohon, jadwal kunjungan)…"
-                    className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-normal text-zinc-800 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
-                  />
-                </label>
-                <button
-                  type="submit"
-                  className="rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-night-700 dark:bg-night-900 dark:text-emerald-300 dark:hover:bg-night-800"
+              {order.proses === 2 && order.acc ? (
+                <form
+                  action={updateOrderNote}
+                  className="mt-3 flex flex-wrap items-end gap-2 rounded-xl bg-emerald-50/60 px-3 py-2.5 dark:bg-night-800/50"
                 >
-                  Simpan Catatan
-                </button>
-              </form>
+                  <input type="hidden" name="id" value={order.id} />
+                  <label className="min-w-0 flex-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                    Catatan order
+                    <input
+                      name="note"
+                      defaultValue={notes[order.id] ?? ""}
+                      maxLength={200}
+                      placeholder="Catatan internal untuk order ini (mis. kondisi pohon, jadwal kunjungan)…"
+                      className="mt-1 w-full rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-normal text-zinc-800 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-night-700 dark:bg-night-900 dark:text-emerald-300 dark:hover:bg-night-800"
+                  >
+                    Simpan Catatan
+                  </button>
+                </form>
+              ) : (
+                notes[order.id] && (
+                  <p className="mt-3 rounded-xl bg-emerald-50/60 px-3 py-2.5 text-sm text-zinc-600 dark:bg-night-800/50 dark:text-zinc-300">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      Catatan order:{" "}
+                    </span>
+                    {notes[order.id]}
+                  </p>
+                )
+              )}
 
-              <div className="mt-4 border-t border-emerald-50 pt-4 dark:border-night-800">
-                <TaggingForm id={order.id} idpohon={order.idpohon} proses={order.proses} />
-              </div>
+              {order.proses === 2 && !order.acc && (
+                <div className="mt-4 border-t border-emerald-50 pt-4 dark:border-night-800">
+                  {isAdmin ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="mr-auto text-sm text-zinc-600 dark:text-zinc-300">
+                        Petugas meminta izin memproses tagging — acc untuk membuka form foto &amp;
+                        catatan.
+                      </p>
+                      <form action={accTagging}>
+                        <input type="hidden" name="id" value={order.id} />
+                        <input type="hidden" name="aksi" value="acc" />
+                        <button
+                          type="submit"
+                          data-testid="btn-acc-tagging"
+                          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                        >
+                          Acc
+                        </button>
+                      </form>
+                      <form action={accTagging}>
+                        <input type="hidden" name="id" value={order.id} />
+                        <input type="hidden" name="aksi" value="tolak" />
+                        <ConfirmSubmit
+                          className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
+                          message={`Tolak permintaan tagging pohon ${order.idpohon}? Order kembali ke daftar Baru dan petugas bisa mengajukan ulang.`}
+                          confirmLabel="Ya, Tolak"
+                          testId="btn-tolak-tagging"
+                        >
+                          Tolak
+                        </ConfirmSubmit>
+                      </form>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Menunggu persetujuan admin — form foto &amp; catatan terbuka setelah
+                      disetujui.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {order.proses === 1 && isAdmin && (
+                <p className="mt-4 border-t border-emerald-50 pt-4 text-sm text-zinc-500 dark:border-night-800 dark:text-zinc-400">
+                  Menunggu petugas memulai proses.
+                </p>
+              )}
+
+              {(order.proses === 2 && order.acc) || (order.proses === 1 && !isAdmin) ? (
+                <div className="mt-4 border-t border-emerald-50 pt-4 dark:border-night-800">
+                  <TaggingForm
+                    id={order.id}
+                    idpohon={order.idpohon}
+                    proses={order.proses}
+                    acc={order.acc}
+                    isAdmin={isAdmin}
+                  />
+                </div>
+              ) : null}
             </div>
           );
         })}

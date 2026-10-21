@@ -12,6 +12,7 @@ export default function ConfirmSubmit({
   className,
   disabled,
   title,
+  testId,
   confirmLabel = "Ya, Lanjutkan",
 }: {
   children: React.ReactNode;
@@ -19,6 +20,7 @@ export default function ConfirmSubmit({
   className?: string;
   disabled?: boolean;
   title?: string;
+  testId?: string;
   confirmLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -45,6 +47,7 @@ export default function ConfirmSubmit({
         className={className}
         disabled={disabled}
         title={title}
+        data-testid={testId}
         onClick={() => setOpen(true)}
       >
         {children}

@@ -64,7 +64,33 @@ export async function markInProgress(formData: FormData) {
   }
 
   revalidatePath("/admin/tagging");
-  redirect("/admin/tagging?proses=1");
+  redirect("/admin/tagging?proses=2&mulai=1");
+}
+
+// Acc / tolak PERMINTAAN "Mulai Proses" petugas (admin). Acc membuka form
+// foto + catatan bagi petugas; tolak mengembalikan order ke daftar Baru.
+export async function accTagging(formData: FormData) {
+  const session = await requireAdmin();
+  const id = Number(formData.get("id"));
+  const aksi = String(formData.get("aksi") ?? "") === "tolak" ? "tolak" : "acc";
+  if (!id) redirect("/admin/tagging?error=Order+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("acctaging", {
+      id,
+      oleh: session.userId,
+      aksi,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/tagging?error=${encodeURIComponent(res.pesan ?? "Gagal memproses permintaan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/tagging?error=Gagal+memproses+permintaan");
+  }
+
+  revalidatePath("/admin/tagging");
+  redirect(`/admin/tagging?proses=2&${aksi === "acc" ? "acc" : "tolak"}=1`);
 }
 
 export async function markComplete(formData: FormData) {

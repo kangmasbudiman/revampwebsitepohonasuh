@@ -83,7 +83,7 @@ const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await ctx.addCookies([{ name: "pa_session", value: tokenPetugas, url: BASE }]);
   const page = await ctx.newPage();
-  await page.goto(`${BASE}/admin/tagging`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/admin/tagging?proses=2`, { waitUntil: "networkidle" });
   const kartu1 = page.locator("main .rounded-2xl", { hasText: P1 }).first();
   await kartu1.waitFor({ timeout: 30000 });
   assert(
@@ -94,11 +94,18 @@ const browser = await chromium.launch();
     (await kartu1.getByRole("button", { name: "Batalkan Order" }).count()) === 0,
     `PETUGAS: kartu ${P1} TANPA tombol Batalkan Order`,
   );
+  // kartu Selesai ada di tab tersendiri
+  await page.goto(`${BASE}/admin/tagging?proses=3`, { waitUntil: "networkidle" });
   const kartu2 = page.locator("main .rounded-2xl", { hasText: P2 }).first();
+  await kartu2.waitFor({ timeout: 30000 });
   assert(
     (await kartu2.getByRole("button", { name: "Batalkan Proses" }).count()) === 0,
     `PETUGAS: kartu ${P2} (Selesai) TANPA tombol batal proses`,
   );
+
+  // kembali ke tab Diproses untuk jalur pembatalan
+  await page.goto(`${BASE}/admin/tagging?proses=2`, { waitUntil: "networkidle" });
+  await kartu1.waitFor({ timeout: 30000 });
 
   // jalur aman dulu
   await kartu1.getByRole("button", { name: "Batalkan Proses" }).click();
@@ -146,7 +153,7 @@ const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   await ctx.addCookies([{ name: "pa_session", value: tokenAdmin, url: BASE }]);
   const page = await ctx.newPage();
-  await page.goto(`${BASE}/admin/tagging`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE}/admin/tagging?proses=1`, { waitUntil: "networkidle" });
   const kartu1 = page.locator("main .rounded-2xl", { hasText: P1 }).first();
   await kartu1.waitFor({ timeout: 30000 });
   assert(

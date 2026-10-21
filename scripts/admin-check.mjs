@@ -503,8 +503,8 @@ await p2.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
 assert(p2.url().includes("/admin/tagging"), `petugas akses /admin → redirect ${p2.url()}`);
 const navPetugas = await p2.locator("aside nav a").allTextContents();
 assert(
-  navPetugas.length === 3 && navPetugas.includes("Order Tagging") && navPetugas.includes("Laporan Kegiatan") && navPetugas.includes("Kelola Peta Desa"),
-  `sidebar petugas: Order Tagging + Laporan Kegiatan + Kelola Peta Desa (${navPetugas})`,
+  navPetugas.length === 5 && navPetugas.includes("Order Tagging") && navPetugas.includes("Laporan BTOR") && navPetugas.includes("Laporan Kegiatan") && navPetugas.includes("Kelola Peta Desa") && navPetugas.includes("Template Share"),
+  `sidebar petugas: 5 menu (Tagging/BTOR/Laporan/Peta/Template Share) (${navPetugas})`,
 );
 // Petugas juga bisa membuka peta offline desa tugasnya (rantaukermas).
 await p2.goto(`${BASE}/admin/peta`, { waitUntil: "networkidle" });
@@ -537,23 +537,36 @@ const adoptedAwal = rows(`SELECT adopted FROM data_pohon WHERE idpohon='${pohonK
 const pesanMax = Number(rows("SELECT COALESCE(MAX(id),0) FROM pesan_notif")[0][0]);
 const fotoMax = Number(rows("SELECT COALESCE(MAX(id),0) FROM foto_tagging")[0][0]);
 
-await p2.goto(`${BASE}/admin/tagging`, { waitUntil: "networkidle" });
+// Alur baru (alur acc lengkap diuji di tagging-acc-check.mjs): Mulai Proses →
+// acc admin via API → upload foto → Tandai Selesai.
+await p2.goto(`${BASE}/admin/tagging?proses=1`, { waitUntil: "networkidle" });
 const kartu = p2.locator("div.rounded-2xl.border", { hasText: pohonKode }).first();
-await kartu.locator('input[type="file"]').setInputFiles("/tmp/test-cover.jpg");
-await kartu.locator('button:has-text("Unggah")').click();
+assert((await kartu.locator('[data-testid="form-upload-tagging"]').count()) === 0, "tab Baru: form upload belum tampil sebelum mulai proses");
+await kartu.locator('[data-testid="btn-mulai-proses"]').click();
+await p2.waitForURL("**proses=2&mulai=1", { timeout: 30000 });
+assert(rows(`SELECT proses FROM data_adopsi WHERE id=${adopsiId}`)[0][0] === "2", "updatestatusproses → proses=2");
+
+const resAcc = await (
+  await fetch(`${API}/acctaging`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `id=${adopsiId}&oleh=2682&aksi=acc`,
+  })
+).json();
+assert(String(resAcc?.value) === "200", "acctaging acc via API → 200");
+
+await p2.goto(`${BASE}/admin/tagging?proses=2`, { waitUntil: "networkidle" });
+const kartu2 = p2.locator("div.rounded-2xl.border", { hasText: pohonKode }).first();
+await kartu2.locator('[data-testid="form-upload-tagging"] input[type="file"]').setInputFiles("/tmp/test-cover.jpg");
+await kartu2.locator('button:has-text("Unggah")').click();
 await p2.waitForSelector("text=Foto tagging terunggah", { timeout: 30000 });
 assert(
   Number(rows(`SELECT COUNT(*) FROM foto_tagging WHERE idadopsi=${adopsiId} AND id>${fotoMax}`)[0][0]) >= 1,
   "uploadfototaging via UI → row foto_tagging"
 );
 
-await p2.goto(`${BASE}/admin/tagging`, { waitUntil: "networkidle" });
-await p2.locator("div.rounded-2xl.border", { hasText: pohonKode }).first().locator('button:has-text("Mulai Proses")').click();
-await p2.waitForURL("**proses=1", { timeout: 30000 });
-assert(rows(`SELECT proses FROM data_adopsi WHERE id=${adopsiId}`)[0][0] === "2", "updatestatusproses → proses=2");
-
 await p2.goto(`${BASE}/admin/tagging?proses=2`, { waitUntil: "networkidle" });
-await p2.locator("div.rounded-2xl.border", { hasText: pohonKode }).first().locator('button:has-text("Tandai Selesai")').click();
+await p2.locator("div.rounded-2xl.border", { hasText: pohonKode }).first().locator('[data-testid="btn-tandai-selesai"]').click();
 await p2.waitForURL("**selesai=1", { timeout: 30000 });
 assert(rows(`SELECT proses FROM data_adopsi WHERE id=${adopsiId}`)[0][0] === "3", "updatestatuscomplate → proses=3");
 assert(rows(`SELECT adopted FROM data_pohon WHERE idpohon='${pohonKode}'`)[0][0] === "adopted", "pohon jadi adopted setelah selesai");
@@ -561,9 +574,9 @@ await p2.screenshot({ path: "screenshots/97-admin-tagging.png", fullPage: true }
 
 // Pulihkan state dev
 execSync(
-  `mysql -uroot -pkerabatkotak pohonasuh2 -e "UPDATE data_adopsi SET proses=1 WHERE id=${adopsiId}; UPDATE data_pohon SET adopted='${adoptedAwal}' WHERE idpohon='${pohonKode}'; DELETE FROM pesan_notif WHERE id>${pesanMax}; DELETE FROM foto_tagging WHERE id>${fotoMax};" 2>/dev/null`
+  `mysql -uroot -pkerabatkotak pohonasuh2 -e "UPDATE data_adopsi SET proses=1, acc_tagging=0, acc_by=NULL WHERE id=${adopsiId}; UPDATE data_pohon SET adopted='${adoptedAwal}' WHERE idpohon='${pohonKode}'; DELETE FROM pesan_notif WHERE id>${pesanMax}; DELETE FROM foto_tagging WHERE id>${fotoMax};" 2>/dev/null`
 );
-assert(true, "state dev dipulihkan (proses/adopted/pesan/foto)");
+assert(true, "state dev dipulihkan (proses/acc/adopted/pesan/foto)");
 
 // ================= 3. Session legacy tanpa level =================
 const legacyCtx = await ctxWith(browser, { userId: 2682, name: "Admin Pohon Asuh", role: "ADMIN" });

@@ -127,20 +127,39 @@ const itemCls = (active: boolean) =>
       : "text-emerald-100/80 hover:bg-white/10 hover:text-white"
   }`;
 
-// Badge jumlah BTOR menunggu verifikasi (admin saja) di baris menu BTOR.
+// Badge penanda admin (amber): BTOR menunggu verifikasi + permintaan tagging
+// menunggu acc — di baris menu terkait.
 const badgeCls =
   "ml-auto rounded-full bg-amber-400/90 px-1.5 py-0.5 text-[10px] font-bold text-emerald-950";
 
-function NavBadge({ item, btorTerkirim }: { item: Item; btorTerkirim?: number }) {
-  if (item.href !== "/admin/btor" || !btorTerkirim) return null;
+function NavBadge({
+  item,
+  btorTerkirim,
+  taggingMenunggu,
+}: {
+  item: Item;
+  btorTerkirim?: number;
+  taggingMenunggu?: number;
+}) {
+  const isBtor = item.href === "/admin/btor";
+  const n = isBtor ? btorTerkirim : item.href === "/admin/tagging" ? taggingMenunggu : undefined;
+  if (!n) return null;
   return (
-    <span className={badgeCls} data-testid="nav-badge-btor">
-      {btorTerkirim}
+    <span className={badgeCls} data-testid={isBtor ? "nav-badge-btor" : "nav-badge-tagging"}>
+      {n}
     </span>
   );
 }
 
-export default function AdminNav({ level, btorTerkirim }: { level?: number; btorTerkirim?: number }) {
+export default function AdminNav({
+  level,
+  btorTerkirim,
+  taggingMenunggu,
+}: {
+  level?: number;
+  btorTerkirim?: number;
+  taggingMenunggu?: number;
+}) {
   const pathname = usePathname();
   // Grup yang memuat halaman aktif terbuka secara bawaan; sisanya collapsed.
   const [open, setOpen] = useState<Record<string, boolean>>(() =>
@@ -193,7 +212,7 @@ export default function AdminNav({ level, btorTerkirim }: { level?: number; btor
                   >
                     <NavIcon item={item} active={isActive(item.href, pathname)} />
                     {item.label}
-                    <NavBadge item={item} btorTerkirim={btorTerkirim} />
+                    <NavBadge item={item} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
                   </Link>
                 ))}
               </nav>
@@ -241,7 +260,15 @@ export function AdminSidebarFooter({ name, level }: { name: string; level?: numb
 }
 
 // Versi chip horizontal untuk layar kecil (tanpa judul grup).
-export function AdminNavMobile({ level, btorTerkirim }: { level?: number; btorTerkirim?: number }) {
+export function AdminNavMobile({
+  level,
+  btorTerkirim,
+  taggingMenunggu,
+}: {
+  level?: number;
+  btorTerkirim?: number;
+  taggingMenunggu?: number;
+}) {
   const pathname = usePathname();
 
   const items = level === 2 ? ALL_ITEMS.filter((i) => PETUGAS_HREFS.has(i.href)) : ALL_ITEMS;
@@ -250,6 +277,12 @@ export function AdminNavMobile({ level, btorTerkirim }: { level?: number; btorTe
     <>
       {items.map((item) => {
         const Icon = item.icon;
+        const badge =
+          item.href === "/admin/btor"
+            ? btorTerkirim
+            : item.href === "/admin/tagging"
+              ? taggingMenunggu
+              : undefined;
         return (
           <Link
             key={item.href}
@@ -262,12 +295,12 @@ export function AdminNavMobile({ level, btorTerkirim }: { level?: number; btorTe
           >
             <Icon className="h-3.5 w-3.5" />
             {item.label}
-            {item.href === "/admin/btor" && !!btorTerkirim && (
+            {!!badge && (
               <span
                 className="rounded-full bg-amber-400/90 px-1.5 py-0.5 text-[10px] font-bold text-emerald-950"
-                data-testid="nav-badge-btor"
+                data-testid={item.href === "/admin/btor" ? "nav-badge-btor" : "nav-badge-tagging"}
               >
-                {btorTerkirim}
+                {badge}
               </span>
             )}
           </Link>
