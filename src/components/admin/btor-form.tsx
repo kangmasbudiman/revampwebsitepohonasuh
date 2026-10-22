@@ -8,7 +8,6 @@ import {
   Info,
   RefreshCw,
   Send,
-  Wallet,
 } from "lucide-react";
 import { simpanBtor, ambilBtorKandidat } from "@/lib/actions/btor";
 import type { ApiBtorDetail, ApiBtorKandidat, ApiPenugasan } from "@/lib/api";
@@ -133,13 +132,15 @@ export default function BtorForm({
   const danaDigits = dana.replace(/\D/g, "");
   const danaDisplay = danaDigits ? Number(danaDigits).toLocaleString("id-ID") : "";
 
-  const toggle = (id: number) =>
-    setTerpilih((s) => {
-      const n = new Set(s);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
+  // Dana mengikuti checklist: total harga order yang dicentang.
+  const toggle = (id: number) => {
+    const n = new Set(terpilih);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    setTerpilih(n);
+    const t = (kandidat ?? []).filter((k) => n.has(k.idadopsi)).reduce((s, k) => s + k.price, 0);
+    setDana(t ? String(t) : "");
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -227,6 +228,7 @@ export default function BtorForm({
                   setIdpetugas(Number(e.target.value));
                   setIdDesa(0);
                   setTerpilih(new Set());
+                  setDana("");
                 }}
                 className={inputClass}
               >
@@ -256,6 +258,7 @@ export default function BtorForm({
                 onChange={(e) => {
                   setIdDesa(Number(e.target.value));
                   setTerpilih(new Set());
+                  setDana("");
                 }}
                 className={inputClass}
                 disabled={!idpetugas}
@@ -394,7 +397,7 @@ export default function BtorForm({
         <Step
           n={5}
           title="Dana & Rekening Pencairan"
-          helper="Dana otomatis diusulkan dari total order terpilih — boleh disesuaikan."
+          helper="Otomatis dijumlahkan dari order yang diceklist — boleh disesuaikan bila perlu."
         >
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm font-semibold text-zinc-500">
@@ -411,15 +414,9 @@ export default function BtorForm({
             />
           </div>
           {totalOrder > 0 && (
-            <button
-              type="button"
-              onClick={() => setDana(String(totalOrder))}
-              data-testid="pakai-total-order"
-              className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
-            >
-              <Wallet className="h-3.5 w-3.5" />
-              Pakai total order terpilih ({rupiah(totalOrder)})
-            </button>
+            <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+              Total {terpilih.size} order terpilih: {rupiah(totalOrder)}
+            </p>
           )}
           <div className="mt-3 grid gap-3">
             <label className="block text-sm text-zinc-600 dark:text-zinc-300">

@@ -186,8 +186,7 @@ await p.click('[data-testid="tambah-hari"]');
 await p.fill('[data-testid="entri-tanggal-0"]', HARI);
 await p.fill('[data-testid="entri-teks-0"]', "Persiapan alat dan pemasangan banner tagging di lokasi.");
 
-// 5. Dana otomatis dari total order + identitas
-await p.click('[data-testid="pakai-total-order"]');
+// 5. Dana otomatis dari total order (tanpa tombol) + identitas
 assert(
   (await p.locator('input[name="dana"]').inputValue()) === (ORD_A.price + ORD_B.price).toLocaleString("id-ID"),
   `dana terisi otomatis dari total order terpilih (${ORD_A.price + ORD_B.price})`,
