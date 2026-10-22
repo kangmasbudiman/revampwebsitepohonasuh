@@ -1,4 +1,5 @@
 import { requireAdminLevel } from "@/lib/guard";
+import SuccessPopup from "@/components/admin/success-popup";
 import { apiGet, mapKontak, type ApiKontak } from "@/lib/api";
 import { addNoadmin, deleteNoadmin, editNoadmin } from "@/lib/actions/setting";
 import KontakForm from "@/components/admin/kontak-form";
@@ -45,14 +46,14 @@ export default async function PengaturanPage({
       </p>
 
       {sp?.wasaved && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">
+        <SuccessPopup paramKey="wasaved" title="Tersimpan">
           {String(sp.wasaved)}
-        </p>
+        </SuccessPopup>
       )}
       {sp?.waerror && (
-        <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+        <SuccessPopup paramKey="waerror" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(sp.waerror)}
-        </p>
+        </SuccessPopup>
       )}
 
       <div className="mt-6 max-w-3xl rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">

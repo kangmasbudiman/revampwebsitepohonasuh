@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SuccessPopup from "@/components/admin/success-popup";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { apiPost } from "@/lib/api";
@@ -58,14 +59,14 @@ export default async function TreeGalleryPage(
       </p>
 
       {sp?.hapus && (
-        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-night-800 dark:text-emerald-300">
+        <SuccessPopup paramKey="hapus" title="Terhapus">
           Foto dihapus dari galeri.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(sp.error)}
-        </p>
+        </SuccessPopup>
       )}
 
       <div className="mt-6 max-w-3xl rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">

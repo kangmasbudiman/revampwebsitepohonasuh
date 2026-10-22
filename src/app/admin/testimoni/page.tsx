@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SuccessPopup from "@/components/admin/success-popup";
 import { requireAdminLevel } from "@/lib/guard";
 import { apiGet, mapPartners, mapTestimonis, type ApiPartner, type ApiTestimoni } from "@/lib/api";
 import { TestimoniForm, PartnerForm } from "@/components/admin/testimoni-forms";
@@ -38,9 +39,21 @@ export default async function AdminTestimoniPage({
         beranda setelah ada isinya.
       </p>
 
-      {sp?.saved && <Banner tone="ok">Perubahan tersimpan.</Banner>}
-      {sp?.deleted && <Banner tone="ok">Data dihapus.</Banner>}
-      {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
+      {sp?.saved && (
+        <SuccessPopup paramKey="saved" title="Tersimpan">
+          Perubahan tersimpan.
+        </SuccessPopup>
+      )}
+      {sp?.deleted && (
+        <SuccessPopup paramKey="deleted" title="Terhapus">
+          Data dihapus.
+        </SuccessPopup>
+      )}
+      {sp?.error && (
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+          {String(sp.error)}
+        </SuccessPopup>
+      )}
 
       {fetchError && (
         <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">
@@ -214,14 +227,3 @@ export default async function AdminTestimoniPage({
   );
 }
 
-function Banner({ tone, children }: { tone: "ok" | "err"; children: React.ReactNode }) {
-  return (
-    <p
-      className={`mt-4 rounded-xl px-4 py-3 text-sm ${
-        tone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600 dark:text-red-400"
-      }`}
-    >
-      {children}
-    </p>
-  );
-}

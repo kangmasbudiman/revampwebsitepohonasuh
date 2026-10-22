@@ -142,6 +142,11 @@ assert(
   "chip Draf tampil di halaman edit",
 );
 
+// tutup popup notifikasi (overlay z-60 mencegat klik di bawahnya)
+await p.waitForFunction(() => document.body.style.overflow === "hidden");
+await p.keyboard.press("Escape");
+await p.waitForURL((u) => !u.searchParams.has("created"), { timeout: 10000 });
+
 // 4. Lengkapi lalu KIRIM (dana + hasil wajib)
 await p.fill('form input[name="dana"]', "1500000");
 assert(
@@ -165,6 +170,10 @@ assert(
   (await p.locator("text=Laporan terkirim dan akan diperiksa").count()) >= 1,
   "banner dikirim tampil",
 );
+
+await p.waitForFunction(() => document.body.style.overflow === "hidden");
+await p.keyboard.press("Escape");
+await p.waitForURL((u) => !u.searchParams.has("dikirim"), { timeout: 10000 });
 
 // 5. Hapus foto via × lalu unggah ulang via Simpan Perubahan
 const fotoId = rows(`SELECT id FROM laporan_foto WHERE idlaporan=${ID}`)[0][0];
@@ -247,6 +256,7 @@ assert(
   (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === "1 / 3",
   "klik thumbnail strip → kembali 1 / 3",
 );
+await p.waitForFunction(() => document.body.style.overflow === "hidden");
 await p.keyboard.press("Escape");
 await p.waitForSelector('[data-testid="popup-foto-laporan"]', { state: "detached" });
 assert(
@@ -352,6 +362,11 @@ assert(
   rows(`SELECT status FROM laporan_kegiatan WHERE id=${idKosong}`)[0][0] === "draft",
   "status draf belum lengkap tetap draft",
 );
+
+// tutup popup error (overlay z-60 mencegat klik di bawahnya)
+await a.waitForFunction(() => document.body.style.overflow === "hidden");
+await a.keyboard.press("Escape");
+await a.waitForURL((u) => !u.searchParams.has("error"), { timeout: 10000 });
 
 // 11. Admin menyetujui laporan terkirim petugas via tombol cepat
 await a.click(`table form:has(input[name="id"][value="${ID}"]) button:has-text("Setujui")`);

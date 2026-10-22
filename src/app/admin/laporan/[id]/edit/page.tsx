@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/guard";
 import { apiGet, mapLaporans, mapLokasi } from "@/lib/api";
 import LaporanForm from "@/components/admin/laporan-form";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
+import SuccessPopup from "@/components/admin/success-popup";
 import { deleteLaporan } from "@/lib/actions/laporan";
 
 export const metadata = { title: "Edit Laporan Kegiatan | Pohon Asuh" };
@@ -51,20 +52,32 @@ export default async function EditLaporanPage(
         </p>
 
         {sp?.created && (
-          <Banner tone="ok">
+          <SuccessPopup paramKey="created" title="Tersimpan">
             {laporan.status === "draft"
               ? "Draf laporan tersimpan — lengkapi dan kirim kapan saja."
               : "Laporan terkirim dan akan diperiksa oleh tim Pohon Asuh."}
-          </Banner>
+          </SuccessPopup>
         )}
-        {sp?.saved && <Banner tone="ok">Perubahan laporan tersimpan.</Banner>}
+        {sp?.saved && (
+          <SuccessPopup paramKey="saved" title="Tersimpan">
+            Perubahan laporan tersimpan.
+          </SuccessPopup>
+        )}
         {sp?.dikirim && (
-          <Banner tone="ok">Laporan terkirim dan akan diperiksa oleh tim Pohon Asuh.</Banner>
+          <SuccessPopup paramKey="dikirim" title="Terkirim">
+            Laporan terkirim dan akan diperiksa oleh tim Pohon Asuh.
+          </SuccessPopup>
         )}
         {sp?.disetujui && (
-          <Banner tone="ok">Laporan disetujui dan ditandai sudah diperiksa.</Banner>
+          <SuccessPopup paramKey="disetujui" title="Disetujui">
+            Laporan disetujui dan ditandai sudah diperiksa.
+          </SuccessPopup>
         )}
-        {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
+        {sp?.error && (
+          <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+            {String(sp.error)}
+          </SuccessPopup>
+        )}
 
         <div className="mt-5 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
           <LaporanForm laporan={laporan} desaList={desaList} level={session.level ?? 1} />
@@ -92,14 +105,3 @@ export default async function EditLaporanPage(
   );
 }
 
-function Banner({ tone, children }: { tone: "ok" | "err"; children: React.ReactNode }) {
-  return (
-    <p
-      className={`mt-4 rounded-xl px-4 py-3 text-sm ${
-        tone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600 dark:text-red-400"
-      }`}
-    >
-      {children}
-    </p>
-  );
-}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { apiGet, mapOrderRows, type ApiOrderRow } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
 import { rupiah } from "@/lib/format";
+import SuccessPopup from "@/components/admin/success-popup";
 
 export const metadata = { title: "Admin — Verifikasi Pembayaran" };
 
@@ -39,14 +40,14 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
       </p>
 
       {searchParams.verified === "1" && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm font-medium text-emerald-800">
+        <SuccessPopup paramKey="verified" title="Diverifikasi">
           ✓ Pembayaran diverifikasi, sertifikat telah terbit.
-        </p>
+        </SuccessPopup>
       )}
       {searchParams.rejected === "1" && (
-        <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm font-medium text-red-700">
+        <SuccessPopup paramKey="rejected" tone="err" title="Ditolak" buttonLabel="Tutup">
           Pembayaran ditolak, pohon dikembalikan menjadi tersedia.
-        </p>
+        </SuccessPopup>
       )}
 
       <div className="mt-8 space-y-4">

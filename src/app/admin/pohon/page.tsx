@@ -27,24 +27,24 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
       <h1 className="text-3xl font-bold pa-hgrad">Kelola Pohon</h1>
 
       {searchParams.deleted && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="deleted" title="Terhapus">
           Pohon dihapus.
-        </p>
+        </SuccessPopup>
       )}
       {searchParams.unggulan === "1" && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="unggulan" title="Unggulan Aktif">
           Pohon ditandai unggulan — tampil di beranda.
-        </p>
+        </SuccessPopup>
       )}
       {searchParams.unggulan === "0" && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="unggulan" title="Unggulan Dilepas">
           Status unggulan dilepas.
-        </p>
+        </SuccessPopup>
       )}
       {searchParams.error && (
-        <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(searchParams.error)}
-        </p>
+        </SuccessPopup>
       )}
 
       {searchParams.created && (

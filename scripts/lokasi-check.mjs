@@ -170,12 +170,21 @@ assert(
   "desa masih ada di DB (guard)",
 );
 
+// tutup popup error (overlay z-60 mencegat klik di bawahnya)
+await page.waitForFunction(() => document.body.style.overflow === "hidden");
+await page.keyboard.press("Escape");
+await page.waitForURL((u) => !u.searchParams.has("error"), { timeout: 10000 });
+
 // guard desa asli berpohon: rantaukermas (856 pohon)
 await cari.fill("rantaukermas");
 await page.locator("table tbody tr").first().waitFor({ timeout: 10000 });
 await page.click("table tbody tr button:has-text('Hapus')");
 await page.waitForURL("**/admin/lokasi?error=*", { timeout: 30000 });
 assert(rows("SELECT COUNT(*) FROM desa WHERE nama='rantaukermas'")[0][0] === "1", "rantaukermas tetap ada (guard)");
+
+await page.waitForFunction(() => document.body.style.overflow === "hidden");
+await page.keyboard.press("Escape");
+await page.waitForURL((u) => !u.searchParams.has("error"), { timeout: 10000 });
 
 // sukses setelah pohon dihapus
 rows(`DELETE FROM data_pohon WHERE idpohon='UJ001'`);

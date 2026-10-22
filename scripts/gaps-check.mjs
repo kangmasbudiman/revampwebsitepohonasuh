@@ -11,6 +11,7 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 
 const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
+const API = process.env.API_BASE_URL ?? "http://127.0.0.1:8000/api";
 const LARAVEL = "/opt/homebrew/var/www/restApiPohonasuh";
 
 const rows = (sql) =>
@@ -203,6 +204,27 @@ await petugasPage.addInitScript(() => {
   document.documentElement ? pasang() : addEventListener("DOMContentLoaded", pasang, { once: true });
 });
 await petugasPage.goto(`${BASE}/admin/tagging`, { waitUntil: "networkidle" });
+// Alur baru (fitur acc tagging): order Baru harus diajukan (proses 1→2) lalu
+// di-acc admin sebelum form catatan tampil — ajukan & acc via API supaya
+// tidak ambigu bila pohon uji punya beberapa order di tab Baru.
+const resAjukan = await (
+  await fetch(`${API}/updatestatusproses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `id=${adopsiId3}`,
+  })
+).json();
+assert(String(resAjukan?.value) === "200", "ajukan order uji via API → 200");
+const resAcc3 = await (
+  await fetch(`${API}/acctaging`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `id=${adopsiId3}&oleh=2682&aksi=acc`,
+  })
+).json();
+assert(String(resAcc3?.value) === "200", "acc order uji via API → 200");
+// kartu kini ada di tab Diproses (proses=2)
+await petugasPage.goto(`${BASE}/admin/tagging?proses=2`, { waitUntil: "networkidle" });
 const noteForm = petugasPage
   .locator(`div:has-text("${TREE_P}") form:has(input[name="note"])`)
   .first();
@@ -248,6 +270,10 @@ const [namaK, memoK] = await waitForDb(
 );
 assert(namaK === "Nama Koreksi E2E", `koreksi nama → ${namaK}`);
 assert(memoK === "Memo koreksi E2E", `koreksi memo → ${memoK}`);
+// tutup popup notifikasi (overlay z-60 mencegat klik di bawahnya)
+await adminPage.waitForFunction(() => document.body.style.overflow === "hidden");
+await adminPage.keyboard.press("Escape");
+await adminPage.waitForURL((u) => !u.searchParams.has("saved"), { timeout: 10000 });
 // pulihkan nama penerima hadiah (uji updatemeko tak boleh merusak data lain)
 await adminPage.fill('input[name="nama"]', "Ibu Sinta");
 await adminPage.fill('textarea[name="memo"]', "Selamat hari ibu!");

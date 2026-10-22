@@ -1,4 +1,5 @@
 import Image from "next/image";
+import SuccessPopup from "@/components/admin/success-popup";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { requireAdminLevel } from "@/lib/guard";
@@ -36,10 +37,26 @@ export default async function AdminTemplateSertifikatPage({
         </div>
       </div>
 
-      {sp?.saved && <Banner tone="ok">Perubahan template tersimpan.</Banner>}
-      {sp?.created && <Banner tone="ok">Template ditambahkan.</Banner>}
-      {sp?.deleted && <Banner tone="ok">Template dihapus.</Banner>}
-      {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
+      {sp?.saved && (
+        <SuccessPopup paramKey="saved" title="Tersimpan">
+          Perubahan template tersimpan.
+        </SuccessPopup>
+      )}
+      {sp?.created && (
+        <SuccessPopup paramKey="created" title="Ditambahkan">
+          Template ditambahkan.
+        </SuccessPopup>
+      )}
+      {sp?.deleted && (
+        <SuccessPopup paramKey="deleted" title="Terhapus">
+          Template dihapus.
+        </SuccessPopup>
+      )}
+      {sp?.error && (
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+          {String(sp.error)}
+        </SuccessPopup>
+      )}
 
       <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/50 dark:border-night-700 dark:bg-night-800/50 p-5 text-sm text-zinc-600 dark:text-zinc-300">
         <p className="font-semibold text-emerald-800 dark:text-emerald-200">Panduan desain template</p>
@@ -171,14 +188,3 @@ export default async function AdminTemplateSertifikatPage({
   );
 }
 
-function Banner({ tone, children }: { tone: "ok" | "err"; children: React.ReactNode }) {
-  return (
-    <p
-      className={`mt-4 rounded-xl px-4 py-3 text-sm ${
-        tone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600 dark:text-red-400"
-      }`}
-    >
-      {children}
-    </p>
-  );
-}

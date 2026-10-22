@@ -13,6 +13,7 @@ import PapanBatchBar from "@/components/admin/papan-batch-bar";
 import DesaFilter from "@/components/admin/desa-filter";
 import { updateOrderNote, accTagging } from "@/lib/actions/tagging";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
+import SuccessPopup from "@/components/admin/success-popup";
 
 export const metadata = { title: "Order Tagging | Pohon Asuh" };
 
@@ -134,42 +135,44 @@ export default async function TaggingPage({
       )}
 
       {sp?.mulai && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="mulai" title="Permintaan Dikirim">
           Permintaan proses dikirim — menunggu persetujuan admin.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.acc && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="acc" title="Disetujui">
           Permintaan disetujui — petugas dapat mengunggah foto dan catatan.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.tolak && (
-        <p className="mt-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+        <SuccessPopup paramKey="tolak" tone="warn" title="Ditolak">
           Permintaan ditolak — order kembali ke daftar Baru.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.selesai && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="selesai" title="Selesai">
           Order selesai — pohon kini berstatus teradopsi.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.catatan && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="catatan" title="Tersimpan">
           Catatan order tersimpan.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.batal && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="batal" title="Order Dibatalkan">
           Order dibatalkan — pohon pada invoice dikembalikan ke tersedia dan donatur dinotifikasi.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.batalproses && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="batalproses" title="Proses Dibatalkan">
           Proses tagging dibatalkan — order kembali ke daftar Baru.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.error && (
-        <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">{String(sp.error)}</p>
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+          {String(sp.error)}
+        </SuccessPopup>
       )}
 
       <div className="mt-5 flex flex-wrap items-center gap-2">

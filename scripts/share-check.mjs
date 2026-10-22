@@ -259,6 +259,11 @@ ok("admin: tambah via UI (upload) → row DB + file cover_*", !!UI_ID && /^cover
 const UI_SUBTEXT = rows(`SELECT subtext FROM template_share WHERE id=${UI_ID}`)[0]?.[0];
 ok("admin: subtext tersimpan via UI", UI_SUBTEXT === "Hutan Adat Uji UI", `subtext=${UI_SUBTEXT}`);
 
+// tutup popup notifikasi (overlay z-60 mencegat klik di bawahnya)
+await a.waitForFunction(() => document.body.style.overflow === "hidden");
+await a.keyboard.press("Escape");
+await a.waitForURL((u) => !u.searchParams.has("created"), { timeout: 10000 });
+
 // Pratinjau design (modal) di baris tabel + lightbox besar saat design diklik
 await a.click(`tr:has-text("${tNama} UI") button:has-text("Pratinjau")`);
 ok(

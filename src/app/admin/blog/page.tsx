@@ -1,4 +1,5 @@
 import Image from "next/image";
+import SuccessPopup from "@/components/admin/success-popup";
 import Link from "next/link";
 import { requireAdminLevel } from "@/lib/guard";
 import { apiGet, mapPosts, type ApiPost } from "@/lib/api";
@@ -33,9 +34,21 @@ export default async function AdminBlogPage({
         </div>
       </div>
 
-      {sp?.saved && <Banner tone="ok">Perubahan artikel tersimpan.</Banner>}
-      {sp?.deleted && <Banner tone="ok">Artikel dihapus.</Banner>}
-      {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
+      {sp?.saved && (
+        <SuccessPopup paramKey="saved" title="Tersimpan">
+          Perubahan artikel tersimpan.
+        </SuccessPopup>
+      )}
+      {sp?.deleted && (
+        <SuccessPopup paramKey="deleted" title="Terhapus">
+          Artikel dihapus.
+        </SuccessPopup>
+      )}
+      {sp?.error && (
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+          {String(sp.error)}
+        </SuccessPopup>
+      )}
 
       <details className="mt-6 rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-5 shadow-sm">
         <summary className="cursor-pointer text-sm font-semibold text-emerald-700">
@@ -130,14 +143,3 @@ export default async function AdminBlogPage({
   );
 }
 
-function Banner({ tone, children }: { tone: "ok" | "err"; children: React.ReactNode }) {
-  return (
-    <p
-      className={`mt-4 rounded-xl px-4 py-3 text-sm ${
-        tone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600 dark:text-red-400"
-      }`}
-    >
-      {children}
-    </p>
-  );
-}

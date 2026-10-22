@@ -1,4 +1,5 @@
 import { requireAdminLevel } from "@/lib/guard";
+import SuccessPopup from "@/components/admin/success-popup";
 import { apiGet, mapPenugasan, type ApiPenugasan } from "@/lib/api";
 import DesaPetugasForm from "@/components/admin/desa-petugas-form";
 
@@ -26,12 +27,14 @@ export default async function PenugasanPage({
       </p>
 
       {sp?.saved && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="saved" title="Tersimpan">
           Penugasan tersimpan.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.error && (
-        <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">{String(sp.error)}</p>
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+          {String(sp.error)}
+        </SuccessPopup>
       )}
 
       {!data && (

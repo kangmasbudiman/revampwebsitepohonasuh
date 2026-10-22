@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SuccessPopup from "@/components/admin/success-popup";
 import { requireAdminLevel } from "@/lib/guard";
 import { apiGet, mapMembers, type ApiMember } from "@/lib/api";
 import { kirimPesan } from "@/lib/actions/member";
@@ -32,14 +33,14 @@ export default async function KelolaUserPage({
       </p>
 
       {sp?.updated && (
-        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-night-800 dark:text-emerald-300">
+        <SuccessPopup paramKey="updated" title="Tersimpan">
           {String(sp.updated)}
-        </p>
+        </SuccessPopup>
       )}
       {sp?.error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(sp.error)}
-        </p>
+        </SuccessPopup>
       )}
 
       {target && (

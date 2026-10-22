@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/guard";
 import { apiGet, mapBtorDetail, mapPenugasan, type ApiBtorDetail, type ApiPenugasan } from "@/lib/api";
 import BtorForm from "@/components/admin/btor-form";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
+import SuccessPopup from "@/components/admin/success-popup";
 import { hapusBtor } from "@/lib/actions/btor";
 
 export const metadata = { title: "Edit BTOR | Pohon Asuh" };
@@ -50,15 +51,27 @@ export default async function EditBtorPage(
         </p>
 
         {sp?.created && (
-          <Banner tone="ok">
+          <SuccessPopup paramKey="created" title="Tersimpan">
             {btor.status === "draft"
               ? "Draf BTOR tersimpan — lengkapi dan kirim kapan saja."
               : "BTOR terkirim dan akan diperiksa oleh admin."}
-          </Banner>
+          </SuccessPopup>
         )}
-        {sp?.saved && <Banner tone="ok">Perubahan BTOR tersimpan.</Banner>}
-        {sp?.dikirim && <Banner tone="ok">BTOR terkirim dan akan diperiksa oleh admin.</Banner>}
-        {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
+        {sp?.saved && (
+          <SuccessPopup paramKey="saved" title="Tersimpan">
+            Perubahan BTOR tersimpan.
+          </SuccessPopup>
+        )}
+        {sp?.dikirim && (
+          <SuccessPopup paramKey="dikirim" title="Terkirim">
+            BTOR terkirim dan akan diperiksa oleh admin.
+          </SuccessPopup>
+        )}
+        {sp?.error && (
+          <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+            {String(sp.error)}
+          </SuccessPopup>
+        )}
 
         <div className="mt-5 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
           <BtorForm
@@ -90,14 +103,3 @@ export default async function EditBtorPage(
   );
 }
 
-function Banner({ tone, children }: { tone: "ok" | "err"; children: React.ReactNode }) {
-  return (
-    <p
-      className={`mt-4 rounded-xl px-4 py-3 text-sm ${
-        tone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600 dark:text-red-400"
-      }`}
-    >
-      {children}
-    </p>
-  );
-}

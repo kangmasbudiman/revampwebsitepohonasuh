@@ -5,6 +5,7 @@ import { apiPost } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
 import { namaDesa, rupiah } from "@/lib/format";
 import { updateOrderMemo } from "@/lib/actions/order";
+import SuccessPopup from "@/components/admin/success-popup";
 
 export const metadata = { title: "Koreksi Order | Pohon Asuh" };
 
@@ -82,14 +83,14 @@ export default async function KoreksiOrderPage(
       </p>
 
       {sp.saved && (
-        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-night-800 dark:text-emerald-300">
+        <SuccessPopup paramKey="saved" title="Tersimpan">
           Perubahan tersimpan — sertifikat kini memakai data baru.
-        </p>
+        </SuccessPopup>
       )}
       {sp.error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(sp.error)}
-        </p>
+        </SuccessPopup>
       )}
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">

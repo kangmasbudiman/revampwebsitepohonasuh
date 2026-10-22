@@ -1,4 +1,5 @@
 import { requireAdminLevel } from "@/lib/guard";
+import SuccessPopup from "@/components/admin/success-popup";
 import {
   apiGet,
   mapLokasi,
@@ -40,19 +41,19 @@ export default async function DataLokasiPage({
       </p>
 
       {sp?.saved && (
-        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-night-800 dark:text-emerald-300">
+        <SuccessPopup paramKey="saved" title="Tersimpan">
           Perubahan lokasi tersimpan.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.deleted && (
-        <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-night-800 dark:text-emerald-300">
+        <SuccessPopup paramKey="deleted" title="Terhapus">
           Lokasi dihapus.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(sp.error)}
-        </p>
+        </SuccessPopup>
       )}
 
       {fetchError ? (

@@ -22,6 +22,7 @@ import BtorDetailTabs from "@/components/admin/btor-detail-tabs";
 import BtorMemoForm from "@/components/admin/btor-memo-form";
 import BtorMemoPdfButton from "@/components/admin/btor-memo-pdf";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
+import SuccessPopup from "@/components/admin/success-popup";
 import { approveBtor, revisiBtor, updatePencairanBtor } from "@/lib/actions/btor";
 import { bolehMemo } from "@/lib/hak";
 
@@ -494,11 +495,36 @@ export default async function DetailBtorPage(props: Props) {
         <span className="mx-1">›</span> <span className="line-clamp-1">{btor.judul}</span>
       </p>
 
-      {sp?.revisi && <Banner tone="warn">Revisi diminta — petugas akan memperbaiki dan mengirim ulang BTOR.</Banner>}
-      {sp?.diverifikasi && <Banner tone="ok">BTOR diverifikasi. Sekarang memo pencairan bisa diterbitkan.</Banner>}
-      {sp?.memo && <Banner tone="ok">Memo pencairan tersimpan.</Banner>}
-      {sp?.pencairan && <Banner tone="ok">Status pencairan diperbarui.</Banner>}
-      {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
+      {sp?.created && (
+        <SuccessPopup paramKey="created" title="BTOR Terkirim">
+          BTOR terkirim dan menunggu verifikasi admin.
+        </SuccessPopup>
+      )}
+      {sp?.revisi && (
+        <SuccessPopup paramKey="revisi" tone="warn" title="Revisi Diminta">
+          Revisi diminta — petugas akan memperbaiki dan mengirim ulang BTOR.
+        </SuccessPopup>
+      )}
+      {sp?.diverifikasi && (
+        <SuccessPopup paramKey="diverifikasi" title="Diverifikasi">
+          BTOR diverifikasi. Sekarang memo pencairan bisa diterbitkan.
+        </SuccessPopup>
+      )}
+      {sp?.memo && (
+        <SuccessPopup paramKey="memo" title="Tersimpan">
+          Memo pencairan tersimpan.
+        </SuccessPopup>
+      )}
+      {sp?.pencairan && (
+        <SuccessPopup paramKey="pencairan" title="Tersimpan">
+          Status pencairan diperbarui.
+        </SuccessPopup>
+      )}
+      {sp?.error && (
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+          {String(sp.error)}
+        </SuccessPopup>
+      )}
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
@@ -647,13 +673,4 @@ export default async function DetailBtorPage(props: Props) {
       </div>
     </main>
   );
-}
-
-function Banner({ tone, children }: { tone: "ok" | "warn" | "err"; children: React.ReactNode }) {
-  const cls = {
-    ok: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
-    warn: "bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-300",
-    err: "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400",
-  }[tone];
-  return <p className={`mt-4 rounded-xl px-4 py-3 text-sm ${cls}`}>{children}</p>;
 }

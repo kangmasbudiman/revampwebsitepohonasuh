@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SuccessPopup from "@/components/admin/success-popup";
 import { Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/guard";
 import { apiGet, mapBtors, type ApiBtor } from "@/lib/api";
@@ -45,8 +46,16 @@ export default async function AdminBtorPage({
         </Link>
       </div>
 
-      {sp?.deleted && <Banner tone="ok">BTOR dihapus — order di dalamnya kembali jadi kandidat.</Banner>}
-      {sp?.error && <Banner tone="err">{String(sp.error)}</Banner>}
+      {sp?.deleted && (
+        <SuccessPopup paramKey="deleted" title="Terhapus">
+          BTOR dihapus — order di dalamnya kembali jadi kandidat.
+        </SuccessPopup>
+      )}
+      {sp?.error && (
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+          {String(sp.error)}
+        </SuccessPopup>
+      )}
 
       {fetchError && (
         <p className="mt-8 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
@@ -59,14 +68,3 @@ export default async function AdminBtorPage({
   );
 }
 
-function Banner({ tone, children }: { tone: "ok" | "err"; children: React.ReactNode }) {
-  return (
-    <p
-      className={`mt-4 rounded-xl px-4 py-3 text-sm ${
-        tone === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600 dark:text-red-400"
-      }`}
-    >
-      {children}
-    </p>
-  );
-}

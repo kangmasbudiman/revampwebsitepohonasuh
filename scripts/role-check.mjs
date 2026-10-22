@@ -115,6 +115,10 @@ await memoForm.locator('input[name="ttd_nama"]').fill("Petugas Taging");
 await memoForm.locator('input[name="ttd_jabatan"]').fill("Petugas Lapangan");
 await memoForm.locator('button:has-text("Terbitkan Memo")').click();
 await p.waitForURL(/\?memo=1/, { timeout: 30000 });
+// tutup popup notifikasi (overlay z-60 mencegat klik di bawahnya)
+await p.waitForFunction(() => document.body.style.overflow === "hidden");
+await p.keyboard.press("Escape");
+await p.waitForURL((u) => !u.searchParams.has("memo"), { timeout: 10000 });
 await p.click('button[role=tab]:has-text("Memo")');
 ok("ber-hak: memo terbit dari tangan petugas", (await p.locator('[data-testid="memo-card"]').textContent()).includes("MEMO/"));
 ok("ber-hak: form pencairan tampil", (await p.locator('select[name="status_pencairan"]').count()) === 1);
@@ -129,6 +133,9 @@ const cairForm = p.locator('form:has(select[name="status_pencairan"])');
 await cairForm.locator('select[name="status_pencairan"]').selectOption("dicairkan");
 await cairForm.locator('button:has-text("Perbarui")').click();
 await p.waitForURL(/\?pencairan=1/, { timeout: 30000 });
+await p.waitForFunction(() => document.body.style.overflow === "hidden");
+await p.keyboard.press("Escape");
+await p.waitForURL((u) => !u.searchParams.has("pencairan"), { timeout: 10000 });
 await p.click('button[role=tab]:has-text("Memo")');
 ok("ber-hak: petugas update pencairan → dicairkan", (await p.locator('[data-testid="memo-status"]').textContent()).includes("Dana dicairkan"));
 

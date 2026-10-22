@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SuccessPopup from "@/components/admin/success-popup";
 import { ArrowLeft, Banknote, CheckCircle2, Clock } from "lucide-react";
 import { requireAdminLevel } from "@/lib/guard";
 import { apiGet, mapPembayaranRows, type ApiPembayaranRow } from "@/lib/api";
@@ -46,19 +47,19 @@ export default async function PembayaranTaggingPage({
       </p>
 
       {sp?.saved && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="saved" title="Tersimpan">
           Pembayaran tersimpan.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.deleted && (
-        <p className="mt-4 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700">
+        <SuccessPopup paramKey="deleted" title="Terhapus">
           Catatan pembayaran dihapus — pohon kembali berstatus belum dibayar.
-        </p>
+        </SuccessPopup>
       )}
       {sp?.error && (
-        <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(sp.error)}
-        </p>
+        </SuccessPopup>
       )}
       {fetchError && (
         <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-600 dark:text-red-400">

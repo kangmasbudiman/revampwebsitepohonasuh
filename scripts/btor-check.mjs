@@ -211,6 +211,11 @@ const stepDone = async (n) =>
 assert(await stepDone(1), "stepper 1 (Dikirim) selesai");
 assert(!(await stepDone(2)), "stepper 2 (Diverifikasi) belum");
 
+// tutup popup notifikasi (overlay z-60 mencegat klik di bawahnya)
+await p.waitForFunction(() => document.body.style.overflow === "hidden");
+await p.keyboard.press("Escape");
+await p.waitForURL((u) => !u.searchParams.has("created"), { timeout: 10000 });
+
 // 8. Tab Order & Pohon
 await p.click('[data-testid="btor-tabs"] button:has-text("Order & Pohon")');
 await p.waitForSelector('[data-testid="tab-panel-order"]');
@@ -270,6 +275,10 @@ assert(await stepDoneA(2), "stepper 2 (Diverifikasi) selesai");
 assert(rows(`SELECT status FROM btor WHERE id=${idBtor}`)[0][0] === "disetujui", "DB status disetujui");
 assert(rows(`SELECT aksi FROM btor_riwayat WHERE idbtor=${idBtor} AND aksi='verifikasi'`).length === 1, "riwayat 'verifikasi' tercatat");
 
+await a.waitForFunction(() => document.body.style.overflow === "hidden");
+await a.keyboard.press("Escape");
+await a.waitForURL((u) => !u.searchParams.has("diverifikasi"), { timeout: 10000 });
+
 // Memo: terbitkan dari form (default terisi dari BTOR)
 await a.click('[data-testid="btor-tabs"] button:has-text("Memo")');
 await a.waitForSelector('[data-testid="tab-panel-memo"]');
@@ -278,6 +287,9 @@ assert((await a.locator('[data-testid="memo-card"]').count()) === 0, "belum ada 
 const memoForm = a.locator('form:has(input[name="ttd_nama"])');
 await memoForm.locator('button:has-text("Terbitkan Memo")').click();
 await a.waitForURL(/\?memo=1/, { timeout: 30000 });
+await a.waitForFunction(() => document.body.style.overflow === "hidden");
+await a.keyboard.press("Escape");
+await a.waitForURL((u) => !u.searchParams.has("memo"), { timeout: 10000 });
 // reload mengembalikan tab aktif ke Ringkasan — buka tab Memo lagi
 await a.click('[data-testid="btor-tabs"] button:has-text("Memo")');
 await a.waitForSelector('[data-testid="memo-card"]');
@@ -300,6 +312,9 @@ await a.selectOption('select[name="status_pencairan"]', "dicairkan");
 await a.fill('input[name="catatan_pencairan"]', `Ditransfer ${HARI}`);
 await a.click('button:has-text("Perbarui")');
 await a.waitForURL(/\?pencairan=1/, { timeout: 30000 });
+await a.waitForFunction(() => document.body.style.overflow === "hidden");
+await a.keyboard.press("Escape");
+await a.waitForURL((u) => !u.searchParams.has("pencairan"), { timeout: 10000 });
 await a.click('[data-testid="btor-tabs"] button:has-text("Memo")');
 await a.waitForSelector('[data-testid="memo-card"]');
 assert((await a.locator('[data-testid="memo-status"]').textContent()).trim() === "Dana dicairkan", "chip memo → Dana dicairkan");
