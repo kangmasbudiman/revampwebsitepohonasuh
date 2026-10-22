@@ -223,6 +223,23 @@ assert(jmlOrder.startsWith("2 order"), `tab order memuat 2 order (${jmlOrder})`)
 assert((await p.locator(`[data-testid="order-${ORD_A.id}"]`).count()) === 1, `order ${ORD_A.id} tampil`);
 assert((await p.locator(`[data-testid="order-${ORD_A.id}"] img`).count()) >= 1, "galeri foto tagging tampil di order");
 
+// 8b. Thumbnail klikable → popup galeri (navigasi + tutup Escape)
+await p.locator(`[data-testid="order-${ORD_A.id}"] [data-testid="order-foto"]`).first().click();
+await p.waitForSelector('[data-testid="popup-foto-laporan"]');
+const cAwal = (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim();
+assert(cAwal.startsWith("1 / "), `popup galeri foto terbuka dari thumbnail (${cAwal})`);
+const nFoto = Number(cAwal.split("/")[1]);
+if (nFoto > 1) {
+  await p.click('button[aria-label="Foto berikutnya"]');
+  assert(
+    (await p.locator('[data-testid="popup-foto-counter"]').textContent()).trim() === `2 / ${nFoto}`,
+    "navigasi foto berikutnya di popup",
+  );
+}
+await p.keyboard.press("Escape");
+await p.waitForFunction(() => !document.querySelector('[data-testid="popup-foto-laporan"]'));
+assert(true, "popup galeri tertutup via Escape");
+
 // 9. DB: btor + snapshot desa + order + riwayat
 const b1 = rows(`SELECT idpetugas,iddesa,desa_nama,status,dana FROM btor WHERE id=${idBtor}`)[0];
 assert(b1[0] === String(PETUGAS_ID) && b1[1] === "1" && b1[2] === "rantaukermas", "btor terikat petugas×desa + snapshot desa_nama");

@@ -19,6 +19,7 @@ import { requireAdmin } from "@/lib/guard";
 import { apiGet, mapBtorDetail, type ApiBtorDetail } from "@/lib/api";
 import { namaDesa, rupiah } from "@/lib/format";
 import BtorDetailTabs from "@/components/admin/btor-detail-tabs";
+import BtorOrderFotos from "@/components/admin/btor-order-fotos";
 import BtorMemoForm from "@/components/admin/btor-memo-form";
 import BtorMemoPdfButton from "@/components/admin/btor-memo-pdf";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
@@ -259,17 +260,10 @@ export default async function DetailBtorPage(props: Props) {
                     </div>
                   </div>
                   {o.foto.length > 0 && (
-                    <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                      {o.foto.map((f) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          key={f.id}
-                          src={f.url}
-                          alt={`Foto tagging ${o.idpohon}`}
-                          className="h-20 w-20 shrink-0 rounded-xl border border-emerald-100 object-cover dark:border-night-700"
-                        />
-                      ))}
-                    </div>
+                    <BtorOrderFotos
+                      judul={o.localname === o.idpohon ? o.idpohon : `${o.localname} (${o.idpohon})`}
+                      fotos={o.foto}
+                    />
                   )}
                 </div>
               ))}
