@@ -33,6 +33,12 @@ body {
   color: var(--foreground);
 }
 
+/* Semua tombol aktif menunjukkan kursor tangan seperti link; tombol
+   disabled tetap mengikuti utility (mis. cursor-not-allowed). */
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 @media print {
   header, footer, .no-print {
     display: none !important;
