@@ -149,19 +149,21 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
             className={`${inputClass} pl-9`}
           />
         </div>
-        <select
-          aria-label="Filter desa"
-          value={desa}
-          onChange={(e) => setDesa(e.target.value)}
-          className={`${inputClass} sm:w-44`}
-        >
-          <option value="">Semua desa</option>
-          {desaOptions.map(([nama, label]) => (
-            <option key={nama} value={nama}>
-              {label}
-            </option>
-          ))}
-        </select>
+        {isAdmin && (
+          <select
+            aria-label="Filter desa"
+            value={desa}
+            onChange={(e) => setDesa(e.target.value)}
+            className={`${inputClass} sm:w-44`}
+          >
+            <option value="">Semua desa</option>
+            {desaOptions.map(([nama, label]) => (
+              <option key={nama} value={nama}>
+                {label}
+              </option>
+            ))}
+          </select>
+        )}
         {isAdmin && (
           <select
             aria-label="Filter petugas"
