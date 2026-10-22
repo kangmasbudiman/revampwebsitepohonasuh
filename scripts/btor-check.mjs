@@ -308,6 +308,12 @@ await a.waitForFunction(() => document.body.style.overflow === "hidden");
 await a.keyboard.press("Escape");
 await a.waitForURL((u) => !u.searchParams.has("diverifikasi"), { timeout: 10000 });
 
+// Tombol unduh laporan BTOR (PDF) memicu download dengan nama file BTOR-<id>
+const unduhLaporan = a.waitForEvent("download", { timeout: 30000 });
+await a.click('[data-testid="unduh-laporan-pdf"]');
+const dl = await unduhLaporan;
+assert(dl.suggestedFilename().startsWith(`BTOR-${idBtor}`), `unduh laporan PDF: ${dl.suggestedFilename()}`);
+
 // Memo: terbitkan dari form (default terisi dari BTOR)
 await a.click('[data-testid="btor-tabs"] button:has-text("Memo")');
 await a.waitForSelector('[data-testid="tab-panel-memo"]');

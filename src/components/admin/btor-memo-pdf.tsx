@@ -37,14 +37,14 @@ function terbilang(n: number): string {
   return t(n) || "nol";
 }
 
-function fmtTanggal(s: string): string {
+export function fmtTanggal(s: string): string {
   if (!s) return "-";
   const d = new Date(s + (s.length === 10 ? "T00:00:00" : ""));
   if (Number.isNaN(d.getTime())) return s;
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 }
 
-async function muatLogo(): Promise<string | null> {
+export async function muatLogo(): Promise<string | null> {
   try {
     const res = await fetch("/images/logo_icon.png");
     if (!res.ok) return null;

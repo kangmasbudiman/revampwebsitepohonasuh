@@ -22,6 +22,7 @@ import { namaDesa, rupiah } from "@/lib/format";
 import BtorDetailTabs from "@/components/admin/btor-detail-tabs";
 import BtorOrderFotos from "@/components/admin/btor-order-fotos";
 import BtorBuktiTransfer from "@/components/admin/btor-bukti-transfer";
+import BtorLaporanPdfButton from "@/components/admin/btor-laporan-pdf";
 import BtorMemoForm from "@/components/admin/btor-memo-form";
 import BtorMemoPdfButton from "@/components/admin/btor-memo-pdf";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
@@ -572,6 +573,7 @@ export default async function DetailBtorPage(props: Props) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <BtorLaporanPdfButton btor={btor} />
           {bolehEdit && (
             <Link
               href={`/admin/btor/${btor.id}/edit`}
