@@ -8,10 +8,10 @@ export type IzinId = (typeof IZIN)[number]["id"];
 
 export const IZIN_IDS: string[] = IZIN.map((i) => i.id);
 
-// Level 1 (admin) selalu boleh semua; selain itu cek hak dari role di session.
+// Izin murni dari role member di session — TIDAK ada bypass level admin:
+// memo wajib role ber-izin, dan backend menegaskan segar dari DB saat simpan.
 export function punyaHak(session: Session | null, izin: IzinId | string): boolean {
   if (!session) return false;
-  if ((session.level ?? 1) === 1) return true;
   return Array.isArray(session.hak) && session.hak.includes(izin);
 }
 

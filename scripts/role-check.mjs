@@ -1,6 +1,7 @@
 // E2E fitur Kelola Role & Izin: role ber-izin "memo" bisa menerbitkan memo +
 // update pencairan pada BTOR ORANG LAIN yang sudah diverifikasi, petugas
-// tanpa izin tetap tidak bisa, admin tetap superuser.
+// tanpa izin tetap tidak bisa — memo murni berbasis role: admin/petugas
+// tanpa izin memo ditolak backend (verifikasi segar dari DB).
 // Jalankan: API_BASE_URL=http://127.0.0.1:8001/api E2E_BASE=http://localhost:3001 node scripts/role-check.mjs
 import { chromium } from "playwright";
 import { SignJWT } from "jose";
@@ -178,6 +179,12 @@ await a.goto(`${BASE}/admin/role`, { waitUntil: "networkidle" });
 // role terakhir terhapus → tabel diganti empty state; cukup pastikan nama role uji hilang
 ok("hapus role: role hilang dari halaman", !(await a.locator("main").textContent()).includes(PREFIX));
 ok("hapus role: staf 2683 kembali Tanpa role", (await a.locator('[data-testid="tabel-staf"] tr', { hasText: "Petugas Taging" }).textContent()).includes("Tanpa role"));
+
+// Role terhapus → izin segar dari DB dicabut: API memo langsung ditolak 403
+const tolakMemo = await apiPost("tambahmemobtor", { idbtor: buat.id, jumlah: "1000", penerima: "x", oleh: "2683" });
+ok("setelah role dicabut: tambahmemobtor ditolak 403", String(tolakMemo.value) === "403", JSON.stringify(tolakMemo));
+const tolakCair = await apiPost("editmemobtor", { id: "999999", status_pencairan: "dicairkan", oleh: "2683" });
+ok("setelah role dicabut: editmemobtor ditolak 403", String(tolakCair.value) === "403", JSON.stringify(tolakCair));
 
 // ===== 7. Cleanup =====
 await apiPost("hapusbtor", { id: buat.id });

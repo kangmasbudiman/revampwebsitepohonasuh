@@ -105,7 +105,7 @@ const sign = (payload) =>
   new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuedAt()
     .setExpirationTime("2h").sign(secret);
 const tokPetugas = await sign({ userId: PETUGAS_ID, name: "Petugas Taging", role: "ADMIN", level: 2 });
-const tokAdmin = await sign({ userId: 2682, name: "Admin Pohon Asuh", role: "ADMIN" });
+const tokAdmin = await sign({ userId: 2682, name: "Admin Pohon Asuh", role: "ADMIN", hak: ["memo"] });
 
 // auto-klik tombol konfirmasi modal (pola laporan-check)
 const pasangAutoConfirm = (ctx) =>
@@ -129,6 +129,15 @@ const api = async (path, form) => {
   try { json = await res.json(); } catch {}
   return { status: res.status, json };
 };
+
+// ---- role izin memo: terbit memo kini murni berbasis role (admin tanpa
+// role memo pun ditolak) → tempel role ke admin uji 2682 selama skrip ----
+for (const r of (await api("rolelist")).json ?? []) {
+  if (r.nama === "E2E BTOR Memo") await api("hapusrole", { id: r.id });
+}
+assert((await api("tambahrole", { nama: "E2E BTOR Memo", "izin[]": "memo" })).json?.value === "200", "role izin memo E2E dibuat");
+const roleMemo = ((await api("rolelist")).json ?? []).find((r) => r.nama === "E2E BTOR Memo");
+assert(roleMemo && (await api("setmemberrole", { idmember: 2682, idrole: roleMemo.id })).json?.value === "200", "role memo ditempel ke admin 2682");
 
 const browser = await chromium.launch();
 
@@ -268,6 +277,10 @@ const dup = await api("tambahbtor", {
   dana: "1000", status: "draft", "idorder[]": ORD_A.id,
 });
 assert(dup.status === 400 && /sudah masuk BTOR lain/.test(dup.json?.pesan ?? ""), "tambahbtor dengan order terpakai ditolak 400");
+const memoTanpaIzin = await api("tambahmemobtor", { idbtor: idBtor, jumlah: "1000", penerima: "x", oleh: String(PETUGAS_ID) });
+assert(memoTanpaIzin.status === 403, "tambahmemobtor oleh petugas tanpa role memo ditolak 403");
+const memoTanpaOleh = await api("tambahmemobtor", { idbtor: idBtor, jumlah: "1000", penerima: "x" });
+assert(memoTanpaOleh.status === 403, "tambahmemobtor tanpa identitas (oleh) ditolak 403");
 
 // ===================== SISI ADMIN: VERIFIKASI → MEMO → PENCAIRAN =====================
 const ctxA = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -351,7 +364,7 @@ const idBtor2 = mk2.json.id;
 
 const memoTolak = await api("tambahmemobtor", {
   idbtor: idBtor2, tanggal: HARI, dari: "Kelompok Taging E2E", kepada: "Pohon Asuh",
-  proyek: JUDUL2, isi: "Isi memo.", jumlah: "1000", penerima: "Kelompok Taging E2E",
+  proyek: JUDUL2, isi: "Isi memo.", jumlah: "1000", penerima: "Kelompok Taging E2E", oleh: "2682",
 });
 assert(memoTolak.status === 400 && /diverifikasi dulu/.test(memoTolak.json?.pesan ?? ""), "memo pada BTOR terkirim ditolak 400");
 const revTolak = await api("revisibtor", { id: idBtor, catatan: "jangan", oleh: "2682" });
@@ -377,6 +390,8 @@ assert(
 // ===================== CLEANUP =====================
 bersihkanBtorE2E();
 assert(rows(`SELECT COUNT(*) FROM btor WHERE judul LIKE 'E2E BTOR%'`)[0][0] === "0", "cleanup: semua BTOR E2E terhapus");
+assert((await api("hapusrole", { id: roleMemo.id })).json?.value === "200", "cleanup: role memo E2E dihapus (role admin 2682 lepas)");
+assert(rows(`SELECT idrole FROM member WHERE id=2682`)[0][0] === "NULL", "cleanup: admin 2682 kembali tanpa role");
 
 await browser.close();
 console.log("\nSEMUA CEK BTOR LULUS ✓");

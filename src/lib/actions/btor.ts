@@ -16,7 +16,8 @@ export type BtorResult = { ok: boolean; id?: number; error?: string };
 
 // Endpoint btor flat tanpa auth — kepemilikan ditegakkan di web: petugas
 // (level 2) hanya boleh mengubah BTOR miliknya sendiri; memo & pencairan
-// untuk role ber-izin memo (lihat hak.ts).
+// khusus role ber-izin memo, admin tanpa izin pun ditolak (lihat hak.ts;
+// backend memverifikasi izin segar dari DB).
 async function btorMilik(id: number): Promise<{ btor?: ApiBtor; boleh: boolean }> {
   const session = await requireAdmin();
   const rows = mapBtors(await apiGet<Record<string, unknown>[]>(`btorlist?id=${id}`));
@@ -220,7 +221,7 @@ export async function revisiBtor(formData: FormData) {
   redirect(`/admin/btor/${id}?revisi=1`);
 }
 
-// Terbitkan / perbarui Memo Pencairan BTOR (admin atau role ber-hak memo) —
+// Terbitkan / perbarui Memo Pencairan BTOR (khusus role ber-izin memo) —
 // hanya untuk BTOR yang sudah diverifikasi. Data pencairan otomatis dari
 // BTOR; form hanya mengisi bagian memorandum.
 export async function simpanMemoBtor(formData: FormData) {
@@ -289,7 +290,7 @@ export async function simpanMemoBtor(formData: FormData) {
   redirect(`/admin/btor/${id}?memo=1`);
 }
 
-// Perbarui status pencairan dana memo (admin atau role ber-hak memo).
+// Perbarui status pencairan dana memo (khusus role ber-izin memo).
 export async function updatePencairanBtor(formData: FormData) {
   const session = await requireAdmin();
   if (!bolehMemo(session)) {
