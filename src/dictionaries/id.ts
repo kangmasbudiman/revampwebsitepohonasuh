@@ -683,6 +683,7 @@ export const dict = {
       intro:
         "Pilih pohon yang ingin Anda asuh. Setiap pohon tumbuh di habitat aslinya dan dirawat oleh masyarakat pengelola hutan.",
       allLocations: "Semua Lokasi",
+      allPrices: "Semua Harga",
       loadError: "Gagal memuat data pohon.",
       retry: "Coba lagi",
       availableCount: "{n} pohon tersedia",

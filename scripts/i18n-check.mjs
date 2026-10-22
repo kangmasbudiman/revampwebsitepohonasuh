@@ -16,6 +16,8 @@ const HALAMAN = [
   ["/", "Cara Kerja Program", "How the Program Works"],
   ["/", "Pohon Siap Diadopsi", "Trees Ready for Adoption"],
   ["/pohon", "Semua Lokasi", "All Locations"],
+  ["/pohon", "Semua Harga", "All Prices"],
+  ["/", ">Masuk<", ">Log In<"],
   ["/spesies", "Katalog Spesies", "Species Catalog"],
   ["/lokasi", "Adopsi di sini", "Adopt here"],
   ["/blog", "Blog Pohon Asuh", "Pohon Asuh Blog"],

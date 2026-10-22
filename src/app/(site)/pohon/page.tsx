@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { apiGet, apiPost, mapDesa, mapTrees, type ApiDesa, type ApiTree } from "@/lib/api";
-import { namaDesa } from "@/lib/format";
+import { labelLokasi, rupiah } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 
@@ -31,6 +31,7 @@ function acakHarian<T>(items: T[]): T[] {
 export default async function TreeListPage(props: PageProps<"/pohon">) {
   const searchParams = await props.searchParams;
   const lokasi = typeof searchParams.lokasi === "string" ? searchParams.lokasi : undefined;
+  const harga = Number(searchParams.harga) || 0;
   const page = Math.max(1, Number(searchParams.page) || 1);
 
   let desaList: ApiDesa[] = [];
@@ -51,6 +52,26 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
     error = true;
   }
 
+  // Filter harga: pill per harga unik pada lingkup lokasi aktif.
+  const hargaList = [...new Set(trees.map((t) => t.priceIdr))]
+    .filter((h) => h > 0)
+    .sort((a, b) => a - b);
+  if (harga) trees = trees.filter((t) => t.priceIdr === harga);
+
+  const qs = (o: { lokasi?: string; harga?: number; page?: number }) => {
+    const sp = new URLSearchParams();
+    if (o.lokasi) sp.set("lokasi", o.lokasi);
+    if (o.harga) sp.set("harga", String(o.harga));
+    if (o.page && o.page > 1) sp.set("page", String(o.page));
+    const s = sp.toString();
+    return s ? `/pohon?${s}` : "/pohon";
+  };
+  const pillCls = (on: boolean) =>
+    `rounded-full px-4 py-1.5 text-sm font-medium ${
+      on ? "bg-emerald-600 text-white" : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+    }`;
+  const labelByNama = new Map(desaList.map((d) => [d.name, d.label]));
+
   // Pohon unggulan (pilihan admin, highlight=1 via setPohonterbaik) selalu
   // tampil paling awal; sisanya diacak pada tampilan Semua lokasi agar desa
   // lain berpeluang tampil duluan. (highlight=2 = flag legacy lain, bukan unggulan.)
@@ -69,25 +90,31 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
       <p className="mt-2 text-zinc-600">{d.intro}</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        <Link
-          href="/pohon"
-          className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-            !lokasi ? "bg-emerald-600 text-white" : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
-          }`}
-        >
+        <Link href="/pohon" className={pillCls(!lokasi)}>
           {d.allLocations}
         </Link>
         {desaList.map((desa) => (
           <Link
             key={desa.slug}
-            href={`/pohon?lokasi=${desa.slug}`}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-              lokasi === desa.slug
-                ? "bg-emerald-600 text-white"
-                : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
-            }`}
+            href={qs({ lokasi: desa.slug, harga })}
+            className={pillCls(lokasi === desa.slug)}
           >
-            {namaDesa(desa.name)}
+            {labelLokasi(desa)}
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link href={qs({ lokasi })} className={pillCls(!harga)}>
+          {d.allPrices}
+        </Link>
+        {hargaList.map((h) => (
+          <Link
+            key={h}
+            href={qs({ lokasi, harga: h })}
+            className={pillCls(harga === h)}
+          >
+            {rupiah(h)}
           </Link>
         ))}
       </div>
@@ -109,7 +136,10 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
             {pageTrees.map((tree, i) => (
               <TreeCard
                 key={`${tree.code}-${i}`}
-                tree={{ ...tree, location: { name: tree.desa } }}
+                tree={{
+                  ...tree,
+                  location: { name: tree.desa, label: labelByNama.get(tree.desa) ?? null },
+                }}
               />
             ))}
           </div>
@@ -121,7 +151,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
             <nav className="mt-10 flex items-center justify-between">
               {page > 1 ? (
                 <Link
-                  href={`/pohon${lokasi ? `?lokasi=${lokasi}&` : "?"}page=${page - 1}`}
+                  href={qs({ lokasi, harga, page: page - 1 })}
                   className="rounded-xl border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
                 >
                   {d.prevPage}
@@ -134,7 +164,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
               </span>
               {page < totalPages ? (
                 <Link
-                  href={`/pohon${lokasi ? `?lokasi=${lokasi}&` : "?"}page=${page + 1}`}
+                  href={qs({ lokasi, harga, page: page + 1 })}
                   className="rounded-xl border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
                 >
                   {d.nextPage}

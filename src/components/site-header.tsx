@@ -208,7 +208,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                   overlay ? "text-white/85 hover:text-white" : "text-emerald-900 hover:text-emerald-700"
                 }`}
               >
-                Masuk
+                {dict.nav.login}
               </Link>
               <Link
                 href="/daftar"

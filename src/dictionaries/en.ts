@@ -683,6 +683,7 @@ export const dict: Dict = {
       intro:
         "Choose the tree you want to foster. Every tree grows in its native habitat and is cared for by the communities who manage the forest.",
       allLocations: "All Locations",
+      allPrices: "All Prices",
       loadError: "Failed to load tree data.",
       retry: "Try again",
       availableCount: "{n} trees available",
