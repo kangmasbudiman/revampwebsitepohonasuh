@@ -388,7 +388,7 @@ export default function BtorForm({
           title="Catatan Kegiatan"
           helper="Garis waktu kegiatan per hari — otomatis tersusun sebagai lembar BTOR."
         >
-          <BtorCatatanEditor value={entri} onChange={setEntri} maxTotal={500} />
+          <BtorCatatanEditor value={entri} onChange={setEntri} maxTotal={10000} />
         </Step>
 
         <Step
@@ -460,13 +460,13 @@ export default function BtorForm({
           <textarea
             name="hasil"
             rows={4}
-            maxLength={500}
+            maxLength={2000}
             value={hasil}
             onChange={(e) => setHasil(e.target.value)}
             placeholder="mis. 30 pohon terpasang banner tagging; dokumentasi lengkap untuk donatur…"
             className={inputClass}
           />
-          <p className="mt-1 text-right text-xs text-zinc-400">{hasil.length}/500</p>
+          <p className="mt-1 text-right text-xs text-zinc-400">{hasil.length}/2000</p>
         </Step>
 
         <Step n={7} className="xl:col-span-2" title="Identitas Pelaporan" helper="Pelengkap kop lembar BTOR (opsional).">

@@ -289,13 +289,13 @@ export default function LaporanForm({
           <textarea
             name="isi"
             rows={4}
-            maxLength={500}
+            maxLength={2000}
             value={isi}
             onChange={(e) => setIsi(e.target.value)}
             placeholder="Siapa yang terlibat, di mana dilakukan, dan apa saja yang dikerjakan…"
             className={inputClass}
           />
-          <p className="mt-1 text-right text-xs text-zinc-400">{isi.length}/500</p>
+          <p className="mt-1 text-right text-xs text-zinc-400">{isi.length}/2000</p>
           <Contoh>
             Siapa yang terlibat, di mana dilakukan, dan apa saja yang dikerjakan.
           </Contoh>
@@ -326,13 +326,13 @@ export default function LaporanForm({
           <textarea
             name="hasil"
             rows={4}
-            maxLength={500}
+            maxLength={2000}
             value={hasil}
             onChange={(e) => setHasil(e.target.value)}
             placeholder="mis. 40 keluarga menerima sembako; 15 pohon mendapat papan nama baru…"
             className={inputClass}
           />
-          <p className="mt-1 text-right text-xs text-zinc-400">{hasil.length}/500</p>
+          <p className="mt-1 text-right text-xs text-zinc-400">{hasil.length}/2000</p>
           <Contoh>
             Hasil yang terukur lebih meyakinkan — jumlah penerima manfaat, pohon yang ditangani,
             atau alat yang dibeli.

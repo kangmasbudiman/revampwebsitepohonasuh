@@ -79,7 +79,7 @@ const labelEntri = (e: CatatanEntri): string => {
 export default function BtorCatatanEditor({
   value,
   onChange,
-  maxTotal = 500,
+  maxTotal = 10000,
 }: {
   value: CatatanEntri[];
   onChange: (entri: CatatanEntri[]) => void;

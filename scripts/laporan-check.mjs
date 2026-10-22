@@ -122,7 +122,7 @@ await p.fill('form input[name="judul"]', "E2E Laporan Kegiatan");
 await p.selectOption('form select[name="jenis"]', "pemantauan");
 await p.fill('form input[name="tanggal"]', HARI);
 await p.fill('form textarea[name="isi"]', "Uraian kegiatan uji end-to-end.");
-assert((await p.locator("form p", { hasText: /\/500/ }).count()) === 2, "counter N/500 tampil di 2 textarea");
+assert((await p.locator("form p", { hasText: /\/2000/ }).count()) === 2, "counter N/2000 tampil di 2 textarea");
 await p.setInputFiles('form input[type=file][accept^="image"]', "/tmp/laporan-e2e.png");
 assert((await p.locator('button[aria-label^="Buang foto baru"]').count()) === 1, "thumbnail foto baru muncul di dropzone");
 await p.click('button:has-text("Simpan sebagai Draft")');
