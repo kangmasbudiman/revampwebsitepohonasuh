@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileSignature, Wallet } from "lucide-react";
 import { simpanMemoBtor } from "@/lib/actions/btor";
+import { namaDesa } from "@/lib/format";
 import type { ApiBtor } from "@/lib/api";
 
 const inputClass =
@@ -10,12 +11,26 @@ const inputClass =
 
 const labelClass = "block text-sm text-zinc-600 dark:text-zinc-300";
 
-// Template isi memo untuk laporan tagging (bisa diedit petugas).
-const TEMPLATE_TAGGING = [
-  "Pada menu Order Tagging, kelompok menentukan pohon-pohon yang akan dipasangi banner tagging di lokasi.",
-  "Data pohon yang telah ditentukan akan masuk ke dalam daftar pohon yang akan ditagging.",
-  "Setelah pemasangan banner selesai, kelompok mengunggah foto dokumentasi setiap pohon sesuai dengan kode pohon yang telah ditentukan saat proses tagging. Foto dan data pohon tersebut digunakan secara otomatis sebagai lampiran pada halaman laporan kegiatan.",
-].join("\n\n");
+// Template isi memo permohonan pencairan dana (bisa diedit sebelum terbit) —
+// data BTOR terisi otomatis: judul, desa, jumlah dana, dan rekening.
+function templateIsi(btor: ApiBtor): string {
+  const dana = btor.dana
+    ? `Rp ${Number(btor.dana).toLocaleString("id-ID")}`
+    : "sebagaimana tercatat pada BTOR";
+  const rekening = btor.rekeningNorek
+    ? `rekening ${btor.rekeningBank || "bank"} nomor ${btor.rekeningNorek} a.n. ${
+        btor.rekeningAt || btor.petugas
+      }`
+    : "rekening sebagaimana tercatat pada BTOR";
+  const lokasi = btor.desa ? ` di Desa ${namaDesa(btor.desa)}` : "";
+  return [
+    "Dengan hormat,",
+    `Sehubungan telah selesainya kegiatan ${btor.judul}${lokasi}, kami memohon bantuan pencairan dana kegiatan Program Pohon Asuh sebesar ${dana}.`,
+    `Mohon agar dana ditransfer ke ${rekening}.`,
+    "Detail penggunaan dana, rincian order tagging, serta dokumentasi kegiatan terlampir pada Laporan BTOR.",
+    "Atas perhatian dan kerja sama Bapak/Ibu, kami sampaikan terima kasih.",
+  ].join("\n\n");
+}
 
 // Form terbit/edit Memo BTOR (format memorandum: Dari/Kepada/Proyek/Isi) —
 // hanya untuk petugas ber-izin memo/admin, setelah BTOR diverifikasi. Dana &
@@ -95,7 +110,7 @@ export default function BtorMemoForm({ btor }: { btor: ApiBtor }) {
               <textarea
                 name="isi"
                 rows={6}
-                defaultValue={memo?.isi || TEMPLATE_TAGGING}
+                defaultValue={memo?.isi || templateIsi(btor)}
                 placeholder="Tuliskan isi memorandum…"
                 className={inputClass}
               />

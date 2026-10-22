@@ -314,6 +314,11 @@ await a.waitForSelector('[data-testid="tab-panel-memo"]');
 assert((await a.locator('[data-testid="memo-card"]').count()) === 0, "belum ada memo sebelum diterbitkan");
 // scope ke form — tombol toggle header juga ber-teks "Terbitkan Memo"
 const memoForm = a.locator('form:has(input[name="ttd_nama"])');
+const isiDefault = await memoForm.locator('textarea[name="isi"]').inputValue();
+assert(
+  isiDefault.includes("memohon bantuan pencairan dana") && isiDefault.includes("Rp 400.000"),
+  "template isi memo terisi otomatis (permohonan pencairan + dana BTOR)",
+);
 await memoForm.locator('button:has-text("Terbitkan Memo")').click();
 await a.waitForURL(/\?memo=1/, { timeout: 30000 });
 await a.waitForFunction(() => document.body.style.overflow === "hidden");
