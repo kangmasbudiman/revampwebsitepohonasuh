@@ -7,6 +7,7 @@ import {
   Coins,
   FileSignature,
   FileText,
+  ImageUp,
   MapPin,
   NotebookPen,
   Send,
@@ -20,6 +21,7 @@ import { apiGet, mapBtorDetail, type ApiBtorDetail } from "@/lib/api";
 import { namaDesa, rupiah } from "@/lib/format";
 import BtorDetailTabs from "@/components/admin/btor-detail-tabs";
 import BtorOrderFotos from "@/components/admin/btor-order-fotos";
+import BtorBuktiTransfer from "@/components/admin/btor-bukti-transfer";
 import BtorMemoForm from "@/components/admin/btor-memo-form";
 import BtorMemoPdfButton from "@/components/admin/btor-memo-pdf";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
@@ -75,6 +77,7 @@ const RIWAYAT_META: Record<string, { label: string; icon: typeof Send; warna: st
   verifikasi: { label: "BTOR diverifikasi", icon: BadgeCheck, warna: "text-blue-600 bg-blue-50 dark:bg-blue-950/40 dark:text-blue-400" },
   memo: { label: "Memo diterbitkan", icon: FileText, warna: "text-violet-600 bg-violet-50 dark:bg-violet-950/40 dark:text-violet-400" },
   pencairan: { label: "Status pencairan diperbarui", icon: Wallet, warna: "text-emerald-700 bg-emerald-50 dark:bg-night-800 dark:text-emerald-400" },
+  bukti: { label: "Bukti transfer diunggah", icon: ImageUp, warna: "text-teal-600 bg-teal-50 dark:bg-teal-950/40 dark:text-teal-400" },
 };
 
 // Paragraf berawalan tanggal (08 April 2026 / 2026-04-08 / 08-04) menjadi
@@ -379,6 +382,11 @@ export default async function DetailBtorPage(props: Props) {
                     )}
                   </dl>
                 </div>
+                <BtorBuktiTransfer
+                  idbtor={btor.id}
+                  memo={{ id: memo.id, nomor: memo.nomor, buktiPencairan: memo.buktiPencairan }}
+                  bolehUnggah={bolehMemoUser}
+                />
                 <div className="mt-5 flex flex-wrap gap-2">
                   <BtorMemoPdfButton btor={btor} memo={memo} />
                 </div>
@@ -393,7 +401,7 @@ export default async function DetailBtorPage(props: Props) {
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     Perbarui sesuai perkembangan pencairan — tercatat di riwayat BTOR.
                   </p>
-                  <form action={updatePencairanBtor} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <form action={updatePencairanBtor} className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
                     <input type="hidden" name="idbtor" value={btor.id} />
                     <input type="hidden" name="id_memo" value={memo.id} />
                     <label className="flex-1 text-sm text-zinc-600 dark:text-zinc-300">
@@ -420,10 +428,22 @@ export default async function DetailBtorPage(props: Props) {
                     </label>
                     <button
                       type="submit"
-                      className="rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800"
+                      className="rounded-xl border border-emerald-200 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-50 dark:border-emerald-900 dark:bg-night-950 dark:text-emerald-300 dark:hover:bg-night-800"
                     >
                       Perbarui
                     </button>
+                    {memo.statusPencairan !== "dicairkan" && (
+                      <button
+                        type="submit"
+                        name="jadi_dicairkan"
+                        value="1"
+                        data-testid="btn-dana-cair"
+                        className="flex items-center gap-1.5 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-800"
+                      >
+                        <BadgeCheck className="h-4 w-4" />
+                        Dana Sudah Cair
+                      </button>
+                    )}
                   </form>
                 </div>
               )}
@@ -512,6 +532,11 @@ export default async function DetailBtorPage(props: Props) {
       {sp?.pencairan && (
         <SuccessPopup paramKey="pencairan" title="Tersimpan">
           Status pencairan diperbarui.
+        </SuccessPopup>
+      )}
+      {sp?.bukti && (
+        <SuccessPopup paramKey="bukti" title="Tersimpan">
+          Bukti transfer diunggah.
         </SuccessPopup>
       )}
       {sp?.error && (

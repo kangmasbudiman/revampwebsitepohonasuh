@@ -291,6 +291,7 @@ export async function simpanMemoBtor(formData: FormData) {
 }
 
 // Perbarui status pencairan dana memo (khusus role ber-izin memo).
+// Tombol "Dana Sudah Cair" (jadi_dicairkan=1) mengesampingan nilai select.
 export async function updatePencairanBtor(formData: FormData) {
   const session = await requireAdmin();
   if (!bolehMemo(session)) {
@@ -298,7 +299,9 @@ export async function updatePencairanBtor(formData: FormData) {
   }
   const idbtor = Number(formData.get("idbtor"));
   const idMemo = Number(formData.get("id_memo"));
-  const status = String(formData.get("status_pencairan") ?? "").trim();
+  const status = formData.get("jadi_dicairkan") === "1"
+    ? "dicairkan"
+    : String(formData.get("status_pencairan") ?? "").trim();
   if (!idbtor || !idMemo || !["menunggu", "diproses", "dicairkan"].includes(status)) {
     redirect(`/admin/btor/${idbtor || ""}?error=Status+pencairan+tidak+valid`);
   }
@@ -324,4 +327,48 @@ export async function updatePencairanBtor(formData: FormData) {
   revalidatePath("/admin/btor");
   revalidatePath(`/admin/btor/${idbtor}`);
   redirect(`/admin/btor/${idbtor}?pencairan=1`);
+}
+
+// Unggah/ganti bukti transfer pencairan dana memo (khusus role ber-izin
+// memo). Satu memo satu bukti; backend menghapus file lama saat diganti.
+export async function unggahBuktiMemoBtor(formData: FormData) {
+  const session = await requireAdmin();
+  if (!bolehMemo(session)) {
+    redirect("/admin/btor?error=Tidak+punya+izin+mengunggah+bukti+pencairan");
+  }
+  const idbtor = Number(formData.get("idbtor"));
+  const idMemo = Number(formData.get("id_memo"));
+  if (!idbtor || !idMemo) redirect(`/admin/btor/${idbtor || ""}?error=Memo+tidak+ditemukan`);
+
+  const file = formData.get("bukti");
+  if (!(file instanceof File) || file.size === 0) {
+    redirect(`/admin/btor/${idbtor}?error=${encodeURIComponent("Pilih file bukti transfer dulu.")}`);
+  }
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+    redirect(`/admin/btor/${idbtor}?error=${encodeURIComponent("Bukti transfer harus berupa gambar JPG, PNG, atau WEBP.")}`);
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    redirect(`/admin/btor/${idbtor}?error=${encodeURIComponent("Ukuran bukti transfer maksimal 2MB.")}`);
+  }
+
+  try {
+    const fd = new FormData();
+    fd.append("id", String(idMemo));
+    fd.append("foto", file);
+    fd.append("oleh", String(session.userId));
+    const res = await apiPostFormLax<{ value?: string | number; pesan?: string }>(
+      "uploadbuktimemo",
+      fd,
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/btor/${idbtor}?error=${encodeURIComponent(res.pesan ?? "Gagal mengunggah bukti.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect(`/admin/btor/${idbtor}?error=Gagal+mengunggah+bukti`);
+  }
+
+  revalidatePath("/admin/btor");
+  revalidatePath(`/admin/btor/${idbtor}`);
+  redirect(`/admin/btor/${idbtor}?bukti=1`);
 }

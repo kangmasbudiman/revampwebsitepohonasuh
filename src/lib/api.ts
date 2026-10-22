@@ -1337,6 +1337,7 @@ export type ApiBtorMemo = {
   ttdJabatan: string;
   statusPencairan: string;
   catatanPencairan: string;
+  buktiPencairan: string;
   createdAt: string;
 };
 
@@ -1359,6 +1360,7 @@ function mapBtorMemo(r: Record<string, unknown> | null | undefined): ApiBtorMemo
     ttdJabatan: String(r.ttd_jabatan ?? ""),
     statusPencairan: String(r.status_pencairan ?? "menunggu"),
     catatanPencairan: String(r.catatan_pencairan ?? ""),
+    buktiPencairan: String(r.bukti_pencairan ?? ""),
     createdAt: String(r.created_at ?? ""),
   };
 }

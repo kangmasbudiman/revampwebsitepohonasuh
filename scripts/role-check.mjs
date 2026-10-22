@@ -130,15 +130,48 @@ const stepDone = async (page, n) =>
   }, n);
 ok("ber-hak: stepper tahap 3 (memo) done", await stepDone(p, 3));
 
+// ===== 4b. Upload bukti transfer (role ber-izin memo) =====
+ok("bukti: awalnya kosong", (await p.locator('[data-testid="bukti-kosong"]').count()) === 1);
+const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
+await p.setInputFiles('[data-testid="bukti-input"]', { name: "bukti.png", mimeType: "image/png", buffer: PNG });
+await p.click('[data-testid="bukti-upload-btn"]');
+await p.waitForURL(/\?bukti=1/, { timeout: 30000 });
+await p.waitForFunction(() => document.body.style.overflow === "hidden");
+await p.keyboard.press("Escape");
+await p.waitForURL((u) => !u.searchParams.has("bukti"), { timeout: 10000 });
+await p.click('button[role=tab]:has-text("Memo")');
+ok("bukti: thumbnail tampil setelah unggah", (await p.locator('[data-testid="bukti-thumb"]').count()) === 1);
+ok("bukti: placeholder kosong hilang", (await p.locator('[data-testid="bukti-kosong"]').count()) === 0);
+await p.click('[data-testid="bukti-thumb"]');
+await p.waitForSelector('[data-testid="popup-foto-laporan"]', { timeout: 10000 });
+ok("bukti: popup galeri terbuka dari thumbnail", true);
+await p.keyboard.press("Escape");
+await p.waitForSelector('[data-testid="popup-foto-laporan"]', { state: "detached", timeout: 10000 });
+
+// Status diproses dulu lewat select "Perbarui" (jalur lama tetap jalan)
 const cairForm = p.locator('form:has(select[name="status_pencairan"])');
-await cairForm.locator('select[name="status_pencairan"]').selectOption("dicairkan");
+await cairForm.locator('select[name="status_pencairan"]').selectOption("diproses");
 await cairForm.locator('button:has-text("Perbarui")').click();
 await p.waitForURL(/\?pencairan=1/, { timeout: 30000 });
 await p.waitForFunction(() => document.body.style.overflow === "hidden");
 await p.keyboard.press("Escape");
 await p.waitForURL((u) => !u.searchParams.has("pencairan"), { timeout: 10000 });
 await p.click('button[role=tab]:has-text("Memo")');
-ok("ber-hak: petugas update pencairan → dicairkan", (await p.locator('[data-testid="memo-status"]').textContent()).includes("Dana dicairkan"));
+ok("ber-hak: petugas update pencairan → diproses", (await p.locator('[data-testid="memo-status"]').textContent()).includes("Sedang diproses"));
+
+// Tombol "Dana Sudah Cair" → langsung dicairkan + stepper tahap 4 done
+await p.click('[data-testid="btn-dana-cair"]');
+await p.waitForURL(/\?pencairan=1/, { timeout: 30000 });
+await p.waitForFunction(() => document.body.style.overflow === "hidden");
+await p.keyboard.press("Escape");
+await p.waitForURL((u) => !u.searchParams.has("pencairan"), { timeout: 10000 });
+await p.click('button[role=tab]:has-text("Memo")');
+ok("ber-hak: tombol Dana Sudah Cair → dicairkan", (await p.locator('[data-testid="memo-status"]').textContent()).includes("Dana dicairkan"));
+ok("ber-hak: stepper tahap 4 (pencairan) done", await stepDone(p, 4));
+ok("ber-hak: tombol Dana Sudah Cair hilang setelah cair", (await p.locator('[data-testid="btn-dana-cair"]').count()) === 0);
 
 // ===== 5. Negatif: petugas TANPA hak =====
 const ctxN = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -185,6 +218,8 @@ const tolakMemo = await apiPost("tambahmemobtor", { idbtor: buat.id, jumlah: "10
 ok("setelah role dicabut: tambahmemobtor ditolak 403", String(tolakMemo.value) === "403", JSON.stringify(tolakMemo));
 const tolakCair = await apiPost("editmemobtor", { id: "999999", status_pencairan: "dicairkan", oleh: "2683" });
 ok("setelah role dicabut: editmemobtor ditolak 403", String(tolakCair.value) === "403", JSON.stringify(tolakCair));
+const tolakBukti = await apiPost("uploadbuktimemo", { oleh: "2683" });
+ok("setelah role dicabut: uploadbuktimemo ditolak 403", String(tolakBukti.value) === "403", JSON.stringify(tolakBukti));
 
 // ===== 7. Cleanup =====
 await apiPost("hapusbtor", { id: buat.id });
