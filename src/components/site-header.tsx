@@ -165,7 +165,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-5 xl:flex">
+        <nav className="hidden items-center gap-4 xl:flex">
           {NAV.map((item) =>
             item.href === "/pohon" ? (
               <NavPohonMenu
@@ -233,7 +233,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
               >
                 <Avatar src={session.photo} name={session.name} size={36} />
                 <span
-                  className={`max-w-[10ch] truncate text-sm font-medium ${
+                  className={`max-w-[6ch] truncate text-sm font-medium ${
                     overlay ? "text-white" : "text-emerald-950"
                   }`}
                 >
