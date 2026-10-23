@@ -2,7 +2,7 @@
 
 import { Download } from "lucide-react";
 import type { ApiBtorDetail } from "@/lib/api";
-import { fmtTanggal } from "@/components/admin/btor-memo-pdf";
+import { fmtTanggal, muatLogo } from "@/components/admin/btor-memo-pdf";
 
 // Batas foto dokumentasi per laporan agar PDF tetap ringkas (template asli
 // hanya menyertakan foto pilihan, bukan seluruh foto per pohon).
@@ -88,8 +88,9 @@ async function muatFoto(url: string): Promise<FotoDoc | null> {
 // kegiatan, Catatan Penting per hari, dan foto dokumentasi tagging.
 export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) {
   const unduh = async () => {
-    const [{ default: jsPDF }, grupFoto] = await Promise.all([
+    const [{ default: jsPDF }, logo, grupFoto] = await Promise.all([
       import("jspdf"),
+      muatLogo(),
       (async () => {
         // foto dikelompokkan per pohon (satu order = satu pohon), total dibatasi
         const hasil: { nama: string; docs: FotoDoc[] }[] = [];
@@ -146,10 +147,11 @@ export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) 
     };
 
     doc.setTextColor(0);
+    if (logo) doc.addImage(logo, "PNG", M, M - 16, 36, 36);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    doc.text("BACK TO OFFICE REPORT", M, M + 2);
-    y = M + 18;
+    doc.text("BACK TO OFFICE REPORT", logo ? M + 44 : M, M + 2);
+    y = M + 24;
     garisH(M, W - M, y);
     ySeg = y;
 
