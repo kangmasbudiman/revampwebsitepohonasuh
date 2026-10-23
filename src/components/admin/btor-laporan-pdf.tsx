@@ -37,13 +37,23 @@ function parseHari(isi: string): { judul: string; teks: string }[] {
 
 type FotoDoc = { data: string; w: number; h: number };
 
-// Foto order dihost di origin API — fetch lewat proxy same-origin lalu
-// konversi ke dataURL JPEG (canvas) agar bisa dilekatkan ke jsPDF.
+// Foto order bisa berupa path upload di origin API (fetch lewat proxy
+// same-origin) atau URL eksteral mis. Supabase (fetch langsung, CORS publik).
+async function ambilBlob(url: string): Promise<Blob | null> {
+  try {
+    let res = await fetch(`/upload-proxy?url=${encodeURIComponent(url)}`);
+    if (!res.ok) res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.blob();
+  } catch {
+    return null;
+  }
+}
+
 async function muatFoto(url: string): Promise<FotoDoc | null> {
   try {
-    const res = await fetch(`/upload-proxy?url=${encodeURIComponent(url)}`);
-    if (!res.ok) return null;
-    const blob = await res.blob();
+    const blob = await ambilBlob(url);
+    if (!blob) return null;
     const dataUrl = await new Promise<string | null>((resolve) => {
       const fr = new FileReader();
       fr.onload = () => resolve(String(fr.result));
@@ -78,21 +88,26 @@ async function muatFoto(url: string): Promise<FotoDoc | null> {
 // kegiatan, Catatan Penting per hari, dan foto dokumentasi tagging.
 export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) {
   const unduh = async () => {
-    const [{ default: jsPDF }, fotoDocs] = await Promise.all([
+    const [{ default: jsPDF }, grupFoto] = await Promise.all([
       import("jspdf"),
       (async () => {
-        const url: string[] = [];
-        const sudah = new Set<number>();
+        // foto dikelompokkan per pohon (satu order = satu pohon), total dibatasi
+        const hasil: { nama: string; docs: FotoDoc[] }[] = [];
+        let muat = 0;
         for (const o of btor.orders) {
-          for (const f of o.foto) {
-            if (f.url && !sudah.has(f.id)) {
-              sudah.add(f.id);
-              url.push(f.url);
-            }
+          if (muat >= MAKS_FOTO) break;
+          const unik = [...new Map(o.foto.filter((f) => f.url).map((f) => [f.id, f.url])).values()];
+          if (!unik.length) continue;
+          const ambil = unik.slice(0, MAKS_FOTO - muat);
+          muat += ambil.length;
+          const docs = (await Promise.all(ambil.map(muatFoto))).filter(
+            (d): d is FotoDoc => Boolean(d),
+          );
+          if (docs.length) {
+            hasil.push({ nama: [o.idpohon, o.localname].filter(Boolean).join(" · "), docs });
           }
         }
-        const dimuat = await Promise.all(url.slice(0, MAKS_FOTO).map(muatFoto));
-        return dimuat.filter((d): d is FotoDoc => Boolean(d));
+        return hasil;
       })(),
     ]);
 
@@ -138,22 +153,24 @@ export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) 
     garisH(M, W - M, y);
     ySeg = y;
 
-    // Baris label|nilai pendek — baris utuh dipindah ke halaman baru bila tak muat.
+    // Baris label|nilai pendek — baris utuh dipindah ke halaman baru bila tak
+    // muat. Baseline pertama 15pt dari garis atas, garis bawah 8pt dari
+    // baseline terakhir agar teks tidak menempel border.
     const barisRingkas = (label: string, nilai: string) => {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      const ll = doc.splitTextToSize(label, LW - 12) as string[];
+      const ll = doc.splitTextToSize(label, LW - 16) as string[];
       doc.setFont("helvetica", "normal");
       const nl = nilai
         .split("\n")
         .flatMap((t) => doc.splitTextToSize(t, WNILAI) as string[]);
-      const isi = Math.max(ll.length, nl.length) * 12;
-      ruang(isi + 16);
-      y += 8;
+      const jml = Math.max(ll.length, nl.length);
+      ruang(15 + (jml - 1) * 12 + 8);
+      y += 15;
       let yl = y;
       doc.setFont("helvetica", "bold");
       for (const t of ll) {
-        doc.text(t, M + 6, yl);
+        doc.text(t, M + 8, yl);
         yl += 12;
       }
       let yn = y;
@@ -162,25 +179,30 @@ export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) 
         doc.text(t, XNILAI, yn);
         yn += 12;
       }
-      y += isi + 8;
+      y += (jml - 1) * 12 + 8;
       garisH(M, W - M, y);
       sisi(ySeg, y);
       ySeg = y;
     };
 
-    // Baris dengan nilai panjang (Catatan Penting / Foto) — nilai boleh
-    // terpotong bersambung ke halaman berikutnya.
+    // Baris dengan nilai panjang (Catatan Penting / Foto) — nilai mulai di
+    // baseline yang sama dengan label dan boleh bersambung antar halaman.
     const barisPanjang = (label: string, render: () => void) => {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      const ll = doc.splitTextToSize(label, LW - 12) as string[];
-      ruang(ll.length * 12 + 24);
-      y += 8;
+      const ll = doc.splitTextToSize(label, LW - 16) as string[];
+      ruang(15 + ll.length * 12 + 8);
+      y += 15;
+      const yAwal = y;
+      const halLabel = hal;
+      let yl = y;
       for (const t of ll) {
-        doc.text(t, M + 6, y);
-        y += 12;
+        doc.text(t, M + 8, yl);
+        yl += 12;
       }
+      y = yAwal;
       render();
+      if (hal === halLabel) y = Math.max(y, yl);
       y += 8;
       garisH(M, W - M, y);
       sisi(ySeg, y);
@@ -242,44 +264,56 @@ export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) 
     });
 
     barisPanjang("Foto", () => {
-      if (fotoDocs.length === 0) {
+      if (grupFoto.length === 0) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
         doc.text("Foto dokumentasi tagging belum tersedia.", XNILAI, y);
         y += 12;
         return;
       }
-      // grid 3 kolom — foto lampiran pendukung, ukuran kecil seragam
+      // per grup pohon: heading nama pohon lalu grid 3 kolom thumbnail
       const kolom = 3;
       const celah = 8;
       const wSel = (WNILAI - celah * (kolom - 1)) / kolom;
       const hMaksSel = wSel * 1.5;
-      for (let i = 0; i < fotoDocs.length; i += kolom) {
-        const sel = fotoDocs.slice(i, i + kolom).map((f) => {
-          let fw = wSel;
-          let fh = (f.h / f.w) * fw;
-          if (fh > hMaksSel) {
-            fh = hMaksSel;
-            fw = (f.w / f.h) * fh;
-          }
-          return { data: f.data, fw, fh };
-        });
-        const tinggiBaris = Math.max(...sel.map((s) => s.fh));
-        // baris terakhir selalu satu halaman dengan caption-nya
-        ruang(tinggiBaris + celah + (i + kolom >= fotoDocs.length ? 30 : 0));
-        sel.forEach((s, j) => {
-          doc.addImage(
-            s.data,
-            "JPEG",
-            XNILAI + j * (wSel + celah) + (wSel - s.fw) / 2,
-            y,
-            s.fw,
-            s.fh,
-          );
-        });
-        y += tinggiBaris + celah;
-      }
-      ruang(16);
+      grupFoto.forEach((g, gi) => {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9.5);
+        const hg = doc.splitTextToSize(g.nama || "Pohon", WNILAI) as string[];
+        ruang(hg.length * 13 + 24);
+        for (const t of hg) {
+          doc.text(t, XNILAI, y);
+          y += 13;
+        }
+        y += 3;
+        for (let i = 0; i < g.docs.length; i += kolom) {
+          const sel = g.docs.slice(i, i + kolom).map((f) => {
+            let fw = wSel;
+            let fh = (f.h / f.w) * fw;
+            if (fh > hMaksSel) {
+              fh = hMaksSel;
+              fw = (f.w / f.h) * fh;
+            }
+            return { data: f.data, fw, fh };
+          });
+          const tinggiBaris = Math.max(...sel.map((s) => s.fh));
+          const grupTerakhir = gi === grupFoto.length - 1 && i + kolom >= g.docs.length;
+          // baris foto terakhir selalu satu halaman dengan caption-nya
+          ruang(tinggiBaris + celah + (grupTerakhir ? 40 : 0));
+          sel.forEach((s, j) => {
+            doc.addImage(
+              s.data,
+              "JPEG",
+              XNILAI + j * (wSel + celah) + (wSel - s.fw) / 2,
+              y,
+              s.fw,
+              s.fh,
+            );
+          });
+          y += tinggiBaris + celah;
+        }
+        y += 6;
+      });
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.text(
