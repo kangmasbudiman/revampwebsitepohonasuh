@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TreePine } from "lucide-react";
 import {
+  apiGet,
   apiPost,
+  mapDesa,
   mapTree,
   mapTrees,
   mapRiwayatPohon,
@@ -53,6 +55,19 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
     // biarkan notFound di bawah yang menangani
   }
   if (!tree) notFound();
+
+  // Label tampilan desa (mis. "Rantau Kermas") untuk link lokasi & kartu
+  // pohon lainnya di bawah.
+  let labelDesa = new Map<string, string | null>();
+  try {
+    labelDesa = new Map(
+      (await apiGet<Record<string, unknown>[]>("getdesa"))
+        .map(mapDesa)
+        .map((x) => [x.name, x.label]),
+    );
+  } catch {
+    // fallback: nama desa Title Case via namaDesa()
+  }
 
   const dict = await getDict();
   const d = dict.pages.pohonDetail;
@@ -108,7 +123,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
               href={`/lokasi/${slugify(tree.desa)}`}
               className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
             >
-              📍 {namaDesa(tree.desa)}
+              📍 {labelDesa.get(tree.desa) || namaDesa(tree.desa)}
             </Link>
           </div>
 
@@ -209,13 +224,13 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
       {others.length > 0 && (
         <section className="mt-16">
           <h2 className="text-xl font-bold text-emerald-950">
-            {d.others.replaceAll("{desa}", namaDesa(tree.desa))}
+            {d.others.replaceAll("{desa}", labelDesa.get(tree.desa) || namaDesa(tree.desa))}
           </h2>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {others.map((t, ti) => (
               <TreeCard
                 key={`${t.code}-${ti}`}
-                tree={{ ...t, location: { name: t.desa } }}
+                tree={{ ...t, location: { name: t.desa, label: labelDesa.get(t.desa) ?? null } }}
               />
             ))}
           </div>

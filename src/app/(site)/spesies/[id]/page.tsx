@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Leaf, MapPin, Sprout } from "lucide-react";
-import { apiGet, mapSpeciesDetail, slugify, type ApiSpeciesDetail } from "@/lib/api";
+import { apiGet, mapDesa, mapSpeciesDetail, slugify, type ApiSpeciesDetail } from "@/lib/api";
 import { namaDesa } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
@@ -42,6 +42,20 @@ export default async function SpeciesDetailPage(props: Props) {
     // notFound di bawah yang menangani
   }
   if (!s || !s.namaLatin) notFound();
+
+  // Label tampilan desa (mis. "Rantau Kermas") untuk chip lokasi & kartu pohon.
+  let labelDesa = new Map<string, string | null>();
+  if (s.pohon.length > 0 || s.desaTerkait.length > 0) {
+    try {
+      labelDesa = new Map(
+        (await apiGet<Record<string, unknown>[]>("getdesa"))
+          .map(mapDesa)
+          .map((x) => [x.name, x.label]),
+      );
+    } catch {
+      // fallback: nama desa Title Case via namaDesa()
+    }
+  }
 
   const d = (await getDict()).pages.spesiesDetail;
 
@@ -122,7 +136,7 @@ export default async function SpeciesDetailPage(props: Props) {
                     className="rounded-full border border-emerald-200 px-3 py-1.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
                   >
                     {d.desaChip
-                      .replaceAll("{name}", namaDesa(desa.nama))
+                      .replaceAll("{name}", labelDesa.get(desa.nama) || namaDesa(desa.nama))
                       .replaceAll("{n}", String(desa.jml))}
                   </Link>
                 ))}
@@ -166,7 +180,7 @@ export default async function SpeciesDetailPage(props: Props) {
                   status: p.status,
                   photoUrl: p.photoUrl,
                   desa: p.desa,
-                  location: { name: p.desa },
+                  location: { name: p.desa, label: labelDesa.get(p.desa) ?? null },
                 }}
               />
             ))}

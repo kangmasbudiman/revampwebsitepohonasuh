@@ -116,6 +116,8 @@ export default async function HomePage() {
   const adopted = stat?.diadopsi ?? locations.reduce((sum, d) => sum + d.adopted, 0);
   const dana = stat?.donasi ?? 0;
   const featured = unggulan.length > 0 ? unggulan : trees.slice(0, 6);
+  // label tampilan desa (mis. "Rantau Kermas") untuk kartu section koleksi
+  const labelByNama = new Map(locations.map((x) => [x.name, x.label]));
 
   const tagline = s["site.tagline"] ?? "Adopt Trees, Save The World";
   const description = s["site.description"] ?? dict.metadata.defaultDesc;
@@ -278,7 +280,9 @@ export default async function HomePage() {
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((tree, i) => (
               <Reveal key={`${tree.code}-${i}`} delay={(i % 3) * 120}>
-                <TreeCard tree={{ ...tree, location: { name: tree.desa } }} />
+                <TreeCard
+                  tree={{ ...tree, location: { name: tree.desa, label: labelByNama.get(tree.desa) ?? null } }}
+                />
               </Reveal>
             ))}
           </div>
