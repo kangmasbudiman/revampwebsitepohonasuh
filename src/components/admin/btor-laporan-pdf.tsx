@@ -2,198 +2,290 @@
 
 import { Download } from "lucide-react";
 import type { ApiBtorDetail } from "@/lib/api";
-import { fmtTanggal, muatLogo } from "@/components/admin/btor-memo-pdf";
+import { fmtTanggal } from "@/components/admin/btor-memo-pdf";
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Draft",
-  terkirim: "Terkirim",
-  revisi: "Perlu Revisi",
-  disetujui: "Disetujui",
-};
+// Batas foto dokumentasi per laporan agar PDF tetap ringkas (template asli
+// hanya menyertakan foto pilihan, bukan seluruh foto per pohon).
+const MAKS_FOTO = 12;
 
-// Unduh Laporan BTOR (laporan kegiatan tagging) sebagai PDF — rekap judul,
-// petugas/desa, catatan kegiatan, hasil, dan daftar order tagging.
+// Paragraf berawalan tanggal (08 April 2026 / 2026-04-08 / 08-04) menjadi
+// heading bold per hari — pola sama dengan timeline halaman detail BTOR.
+const POLA_TANGGAL =
+  /^(?:\d{4}-\d{2}-\d{2}|\d{1,2}[\/\-\.]\d{1,2}(?:[\/\-\.]\d{2,4})?|\d{1,2}\s+[A-Za-z]+\.?\s+\d{4})/;
+
+function parseHari(isi: string): { judul: string; teks: string }[] {
+  const baris = isi
+    .replace(/\r\n?/g, "\n")
+    .split(/\n+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const node: { judul: string; teks: string }[] = [];
+  let cur: { judul: string; teks: string } | null = null;
+  for (const b of baris) {
+    if (POLA_TANGGAL.test(b) && b.length <= 40) {
+      if (cur) node.push(cur);
+      cur = { judul: b, teks: "" };
+    } else if (cur) {
+      cur.teks = cur.teks ? `${cur.teks}\n${b}` : b;
+    } else {
+      cur = { judul: "", teks: b };
+    }
+  }
+  if (cur) node.push(cur);
+  return node;
+}
+
+type FotoDoc = { data: string; w: number; h: number };
+
+// Foto order dihost di origin API — fetch lewat proxy same-origin lalu
+// konversi ke dataURL JPEG (canvas) agar bisa dilekatkan ke jsPDF.
+async function muatFoto(url: string): Promise<FotoDoc | null> {
+  try {
+    const res = await fetch(`/upload-proxy?url=${encodeURIComponent(url)}`);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const dataUrl = await new Promise<string | null>((resolve) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result));
+      fr.onerror = () => resolve(null);
+      fr.readAsDataURL(blob);
+    });
+    if (!dataUrl) return null;
+    const img = await new Promise<HTMLImageElement | null>((resolve) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => resolve(null);
+      im.src = dataUrl;
+    });
+    if (!img || !img.width || !img.height) return null;
+    const skala = Math.min(1, 1100 / Math.max(img.width, img.height));
+    const cv = document.createElement("canvas");
+    cv.width = Math.max(1, Math.round(img.width * skala));
+    cv.height = Math.max(1, Math.round(img.height * skala));
+    const ctx = cv.getContext("2d");
+    if (!ctx) return null;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    return { data: cv.toDataURL("image/jpeg", 0.85), w: cv.width, h: cv.height };
+  } catch {
+    return null;
+  }
+}
+
+// Unduh Laporan BTOR (PDF) mengikuti format resmi "BACK TO OFFICE REPORT":
+// satu tabel dua kolom berbatas hitam tipis (label bold | nilai) berisi identitas
+// kegiatan, Catatan Penting per hari, dan foto dokumentasi tagging.
 export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) {
   const unduh = async () => {
-    const [{ default: jsPDF }, logo] = await Promise.all([import("jspdf"), muatLogo()]);
+    const [{ default: jsPDF }, fotoDocs] = await Promise.all([
+      import("jspdf"),
+      (async () => {
+        const url: string[] = [];
+        const sudah = new Set<number>();
+        for (const o of btor.orders) {
+          for (const f of o.foto) {
+            if (f.url && !sudah.has(f.id)) {
+              sudah.add(f.id);
+              url.push(f.url);
+            }
+          }
+        }
+        const dimuat = await Promise.all(url.slice(0, MAKS_FOTO).map(muatFoto));
+        return dimuat.filter((d): d is FotoDoc => Boolean(d));
+      })(),
+    ]);
+
     const doc = new jsPDF({ unit: "pt", format: "a4" });
     const W = doc.internal.pageSize.getWidth();
     const H = doc.internal.pageSize.getHeight();
-    const M = 48;
-    let y = M;
+    const M = 46;
+    const LW = Math.round((W - M * 2) * 0.28);
+    const XNILAI = M + LW + 8;
+    const WNILAI = W - M - XNILAI - 8;
+    const BOT = H - 48;
+    const TEPI = 0.5;
 
-    const pastikanRuang = (butuh: number) => {
-      if (y + butuh > H - 60) {
-        doc.addPage();
-        y = M;
-      }
+    let hal = 1;
+    let y = M;
+    let ySeg = M;
+    const vertikal: { hal: number; x: number; y1: number; y2: number }[] = [];
+
+    const garisH = (x1: number, x2: number, yy: number) => {
+      doc.setDrawColor(0);
+      doc.setLineWidth(TEPI);
+      doc.line(x1, yy, x2, yy);
+    };
+    const sisi = (y1: number, y2: number) => {
+      for (const x of [M, M + LW, W - M]) vertikal.push({ hal, x, y1, y2 });
+    };
+    const pindahHalaman = () => {
+      sisi(ySeg, y);
+      doc.addPage();
+      hal += 1;
+      y = M;
+      ySeg = M;
+    };
+    const ruang = (butuh: number) => {
+      if (y + butuh > BOT) pindahHalaman();
     };
 
-    // Kop
-    if (logo) doc.addImage(logo, "PNG", M, y - 14, 36, 36);
-    const xKop = logo ? M + 44 : M;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(15);
-    doc.text("POHON ASUH", xKop, y);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(110);
-    doc.text("Laporan Kegiatan Tagging (BTOR)", xKop, y + 14);
-    doc.setDrawColor(30, 92, 63);
-    doc.setLineWidth(2);
-    doc.line(M, y + 24, W - M, y + 24);
-    doc.setTextColor(20);
-    y += 52;
-
-    // Judul laporan
+    doc.setTextColor(0);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    doc.text("LAPORAN KEGIATAN TAGGING", M, y);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Nomor: BTOR/${btor.id}`, M, y + 16);
-    y += 40;
+    doc.text("BACK TO OFFICE REPORT", M, M + 2);
+    y = M + 18;
+    garisH(M, W - M, y);
+    ySeg = y;
+
+    // Baris label|nilai pendek — baris utuh dipindah ke halaman baru bila tak muat.
+    const barisRingkas = (label: string, nilai: string) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      const ll = doc.splitTextToSize(label, LW - 12) as string[];
+      doc.setFont("helvetica", "normal");
+      const nl = nilai
+        .split("\n")
+        .flatMap((t) => doc.splitTextToSize(t, WNILAI) as string[]);
+      const isi = Math.max(ll.length, nl.length) * 12;
+      ruang(isi + 16);
+      y += 8;
+      let yl = y;
+      doc.setFont("helvetica", "bold");
+      for (const t of ll) {
+        doc.text(t, M + 6, yl);
+        yl += 12;
+      }
+      let yn = y;
+      doc.setFont("helvetica", "normal");
+      for (const t of nl) {
+        doc.text(t, XNILAI, yn);
+        yn += 12;
+      }
+      y += isi + 8;
+      garisH(M, W - M, y);
+      sisi(ySeg, y);
+      ySeg = y;
+    };
+
+    // Baris dengan nilai panjang (Catatan Penting / Foto) — nilai boleh
+    // terpotong bersambung ke halaman berikutnya.
+    const barisPanjang = (label: string, render: () => void) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      const ll = doc.splitTextToSize(label, LW - 12) as string[];
+      ruang(ll.length * 12 + 24);
+      y += 8;
+      for (const t of ll) {
+        doc.text(t, M + 6, y);
+        y += 12;
+      }
+      render();
+      y += 8;
+      garisH(M, W - M, y);
+      sisi(ySeg, y);
+      ySeg = y;
+    };
+
+    const paragraf = (teks: string) => {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const lines = doc.splitTextToSize(teks.replace(/\s+/g, " ").trim(), WNILAI) as string[];
+      for (const ln of lines) {
+        ruang(12);
+        doc.text(ln, XNILAI, y);
+        y += 12;
+      }
+      y += 6;
+    };
 
     const waktu =
       btor.tanggalSelesai && btor.tanggalSelesai !== btor.tanggal
-        ? `${fmtTanggal(btor.tanggal)} — ${fmtTanggal(btor.tanggalSelesai)}`
+        ? `${fmtTanggal(btor.tanggal)} - ${fmtTanggal(btor.tanggalSelesai)}`
         : fmtTanggal(btor.tanggal);
-    const info: [string, string][] = [
-      ["Judul", btor.judul],
-      ["Petugas", btor.jabatan ? `${btor.petugas} (${btor.jabatan})` : btor.petugas],
-      ["Desa", btor.desa],
-      ["Waktu Kegiatan", waktu],
-      ["Tim Tagging", btor.timTagging || "-"],
-      ["Status", STATUS_LABEL[btor.status] ?? btor.status],
-    ];
-    for (const [k, v] of info) {
-      const lines = doc.splitTextToSize(v, W - M * 2 - 90) as string[];
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9.5);
-      doc.text(k, M, y);
-      doc.setFont("helvetica", "normal");
-      doc.text(lines, M + 90, y);
-      y += Math.max(lines.length, 1) * 13 + 3;
-    }
+    const rekening = [
+      [
+        btor.rekeningBank ? `Rekening ${btor.rekeningBank}` : "",
+        btor.rekeningAt ? `a.n. ${btor.rekeningAt}` : "",
+      ]
+        .filter(Boolean)
+        .join(" "),
+      btor.rekeningNorek,
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-    y += 4;
-    doc.setDrawColor(200);
-    doc.setLineWidth(0.6);
-    doc.line(M, y, W - M, y);
-    y += 22;
+    barisRingkas("Nama", btor.timTagging || btor.petugas);
+    barisRingkas("Jabatan", btor.jabatan || "-");
+    barisRingkas("Judul Kegiatan", btor.judul);
+    barisRingkas("Waktu Kegiatan", waktu);
+    barisRingkas("Tempat Kegiatan", btor.desa);
+    barisRingkas("Rekening", rekening || "-");
 
-    // Catatan kegiatan per paragraf
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("CATATAN KEGIATAN", M, y);
-    y += 6;
-    doc.setDrawColor(200);
-    doc.line(M, y, M + 130, y);
-    y += 16;
-    for (const para of btor.isi.split(/\n{2,}/)) {
-      const teks = para.replace(/\n/g, " ").trim();
-      if (!teks) continue;
-      const lines = doc.splitTextToSize(teks, W - M * 2) as string[];
-      pastikanRuang(lines.length * 14 + 10);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.text(lines, M, y);
-      y += lines.length * 14 + 8;
-    }
+    barisPanjang("Catatan Penting", () => {
+      for (const n of parseHari(btor.isi)) {
+        if (n.judul) {
+          ruang(26);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.text(n.judul, XNILAI, y);
+          y += 14;
+        }
+        for (const p of n.teks.split("\n")) paragraf(p);
+        y += 4;
+      }
+      if (btor.hasil.trim()) {
+        ruang(30);
+        y += 6;
+        for (const p of btor.hasil.split(/\n{2,}/)) paragraf(p);
+      }
+    });
 
-    // Hasil / manfaat
-    if (btor.hasil.trim()) {
-      pastikanRuang(60);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.text("HASIL / MANFAAT", M, y);
-      y += 6;
-      doc.setDrawColor(200);
-      doc.line(M, y, M + 110, y);
-      y += 16;
-      for (const para of btor.hasil.split(/\n{2,}/)) {
-        const teks = para.replace(/\n/g, " ").trim();
-        if (!teks) continue;
-        const lines = doc.splitTextToSize(teks, W - M * 2) as string[];
-        pastikanRuang(lines.length * 14 + 8);
+    barisPanjang("Foto", () => {
+      if (fotoDocs.length === 0) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
-        doc.text(lines, M, y);
-        y += lines.length * 14 + 8;
+        doc.text("Foto dokumentasi tagging belum tersedia.", XNILAI, y);
+        y += 12;
+        return;
       }
-    }
-
-    // Rekap dana & rekening
-    const rekening = [btor.rekeningBank, btor.rekeningNorek, btor.rekeningAt && `a.n. ${btor.rekeningAt}`]
-      .filter(Boolean)
-      .join(" · ");
-    pastikanRuang(70);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("REKAP DANA", M, y);
-    y += 6;
-    doc.setDrawColor(200);
-    doc.line(M, y, M + 90, y);
-    y += 16;
-    const dana: [string, string][] = [
-      ["Nilai Order", btor.orders.length > 0 ? btor.orders.reduce((s, o) => s + o.price, 0).toLocaleString("id-ID") : "0"],
-      ["Dana Digunakan", btor.dana !== null ? btor.dana.toLocaleString("id-ID") : "-"],
-      ["Rekening Pencairan", rekening || "-"],
-    ];
-    for (const [k, v] of dana) {
-      const lines = doc.splitTextToSize(v, W - M * 2 - 110) as string[];
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9.5);
-      doc.text(k, M, y);
+      const hMaks = BOT - M - 20;
+      for (let i = 0; i < fotoDocs.length; i++) {
+        const f = fotoDocs[i];
+        let fw = WNILAI;
+        let fh = (f.h / f.w) * fw;
+        if (fh > hMaks) {
+          fh = hMaks;
+          fw = (f.w / f.h) * fh;
+        }
+        // foto terakhir selalu satu halaman dengan caption-nya
+        ruang(fh + 12 + (i === fotoDocs.length - 1 ? 30 : 0));
+        doc.addImage(f.data, "JPEG", XNILAI + (WNILAI - fw) / 2, y, fw, fh);
+        y += fh + 10;
+      }
+      ruang(16);
       doc.setFont("helvetica", "normal");
-      doc.text(lines, M + 110, y);
-      y += Math.max(lines.length, 1) * 13 + 3;
-    }
-    y += 12;
-
-    // Daftar order tagging
-    if (btor.orders.length > 0) {
-      pastikanRuang(50 + btor.orders.length * 16);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.text(`DAFTAR ORDER TAGGING (${btor.orders.length})`, M, y);
-      y += 6;
-      doc.setDrawColor(200);
-      doc.line(M, y, M + 170, y);
-      y += 14;
-      const kolomHarga = W - M - 90;
-      doc.setFontSize(8.5);
-      doc.text("Invoice", M, y);
-      doc.text("Pohon", M + 90, y);
-      doc.text("Donatur", M + 175, y);
-      doc.text("Harga (Rp)", W - M, y, { align: "right" });
-      y += 4;
-      doc.line(M, y, W - M, y);
+      doc.setFontSize(9);
+      doc.text(
+        "Dokumentasi proses tagging pohon asuh",
+        XNILAI + WNILAI / 2,
+        y + 8,
+        { align: "center" },
+      );
       y += 12;
-      doc.setFont("helvetica", "normal");
-      for (const o of btor.orders) {
-        pastikanRuang(16);
-        const donatur = doc.splitTextToSize(o.donatur || "-", kolomHarga - M - 185) as string[];
-        const pohon = doc.splitTextToSize(`${o.idpohon} · ${o.localname}`, 85) as string[];
-        doc.text(String(o.invoice).slice(0, 16), M, y);
-        doc.text(pohon[0] ?? "", M + 90, y);
-        doc.text(donatur[0] ?? "", M + 175, y);
-        doc.text(o.price.toLocaleString("id-ID"), W - M, y, { align: "right" });
-        y += 14;
-      }
-      y += 8;
-    }
+    });
 
-    // Tanda tangan dua kolom
-    pastikanRuang(140);
-    y = Math.max(y + 30, H - 150);
-    doc.setFontSize(10);
-    doc.text("Petugas,", M, y);
-    doc.text("Mengetahui,", W - M - 110, y);
-    y += 56;
-    doc.setFont("helvetica", "bold");
-    doc.text(btor.petugas, M, y);
-    doc.text("Admin Pohon Asuh", W - M - 110, y);
+    // Garis vertikal tabel digambar belakangan per halaman (baris bisa
+    // bersambung antar halaman).
+    doc.setDrawColor(0);
+    doc.setLineWidth(TEPI);
+    const total = doc.getNumberOfPages();
+    for (let p = 1; p <= total; p++) {
+      doc.setPage(p);
+      for (const s of vertikal) {
+        if (s.hal === p) doc.line(s.x, s.y1, s.x, s.y2);
+      }
+    }
 
     const slug = btor.judul
       .toLowerCase()
