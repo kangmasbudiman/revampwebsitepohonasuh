@@ -249,19 +249,35 @@ export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) 
         y += 12;
         return;
       }
-      const hMaks = BOT - M - 20;
-      for (let i = 0; i < fotoDocs.length; i++) {
-        const f = fotoDocs[i];
-        let fw = WNILAI;
-        let fh = (f.h / f.w) * fw;
-        if (fh > hMaks) {
-          fh = hMaks;
-          fw = (f.w / f.h) * fh;
-        }
-        // foto terakhir selalu satu halaman dengan caption-nya
-        ruang(fh + 12 + (i === fotoDocs.length - 1 ? 30 : 0));
-        doc.addImage(f.data, "JPEG", XNILAI + (WNILAI - fw) / 2, y, fw, fh);
-        y += fh + 10;
+      // grid 3 kolom — foto lampiran pendukung, ukuran kecil seragam
+      const kolom = 3;
+      const celah = 8;
+      const wSel = (WNILAI - celah * (kolom - 1)) / kolom;
+      const hMaksSel = wSel * 1.5;
+      for (let i = 0; i < fotoDocs.length; i += kolom) {
+        const sel = fotoDocs.slice(i, i + kolom).map((f) => {
+          let fw = wSel;
+          let fh = (f.h / f.w) * fw;
+          if (fh > hMaksSel) {
+            fh = hMaksSel;
+            fw = (f.w / f.h) * fh;
+          }
+          return { data: f.data, fw, fh };
+        });
+        const tinggiBaris = Math.max(...sel.map((s) => s.fh));
+        // baris terakhir selalu satu halaman dengan caption-nya
+        ruang(tinggiBaris + celah + (i + kolom >= fotoDocs.length ? 30 : 0));
+        sel.forEach((s, j) => {
+          doc.addImage(
+            s.data,
+            "JPEG",
+            XNILAI + j * (wSel + celah) + (wSel - s.fw) / 2,
+            y,
+            s.fw,
+            s.fh,
+          );
+        });
+        y += tinggiBaris + celah;
       }
       ruang(16);
       doc.setFont("helvetica", "normal");
