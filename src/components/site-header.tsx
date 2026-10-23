@@ -227,18 +227,12 @@ export default function SiteHeader({ session }: { session: Session | null }) {
             <div className="group relative">
               <button
                 type="button"
-                className={`flex items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition-colors ${
+                aria-label={session.name}
+                className={`flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2.5 transition-colors ${
                   overlay ? "hover:bg-white/10" : "hover:bg-emerald-50"
                 }`}
               >
                 <Avatar src={session.photo} name={session.name} size={36} />
-                <span
-                  className={`max-w-[6ch] truncate text-sm font-medium ${
-                    overlay ? "text-white" : "text-emerald-950"
-                  }`}
-                >
-                  {session.name}
-                </span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform duration-300 group-hover:rotate-180 ${
                     overlay ? "text-white/70" : "text-emerald-700"
