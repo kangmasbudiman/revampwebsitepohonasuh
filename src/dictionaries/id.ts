@@ -682,11 +682,13 @@ export const dict = {
       title: "Data Pohon",
       intro:
         "Pilih pohon yang ingin Anda asuh. Setiap pohon tumbuh di habitat aslinya dan dirawat oleh masyarakat pengelola hutan.",
+      introAdopted: "Pohon-pohon yang telah diadopsi dan kini dirawat bersama pengasuhnya.",
       allLocations: "Semua Lokasi",
       allPrices: "Semua Harga",
       loadError: "Gagal memuat data pohon.",
       retry: "Coba lagi",
       availableCount: "{n} pohon tersedia",
+      adoptedCount: "{n} pohon telah diadopsi",
       empty: "Tidak ada pohon pada lokasi ini.",
       prevPage: "← Sebelumnya",
       pageOf: "Halaman {page} dari {total}",

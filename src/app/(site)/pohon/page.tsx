@@ -33,6 +33,9 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
   const lokasi = typeof searchParams.lokasi === "string" ? searchParams.lokasi : undefined;
   const harga = Number(searchParams.harga) || 0;
   const page = Math.max(1, Number(searchParams.page) || 1);
+  // Tampilan default (tanpa param) tetap pohon tersedia; submenu header
+  // "Adopted" memakai ?status=adopted.
+  const status = searchParams.status === "adopted" ? "adopted" : "available";
 
   let desaList: ApiDesa[] = [];
   let trees: ApiTree[] = [];
@@ -44,9 +47,16 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
     desaList = semua.filter((d) => d.aktif);
     const byNama = new Map(semua.map((d) => [d.name, d.aktif]));
     aktif = desaList.find((d) => d.slug === lokasi);
-    const rows = aktif
-      ? await apiPost<Record<string, unknown>[]>("pohonbydesa", { desa: aktif.name })
-      : await apiPost<Record<string, unknown>[]>("filtertrees", { adopted: "available" });
+    let rows: Record<string, unknown>[];
+    if (status === "adopted") {
+      rows = await apiPost<Record<string, unknown>[]>("filtertrees", { adopted: "adopted" });
+      const namaAktif = aktif?.name;
+      if (namaAktif) rows = rows.filter((r) => String(r.desa ?? "") === namaAktif);
+    } else {
+      rows = aktif
+        ? await apiPost<Record<string, unknown>[]>("pohonbydesa", { desa: aktif.name })
+        : await apiPost<Record<string, unknown>[]>("filtertrees", { adopted: "available" });
+    }
     trees = mapTrees(rows).filter((t) => byNama.get(t.desa) !== false);
   } catch {
     error = true;
@@ -60,6 +70,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
 
   const qs = (o: { lokasi?: string; harga?: number; page?: number }) => {
     const sp = new URLSearchParams();
+    if (status === "adopted") sp.set("status", "adopted");
     if (o.lokasi) sp.set("lokasi", o.lokasi);
     if (o.harga) sp.set("harga", String(o.harga));
     if (o.page && o.page > 1) sp.set("page", String(o.page));
@@ -87,10 +98,10 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
       <h1 className="text-3xl font-bold text-emerald-950">{d.title}</h1>
-      <p className="mt-2 text-zinc-600">{d.intro}</p>
+      <p className="mt-2 text-zinc-600">{status === "adopted" ? d.introAdopted : d.intro}</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        <Link href="/pohon" className={pillCls(!lokasi)}>
+        <Link href={qs({ harga })} className={pillCls(!lokasi)}>
           {d.allLocations}
         </Link>
         {desaList.map((desa) => (
@@ -129,7 +140,10 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
       ) : (
         <>
           <p className="mt-6 text-sm text-zinc-500">
-            {d.availableCount.replaceAll("{n}", String(total))}
+            {(status === "adopted" ? d.adoptedCount : d.availableCount).replaceAll(
+              "{n}",
+              String(total),
+            )}
           </p>
 
           <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -4,9 +4,8 @@ import { Download } from "lucide-react";
 import type { ApiBtorDetail } from "@/lib/api";
 import { fmtTanggal, muatLogo } from "@/components/admin/btor-memo-pdf";
 
-// Batas foto dokumentasi per laporan agar PDF tetap ringkas (template asli
-// hanya menyertakan foto pilihan, bukan seluruh foto per pohon).
-const MAKS_FOTO = 12;
+// Batas jumlah pohon pada lampiran foto (1 pohon = 1 foto) agar PDF ringkas.
+const MAKS_POHON = 12;
 
 // Paragraf berawalan tanggal (08 April 2026 / 2026-04-08 / 08-04) menjadi
 // heading bold per hari — pola sama dengan timeline halaman detail BTOR.
@@ -92,23 +91,21 @@ export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) 
       import("jspdf"),
       muatLogo(),
       (async () => {
-        // foto dikelompokkan per pohon (satu order = satu pohon), total dibatasi
-        const hasil: { nama: string; docs: FotoDoc[] }[] = [];
-        let muat = 0;
+        // 1 pohon 1 lampiran: cukup foto pertama tiap pohon, total dibatasi.
+        const kandidat: { nama: string; url: string }[] = [];
         for (const o of btor.orders) {
-          if (muat >= MAKS_FOTO) break;
-          const unik = [...new Map(o.foto.filter((f) => f.url).map((f) => [f.id, f.url])).values()];
-          if (!unik.length) continue;
-          const ambil = unik.slice(0, MAKS_FOTO - muat);
-          muat += ambil.length;
-          const docs = (await Promise.all(ambil.map(muatFoto))).filter(
-            (d): d is FotoDoc => Boolean(d),
-          );
-          if (docs.length) {
-            hasil.push({ nama: [o.idpohon, o.localname].filter(Boolean).join(" · "), docs });
+          if (kandidat.length >= MAKS_POHON) break;
+          const url = [
+            ...new Map(o.foto.filter((f) => f.url).map((f) => [f.id, f.url])).values(),
+          ][0];
+          if (url) {
+            kandidat.push({ nama: [o.idpohon, o.localname].filter(Boolean).join(" · "), url });
           }
         }
-        return hasil;
+        const docs = await Promise.all(kandidat.map((k) => muatFoto(k.url)));
+        return kandidat
+          .map((k, i) => ({ nama: k.nama, doc: docs[i] }))
+          .filter((g): g is { nama: string; doc: FotoDoc } => Boolean(g.doc));
       })(),
     ]);
 
@@ -273,49 +270,50 @@ export default function BtorLaporanPdfButton({ btor }: { btor: ApiBtorDetail }) 
         y += 12;
         return;
       }
-      // per grup pohon: heading nama pohon lalu grid 3 kolom thumbnail
+      // grid 3 kolom: 1 pohon 1 foto, nama pohon sebagai caption tiap foto
       const kolom = 3;
       const celah = 8;
       const wSel = (WNILAI - celah * (kolom - 1)) / kolom;
-      const hMaksSel = wSel * 1.5;
-      grupFoto.forEach((g, gi) => {
+      const hMaksSel = wSel * 1.3;
+      for (let i = 0; i < grupFoto.length; i += kolom) {
+        const sel = grupFoto.slice(i, i + kolom).map((g) => {
+          let fw = wSel;
+          let fh = (g.doc.h / g.doc.w) * fw;
+          if (fh > hMaksSel) {
+            fh = hMaksSel;
+            fw = (g.doc.w / g.doc.h) * fh;
+          }
+          return { nama: g.nama, data: g.doc.data, fw, fh };
+        });
+        const tinggiBaris = Math.max(...sel.map((s) => s.fh));
+        const captions = sel.map((s) =>
+          (doc.splitTextToSize(s.nama || "Pohon", wSel) as string[]).slice(0, 2),
+        );
+        const capTinggi = Math.max(...captions.map((c) => c.length)) * 11;
+        const terakhir = i + kolom >= grupFoto.length;
+        // satu baris foto selalu utuh satu halaman bersama caption-nya
+        ruang(tinggiBaris + capTinggi + celah + (terakhir ? 26 : 0));
+        sel.forEach((s, j) => {
+          doc.addImage(
+            s.data,
+            "JPEG",
+            XNILAI + j * (wSel + celah) + (wSel - s.fw) / 2,
+            y,
+            s.fw,
+            s.fh,
+          );
+        });
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.5);
-        const hg = doc.splitTextToSize(g.nama || "Pohon", WNILAI) as string[];
-        ruang(hg.length * 13 + 24);
-        for (const t of hg) {
-          doc.text(t, XNILAI, y);
-          y += 13;
-        }
-        y += 3;
-        for (let i = 0; i < g.docs.length; i += kolom) {
-          const sel = g.docs.slice(i, i + kolom).map((f) => {
-            let fw = wSel;
-            let fh = (f.h / f.w) * fw;
-            if (fh > hMaksSel) {
-              fh = hMaksSel;
-              fw = (f.w / f.h) * fh;
-            }
-            return { data: f.data, fw, fh };
-          });
-          const tinggiBaris = Math.max(...sel.map((s) => s.fh));
-          const grupTerakhir = gi === grupFoto.length - 1 && i + kolom >= g.docs.length;
-          // baris foto terakhir selalu satu halaman dengan caption-nya
-          ruang(tinggiBaris + celah + (grupTerakhir ? 40 : 0));
-          sel.forEach((s, j) => {
-            doc.addImage(
-              s.data,
-              "JPEG",
-              XNILAI + j * (wSel + celah) + (wSel - s.fw) / 2,
-              y,
-              s.fw,
-              s.fh,
-            );
-          });
-          y += tinggiBaris + celah;
-        }
-        y += 6;
-      });
+        doc.setFontSize(9);
+        sel.forEach((s, j) => {
+          let ycl = y + tinggiBaris + 10;
+          for (const t of captions[j]) {
+            doc.text(t, XNILAI + j * (wSel + celah) + wSel / 2, ycl, { align: "center" });
+            ycl += 11;
+          }
+        });
+        y += tinggiBaris + capTinggi + celah;
+      }
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.text(

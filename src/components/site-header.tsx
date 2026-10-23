@@ -13,6 +13,76 @@ import MemberBell from "@/components/member-bell";
 import LangToggle from "@/components/lang-toggle";
 import { useI18n } from "@/components/i18n-provider";
 
+// Menu "Data Pohon": klik label → halaman default (pohon tersedia); klik
+// chevron → submenu filter Available / Adopted.
+function NavPohonMenu({
+  label,
+  linkCls,
+  linkActive,
+  active,
+  overlay,
+}: {
+  label: string;
+  linkCls: string;
+  linkActive: string;
+  active: boolean;
+  overlay: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative flex items-center">
+      <Link href="/pohon" className={`${linkCls} ${active ? linkActive : ""} whitespace-nowrap`}>
+        {label}
+      </Link>
+      <button
+        type="button"
+        aria-label="Buka menu status pohon"
+        aria-expanded={open}
+        data-testid="nav-pohon-dropdown"
+        onClick={() => setOpen((v) => !v)}
+        className={`-ml-1 rounded p-0.5 transition-colors ${
+          overlay ? "text-white/70 hover:text-white" : "text-emerald-700 hover:text-emerald-900"
+        }`}
+      >
+        <ChevronDown
+          className={`h-3.5 w-3.5 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-hidden
+            tabIndex={-1}
+            className="fixed inset-0 z-40 cursor-default"
+            onClick={() => setOpen(false)}
+          />
+          <div className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-2">
+            <div className="w-44 overflow-hidden rounded-2xl border border-emerald-100 bg-white p-2 shadow-xl shadow-emerald-900/10">
+              <Link
+                href="/pohon"
+                onClick={() => setOpen(false)}
+                data-testid="nav-pohon-available"
+                className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+              >
+                Available
+              </Link>
+              <Link
+                href="/pohon?status=adopted"
+                onClick={() => setOpen(false)}
+                data-testid="nav-pohon-adopted"
+                className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+              >
+                Adopted
+              </Link>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function SiteHeader({ session }: { session: Session | null }) {
   const pathname = usePathname();
   const { dict } = useI18n();
@@ -96,15 +166,26 @@ export default function SiteHeader({ session }: { session: Session | null }) {
         </Link>
 
         <nav className="hidden items-center gap-5 xl:flex">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`${linkCls} ${isActive(item.href) ? linkActive : ""} whitespace-nowrap`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {NAV.map((item) =>
+            item.href === "/pohon" ? (
+              <NavPohonMenu
+                key={item.href}
+                label={item.label}
+                linkCls={linkCls}
+                linkActive={linkActive}
+                active={isActive("/pohon")}
+                overlay={overlay}
+              />
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${linkCls} ${isActive(item.href) ? linkActive : ""} whitespace-nowrap`}
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
 
           <div className="group relative">
             <button
@@ -251,18 +332,39 @@ export default function SiteHeader({ session }: { session: Session | null }) {
         <nav className="animate-menu absolute inset-x-0 top-16 border-b border-emerald-100 bg-white shadow-lg xl:hidden">
           <div className="flex flex-col gap-1 px-4 py-4">
             {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow"
-                    : "text-emerald-900 hover:bg-emerald-50"
-                }`}
-              >
-                {item.label}
-              </Link>
+              <div key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`block rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow"
+                      : "text-emerald-900 hover:bg-emerald-50"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+                {item.href === "/pohon" && (
+                  <div className="ml-5 mt-1 flex flex-col gap-1 border-l border-emerald-100 pl-2">
+                    <Link
+                      href="/pohon"
+                      onClick={() => setOpen(false)}
+                      data-testid="nav-pohon-available"
+                      className="rounded-xl px-4 py-2 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
+                    >
+                      Available
+                    </Link>
+                    <Link
+                      href="/pohon?status=adopted"
+                      onClick={() => setOpen(false)}
+                      data-testid="nav-pohon-adopted"
+                      className="rounded-xl px-4 py-2 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
+                    >
+                      Adopted
+                    </Link>
+                  </div>
+                )}
+              </div>
             ))}
             <p className="px-4 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-500">
               {dict.nav.info}
