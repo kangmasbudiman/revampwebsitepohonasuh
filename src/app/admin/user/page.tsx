@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { UserPlus } from "lucide-react";
 import SuccessPopup from "@/components/admin/success-popup";
 import { requireAdminLevel } from "@/lib/guard";
 import { apiGet, mapMembers, type ApiMember } from "@/lib/api";
-import { kirimPesan } from "@/lib/actions/member";
+import { kirimPesan, tambahMember } from "@/lib/actions/member";
 import UserTable from "@/components/admin/user-table";
 
 export const metadata = { title: "Kelola User | Pohon Asuh" };
@@ -23,6 +24,7 @@ export default async function KelolaUserPage({
 
   const kirimId = Number((Array.isArray(sp?.kirim) ? sp.kirim[0] : sp?.kirim) ?? NaN);
   const target = Number.isFinite(kirimId) ? members.find((m) => m.id === kirimId) : undefined;
+  const tambah = !!sp?.tambah;
 
   return (
     <main className="w-full px-6 py-8 lg:px-10">
@@ -37,10 +39,108 @@ export default async function KelolaUserPage({
           {String(sp.updated)}
         </SuccessPopup>
       )}
+      {sp?.created && (
+        <SuccessPopup paramKey="created" title="Akun Dibuat">
+          {String(sp.created)}
+        </SuccessPopup>
+      )}
       {sp?.error && (
         <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(sp.error)}
         </SuccessPopup>
+      )}
+
+      {!tambah && (
+        <Link
+          href="/admin/user?tambah=1"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+        >
+          <UserPlus className="h-4 w-4" aria-hidden />
+          Tambah Akun
+        </Link>
+      )}
+
+      {tambah && (
+        <form
+          action={tambahMember}
+          className="mt-6 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700"
+        >
+          <h2 className="text-lg font-bold pa-hgrad">Tambah Akun</h2>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Akun langsung aktif dan bisa dipakai login (web & aplikasi mobile). Default peran
+            Petugas — petugas lalu ditugaskan ke desa lewat menu Penugasan Petugas.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+              Nama
+              <input
+                name="name"
+                required
+                maxLength={250}
+                placeholder="Nama lengkap petugas…"
+                className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-normal text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+              />
+            </label>
+            <label className="block text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+              Email
+              <input
+                name="emaile"
+                type="email"
+                required
+                maxLength={250}
+                placeholder="email@contoh.com"
+                className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-normal text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+              />
+            </label>
+            <label className="block text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+              No. HP <span className="font-normal text-zinc-400">(opsional)</span>
+              <input
+                name="hp"
+                maxLength={30}
+                placeholder="08…"
+                className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-normal text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+              />
+            </label>
+            <label className="block text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+              Password
+              <input
+                name="passe"
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                placeholder="Minimal 6 karakter"
+                className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-normal text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+              />
+            </label>
+            <label className="block text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+              Peran
+              <select
+                name="admin"
+                defaultValue="2"
+                className="mt-1.5 w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm font-normal text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
+              >
+                <option value="2">Petugas</option>
+                <option value="1">Admin</option>
+                <option value="0">Donatur</option>
+              </select>
+            </label>
+          </div>
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              type="submit"
+              className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700"
+            >
+              Buat Akun
+            </button>
+            <Link
+              href="/admin/user"
+              className="text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              Batal
+            </Link>
+          </div>
+        </form>
       )}
 
       {target && (

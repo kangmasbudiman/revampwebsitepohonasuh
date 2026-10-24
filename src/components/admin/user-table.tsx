@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ApiMember } from "@/lib/api";
-import { updateStatusMember } from "@/lib/actions/member";
+import { updateStatusMember, ubahPeranMember } from "@/lib/actions/member";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import RowsPerPage from "@/components/admin/rows-per-page";
 
@@ -166,6 +166,29 @@ export default function UserTable({
                         </button>
                       )}
                     </form>
+                    {!sendiri && (
+                      <form action={ubahPeranMember} className="mt-2 flex justify-end gap-1.5">
+                        <input type="hidden" name="idmember" value={m.id} />
+                        <input type="hidden" name="nama" value={m.name} />
+                        <select
+                          name="admin"
+                          defaultValue={String(m.admin)}
+                          aria-label={`Peran ${m.name}`}
+                          data-testid={`peran-select-${m.id}`}
+                          className="rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-700 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-200"
+                        >
+                          <option value="0">Donatur</option>
+                          <option value="1">Admin</option>
+                          <option value="2">Petugas</option>
+                        </select>
+                        <ConfirmSubmit
+                          message={`Ubah peran ${m.name} ke peran yang dipilih?`}
+                          className="rounded-lg border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+                        >
+                          Simpan
+                        </ConfirmSubmit>
+                      </form>
+                    )}
                   </td>
                 </tr>
               );

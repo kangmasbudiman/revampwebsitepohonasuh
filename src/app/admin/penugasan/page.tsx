@@ -110,8 +110,8 @@ export default async function PenugasanPage({
             </table>
           </div>
           <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
-            Catatan: pembuatan akun petugas belum tersedia lewat web — hubungi pengelola data
-            untuk menambah member berperan operator.
+            Catatan: akun petugas dibuat lewat menu Kelola User (tombol Tambah Akun), lalu
+            ditugaskan ke desa di halaman ini.
           </p>
         </>
       )}
