@@ -111,8 +111,6 @@ export const dict = {
     laporanLatest: "Laporan Terbaru",
     laporanViewAll: "Lihat Semua Laporan",
     laporanVerified: "Terverifikasi",
-    laporanNote:
-      "Data laporan diverifikasi oleh admin Pohon Asuh sebelum dipublikasikan.",
     featuredEyebrow: "Koleksi",
     featuredTitle: "Pohon Siap Diadopsi",
     viewAll: "Lihat semua →",

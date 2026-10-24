@@ -503,8 +503,8 @@ await p2.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
 assert(p2.url().includes("/admin/tagging"), `petugas akses /admin → redirect ${p2.url()}`);
 const navPetugas = await p2.locator("aside nav a").allTextContents();
 assert(
-  navPetugas.length === 5 && navPetugas.includes("Order Tagging") && navPetugas.includes("Laporan BTOR") && navPetugas.includes("Laporan Kegiatan") && navPetugas.includes("Kelola Peta Desa") && navPetugas.includes("Template Share"),
-  `sidebar petugas: 5 menu (Tagging/BTOR/Laporan/Peta/Template Share) (${navPetugas})`,
+  navPetugas.length === 4 && navPetugas.includes("Order Tagging") && navPetugas.includes("Laporan BTOR") && navPetugas.includes("Laporan Kegiatan") && navPetugas.includes("Kelola Peta Desa") && !navPetugas.includes("Template Share"),
+  `sidebar petugas: 4 menu (Tagging/BTOR/Laporan/Peta, tanpa Template Share) (${navPetugas})`,
 );
 // Petugas juga bisa membuka peta offline desa tugasnya (rantaukermas).
 await p2.goto(`${BASE}/admin/peta`, { waitUntil: "networkidle" });

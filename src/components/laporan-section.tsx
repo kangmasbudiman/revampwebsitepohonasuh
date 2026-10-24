@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Info, TreePine, Wallet } from "lucide-react";
+import { ArrowRight, CheckCircle2, TreePine, Wallet } from "lucide-react";
 import type { ApiLaporan } from "@/lib/api";
 import { rupiah } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
@@ -100,11 +100,6 @@ export default async function LaporanSection({ items }: { items: ApiLaporan[] })
             </Reveal>
           ))}
         </div>
-
-        <p className="mt-8 flex items-start justify-center gap-1.5 text-center text-xs text-zinc-500">
-          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-          {d.home.laporanNote}
-        </p>
       </div>
     </section>
   );

@@ -110,8 +110,6 @@ export const dict: Dict = {
     laporanLatest: "Latest Reports",
     laporanViewAll: "View All Reports",
     laporanVerified: "Verified",
-    laporanNote:
-      "Report data is verified by Pohon Asuh admins before publication.",
     featuredEyebrow: "Collection",
     featuredTitle: "Trees Ready for Adoption",
     viewAll: "View all →",
