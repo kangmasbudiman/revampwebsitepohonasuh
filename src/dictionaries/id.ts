@@ -118,7 +118,7 @@ export const dict = {
     blogEyebrow: "Kabar Terkini",
     blogTitle: "Artikel Terbaru",
     testiEyebrow: "Kata Mereka",
-    testiTitle: "Cerita para Pengasuh Pohon",
+    testiTitle: "Cerita Pengadopsi",
     partners: "Didukung Oleh",
     locEyebrow: "Jelajahi",
     locTitle: "Lokasi Hutan",

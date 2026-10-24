@@ -117,7 +117,7 @@ export const dict: Dict = {
     blogEyebrow: "Latest News",
     blogTitle: "Recent Articles",
     testiEyebrow: "Testimonials",
-    testiTitle: "Stories from Tree Fosterers",
+    testiTitle: "Adopter Stories",
     partners: "Supported By",
     locEyebrow: "Explore",
     locTitle: "Forest Locations",

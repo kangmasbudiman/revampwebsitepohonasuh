@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   BadgeCheck,
+  CalendarCheck,
   ClipboardCheck,
   Coins,
   HeartHandshake,
@@ -23,6 +24,9 @@ export default async function AdminHomePage() {
   let adopted = 0;
   let totalDonasi = 0;
   let btorTerkirim = 0;
+  const tahunIni = new Date().getFullYear();
+  let danaTahunIni = 0;
+  let pohonTahunIni = 0;
   try {
     rows = mapOrderRows(await apiGet<Record<string, unknown>[]>("ordercustomer"));
     for (const d of (await apiGet<Record<string, unknown>[]>("getdesa")).map(mapDesa)) {
@@ -37,6 +41,15 @@ export default async function AdminHomePage() {
     // legacy + order terverifikasi — ordercustomer hanya memuat proses 1-3 sehingga
     // total dari sana memotong 253 juta order terverifikasi lama (proses 0).
     totalDonasi = Number((await apiGet<{ total?: number }>("totaldonasi")).total) || 0;
+  } catch {
+    // biarkan 0
+  }
+  try {
+    const th = await apiGet<{ total?: number; pohon?: number }>(
+      `totaldonasi?tahun=${tahunIni}`,
+    );
+    danaTahunIni = Number(th.total) || 0;
+    pohonTahunIni = Number(th.pohon) || 0;
   } catch {
     // biarkan 0
   }
@@ -123,21 +136,45 @@ export default async function AdminHomePage() {
         })}
       </div>
 
-      <div className="relative mt-6 overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-800 to-teal-900 p-6 text-white shadow-lg shadow-emerald-900/30">
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-800 to-teal-900 p-6 text-white shadow-lg shadow-emerald-900/30">
+          <div
+            aria-hidden
+            className="absolute -top-10 right-10 h-32 w-32 rounded-full border-[10px] border-white/10"
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-14 right-28 h-36 w-36 rounded-full border-[12px] border-white/5"
+          />
+          <p className="relative flex items-center gap-2 text-sm font-medium text-emerald-100/80">
+            <Coins className="h-4 w-4" /> Total Dana Adopsi Terkumpul
+          </p>
+          <p className="relative mt-1 text-3xl font-extrabold tracking-tight text-white">
+            {rupiah(totalDonasi)}
+          </p>
+        </div>
         <div
-          aria-hidden
-          className="absolute -top-10 right-10 h-32 w-32 rounded-full border-[10px] border-white/10"
-        />
-        <div
-          aria-hidden
-          className="absolute -bottom-14 right-28 h-36 w-36 rounded-full border-[12px] border-white/5"
-        />
-        <p className="relative flex items-center gap-2 text-sm font-medium text-emerald-100/80">
-          <Coins className="h-4 w-4" /> Total Dana Adopsi Terkumpul
-        </p>
-        <p className="relative mt-1 text-3xl font-extrabold tracking-tight text-white">
-          {rupiah(totalDonasi)}
-        </p>
+          data-testid="banner-tahun-ini"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-600 via-teal-700 to-emerald-800 p-6 text-white shadow-lg shadow-teal-900/30"
+        >
+          <div
+            aria-hidden
+            className="absolute -top-10 right-10 h-32 w-32 rounded-full border-[10px] border-white/10"
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-14 right-28 h-36 w-36 rounded-full border-[12px] border-white/5"
+          />
+          <p className="relative flex items-center gap-2 text-sm font-medium text-teal-100/80">
+            <CalendarCheck className="h-4 w-4" /> Adopsi Tahun {tahunIni}
+          </p>
+          <p className="relative mt-1 text-3xl font-extrabold tracking-tight text-white">
+            {pohonTahunIni} pohon
+          </p>
+          <p className="relative mt-1 text-sm font-medium text-teal-100/80">
+            Dana terkumpul {rupiah(danaTahunIni)}
+          </p>
+        </div>
       </div>
 
       {pendingIds.size > 0 && (
