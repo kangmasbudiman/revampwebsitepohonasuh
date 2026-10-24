@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react";
+import { ArrowDown, ArrowDownUp, ArrowUp, ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react";
 import type { ApiTree, TreeStatus } from "@/lib/api";
 import { namaDesa, rupiah, TREE_STATUS } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
@@ -15,6 +15,8 @@ import { deleteTree, setTreeUnggulan, removeTreeUnggulan } from "@/lib/actions/t
 const selectClass =
   "rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
 
+type UrutUkuran = "off" | "desc" | "asc";
+
 export default function PohonTable({ trees }: { trees: ApiTree[] }) {
   const [q, setQ] = useState("");
   const [desa, setDesa] = useState("semua");
@@ -22,6 +24,7 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
   const [unggulan, setUnggulan] = useState("semua");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(50);
+  const [urut, setUrut] = useState<UrutUkuran>("off");
 
   const desaList = useMemo(
     () => [...new Set(trees.map((t) => t.desa).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
@@ -44,9 +47,23 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
     });
   }, [trees, q, desa, status, unggulan]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  // Sort ukuran (tinggi) — pohon tanpa data tinggi (null/0) selalu di urutan bawah.
+  const sorted = useMemo(() => {
+    if (urut === "off") return filtered;
+    const ada = (x: number | null) => x !== null && x > 0;
+    return [...filtered].sort((a, b) => {
+      const va = ada(a.heightM) ? a.heightM : null;
+      const vb = ada(b.heightM) ? b.heightM : null;
+      if (va === null && vb === null) return 0;
+      if (va === null) return 1;
+      if (vb === null) return -1;
+      return urut === "desc" ? (vb as number) - (va as number) : (va as number) - (vb as number);
+    });
+  }, [filtered, urut]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / perPage));
   const current = Math.min(page, totalPages);
-  const pageTrees = filtered.slice((current - 1) * perPage, current * perPage);
+  const pageTrees = sorted.slice((current - 1) * perPage, current * perPage);
   const adaFilter = q !== "" || desa !== "semua" || status !== "semua" || unggulan !== "semua";
 
   return (
@@ -130,12 +147,29 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[860px] text-left text-sm">
+        <table className="w-full min-w-[940px] text-left text-sm">
           <thead className="pa-thead border-b border-emerald-100 dark:border-night-700">
             <tr>
               <th className="px-4 py-3 font-semibold">Kode</th>
               <th className="px-4 py-3 font-semibold">Pohon</th>
               <th className="px-4 py-3 font-semibold">Lokasi</th>
+              <th className="px-4 py-3 font-semibold">
+                <button
+                  type="button"
+                  data-testid="sort-ukuran"
+                  onClick={() => {
+                    setUrut((u) => (u === "off" ? "desc" : u === "desc" ? "asc" : "off"));
+                    setPage(1);
+                  }}
+                  title="Urutkan ukuran: terbesar → terkecil → terkecil → terbesar"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-emerald-700 dark:hover:text-emerald-300"
+                >
+                  Ukuran
+                  {urut === "off" && <ArrowDownUp aria-hidden className="h-3 w-3 opacity-40" />}
+                  {urut === "desc" && <ArrowDown aria-hidden className="h-3 w-3" />}
+                  {urut === "asc" && <ArrowUp aria-hidden className="h-3 w-3" />}
+                </button>
+              </th>
               <th className="px-4 py-3 font-semibold">Status</th>
               <th className="px-4 py-3 text-center font-semibold">Unggulan</th>
               <th className="px-4 py-3 text-right font-semibold">Harga</th>
@@ -166,6 +200,17 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                   </div>
                 </td>
                 <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{namaDesa(tree.desa)}</td>
+                <td
+                  className="whitespace-nowrap px-4 py-3 text-zinc-600 dark:text-zinc-300"
+                  title={tree.kelilingCm ? `Keliling batang ${tree.kelilingCm} cm` : undefined}
+                >
+                  <p className="font-medium">
+                    T {tree.heightM ? `${tree.heightM} m` : "—"}
+                  </p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Ø {tree.diameterCm ? `${tree.diameterCm} cm` : "—"}
+                  </p>
+                </td>
                 <td className="px-4 py-3">
                   <StatusBadge
                     {...(TREE_STATUS[tree.status] ?? {
@@ -242,7 +287,7 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
             ))}
             {pageTrees.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-zinc-500 dark:text-zinc-400">
+                <td colSpan={8} className="px-4 py-10 text-center text-zinc-500 dark:text-zinc-400">
                   {trees.length === 0
                     ? "Tidak ada data pohon."
                     : "Tidak ada pohon yang cocok dengan pencarian/filter."}
