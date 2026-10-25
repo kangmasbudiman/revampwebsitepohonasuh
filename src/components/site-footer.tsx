@@ -1,5 +1,32 @@
 import Link from "next/link";
 import Image from "next/image";
+
+// Ikon brand (lucide-react sudah tidak menyediakan ikon merek) — SVG
+// sederhana mengikuti ukuran ikon lucide (stroke/fill 24x24).
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
+    </svg>
+  );
+}
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+function YoutubeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
+      <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+      <path d="m10 15 5-3-5-3z" />
+    </svg>
+  );
+}
 import { getSettings } from "@/lib/settings";
 import { apiGet, mapKontak, type ApiKontak } from "@/lib/api";
 import { getDict } from "@/lib/i18n";
@@ -75,13 +102,25 @@ export default async function SiteFooter() {
           <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">{t.followUs}</h3>
           <ul className="mt-3 space-y-2 text-sm">
             {instagram && (
-              <li><a href={instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white">Instagram</a></li>
+              <li>
+                <a href={instagram} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white">
+                  <InstagramIcon className="h-4 w-4" /> Instagram
+                </a>
+              </li>
             )}
             {facebook && (
-              <li><a href={facebook} target="_blank" rel="noopener noreferrer" className="hover:text-white">Facebook</a></li>
+              <li>
+                <a href={facebook} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white">
+                  <FacebookIcon className="h-4 w-4" /> Facebook
+                </a>
+              </li>
             )}
             {youtube && (
-              <li><a href={youtube} target="_blank" rel="noopener noreferrer" className="hover:text-white">YouTube</a></li>
+              <li>
+                <a href={youtube} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white">
+                  <YoutubeIcon className="h-4 w-4" /> YouTube
+                </a>
+              </li>
             )}
           </ul>
         </div>
