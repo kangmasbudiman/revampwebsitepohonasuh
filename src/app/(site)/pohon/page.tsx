@@ -191,8 +191,8 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
                 tree={{
                   ...tree,
                   serapanKarbon: tree.species
-                    ? (serapanBySpecies.get(tree.species.toLowerCase().trim()) ?? null)
-                    : null,
+                    ? (serapanBySpecies.get(tree.species.toLowerCase().trim()) ?? 0)
+                    : 0,
                   location: { name: tree.desa, label: labelByNama.get(tree.desa) ?? null },
                 }}
               />

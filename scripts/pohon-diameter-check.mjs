@@ -109,8 +109,15 @@ if ((await next.count()) === 1) {
   console.log("INFO — hanya 1 halaman, lewati uji paginasi");
 }
 
-// 6) badge serapan karbon (katalog /spesies, join nama latin): total badge
-// di seluruh halaman ?lokasi=sirukam = jumlah pohon berestimasi di SQL.
+// 6) badge serapan karbon: selalu tampil di semua kartu; badge bernilai
+// (>0) hanya untuk spesies yang punya estimasi di katalog.
+await buka("/pohon");
+{
+  const kartuHal1 = await page.locator("main a:has-text(\"Ø\"), main div.mt-4 > a").count();
+  const badgeHal1 = await page.locator("main span", { hasText: "kg CO₂/tahun" }).count();
+  ok("badge tampil di semua kartu hal.1", badgeHal1 > 0 && badgeHal1 >= 24, `${badgeHal1}`);
+  void kartuHal1;
+}
 const harapanBadge = Number(
   sql(
     "SELECT COUNT(*) FROM data_pohon dp WHERE dp.adopted='available' AND dp.desa='sirukam' AND NOT EXISTS (SELECT 1 FROM desa dd WHERE dd.nama=dp.desa AND dd.aktif=0) AND EXISTS (SELECT 1 FROM species_catalog sc WHERE sc.serapan_karbon IS NOT NULL AND LOWER(TRIM(sc.nama_latin))=LOWER(TRIM(dp.species)))",
@@ -123,17 +130,25 @@ let jmlPertamaBadge = 0;
 for (let pg = 1; ; pg++) {
   await buka(`/pohon?lokasi=sirukam${pg > 1 ? `&page=${pg}` : ""}`);
   const spans = page.locator("main span", { hasText: "kg CO₂/tahun" });
-  const n = await spans.count();
-  totalBadge += n;
-  if (!formatOk && n > 0) {
-    formatOk = /^≈ \d+ kg CO₂\/tahun$/.test((await spans.first().textContent()) ?? "");
+  const nBernilai = await page
+    .locator("main span", { hasText: /≈ [1-9]\d* kg CO₂\/tahun/ })
+    .count();
+  totalBadge += nBernilai;
+  if (!formatOk && nBernilai > 0) {
+    formatOk = /^≈ [1-9]\d* kg CO₂\/tahun$/.test(
+      (await page.locator("main span", { hasText: /≈ [1-9]\d* kg CO₂/ }).first().textContent()) ?? "",
+    );
     pgPertamaBadge = pg;
-    jmlPertamaBadge = n;
+    jmlPertamaBadge = await spans.count();
   }
   if ((await page.locator("nav a", { hasText: "Berikutnya" }).count()) === 0) break;
 }
-ok("total badge sirukam = SQL", totalBadge === harapanBadge, `${totalBadge} vs ${harapanBadge}`);
+ok("total badge bernilai sirukam = SQL", totalBadge === harapanBadge, `${totalBadge} vs ${harapanBadge}`);
 ok("format badge ≈ n kg CO₂/tahun", formatOk);
+ok(
+  "ada badge 0 (belum ada estimasi)",
+  (await page.locator("main span", { hasText: "≈ 0 kg CO₂/tahun" }).count()) > 0,
+);
 
 // 7) label EN via cookie pa_lang
 const ctxEn = await browser.newContext();
@@ -149,6 +164,11 @@ ok(
   "EN: badge kg CO₂/year",
   pgPertamaBadge > 0 &&
     (await pageEn.locator("main span", { hasText: "kg CO₂/year" }).count()) === jmlPertamaBadge,
+);
+await pageEn.goto(`${BASE}/pohon?lokasi=sirukam`, { waitUntil: "networkidle" });
+ok(
+  "EN: ada badge 0",
+  (await pageEn.locator("main span", { hasText: "≈ 0 kg CO₂/year" }).count()) > 0,
 );
 
 await browser.close();

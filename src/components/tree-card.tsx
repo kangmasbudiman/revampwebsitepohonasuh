@@ -69,7 +69,11 @@ export default async function TreeCard({ tree }: TreeCardProps) {
           </div>
         )}
         {tree.serapanKarbon != null && (
-          <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm backdrop-blur">
+          <span
+            className={`absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold shadow-sm backdrop-blur ${
+              tree.serapanKarbon > 0 ? "text-emerald-700" : "text-zinc-500"
+            }`}
+          >
             <Leaf aria-hidden className="h-3.5 w-3.5" />
             {dict.pages.spesies.carbonPerYear.replaceAll("{n}", String(tree.serapanKarbon))}
           </span>
