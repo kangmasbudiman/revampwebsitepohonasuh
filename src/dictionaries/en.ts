@@ -683,6 +683,7 @@ export const dict: Dict = {
       introAdopted: "Trees that have been adopted and are now cared for with their fosterers.",
       allLocations: "All Locations",
       allPrices: "All Prices",
+      allDiameters: "All Diameters",
       loadError: "Failed to load tree data.",
       retry: "Try again",
       availableCount: "{n} trees available",

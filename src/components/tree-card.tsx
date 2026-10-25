@@ -15,6 +15,7 @@ type TreeCardProps = {
     status: string;
     photoUrl: string | null;
     desa?: string | null;
+    diameterCm?: number | null;
     location?: { name: string; label?: string | null } | null;
   };
 };
@@ -78,6 +79,11 @@ export default async function TreeCard({ tree }: TreeCardProps) {
         {tree.location && (
           <p className="mt-2 text-sm text-zinc-600">📍 {labelLokasi(tree.location)}</p>
         )}
+        {tree.diameterCm ? (
+          <p className={`${tree.location ? "" : "mt-2"} text-sm text-zinc-600`}>
+            📏 Ø {tree.diameterCm} cm
+          </p>
+        ) : null}
         <p className="mt-3 text-lg font-bold text-emerald-700">{rupiah(tree.priceIdr)}</p>
         <p className="text-xs text-zinc-500">{t.perYear}</p>
       </div>

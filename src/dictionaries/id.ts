@@ -683,6 +683,7 @@ export const dict = {
       introAdopted: "Pohon-pohon yang telah diadopsi dan kini dirawat bersama pengasuhnya.",
       allLocations: "Semua Lokasi",
       allPrices: "Semua Harga",
+      allDiameters: "Semua Diameter",
       loadError: "Gagal memuat data pohon.",
       retry: "Coba lagi",
       availableCount: "{n} pohon tersedia",

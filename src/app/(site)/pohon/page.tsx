@@ -32,6 +32,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
   const searchParams = await props.searchParams;
   const lokasi = typeof searchParams.lokasi === "string" ? searchParams.lokasi : undefined;
   const harga = Number(searchParams.harga) || 0;
+  const diameter = typeof searchParams.diameter === "string" ? searchParams.diameter : "";
   const page = Math.max(1, Number(searchParams.page) || 1);
   // Tampilan default (tanpa param) tetap pohon tersedia; submenu header
   // "Adopted" memakai ?status=adopted.
@@ -68,11 +69,25 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
     .sort((a, b) => a - b);
   if (harga) trees = trees.filter((t) => t.priceIdr === harga);
 
-  const qs = (o: { lokasi?: string; harga?: number; page?: number }) => {
+  // Filter diameter: pill rentang (min inklusif, max eksklusif).
+  const RENTANG_DIAMETER = [
+    { v: "lt50", min: 0, max: 50, label: "< 50 cm" },
+    { v: "50-100", min: 50, max: 100, label: "50–100 cm" },
+    { v: "gt100", min: 100, max: Infinity, label: "> 100 cm" },
+  ];
+  const rentangAktif = RENTANG_DIAMETER.find((r) => r.v === diameter);
+  if (rentangAktif) {
+    trees = trees.filter(
+      (t) => (t.diameterCm ?? 0) >= rentangAktif.min && (t.diameterCm ?? 0) < rentangAktif.max,
+    );
+  }
+
+  const qs = (o: { lokasi?: string; harga?: number; diameter?: string; page?: number }) => {
     const sp = new URLSearchParams();
     if (status === "adopted") sp.set("status", "adopted");
     if (o.lokasi) sp.set("lokasi", o.lokasi);
     if (o.harga) sp.set("harga", String(o.harga));
+    if (o.diameter) sp.set("diameter", o.diameter);
     if (o.page && o.page > 1) sp.set("page", String(o.page));
     const s = sp.toString();
     return s ? `/pohon?${s}` : "/pohon";
@@ -101,13 +116,13 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
       <p className="mt-2 text-zinc-600">{status === "adopted" ? d.introAdopted : d.intro}</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        <Link href={qs({ harga })} className={pillCls(!lokasi)}>
+        <Link href={qs({ harga, diameter })} className={pillCls(!lokasi)}>
           {d.allLocations}
         </Link>
         {desaList.map((desa) => (
           <Link
             key={desa.slug}
-            href={qs({ lokasi: desa.slug, harga })}
+            href={qs({ lokasi: desa.slug, harga, diameter })}
             className={pillCls(lokasi === desa.slug)}
           >
             {labelLokasi(desa)}
@@ -116,16 +131,31 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <Link href={qs({ lokasi })} className={pillCls(!harga)}>
+        <Link href={qs({ lokasi, diameter })} className={pillCls(!harga)}>
           {d.allPrices}
         </Link>
         {hargaList.map((h) => (
           <Link
             key={h}
-            href={qs({ lokasi, harga: h })}
+            href={qs({ lokasi, harga: h, diameter })}
             className={pillCls(harga === h)}
           >
             {rupiah(h)}
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link href={qs({ lokasi, harga })} className={pillCls(!diameter)}>
+          {d.allDiameters}
+        </Link>
+        {RENTANG_DIAMETER.map((r) => (
+          <Link
+            key={r.v}
+            href={qs({ lokasi, harga, diameter: r.v })}
+            className={pillCls(diameter === r.v)}
+          >
+            {r.label}
           </Link>
         ))}
       </div>
@@ -165,7 +195,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
             <nav className="mt-10 flex items-center justify-between">
               {page > 1 ? (
                 <Link
-                  href={qs({ lokasi, harga, page: page - 1 })}
+                  href={qs({ lokasi, harga, diameter, page: page - 1 })}
                   className="rounded-xl border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
                 >
                   {d.prevPage}
@@ -178,7 +208,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
               </span>
               {page < totalPages ? (
                 <Link
-                  href={qs({ lokasi, harga, page: page + 1 })}
+                  href={qs({ lokasi, harga, diameter, page: page + 1 })}
                   className="rounded-xl border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
                 >
                   {d.nextPage}
