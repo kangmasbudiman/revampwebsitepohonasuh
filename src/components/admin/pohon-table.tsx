@@ -30,6 +30,7 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
     () => [...new Set(trees.map((t) => t.desa).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
     [trees],
   );
+  const jmlUnggulan = useMemo(() => trees.filter((t) => t.highlight === 1).length, [trees]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -112,19 +113,31 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
           <option value="RESERVED">Dipesan</option>
           <option value="ADOPTED">Teradopsi</option>
         </select>
-        <select
-          value={unggulan}
-          onChange={(e) => {
-            setUnggulan(e.target.value);
-            setPage(1);
-          }}
-          aria-label="Filter unggulan"
-          className={selectClass}
-        >
-          <option value="semua">Semua pohon</option>
-          <option value="unggulan">Unggulan</option>
-          <option value="biasa">Bukan unggulan</option>
-        </select>
+        <div className="flex gap-1.5" role="group" aria-label="Filter unggulan">
+          {(
+            [
+              { v: "semua", l: "Semua pohon" },
+              { v: "unggulan", l: `★ Unggulan (${jmlUnggulan})` },
+              { v: "biasa", l: "Bukan unggulan" },
+            ] as const
+          ).map((f) => (
+            <button
+              key={f.v}
+              type="button"
+              onClick={() => {
+                setUnggulan(f.v);
+                setPage(1);
+              }}
+              className={`rounded-full px-3 py-2 text-xs font-medium transition-colors ${
+                unggulan === f.v
+                  ? "pa-btn-primary text-white"
+                  : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+              }`}
+            >
+              {f.l}
+            </button>
+          ))}
+        </div>
         {adaFilter && (
           <button
             type="button"

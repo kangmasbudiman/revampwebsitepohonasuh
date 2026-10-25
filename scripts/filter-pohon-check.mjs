@@ -85,7 +85,7 @@ const sqlKombinasi = Number(
   sql(`SELECT COUNT(*) FROM data_pohon WHERE desa='${desaUji}' AND adopted='available'`),
 );
 ok("lokasi + status tersedia → jumlah = SQL", (await jml()) === `${fmt(sqlKombinasi)} pohon`, `${await jml()} vs ${sqlKombinasi}`);
-const badgeSel = await page.locator("table tbody tr td:nth-child(4)").allTextContents();
+const badgeSel = await page.locator("table tbody tr td:nth-child(5)").allTextContents();
 ok("semua badge = Tersedia", badgeSel.every((t) => t.includes("Tersedia")), `${badgeSel.length} baris`);
 
 // 7) reset → kembali total
@@ -94,7 +94,7 @@ await page.waitForTimeout(400);
 ok("reset → jumlah = total", (await jml()) === `${fmt(total)} pohon`, await jml());
 
 // 8) filter unggulan → jumlah = COUNT(highlight=1) + tombol ★ Unggulan di baris
-await page.selectOption('select[aria-label="Filter unggulan"]', "unggulan");
+await page.locator('div[aria-label="Filter unggulan"] button', { hasText: "Unggulan (" }).click();
 await page.waitForTimeout(400);
 const sqlUnggulan = Number(sql("SELECT COUNT(*) FROM data_pohon WHERE highlight=1"));
 ok("filter unggulan → jumlah = SQL", (await jml()) === `${fmt(sqlUnggulan)} pohon`, `${await jml()} vs ${sqlUnggulan}`);
@@ -106,7 +106,7 @@ if (sqlUnggulan > 0) {
 }
 
 // 9) paginasi: tombol awal/akhir
-await page.selectOption('select[aria-label="Filter unggulan"]', "semua");
+await page.locator('div[aria-label="Filter unggulan"] button', { hasText: "Semua pohon" }).click();
 await page.waitForTimeout(400);
 const sebelumnya = page.locator("button", { hasText: "Sebelumnya" });
 ok("Sebelumnya disabled di hal 1", await sebelumnya.isDisabled());
