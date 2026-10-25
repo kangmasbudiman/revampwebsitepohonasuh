@@ -19,6 +19,11 @@ export default async function SiteFooter() {
   const email = k?.email || s["contact.email"];
   const whatsapp = k?.whatsapp || s["contact.whatsapp"];
   const telepon = k?.telepon || null;
+  // Sosmed dikelola penuh lewat tabel kontak (input admin Pengaturan) —
+  // tanpa fallback settings lama agar "kosongkan untuk sembunyikan" bekerja.
+  const instagram = k?.instagram ?? null;
+  const facebook = k?.facebook ?? null;
+  const youtube = k?.youtube ?? null;
 
   return (
     <footer className="mt-16 bg-emerald-950 text-emerald-50">
@@ -69,14 +74,14 @@ export default async function SiteFooter() {
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">{t.followUs}</h3>
           <ul className="mt-3 space-y-2 text-sm">
-            {s["contact.instagram"] && (
-              <li><a href={s["contact.instagram"]} target="_blank" rel="noopener noreferrer" className="hover:text-white">Instagram</a></li>
+            {instagram && (
+              <li><a href={instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white">Instagram</a></li>
             )}
-            {s["contact.facebook"] && (
-              <li><a href={s["contact.facebook"]} target="_blank" rel="noopener noreferrer" className="hover:text-white">Facebook</a></li>
+            {facebook && (
+              <li><a href={facebook} target="_blank" rel="noopener noreferrer" className="hover:text-white">Facebook</a></li>
             )}
-            {s["contact.youtube"] && (
-              <li><a href={s["contact.youtube"]} target="_blank" rel="noopener noreferrer" className="hover:text-white">YouTube</a></li>
+            {youtube && (
+              <li><a href={youtube} target="_blank" rel="noopener noreferrer" className="hover:text-white">YouTube</a></li>
             )}
           </ul>
         </div>

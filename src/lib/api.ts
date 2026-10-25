@@ -566,14 +566,24 @@ export type ApiKontak = {
   telepon: string;
   whatsapp: string;
   email: string;
+  instagram: string | null;
+  facebook: string | null;
+  youtube: string | null;
 };
 
 export function mapKontak(r: Record<string, unknown>): ApiKontak {
+  const url = (v: unknown) => {
+    const s = String(v ?? "").trim();
+    return s ? s : null;
+  };
   return {
     nama: String(r.nama ?? ""),
     telepon: String(r.telepon ?? ""),
     whatsapp: String(r.whatsapp ?? ""),
     email: String(r.email ?? ""),
+    instagram: url(r.instagram),
+    facebook: url(r.facebook),
+    youtube: url(r.youtube),
   };
 }
 

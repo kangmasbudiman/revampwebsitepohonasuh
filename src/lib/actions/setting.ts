@@ -16,9 +16,16 @@ export async function updateKontak(_prev: AdminState, formData: FormData): Promi
   const telepon = String(formData.get("telepon") ?? "").trim();
   const whatsapp = String(formData.get("whatsapp") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
+  const instagram = String(formData.get("instagram") ?? "").trim();
+  const facebook = String(formData.get("facebook") ?? "").trim();
+  const youtube = String(formData.get("youtube") ?? "").trim();
 
   if (!nama || !telepon || !whatsapp || !email) {
     return { error: "Semua field wajib diisi." };
+  }
+  const sosmed = [instagram, facebook, youtube].filter(Boolean);
+  if (sosmed.some((u) => !/^https?:\/\//.test(u))) {
+    return { error: "Tautan media sosial harus diawali http:// atau https://." };
   }
 
   let res: { value?: string | number; pesan?: string };
@@ -28,6 +35,9 @@ export async function updateKontak(_prev: AdminState, formData: FormData): Promi
       telepon,
       whatsapp,
       email,
+      instagram,
+      facebook,
+      youtube,
     });
   } catch (e) {
     return { error: e instanceof Error && e.message ? e.message : "Gagal menyimpan kontak." };
