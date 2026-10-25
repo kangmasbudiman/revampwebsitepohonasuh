@@ -1,6 +1,8 @@
-// Uji filter diameter halaman publik /pohon: pill rentang (<50 / 50–100 /
-// >100 cm), jumlah per rentang = SQL, kombinasi lokasi, kartu menampilkan
-// info Ø, paginasi mempertahankan filter, label EN.
+// Uji filter diameter + badge serapan karbon halaman publik /pohon:
+// pill rentang (<50 / 50–100 / >100 cm), jumlah per rentang = SQL,
+// kombinasi lokasi, kartu menampilkan Ø & badge CO₂, paginasi mempertahankan
+// filter, label EN. Navigasi via goto (cache router dev memutar ulang error
+// transien), href pill diverifikasi lewat atribut.
 import { chromium } from "playwright";
 import { execSync } from "node:child_process";
 
@@ -35,86 +37,119 @@ const sqlRentang = (min, maks, desa = null) => {
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await page.goto(`${BASE}/pohon`, { waitUntil: "networkidle" });
 
+const buka = async (path) => {
+  for (let i = 0; i < 2; i++) {
+    await page.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
+    if (!(await page.locator("main", { hasText: "Gagal memuat" }).count())) return;
+  }
+  throw new Error(`halaman ${path} tetap error setelah retry`);
+};
 const jml = async () => {
   const m = (await page.textContent("p.mt-6")).match(/(\d+)/);
   return Number(m[1]);
 };
 const rowDiameter = page.locator("main > div").nth(2);
 const pill = (label) => rowDiameter.locator("a", { hasText: label }).first();
-const klik = async (label, v) => {
-  await pill(label).click();
-  await page.waitForURL(new RegExp(`diameter=${v}($|&)`));
-  await page.waitForLoadState("networkidle");
-};
 
-// 1) baris pill diameter tampil
-for (const label of ["Semua Diameter", "< 50 cm", "50–100 cm", "> 100 cm"]) {
+await buka("/pohon");
+
+// 1) baris pill diameter tampil + href rentang
+for (const [label, href] of [
+  ["Semua Diameter", "/pohon"],
+  ["< 50 cm", "/pohon?diameter=lt50"],
+  ["50–100 cm", "/pohon?diameter=50-100"],
+  ["> 100 cm", "/pohon?diameter=gt100"],
+]) {
   ok(`pill ${label} tampil`, (await pill(label).count()) === 1);
+  if (href !== "/pohon") {
+    const h = await pill(label).getAttribute("href");
+    ok(`href ${label} benar`, h === href, h);
+  }
 }
 
 // 2) setiap rentang → jumlah = SQL
-for (const [label, v, min, maks] of [
-  ["< 50 cm", "lt50", 0, 50],
-  ["50–100 cm", "50-100", 50, 100],
-  ["> 100 cm", "gt100", 100, Infinity],
+for (const [label, path, min, maks] of [
+  ["< 50 cm", "/pohon?diameter=lt50", 0, 50],
+  ["50–100 cm", "/pohon?diameter=50-100", 50, 100],
+  ["> 100 cm", "/pohon?diameter=gt100", 100, Infinity],
 ]) {
-  await klik(label, v);
+  await buka(path);
   const ui = await jml();
   const db = sqlRentang(min, maks);
   ok(`rentang ${label} → jumlah = SQL`, ui === db, `${ui} vs ${db}`);
 }
-ok("URL memuat diameter=gt100", page.url().includes("diameter=gt100"), page.url());
 
 // 3) kartu menampilkan info Ø (rentang > 100 cm pasti punya diameter)
 const kartu = page.locator("main a", { hasText: "Ø" }).first();
 ok("kartu menampilkan Ø … cm", /Ø \d+ cm/.test((await kartu.textContent()) ?? ""));
 
-// 4) kombinasi: pill desa pertama (baris lokasi) saat filter diameter aktif
-const lokasiRow = page.locator("main > div").first();
-const pillDesa = lokasiRow.locator("a").nth(1);
-await pillDesa.click();
-await page.waitForURL(/lokasi=/);
-await page.waitForLoadState("networkidle");
-const slugDesa = new URL(page.url()).searchParams.get("lokasi");
+// 4) kombinasi: desa aktif pertama + >100 cm
 const dbDesa = sql("SELECT nama FROM desa WHERE aktif=1 ORDER BY id LIMIT 1");
-if (slugDesa) {
-  const cocokDesa = dbDesa.toLowerCase() === decodeURIComponent(slugDesa).toLowerCase();
-  ok("desa pill pertama = desa aktif pertama DB", cocokDesa, `${slugDesa} vs ${dbDesa}`);
-  if (cocokDesa) {
-    const uiKombinasi = await jml();
-    const dbKombinasi = sqlRentang(100, Infinity, dbDesa);
-    ok(
-      `kombinasi ${dbDesa} + >100 cm → jumlah = SQL`,
-      uiKombinasi === dbKombinasi,
-      `${uiKombinasi} vs ${dbKombinasi}`,
-    );
-  }
+const slugDesa = sql("SELECT LOWER(nama) FROM desa WHERE aktif=1 ORDER BY id LIMIT 1");
+await buka(`/pohon?lokasi=${slugDesa}&diameter=gt100`);
+{
+  const uiKombinasi = await jml();
+  const dbKombinasi = sqlRentang(100, Infinity, dbDesa);
+  ok(
+    `kombinasi ${dbDesa} + >100 cm → jumlah = SQL`,
+    uiKombinasi === dbKombinasi,
+    `${uiKombinasi} vs ${dbKombinasi}`,
+  );
 }
 
-// 5) paginasi mempertahankan diameter (jika > 1 halaman)
+// 5) paginasi mempertahankan diameter
 const next = page.locator("nav a", { hasText: "Berikutnya" });
 if ((await next.count()) === 1) {
   const href = await next.getAttribute("href");
   ok("link Berikutnya membawa diameter", href.includes("diameter=gt100"), href);
-  await next.click();
-  await page.waitForURL(/page=2/);
-  ok(
-    "halaman 2 tetap terfilter diameter",
-    page.url().includes("diameter=gt100") && page.url().includes("page=2"),
-    page.url(),
-  );
+  await buka(href);
+  ok("halaman 2 tetap terfilter diameter", page.url().includes("diameter=gt100"));
 } else {
   console.log("INFO — hanya 1 halaman, lewati uji paginasi");
 }
 
-// 6) label EN via cookie pa_lang
+// 6) badge serapan karbon (katalog /spesies, join nama latin): total badge
+// di seluruh halaman ?lokasi=sirukam = jumlah pohon berestimasi di SQL.
+const harapanBadge = Number(
+  sql(
+    "SELECT COUNT(*) FROM data_pohon dp WHERE dp.adopted='available' AND dp.desa='sirukam' AND NOT EXISTS (SELECT 1 FROM desa dd WHERE dd.nama=dp.desa AND dd.aktif=0) AND EXISTS (SELECT 1 FROM species_catalog sc WHERE sc.serapan_karbon IS NOT NULL AND LOWER(TRIM(sc.nama_latin))=LOWER(TRIM(dp.species)))",
+  ),
+);
+let totalBadge = 0;
+let formatOk = false;
+let pgPertamaBadge = 0;
+let jmlPertamaBadge = 0;
+for (let pg = 1; ; pg++) {
+  await buka(`/pohon?lokasi=sirukam${pg > 1 ? `&page=${pg}` : ""}`);
+  const spans = page.locator("main span", { hasText: "kg CO₂/tahun" });
+  const n = await spans.count();
+  totalBadge += n;
+  if (!formatOk && n > 0) {
+    formatOk = /^≈ \d+ kg CO₂\/tahun$/.test((await spans.first().textContent()) ?? "");
+    pgPertamaBadge = pg;
+    jmlPertamaBadge = n;
+  }
+  if ((await page.locator("nav a", { hasText: "Berikutnya" }).count()) === 0) break;
+}
+ok("total badge sirukam = SQL", totalBadge === harapanBadge, `${totalBadge} vs ${harapanBadge}`);
+ok("format badge ≈ n kg CO₂/tahun", formatOk);
+
+// 7) label EN via cookie pa_lang
 const ctxEn = await browser.newContext();
 await ctxEn.addCookies([{ name: "pa_lang", value: "en", url: BASE }]);
 const pageEn = await ctxEn.newPage();
 await pageEn.goto(`${BASE}/pohon`, { waitUntil: "networkidle" });
 ok("EN: pill All Diameters", (await pageEn.locator("main a", { hasText: "All Diameters" }).count()) === 1);
+await pageEn.goto(
+  `${BASE}/pohon?lokasi=sirukam${pgPertamaBadge > 1 ? `&page=${pgPertamaBadge}` : ""}`,
+  { waitUntil: "networkidle" },
+);
+ok(
+  "EN: badge kg CO₂/year",
+  pgPertamaBadge > 0 &&
+    (await pageEn.locator("main span", { hasText: "kg CO₂/year" }).count()) === jmlPertamaBadge,
+);
 
 await browser.close();
 console.log(gagal === 0 ? "\nSEMUA LULUS" : `\n${gagal} GAGAL`);

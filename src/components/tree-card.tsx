@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Leaf } from "lucide-react";
 import StatusBadge from "@/components/status-badge";
 import AddToCartButton from "@/components/add-to-cart-button";
 import CartMarker from "@/components/cart-marker";
@@ -16,12 +17,14 @@ type TreeCardProps = {
     photoUrl: string | null;
     desa?: string | null;
     diameterCm?: number | null;
+    serapanKarbon?: number | null;
     location?: { name: string; label?: string | null } | null;
   };
 };
 
 export default async function TreeCard({ tree }: TreeCardProps) {
-  const t = (await getDict()).tree;
+  const dict = await getDict();
+  const t = dict.tree;
   const statusLabel: Record<string, string> = {
     AVAILABLE: t.statusAvailable,
     RESERVED: t.statusReserved,
@@ -64,6 +67,12 @@ export default async function TreeCard({ tree }: TreeCardProps) {
               }}
             />
           </div>
+        )}
+        {tree.serapanKarbon != null && (
+          <span className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm backdrop-blur">
+            <Leaf aria-hidden className="h-3.5 w-3.5" />
+            {dict.pages.spesies.carbonPerYear.replaceAll("{n}", String(tree.serapanKarbon))}
+          </span>
         )}
       </div>
       <div className="p-4">
