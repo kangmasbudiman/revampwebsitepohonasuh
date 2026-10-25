@@ -9,7 +9,7 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 
 const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
-const API = "http://127.0.0.1:8000/api";
+const API = process.env.E2E_API ?? "http://127.0.0.1:8001/api";
 const BACKUP_DIR = "/opt/homebrew/var/www/restApiPohonasuh/storage/app/backups";
 
 const rows = (sql) =>
@@ -74,7 +74,7 @@ assert((await page.locator("table tbody tr").count()) === 1, "tabel render (bari
 await page.click("button:has-text('Buat Backup Baru')");
 await page.locator("text=/Backup berhasil dibuat/").waitFor({ timeout: 30000 });
 assert(true, "banner sukses setelah buat backup");
-const banner = await page.locator("p:has-text('Backup berhasil dibuat')").textContent();
+const banner = await page.locator("text=/Backup berhasil dibuat/").first().textContent();
 const namaFile = banner.match(/pohonasuh2-\d{8}-\d{6}\.sql\.gz/)?.[0] ?? "";
 assert(/^[a-z0-9_.-]+\.sql\.gz$/.test(namaFile), `nama file valid (${namaFile})`);
 const stat = fs.statSync(`${BACKUP_DIR}/${namaFile}`);
@@ -83,6 +83,8 @@ const rowCount = await page.locator("table tbody tr:has-text('.sql.gz')").count(
 assert(rowCount === 1, "tabel menampilkan 1 file backup");
 
 // ================= 4. Unduh via browser =================
+// muat ulang tanpa query ?created agar popup sukses tak menutupi tombol
+await page.goto(`${BASE}/admin/backup`, { waitUntil: "networkidle" });
 const [download] = await Promise.all([
   page.waitForEvent("download", { timeout: 30000 }),
   page.locator(`button:has-text('Unduh')`).first().click(),
@@ -106,9 +108,9 @@ for (const t of ["data_pohon", "member", "data_adopsi", "kelakuan"]) {
   assert(a === b, `restore ${t}: ${a} baris = asli ${b}`);
 }
 
-// ================= 6. Hapus via UI =================
-page.once("dialog", (d) => d.accept());
+// ================= 6. Hapus via UI (modal konfirmasi) =================
 await page.locator(`button:has-text('Hapus')`).first().click();
+await page.locator("[data-confirm-submit]").click();
 await page.locator("text=/Backup dihapus/").waitFor({ timeout: 15000 });
 assert(!fs.existsSync(`${BACKUP_DIR}/${namaFile}`), "file hilang dari server setelah hapus");
 assert((await page.locator("table tbody tr:has-text('.sql.gz')").count()) === 0, "baris hilang dari tabel");
