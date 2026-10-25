@@ -566,26 +566,48 @@ export type ApiKontak = {
   telepon: string;
   whatsapp: string;
   email: string;
-  instagram: string | null;
-  facebook: string | null;
-  youtube: string | null;
 };
 
 export function mapKontak(r: Record<string, unknown>): ApiKontak {
-  const url = (v: unknown) => {
-    const s = String(v ?? "").trim();
-    return s ? s : null;
-  };
   return {
     nama: String(r.nama ?? ""),
     telepon: String(r.telepon ?? ""),
     whatsapp: String(r.whatsapp ?? ""),
     email: String(r.email ?? ""),
-    instagram: url(r.instagram),
-    facebook: url(r.facebook),
-    youtube: url(r.youtube),
   };
 }
+
+// getsosmed → akun media sosial footer (tabel sosmed, CRUD admin web).
+export type ApiSosmed = {
+  id: number;
+  ikon: string;
+  label: string;
+  url: string;
+};
+
+export function mapSosmed(r: Record<string, unknown>): ApiSosmed {
+  return {
+    id: Number(r.id),
+    ikon: String(r.ikon ?? "website"),
+    label: String(r.label ?? ""),
+    url: String(r.url ?? ""),
+  };
+}
+
+export function mapSosmedList(rows: Record<string, unknown>[]): ApiSosmed[] {
+  return rows.map(mapSosmed);
+}
+
+export const IKON_SOSMED = [
+  { v: "instagram", l: "Instagram" },
+  { v: "facebook", l: "Facebook" },
+  { v: "youtube", l: "YouTube" },
+  { v: "x", l: "X (Twitter)" },
+  { v: "tiktok", l: "TikTok" },
+  { v: "linkedin", l: "LinkedIn" },
+  { v: "whatsapp", l: "WhatsApp" },
+  { v: "website", l: "Website" },
+] as const;
 
 // Konten halaman "Tentang Pohon Asuh" (tentangpublik/tentangkonten) —
 // row tunggal + daftar langkah "cara mengasuh".

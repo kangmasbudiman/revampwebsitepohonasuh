@@ -33,42 +33,6 @@ export default function KontakForm({ kontak }: { kontak: ApiKontak }) {
           <input name="whatsapp" type="text" required defaultValue={kontak.whatsapp} className={inputClass} />
         </div>
       </div>
-      <p className="pt-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">Media Sosial (opsional)</p>
-      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-        Tautan ditampilkan di footer website — kosongkan untuk menyembunyikan.
-      </p>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">Instagram</label>
-          <input
-            name="instagram"
-            type="url"
-            placeholder="https://instagram.com/…"
-            defaultValue={kontak.instagram ?? ""}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">Facebook</label>
-          <input
-            name="facebook"
-            type="url"
-            placeholder="https://facebook.com/…"
-            defaultValue={kontak.facebook ?? ""}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">YouTube</label>
-          <input
-            name="youtube"
-            type="url"
-            placeholder="https://youtube.com/@…"
-            defaultValue={kontak.youtube ?? ""}
-            className={inputClass}
-          />
-        </div>
-      </div>
       {state.error && (
         <p className="rounded-lg bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm text-red-600 dark:text-red-400">{state.error}</p>
       )}

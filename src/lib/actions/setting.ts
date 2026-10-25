@@ -16,16 +16,9 @@ export async function updateKontak(_prev: AdminState, formData: FormData): Promi
   const telepon = String(formData.get("telepon") ?? "").trim();
   const whatsapp = String(formData.get("whatsapp") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
-  const instagram = String(formData.get("instagram") ?? "").trim();
-  const facebook = String(formData.get("facebook") ?? "").trim();
-  const youtube = String(formData.get("youtube") ?? "").trim();
 
   if (!nama || !telepon || !whatsapp || !email) {
     return { error: "Semua field wajib diisi." };
-  }
-  const sosmed = [instagram, facebook, youtube].filter(Boolean);
-  if (sosmed.some((u) => !/^https?:\/\//.test(u))) {
-    return { error: "Tautan media sosial harus diawali http:// atau https://." };
   }
 
   let res: { value?: string | number; pesan?: string };
@@ -35,9 +28,6 @@ export async function updateKontak(_prev: AdminState, formData: FormData): Promi
       telepon,
       whatsapp,
       email,
-      instagram,
-      facebook,
-      youtube,
     });
   } catch (e) {
     return { error: e instanceof Error && e.message ? e.message : "Gagal menyimpan kontak." };
@@ -114,4 +104,65 @@ export async function deleteNoadmin(formData: FormData): Promise<void> {
   revalidatePath("/admin/pengaturan");
   revalidatePath("/checkout");
   redirect("/admin/pengaturan?wasaved=" + encodeURIComponent("Nomor WA dihapus."));
+}
+
+// ===== Akun media sosial (tabel sosmed via Laravel) — footer web =====
+
+async function kirimSosmed(
+  aksi: "tambahsosmed" | "editsosmed",
+  data: Record<string, string | number>,
+  pesanSukses: string,
+): Promise<never> {
+  await requireAdminLevel();
+  const ikon = String(data.ikon ?? "").trim();
+  const url = String(data.url ?? "").trim();
+  if (!/^https?:\/\//.test(url)) {
+    redirect("/admin/pengaturan?sosmederror=" + encodeURIComponent("URL harus diawali http:// atau https://."));
+  }
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(aksi, { ...data, ikon, url });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/pengaturan?sosmederror=${encodeURIComponent(res.pesan ?? "Gagal menyimpan akun sosmed.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pengaturan?sosmederror=" + encodeURIComponent("Gagal menyimpan akun sosmed."));
+  }
+  revalidatePath("/admin/pengaturan");
+  revalidatePath("/");
+  redirect("/admin/pengaturan?sosmedsaved=" + encodeURIComponent(pesanSukses));
+}
+
+export async function addSosmed(formData: FormData): Promise<void> {
+  await kirimSosmed("tambahsosmed", {
+    ikon: String(formData.get("ikon") ?? ""),
+    label: String(formData.get("label") ?? "").trim(),
+    url: String(formData.get("url") ?? "").trim(),
+  }, "Akun sosmed ditambahkan.");
+}
+
+export async function editSosmed(formData: FormData): Promise<void> {
+  await kirimSosmed("editsosmed", {
+    id: Number(formData.get("id")),
+    ikon: String(formData.get("ikon") ?? ""),
+    label: String(formData.get("label") ?? "").trim(),
+    url: String(formData.get("url") ?? "").trim(),
+  }, "Akun sosmed diperbarui.");
+}
+
+export async function deleteSosmed(formData: FormData): Promise<void> {
+  await requireAdminLevel();
+  const id = Number(formData.get("id"));
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("hapussosmed", { id });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/pengaturan?sosmederror=${encodeURIComponent(res.pesan ?? "Gagal menghapus akun sosmed.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pengaturan?sosmederror=" + encodeURIComponent("Gagal menghapus akun sosmed."));
+  }
+  revalidatePath("/admin/pengaturan");
+  revalidatePath("/");
+  redirect("/admin/pengaturan?sosmedsaved=" + encodeURIComponent("Akun sosmed dihapus."));
 }
