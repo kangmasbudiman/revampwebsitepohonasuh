@@ -323,7 +323,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
       </div>
 
       {open && (
-        <nav className="animate-menu absolute inset-x-0 top-16 border-b border-emerald-100 bg-white shadow-lg xl:hidden">
+        <nav className="animate-menu absolute inset-x-0 top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-emerald-100 bg-white shadow-lg xl:hidden">
           <div className="flex flex-col gap-1 px-4 py-4">
             {NAV.map((item) => (
               <div key={item.href}>
@@ -391,11 +391,13 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                 {dict.nav.profile}
               </Link>
             )}
-            <div className="mt-2 flex items-center gap-2 border-t border-emerald-100 pt-3">
-              <LangToggle />
-              {session && <MemberBell onNavigate={() => setOpen(false)} sheet />}
+            <div className="mt-2 space-y-2 border-t border-emerald-100 pt-3">
+              <div className="flex items-center gap-2">
+                <LangToggle />
+                {session && <MemberBell onNavigate={() => setOpen(false)} sheet />}
+              </div>
               {session ? (
-                <>
+                <div className="flex items-center gap-2">
                   <Link
                     href={dashboardHref}
                     onClick={() => setOpen(false)}
@@ -413,9 +415,9 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                       {dict.nav.logout}
                     </button>
                   </form>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="flex items-center gap-2">
                   <Link
                     href="/masuk"
                     onClick={() => setOpen(false)}
@@ -430,7 +432,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                   >
                     {dict.nav.register}
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>
