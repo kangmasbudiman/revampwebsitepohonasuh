@@ -26,7 +26,7 @@ export default function MemberBell({
   onNavigate?: () => void;
   sheet?: boolean;
 }) {
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [items, setItems] = useState<PesanRow[] | null>(null);
@@ -119,6 +119,7 @@ export default function MemberBell({
           onClose={() => setOpen(false)}
           onNavigate={onNavigate}
           sheet={sheet}
+          locale={locale}
         />
       )}
     </div>

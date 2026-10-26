@@ -8,11 +8,22 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, BellRing, Loader2, Trash2, TriangleAlert } from "lucide-react";
 import { hapusPesan, hapusSemuaPesan, markPesanRead, type PesanRow } from "@/lib/actions/pesan";
+import {
+  formatTanggalPesan,
+  parseIsoPesan,
+  parseTanggalPesan,
+  teksPesan,
+} from "@/lib/pesan-format";
 import { useI18n } from "@/components/i18n-provider";
+
+function tanggalRow(row: PesanRow, locale: "id" | "en"): string {
+  const d = parseIsoPesan(row.createdAt) ?? parseTanggalPesan(row.tanggal);
+  return d ? formatTanggalPesan(d, locale) : (row.tanggal ?? "");
+}
 
 export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
   const router = useRouter();
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const t = dict.dashboard.notif;
   const [items, setItems] = useState(rows);
   const [idHapus, setIdHapus] = useState<number | null>(null);
@@ -149,10 +160,10 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
                     belum ? "font-medium text-zinc-800" : "text-zinc-500"
                   }`}
                 >
-                  {row.pesan}
+                  {teksPesan(row.pesan, row.pesanEn, locale)}
                 </p>
                 <p className="mt-1.5 flex items-center gap-2 text-xs text-zinc-400">
-                  {row.tanggal ?? ""}
+                  {tanggalRow(row, locale)}
                   {belum && (
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                       {t.new}
@@ -198,7 +209,9 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
               </span>
               <div className="min-w-0">
                 <h3 className="text-base font-bold text-emerald-950">{t.deleteTitle}</h3>
-                <p className="mt-0.5 line-clamp-2 text-sm text-zinc-500">{target.pesan}</p>
+                <p className="mt-0.5 line-clamp-2 text-sm text-zinc-500">
+                  {teksPesan(target.pesan, target.pesanEn, locale)}
+                </p>
               </div>
             </div>
             <p className="px-5 py-4 text-sm text-zinc-600">{t.deleteConfirm}</p>

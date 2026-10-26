@@ -5,6 +5,13 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Bell, BellOff, BellRing, Trash2, X } from "lucide-react";
 import type { PesanRow } from "@/lib/actions/pesan";
+import type { Locale } from "@/lib/i18n";
+import {
+  formatTanggalPesan,
+  parseIsoPesan,
+  parseTanggalPesan,
+  teksPesan,
+} from "@/lib/pesan-format";
 
 // Label panel popup — disuntikkan konsumen agar tetap satu komponen untuk
 // lonceng member (terjemahan dari dict) dan lonceng admin (selalu Indonesia).
@@ -29,28 +36,24 @@ export type NotifPopupLabels = {
 // ditentukan pembungkus di komponen lonceng masing-masing; komponen ini
 // hanya merender panelnya.
 //
-// `tanggal` dari API berformat "d M Y, H:i" dengan bulan singkat
-// Indonesia (Okt) — beberapa bulan ejaannya sama dengan Inggris, sisnya
-// (Mei/Agu/Okt/Des) dipetakan terpisah. Gagal parse → tampilkan apa adanya.
-function waktuLalu(t: NotifPopupLabels, tanggal: string | null | undefined): string {
-  if (!tanggal) return "";
-  const bulan: Record<string, number> = {
-    Jan: 0, Feb: 1, Mar: 2, Apr: 3, Jun: 5, Jul: 6, Sep: 8, Nov: 10,
-    May: 4, Aug: 7, Oct: 9, Dec: 11, // Inggris (baris lama)
-    Mei: 4, Agu: 7, Okt: 9, Des: 11, // Indonesia
-  };
-  const m = /^(\d{1,2}) ([A-Za-z]{3}) (\d{4}), (\d{2}):(\d{2})$/.exec(tanggal);
-  if (m && m[2] in bulan) {
-    const d = new Date(+m[3], bulan[m[2]], +m[1], +m[4], +m[5]);
-    const menit = Math.floor((Date.now() - d.getTime()) / 60000);
-    if (menit < 1) return t.justNow;
-    if (menit < 60) return `${menit} ${t.minAgo}`;
-    const jam = Math.floor(menit / 60);
-    if (jam < 24) return `${jam} ${t.hourAgo}`;
-    if (jam < 48) return t.yesterday;
-    if (jam < 24 * 7) return `${Math.floor(jam / 24)} ${t.dayAgo}`;
-  }
-  return tanggal;
+// Waktu relatif ("3 jam lalu") dari created_at mentah, fallback string
+// `tanggal` terformat. Lebih dari 7 hari → tanggal penuh sesuai locale.
+function waktuLalu(
+  t: NotifPopupLabels,
+  tanggal: string | null | undefined,
+  createdAt: string | null | undefined,
+  locale: Locale,
+): string {
+  const d = parseIsoPesan(createdAt) ?? parseTanggalPesan(tanggal);
+  if (!d) return tanggal ?? "";
+  const menit = Math.floor((Date.now() - d.getTime()) / 60000);
+  if (menit < 1) return t.justNow;
+  if (menit < 60) return `${menit} ${t.minAgo}`;
+  const jam = Math.floor(menit / 60);
+  if (jam < 24) return `${jam} ${t.hourAgo}`;
+  if (jam < 48) return t.yesterday;
+  if (jam < 24 * 7) return `${Math.floor(jam / 24)} ${t.dayAgo}`;
+  return formatTanggalPesan(d, locale);
 }
 
 export default function NotifPopup({
@@ -63,6 +66,7 @@ export default function NotifPopup({
   onClose,
   onNavigate,
   sheet = false,
+  locale = "id",
 }: {
   t: NotifPopupLabels;
   unread: number;
@@ -73,6 +77,7 @@ export default function NotifPopup({
   onClose: () => void;
   onNavigate?: () => void;
   sheet?: boolean;
+  locale?: Locale;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -181,10 +186,10 @@ export default function NotifPopup({
                           : "text-zinc-500 dark:text-zinc-400"
                       }`}
                     >
-                      {row.pesan}
+                      {teksPesan(row.pesan, row.pesanEn, locale)}
                     </span>
                     <span className="mt-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
-                      {waktuLalu(t, row.tanggal)}
+                      {waktuLalu(t, row.tanggal, row.createdAt, locale)}
                     </span>
                   </span>
                 </button>

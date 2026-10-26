@@ -7,8 +7,10 @@ import { apiPost } from "@/lib/api";
 export type PesanRow = {
   id: number;
   pesan: string;
+  pesanEn: string | null;
   status: string;
   tanggal: string | null;
+  createdAt: string | null;
 };
 
 // Endpoint mypesanupdate/mypesandelete TIDAK memverifikasi kepemilikan di
@@ -53,8 +55,10 @@ export async function listPesan(): Promise<PesanRow[]> {
       .map((r) => ({
         id: Number(r.id),
         pesan: String(r.pesan ?? ""),
+        pesanEn: r.pesan_en ? String(r.pesan_en) : null,
         status: String(r.status ?? ""),
         tanggal: r.tanggal ? String(r.tanggal) : null,
+        createdAt: r.created_at ? String(r.created_at) : null,
       }))
       .sort((a, b) => b.id - a.id);
   } catch {
