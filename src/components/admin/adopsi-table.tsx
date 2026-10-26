@@ -86,7 +86,7 @@ export default function AdopsiTable({
       "Diameter (cm)",
       "Nama Lokal",
       "Nama Penerima",
-      "Donatur",
+      "Pengadopsi",
       "Tagging",
       "Certnum",
       "Tahun",

@@ -159,7 +159,7 @@ export default function TemplateSharePreview({
               <ShareDesignSample desa={desa} imageUrl={imageUrl} subtext={subtext} className="mx-auto w-[min(340px,75vw)]" />
             </div>
             <p className="mt-4 mx-auto max-w-[min(340px,75vw)] text-center text-xs text-zinc-500 dark:text-zinc-400">
-              Klik design untuk memperbesar. Teks dinamis (donatur, penerima, pohon,
+              Klik design untuk memperbesar. Teks dinamis (pengadopsi, penerima, pohon,
               statistik, memo) diisi di zona tetap ±19-73% tinggi — pastikan zona tersebut
               pada template Anda tidak tertutup elemen ramai.
             </p>

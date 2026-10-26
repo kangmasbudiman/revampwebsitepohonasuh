@@ -36,7 +36,7 @@ export const dict = {
     dashboard: "Dashboard",
     adminPanel: "Panel Admin",
     administrator: "Administrator",
-    donor: "Donatur",
+    donor: "Pengadopsi",
     openMenu: "Buka menu",
     tagline: "Adopt · Care · Grow",
   },
@@ -87,13 +87,13 @@ export const dict = {
     statTrees: "Total Pohon Terdata",
     statAdopted: "Pohon Teradopsi",
     statLocations: "Lokasi Hutan",
-    statDonors: "Donatur Terdaftar",
+    statDonors: "Pengadopsi Terdaftar",
     statFunds: "Dana Adopsi Terkumpul",
     carbonLink: "Hitung jejak karbon Anda dan offset dengan adopsi pohon →",
     stepsEyebrow: "Program",
     stepsTitle: "Cara Kerja Program",
     step1Title: "Buat Akun",
-    step1Desc: "Daftar gratis sebagai donatur untuk mulai mengadopsi pohon.",
+    step1Desc: "Daftar gratis sebagai pengadopsi untuk mulai mengadopsi pohon.",
     step2Title: "Pilih Pohon",
     step2Desc: "Telusuri data pohon di berbagai lokasi hutan dan pilih yang ingin Anda asuh.",
     step3Title: "Bayar & Dapat Sertifikat",
@@ -264,7 +264,7 @@ export const dict = {
     pay: {
       instructionsTitle: "Instruksi Pembayaran",
       instructionsDesc:
-        "Transfer tepat sesuai jumlah total di bawah ini agar pembayaran Anda mudah diverifikasi. Kode unik membedakan transfer Anda dari donatur lain.",
+        "Transfer tepat sesuai jumlah total di bawah ini agar pembayaran Anda mudah diverifikasi. Kode unik membedakan transfer Anda dari pengadopsi lain.",
       totalTransfer: "Total Transfer",
       uniqueCode: "kode unik",
       deadlineTitle: "Batas Pembayaran 1×24 Jam",
@@ -479,7 +479,7 @@ export const dict = {
       faqLink: "Punya pertanyaan lain? Lihat FAQ",
       fallbackJudul: "Tentang Pohon Asuh",
       fallbackDeskripsi:
-        "Pohon Asuh adalah program adopsi pohon yang menghubungkan donatur dengan pohon sungguhan yang tumbuh di hutan adat dan hutan desa di Provinsi Jambi, Indonesia.\n\nPohon tetap berdiri di habitat aslinya dan dirawat bersama masyarakat pengelola hutan. Melalui adopsi, Anda menanggung biaya perawatan tahunan satu pohon — dari pemantauan kesehatan, pengamanan area, hingga kegiatan restorasi — sementara masyarakat desa mendapat manfaat ekonomi langsung dari perawatan itu.\n\nSetiap pohon yang diadopsi tercatat lengkap: kode pohon, spesies, diameter, dan estimasi penyerapan karbonnya — semuanya dapat dilihat di halaman Data Pohon.",
+        "Pohon Asuh adalah program adopsi pohon yang menghubungkan pengadopsi dengan pohon sungguhan yang tumbuh di hutan adat dan hutan desa di Provinsi Jambi, Indonesia.\n\nPohon tetap berdiri di habitat aslinya dan dirawat bersama masyarakat pengelola hutan. Melalui adopsi, Anda menanggung biaya perawatan tahunan satu pohon — dari pemantauan kesehatan, pengamanan area, hingga kegiatan restorasi — sementara masyarakat desa mendapat manfaat ekonomi langsung dari perawatan itu.\n\nSetiap pohon yang diadopsi tercatat lengkap: kode pohon, spesies, diameter, dan estimasi penyerapan karbonnya — semuanya dapat dilihat di halaman Data Pohon.",
       fallbackMekanisme:
         "Anda memilih pohon dari katalog, lalu membayar biaya perawatan untuk satu tahun.\n\nDana adopsi dikelola secara transparan oleh Yayasan KKI Warsi bersama LPHD (Lembaga Pengelola Hutan Desa). Sebagian besar dialirkan langsung ke masyarakat desa pengelola hutan sebagai imbal kerja perawatan dan pengamanan pohon.\n\nPetugas lapangan melakukan tagging dan pemantauan berkala — hasilnya didokumentasikan dalam Laporan Kegiatan, dan penggunaan dana dipublikasikan di Laporan Keuangan.\n\nSetelah pembayaran diverifikasi, Anda menerima sertifikat adopsi bernomor unik yang menampilkan data lengkap pohon Anda. Masa perawatan berlaku satu tahun dan dapat diperpanjang.",
       fallbackLangkah: [
@@ -577,7 +577,7 @@ export const dict = {
         {
           title: "1. Tentang Program Pohon Asuh",
           paras: [
-            "Pohon Asuh adalah program adopsi pohon yang dikelola bersama masyarakat adat dan desa pengelola hutan di Provinsi Jambi, Indonesia. Melalui situs ini, donatur dapat memilih dan mengasuh pohon tertentu yang tumbuh di habitat aslinya.",
+            "Pohon Asuh adalah program adopsi pohon yang dikelola bersama masyarakat adat dan desa pengelola hutan di Provinsi Jambi, Indonesia. Melalui situs ini, pengadopsi dapat memilih dan mengasuh pohon tertentu yang tumbuh di habitat aslinya.",
             "Adopsi pohon merupakan bentuk dukungan dana perawatan dan pelestarian pohon, bukan kepemilikan lahan, kayu, maupun hak pemanfaatan hutan. Pohon tetap tumbuh di dalam hutan desa dan dirawat oleh masyarakat pengelola.",
           ],
         },
@@ -592,20 +592,20 @@ export const dict = {
           title: "3. Pembayaran",
           paras: [
             "Dana adopsi dibayarkan penuh di muka sesuai harga pohon yang tertera (per tahun perawatan) melalui metode pembayaran yang disediakan, yaitu transfer bank atau gateway pembayaran resmi.",
-            "Pesanan yang tidak dibayar dalam batas waktu yang ditentukan akan dibatalkan otomatis dan pohon dikembalikan menjadi tersedia untuk donatur lain.",
+            "Pesanan yang tidak dibayar dalam batas waktu yang ditentukan akan dibatalkan otomatis dan pohon dikembalikan menjadi tersedia untuk pengadopsi lain.",
           ],
         },
         {
           title: "4. Verifikasi dan Sertifikat",
           paras: [
             "Setelah pembayaran diterima, tim admin memverifikasi bukti pembayaran Anda. Proses verifikasi bukan layanan instan dan dapat memakan waktu beberapa hari kerja.",
-            "Donatur yang pesanannya terverifikasi menerima sertifikat adopsi bernomor unik yang dapat ditampilkan dan diverifikasi secara daring melalui situs ini. Sertifikat atas nama sesuai data pemesan dan dapat diisi pesan/kesan.",
+            "Pengadopsi yang pesanannya terverifikasi menerima sertifikat adopsi bernomor unik yang dapat ditampilkan dan diverifikasi secara daring melalui situs ini. Sertifikat atas nama sesuai data pemesan dan dapat diisi pesan/kesan.",
           ],
         },
         {
           title: "5. Pembatalan dan Pengembalian Dana",
           paras: [
-            "Pesanan yang belum diverifikasi dapat dibatalkan oleh donatur; dana yang telah masuk dapat dikembalikan setelah dipotong biaya administrasi yang berlaku.",
+            "Pesanan yang belum diverifikasi dapat dibatalkan oleh pengadopsi; dana yang telah masuk dapat dikembalikan setelah dipotong biaya administrasi yang berlaku.",
             "Pesanan yang telah terverifikasi dan diterbitkan sertifikatnya tidak dapat dibatalkan karena dana telah disalurkan untuk perawatan pohon dan kompensasi masyarakat pengelola hutan.",
           ],
         },
@@ -613,7 +613,7 @@ export const dict = {
           title: "6. Perubahan Konten Program",
           paras: [
             "Data pohon (foto, ukuran, status) merupakan hasil survei lapangan dan dapat diperbarui seiring pemantauan. Nomor sertifikat, tanggal adopsi, dan masa berlaku perawatan mengikuti data yang tercatat di sistem.",
-            "Kami berupaya menjaga keakuratan informasi, namun tidak bertanggung jawab atas kerugian yang timbul dari kesalahan pengetikan data pihak donatur (misalnya nama pada sertifikat).",
+            "Kami berupaya menjaga keakuratan informasi, namun tidak bertanggung jawab atas kerugian yang timbul dari kesalahan pengetikan data pihak pengadopsi (misalnya nama pada sertifikat).",
           ],
         },
         {
@@ -819,7 +819,7 @@ export const dict = {
       testiEyebrow: "Testimoni",
       testiTitle: "Kata Mereka",
       testiIntro:
-        "Apresiasi langsung dari donatur, petugas lapangan, dan mitra program Pohon Asuh.",
+        "Apresiasi langsung dari pengadopsi, petugas lapangan, dan mitra program Pohon Asuh.",
       readStory: "Baca Cerita",
       loadError: "Gagal memuat cerita.",
       retry: "Coba lagi",

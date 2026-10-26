@@ -460,7 +460,7 @@ export default function BtorForm({
             maxLength={2000}
             value={hasil}
             onChange={(e) => setHasil(e.target.value)}
-            placeholder="mis. 30 pohon terpasang banner tagging; dokumentasi lengkap untuk donatur…"
+            placeholder="mis. 30 pohon terpasang banner tagging; dokumentasi lengkap untuk pengadopsi…"
             className={inputClass}
           />
           <p className="mt-1 text-right text-xs text-zinc-400">{hasil.length}/2000</p>

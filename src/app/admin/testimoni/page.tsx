@@ -35,7 +35,7 @@ export default async function AdminTestimoniPage({
         Testimoni &amp; Partner
       </h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Testimoni donatur/pengurus dan logo mitra untuk beranda publik — section hanya muncul di
+        Testimoni pengadopsi/pengurus dan logo mitra untuk beranda publik — section hanya muncul di
         beranda setelah ada isinya.
       </p>
 

@@ -12,7 +12,7 @@ import { cancelProses } from "@/lib/actions/tagging";
 const KONSEKUENSI = [
   { icon: RotateCcw, teks: "Status order kembali ke “Baru” dan muncul lagi di daftar order baru" },
   { icon: Trash2, teks: "Foto tagging yang sudah diunggah untuk siklus ini dihapus" },
-  { icon: Undo2, teks: "Order dan adopsi TETAP ADA — donatur tidak dinotifikasi" },
+  { icon: Undo2, teks: "Order dan adopsi TETAP ADA — pengadopsi tidak dinotifikasi" },
 ];
 
 export default function CancelProsesButton({

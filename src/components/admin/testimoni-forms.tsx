@@ -41,7 +41,7 @@ export function TestimoniForm({ row }: { row?: ApiTestimoni }) {
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">
-            Peran <span className="text-zinc-400 dark:text-zinc-500">(mis. Donatur sejak 2023)</span>
+            Peran <span className="text-zinc-400 dark:text-zinc-500">(mis. Pengadopsi sejak 2023)</span>
           </label>
           <input name="peran" type="text" defaultValue={row?.peran} className={inputClass} />
         </div>

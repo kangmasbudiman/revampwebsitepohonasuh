@@ -32,7 +32,7 @@ export default async function AdminTemplateSertifikatPage({
         <div>
           <h1 className="text-xl font-bold pa-hgrad">Template Sertifikat</h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {templates.length} template — donatur memilih latar saat membagikan sertifikatnya.
+            {templates.length} template — pengadopsi memilih latar saat membagikan sertifikatnya.
           </p>
         </div>
       </div>

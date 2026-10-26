@@ -10,7 +10,7 @@ import RowsPerPage from "@/components/admin/rows-per-page";
 
 
 const PERAN_BADGE: Record<number, { label: string; className: string }> = {
-  0: { label: "Donatur", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300" },
+  0: { label: "Pengadopsi", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300" },
   1: { label: "Admin", className: "bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300" },
   2: { label: "Petugas", className: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300" },
 };
@@ -19,7 +19,7 @@ type Filter = "semua" | "0" | "1" | "2" | "aktif" | "nonaktif";
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "semua", label: "Semua" },
-  { value: "0", label: "Donatur" },
+  { value: "0", label: "Pengadopsi" },
   { value: "1", label: "Admin" },
   { value: "2", label: "Petugas" },
   { value: "aktif", label: "Aktif" },
@@ -177,7 +177,7 @@ export default function UserTable({
                           data-testid={`peran-select-${m.id}`}
                           className="rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs text-zinc-700 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-200"
                         >
-                          <option value="0">Donatur</option>
+                          <option value="0">Pengadopsi</option>
                           <option value="1">Admin</option>
                           <option value="2">Petugas</option>
                         </select>

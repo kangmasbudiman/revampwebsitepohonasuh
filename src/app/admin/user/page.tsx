@@ -122,7 +122,7 @@ export default async function KelolaUserPage({
               >
                 <option value="2">Petugas</option>
                 <option value="1">Admin</option>
-                <option value="0">Donatur</option>
+                <option value="0">Pengadopsi</option>
               </select>
             </label>
           </div>

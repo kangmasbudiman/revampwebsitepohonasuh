@@ -145,7 +145,7 @@ export default async function KoreksiOrderPage(
           Nama penerima & memo sertifikat
         </h2>
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Nama donatur akun: {first.namaMember}. Kosongkan nama penerima hanya bila
+          Nama pengadopsi akun: {first.namaMember}. Kosongkan nama penerima hanya bila
           memang tidak ingin dicetak.
         </p>
 

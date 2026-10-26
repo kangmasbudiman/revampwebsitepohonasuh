@@ -44,7 +44,7 @@ export default async function VerificationDetailPage(
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <div className="space-y-4">
           <div className="rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">
-            <h2 className="font-semibold pa-hgrad">Donatur</h2>
+            <h2 className="font-semibold pa-hgrad">Pengadopsi</h2>
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex justify-between gap-4">
                 <dt className="text-zinc-500 dark:text-zinc-400">Nama</dt>
@@ -102,7 +102,7 @@ export default async function VerificationDetailPage(
               />
             ) : (
               <p className="mt-3 rounded-xl bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                Donatur tidak melampirkan bukti gambar.
+                Pengadopsi tidak melampirkan bukti gambar.
               </p>
             )}
           </div>

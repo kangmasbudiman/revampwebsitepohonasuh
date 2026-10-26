@@ -189,7 +189,7 @@ export default async function LaporanDesaPage({
               <tr>
                 <th className="px-4 py-3">Invoice</th>
                 <th className="px-4 py-3">Pohon</th>
-                <th className="px-4 py-3">Donatur</th>
+                <th className="px-4 py-3">Pengadopsi</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Pembayaran</th>
                 <th className="px-4 py-3">Adopsi</th>

@@ -84,7 +84,7 @@ export default function TaggingForm({
               onClick={(e) => {
                 if (
                   !confirm(
-                    `Tandai tagging pohon ${idpohon} SELESAI? Pohon akan berstatus teradopsi dan donatur dinotifikasi — tidak bisa dibatalkan.`,
+                    `Tandai tagging pohon ${idpohon} SELESAI? Pohon akan berstatus teradopsi dan pengadopsi dinotifikasi — tidak bisa dibatalkan.`,
                   )
                 )
                   e.preventDefault();

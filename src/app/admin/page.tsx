@@ -209,7 +209,7 @@ export default async function AdminHomePage() {
           <thead className="pa-thead ">
             <tr>
               <th className="px-4 py-3 font-semibold">Kode</th>
-              <th className="px-4 py-3 font-semibold">Donatur</th>
+              <th className="px-4 py-3 font-semibold">Pengadopsi</th>
               <th className="px-4 py-3 font-semibold">Pohon</th>
               <th className="px-4 py-3 font-semibold">Tanggal</th>
               <th className="px-4 py-3 font-semibold">Status</th>

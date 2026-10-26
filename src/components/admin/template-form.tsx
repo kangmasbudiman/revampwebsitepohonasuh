@@ -67,7 +67,7 @@ export default function TemplateForm({ template }: { template?: ApiTemplateSerti
             defaultChecked={template ? template.aktif : true}
             className={`${checkCls} mt-0.5`}
           />
-          <span className="text-sm text-zinc-700 dark:text-zinc-200">Aktif (tampil di pilihan donatur)</span>
+          <span className="text-sm text-zinc-700 dark:text-zinc-200">Aktif (tampil di pilihan pengadopsi)</span>
         </label>
       )}
       {state.error && (

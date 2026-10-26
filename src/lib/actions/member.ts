@@ -8,7 +8,7 @@ import { apiPost, ApiError } from "@/lib/api";
 // Label peran member — sama dengan PERAN_BADGE di user-table (komponen client,
 // tidak bisa diimpor ke server action).
 const PERAN_LABEL: Record<string, string> = {
-  "0": "Donatur",
+  "0": "Pengadopsi",
   "1": "Admin",
   "2": "Petugas",
 };

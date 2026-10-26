@@ -35,7 +35,7 @@ export const dict: Dict = {
     dashboard: "Dashboard",
     adminPanel: "Admin Panel",
     administrator: "Administrator",
-    donor: "Donor",
+    donor: "Adopter",
     openMenu: "Open menu",
     tagline: "Adopt · Care · Grow",
   },
@@ -86,13 +86,13 @@ export const dict: Dict = {
     statTrees: "Total Trees Recorded",
     statAdopted: "Trees Adopted",
     statLocations: "Forest Locations",
-    statDonors: "Registered Donors",
+    statDonors: "Registered Adopters",
     statFunds: "Adoption Funds Raised",
     carbonLink: "Calculate your carbon footprint and offset it by adopting trees →",
     stepsEyebrow: "The Program",
     stepsTitle: "How the Program Works",
     step1Title: "Create an Account",
-    step1Desc: "Sign up for free as a donor to start adopting trees.",
+    step1Desc: "Sign up for free as an adopter to start adopting trees.",
     step2Title: "Choose a Tree",
     step2Desc: "Browse tree data across various forest locations and pick the one you want to foster.",
     step3Title: "Pay & Get a Certificate",
@@ -263,7 +263,7 @@ export const dict: Dict = {
     pay: {
       instructionsTitle: "Payment Instructions",
       instructionsDesc:
-        "Transfer exactly the total amount below so your payment is easy to verify. The unique code distinguishes your transfer from other donors.",
+        "Transfer exactly the total amount below so your payment is easy to verify. The unique code distinguishes your transfer from other adopters.",
       totalTransfer: "Total Transfer",
       uniqueCode: "unique code",
       deadlineTitle: "1x24 Hour Payment Deadline",
@@ -479,7 +479,7 @@ export const dict: Dict = {
       faqLink: "Have another question? See the FAQ",
       fallbackJudul: "About Pohon Asuh",
       fallbackDeskripsi:
-        "Pohon Asuh is a tree adoption program that connects donors with real trees growing in customary and village forests in Jambi Province, Indonesia.\n\nThe trees remain in their native habitat, cared for together with the local forest-managing communities. Through adoption, you cover one tree's annual care cost — from health monitoring and area protection to restoration work — while village communities gain direct economic benefits from that care.\n\nEvery adopted tree is fully recorded: tree code, species, diameter, and estimated carbon absorption — all visible on the Tree Data page.",
+        "Pohon Asuh is a tree adoption program that connects adopters with real trees growing in customary and village forests in Jambi Province, Indonesia.\n\nThe trees remain in their native habitat, cared for together with the local forest-managing communities. Through adoption, you cover one tree's annual care cost — from health monitoring and area protection to restoration work — while village communities gain direct economic benefits from that care.\n\nEvery adopted tree is fully recorded: tree code, species, diameter, and estimated carbon absorption — all visible on the Tree Data page.",
       fallbackMekanisme:
         "You choose a tree from the catalog, then pay the care fee for one year.\n\nAdoption funds are managed transparently by the KKI Warsi Foundation together with the LPHD (Village Forest Management Institution). Most of it flows directly to the forest-managing village communities as compensation for tree care and protection work.\n\nField officers carry out periodic tagging and monitoring — documented in the Activity Reports — and fund usage is published in the Financial Reports.\n\nOnce your payment is verified, you receive a unique numbered adoption certificate showing your tree's complete data. The care period lasts one year and can be renewed.",
       fallbackLangkah: [
@@ -577,7 +577,7 @@ export const dict: Dict = {
         {
           title: "1. About the Pohon Asuh Program",
           paras: [
-            "Pohon Asuh is a tree adoption program run together with indigenous and village communities who manage forests in Jambi Province, Indonesia. Through this site, donors can choose and foster specific trees growing in their native habitat.",
+            "Pohon Asuh is a tree adoption program run together with indigenous and village communities who manage forests in Jambi Province, Indonesia. Through this site, adopters can choose and foster specific trees growing in their native habitat.",
             "Tree adoption is a form of financial support for tree care and conservation, not ownership of land, timber, or forest utilization rights. The trees remain in the village forest, cared for by the managing community.",
           ],
         },
@@ -592,20 +592,20 @@ export const dict: Dict = {
           title: "3. Payments",
           paras: [
             "Adoption funds are paid in full in advance at the listed tree price (per year of care) via the provided payment methods: bank transfer or the official payment gateway.",
-            "Orders that are not paid within the specified time limit are cancelled automatically and the tree becomes available again for other donors.",
+            "Orders that are not paid within the specified time limit are cancelled automatically and the tree becomes available again for other adopters.",
           ],
         },
         {
           title: "4. Verification and Certificates",
           paras: [
             "After payment is received, our admin team verifies your payment proof. Verification is not an instant service and may take several business days.",
-            "Donors whose orders are verified receive a uniquely numbered adoption certificate that can be displayed and verified online through this site. The certificate name follows the orderer's data and can include a personal message.",
+            "Adopters whose orders are verified receive a uniquely numbered adoption certificate that can be displayed and verified online through this site. The certificate name follows the orderer's data and can include a personal message.",
           ],
         },
         {
           title: "5. Cancellations and Refunds",
           paras: [
-            "Orders that have not been verified can be cancelled by the donor; funds already received can be refunded after deducting applicable administrative fees.",
+            "Orders that have not been verified can be cancelled by the adopter; funds already received can be refunded after deducting applicable administrative fees.",
             "Orders that have been verified and issued a certificate cannot be cancelled, as the funds have already been disbursed for tree care and compensation for the forest-managing community.",
           ],
         },
@@ -613,7 +613,7 @@ export const dict: Dict = {
           title: "6. Program Content Changes",
           paras: [
             "Tree data (photos, measurements, status) comes from field surveys and may be updated as monitoring continues. Certificate numbers, adoption dates, and care validity periods follow the data recorded in the system.",
-            "We strive to keep information accurate but are not responsible for losses arising from donors' data entry errors (for example, the name on the certificate).",
+            "We strive to keep information accurate but are not responsible for losses arising from adopters' data entry errors (for example, the name on the certificate).",
           ],
         },
         {
@@ -819,7 +819,7 @@ export const dict: Dict = {
       testiEyebrow: "Testimonials",
       testiTitle: "What They Say",
       testiIntro:
-        "Direct appreciation from donors, field officers, and partners of the Pohon Asuh program.",
+        "Direct appreciation from adopters, field officers, and partners of the Pohon Asuh program.",
       readStory: "Read Story",
       loadError: "Failed to load stories.",
       retry: "Try again",

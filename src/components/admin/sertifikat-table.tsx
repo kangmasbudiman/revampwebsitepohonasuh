@@ -66,7 +66,7 @@ export default function SertifikatTable({
               setQ(e.target.value);
               setPage(1);
             }}
-            placeholder="Cari nomor sertifikat / donatur / invoice…"
+            placeholder="Cari nomor sertifikat / pengadopsi / invoice…"
             className="w-72 rounded-xl border border-zinc-200 bg-white py-2 pr-3 pl-9 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
           />
         </div>
@@ -99,7 +99,7 @@ export default function SertifikatTable({
           <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
             <tr>
               <th className="px-4 py-3">No. Sertifikat</th>
-              <th className="px-4 py-3">Donatur</th>
+              <th className="px-4 py-3">Pengadopsi</th>
               <th className="px-4 py-3">Pohon</th>
               <th className="px-4 py-3">Invoice</th>
               <th className="px-4 py-3">Adopsi</th>

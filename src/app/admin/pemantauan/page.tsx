@@ -132,7 +132,7 @@ export default async function PemantauanPage() {
     {
       label: "Menunggu Verifikasi",
       value: String(pendingSet.size),
-      sub: "pembayaran donatur",
+      sub: "pembayaran pengadopsi",
       icon: BadgeCheck,
       grad: "from-amber-400 to-orange-500",
       shadow: "shadow-amber-500/30",
@@ -258,7 +258,7 @@ export default async function PemantauanPage() {
           <thead className="pa-thead ">
             <tr>
               <th className="px-4 py-3 font-semibold">Kode</th>
-              <th className="px-4 py-3 font-semibold">Donatur</th>
+              <th className="px-4 py-3 font-semibold">Pengadopsi</th>
               <th className="px-4 py-3 font-semibold">Pohon</th>
               <th className="px-4 py-3 font-semibold">Desa</th>
               <th className="px-4 py-3 font-semibold">Tanggal</th>

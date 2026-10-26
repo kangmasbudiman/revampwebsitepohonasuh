@@ -9,9 +9,9 @@ import { Ban, BellRing, Loader2, Trash2, TriangleAlert, TreePine, XCircle } from
 import { cancelOrder } from "@/lib/actions/tagging";
 
 const KONSEKUENSI = [
-  { icon: TreePine, teks: "Semua pohon pada invoice ini dikembalikan ke “tersedia” dan bisa diadopsi donor lain" },
+  { icon: TreePine, teks: "Semua pohon pada invoice ini dikembalikan ke “tersedia” dan bisa diadopsi orang lain" },
   { icon: Trash2, teks: "Data adopsi dan foto tagging invoice ini dihapus" },
-  { icon: BellRing, teks: "Donatur menerima notifikasi pembatalan" },
+  { icon: BellRing, teks: "Pengadopsi menerima notifikasi pembatalan" },
   { icon: XCircle, teks: "Tindakan permanen — tidak dapat dibatalkan" },
 ];
 

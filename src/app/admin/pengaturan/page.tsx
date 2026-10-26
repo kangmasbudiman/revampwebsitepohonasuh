@@ -89,7 +89,7 @@ export default async function PengaturanPage({
           Nomor WhatsApp Admin
         </h2>
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Ditampilkan di halaman checkout sebagai kontak bantuan donatur (paritas aplikasi
+          Ditampilkan di halaman checkout sebagai kontak bantuan pengadopsi (paritas aplikasi
           mobile). Format bebas, mis. +62857… atau 0857…
         </p>
 

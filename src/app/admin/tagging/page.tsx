@@ -123,7 +123,7 @@ export default async function TaggingPage({
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Pohon terverifikasi yang menunggu ditandai di lapangan. Petugas klik <span className="font-semibold text-emerald-700 dark:text-emerald-300">Mulai
         Proses</span>, tunggu acc admin, lalu unggah foto tagging dan tandai selesai — sertifikat
-        donatur terbit otomatis setelah selesai (paritas aplikasi mobile).
+        pengadopsi terbit otomatis setelah selesai (paritas aplikasi mobile).
         Conteng kartu <span className="font-semibold text-emerald-700 dark:text-emerald-300">Papan</span> untuk
         mengunduh beberapa papan taging sekaligus dalam satu file ZIP — pohon yang sudah memiliki
         foto tagging otomatis dikeluarkan dari unduhan massal.
@@ -161,7 +161,7 @@ export default async function TaggingPage({
       )}
       {sp?.batal && (
         <SuccessPopup paramKey="batal" title="Order Dibatalkan">
-          Order dibatalkan — pohon pada invoice dikembalikan ke tersedia dan donatur dinotifikasi.
+          Order dibatalkan — pohon pada invoice dikembalikan ke tersedia dan pengadopsi dinotifikasi.
         </SuccessPopup>
       )}
       {sp?.batalproses && (

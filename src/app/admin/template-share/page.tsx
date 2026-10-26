@@ -103,7 +103,7 @@ export default async function AdminTemplateSharePage({
             Template adalah <strong>design fill-in</strong>: header logo, garis putus,
             3 kartu statistik (pohon/lokasi/tahun), kartu &ldquo;Pesan untuk Hutan&rdquo;,
             dan caption penutup digambar di template; teks dinamis diisi sistem di zona
-            tetap — nama donatur di ±27%, kalimat &ldquo;Menghadiahkan pohon … untuk&rdquo;
+            tetap — nama pengadopsi di ±27%, kalimat &ldquo;Menghadiahkan pohon … untuk&rdquo;
             di ±28-33%, nama penerima hadiah di ±39%, nilai kartu (jumlah pohon / desa +
             subtext / durasi tahun) di ±50-56%, memo tulisan tangan di ±65-73%.
             Sisakan zona tersebut kosong/tenang.

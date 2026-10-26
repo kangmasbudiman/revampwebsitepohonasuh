@@ -35,7 +35,7 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
     <main className="w-full px-6 py-8 lg:px-10">
       <h1 className="text-3xl font-bold pa-hgrad">Verifikasi Pembayaran</h1>
       <p className="mt-2 text-zinc-600 dark:text-zinc-300">
-        Periksa bukti transfer donatur. Pastikan nominal sesuai (harga + kode unik) sebelum
+        Periksa bukti transfer pengadopsi. Pastikan nominal sesuai (harga + kode unik) sebelum
         memverifikasi.
       </p>
 

@@ -35,7 +35,7 @@ export default function VerifyPanel({ confirmasiId }: { confirmasiId: number }) 
           <input type="hidden" name="confirmasiId" value={confirmasiId} />
           <p className="text-sm font-medium text-red-800">Batalkan order ini?</p>
           <p className="mt-1 text-sm leading-5 text-red-800/80">
-            Order dihapus, semua pohon pada invoice dikembalikan ke tersedia, dan donatur
+            Order dihapus, semua pohon pada invoice dikembalikan ke tersedia, dan pengadopsi
             menerima pemberitahuan pembatalan.
           </p>
           <button

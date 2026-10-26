@@ -249,7 +249,7 @@ export default async function DetailBtorPage(props: Props) {
                         {o.localname}
                       </p>
                       <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                        {o.invoice} · donatur {o.donatur || "—"}
+                        {o.invoice} · pengadopsi {o.donatur || "—"}
                       </p>
                     </div>
                     <div className="text-right">
