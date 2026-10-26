@@ -5,7 +5,8 @@ import StatusBadge from "@/components/status-badge";
 import AddToCartButton from "@/components/add-to-cart-button";
 import CartMarker from "@/components/cart-marker";
 import { labelLokasi, rupiah, TREE_STATUS } from "@/lib/format";
-import { getDict } from "@/lib/i18n";
+import { formatCo2 } from "@/lib/karbon";
+import { getDict, getLocale } from "@/lib/i18n";
 
 type TreeCardProps = {
   tree: {
@@ -17,13 +18,14 @@ type TreeCardProps = {
     photoUrl: string | null;
     desa?: string | null;
     diameterCm?: number | null;
-    serapanKarbon?: number | null;
+    co2Kg?: number | null;
     location?: { name: string; label?: string | null } | null;
   };
 };
 
 export default async function TreeCard({ tree }: TreeCardProps) {
   const dict = await getDict();
+  const locale = await getLocale();
   const t = dict.tree;
   const statusLabel: Record<string, string> = {
     AVAILABLE: t.statusAvailable,
@@ -68,14 +70,18 @@ export default async function TreeCard({ tree }: TreeCardProps) {
             />
           </div>
         )}
-        {tree.serapanKarbon != null && (
+        {tree.co2Kg != null && (
           <span
             className={`absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold shadow-sm backdrop-blur ${
-              tree.serapanKarbon > 0 ? "text-emerald-700" : "text-zinc-500"
+              tree.co2Kg > 0 ? "text-emerald-700" : "text-zinc-500"
             }`}
+            title={dict.pages.spesies.carbonMethod}
           >
             <Leaf aria-hidden className="h-3.5 w-3.5" />
-            {dict.pages.spesies.carbonPerYear.replaceAll("{n}", String(tree.serapanKarbon))}
+            {dict.pages.spesies.carbonEst.replaceAll(
+              "{v}",
+              formatCo2(tree.co2Kg, locale),
+            )}
           </span>
         )}
       </div>

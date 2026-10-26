@@ -696,6 +696,7 @@ export const dict = {
     pohonDetail: {
       back: "← Kembali ke Data Pohon",
       diameter: "Diameter",
+      co2: "Serapan CO₂ (est.)",
       biomass: "Estimasi Biomassa",
       ton: "± {n} ton",
       height: "Tinggi",
@@ -727,6 +728,8 @@ export const dict = {
       matched: "{n} spesies cocok",
       listed: "{n} spesies terdaftar",
       carbonPerYear: "≈ {n} kg CO₂/tahun",
+      carbonEst: "≈ {v} CO₂",
+      carbonMethod: "Estimasi total CO₂ terserap seumur hidup pohon, dihitung dari diameter (persamaan alometrik Brown 1997)",
       treeCount: "{n} pohon terdata",
       availableChip: "{n} Tersedia",
       soldOutChip: "Habis diadopsi",

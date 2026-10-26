@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { apiGet, apiPost, mapDesa, mapSpeciesList, mapTrees, type ApiDesa, type ApiTree } from "@/lib/api";
+import { apiGet, apiPost, mapDesa, mapTrees, type ApiDesa, type ApiTree } from "@/lib/api";
+import { co2TotalKg } from "@/lib/karbon";
 import { labelLokasi, rupiah } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
@@ -40,7 +41,6 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
 
   let desaList: ApiDesa[] = [];
   let trees: ApiTree[] = [];
-  let serapanBySpecies = new Map<string, number>();
   let aktif: ApiDesa | undefined;
   let error = false;
   try {
@@ -60,14 +60,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
         : await apiPost<Record<string, unknown>[]>("filtertrees", { adopted: "available" });
     }
     trees = mapTrees(rows).filter((t) => byNama.get(t.desa) !== false);
-    // Serapan karbon per spesies (katalog /spesies) — join berdasarkan nama
-    // latin; hanya sebagian spesies yang punya estimasi.
-    const species = mapSpeciesList(await apiGet<Record<string, unknown>[]>("specieslist"));
-    serapanBySpecies = new Map(
-      species
-        .filter((s) => s.serapanKarbon !== null)
-        .map((s) => [s.namaLatin.toLowerCase().trim(), s.serapanKarbon as number]),
-    );  } catch {
+  } catch {
     error = true;
   }
 
@@ -190,9 +183,7 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
                 key={`${tree.code}-${i}`}
                 tree={{
                   ...tree,
-                  serapanKarbon: tree.species
-                    ? (serapanBySpecies.get(tree.species.toLowerCase().trim()) ?? 0)
-                    : 0,
+                  co2Kg: co2TotalKg(tree.diameterCm),
                   location: { name: tree.desa, label: labelByNama.get(tree.desa) ?? null },
                 }}
               />

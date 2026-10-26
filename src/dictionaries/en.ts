@@ -696,6 +696,7 @@ export const dict: Dict = {
     pohonDetail: {
       back: "← Back to Tree Data",
       diameter: "Diameter",
+      co2: "CO₂ Absorption (est.)",
       biomass: "Estimated Biomass",
       ton: "± {n} tons",
       height: "Height",
@@ -727,6 +728,8 @@ export const dict: Dict = {
       matched: "{n} species matched",
       listed: "{n} species listed",
       carbonPerYear: "≈ {n} kg CO₂/year",
+      carbonEst: "≈ {v} CO₂",
+      carbonMethod: "Estimated lifetime CO₂ absorbed by the tree, calculated from its stem diameter (Brown 1997 allometric equation)",
       treeCount: "{n} trees recorded",
       availableChip: "{n} Available",
       soldOutChip: "Fully adopted",

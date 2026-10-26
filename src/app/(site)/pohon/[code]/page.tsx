@@ -13,6 +13,7 @@ import {
   type ApiRiwayatPohon,
 } from "@/lib/api";
 import { getSession } from "@/lib/auth";
+import { co2TotalKg, formatCo2 } from "@/lib/karbon";
 import { namaDesa, rupiah } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
@@ -72,7 +73,8 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
   const dict = await getDict();
   const d = dict.pages.pohonDetail;
   const statusLabel = dict.tree;
-  const tglFmt = new Intl.DateTimeFormat((await getLocale()) === "en" ? "en-GB" : "id-ID", {
+  const locale = await getLocale();
+  const tglFmt = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "id-ID", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -84,8 +86,13 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
     return Number.isNaN(dt.getTime()) ? "—" : tglFmt.format(dt);
   };
 
+  const co2Kg = co2TotalKg(tree.diameterCm);
   const specs = [
     { label: d.diameter, value: tree.diameterCm ? `${tree.diameterCm} cm` : "—" },
+    {
+      label: d.co2,
+      value: co2Kg !== null ? `≈ ${formatCo2(co2Kg, locale)}` : "—",
+    },
     {
       label: d.biomass,
       value:
