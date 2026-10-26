@@ -5,11 +5,17 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, Sprout } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
 import type { ApiAdopsiTerKini } from "@/lib/api";
-import { namaDesa } from "@/lib/format";
+import { labelLokasi } from "@/lib/format";
 
 // Slider "Pengadopsi Terkini" di beranda: kartu bergeser otomatis,
 // berhenti saat disentuh/arahkan kursor, bisa digeser manual.
-export default function RecentAdopters({ items }: { items: ApiAdopsiTerKini[] }) {
+export default function RecentAdopters({
+  items,
+  labelDesa,
+}: {
+  items: ApiAdopsiTerKini[];
+  labelDesa?: Record<string, string | null>;
+}) {
   const { locale, dict } = useI18n();
   const t = dict.home;
   const trackRef = useRef<HTMLDivElement>(null);
@@ -125,7 +131,7 @@ export default function RecentAdopters({ items }: { items: ApiAdopsiTerKini[] })
                 <span className="font-mono font-semibold text-emerald-700">{it.code}</span>
               </p>
               <p className="mt-0.5 truncate text-xs text-zinc-400">
-                <span>{namaDesa(it.desa)}</span>
+                <span>{labelLokasi({ name: it.desa, label: labelDesa?.[it.desa] ?? null })}</span>
                 {it.tanggal ? ` · ${fmtTanggal(it.tanggal)}` : ""}
               </p>
             </div>

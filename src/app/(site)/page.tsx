@@ -186,7 +186,9 @@ export default async function HomePage() {
       <HeroSlider slides={heroSlides} />
 
       {/* Slider pengadopsi terkini */}
-      {adopsiTerkini.length > 0 && <RecentAdopters items={adopsiTerkini} />}
+      {adopsiTerkini.length > 0 && (
+        <RecentAdopters items={adopsiTerkini} labelDesa={Object.fromEntries(labelByNama)} />
+      )}
 
       {/* Stats */}
       <section className="border-b border-emerald-100 bg-white">
