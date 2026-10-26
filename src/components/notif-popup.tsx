@@ -29,13 +29,15 @@ export type NotifPopupLabels = {
 // ditentukan pembungkus di komponen lonceng masing-masing; komponen ini
 // hanya merender panelnya.
 //
-// `tanggal` dari API berformat "d M Y, H:i" (bulan singkat Inggris) —
-// waktu relatif dihitung manual; bila gagal parse, tampilkan apa adanya.
+// `tanggal` dari API berformat "d M Y, H:i" dengan bulan singkat
+// Indonesia (Okt) — beberapa bulan ejaannya sama dengan Inggris, sisnya
+// (Mei/Agu/Okt/Des) dipetakan terpisah. Gagal parse → tampilkan apa adanya.
 function waktuLalu(t: NotifPopupLabels, tanggal: string | null | undefined): string {
   if (!tanggal) return "";
   const bulan: Record<string, number> = {
-    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+    Jan: 0, Feb: 1, Mar: 2, Apr: 3, Jun: 5, Jul: 6, Sep: 8, Nov: 10,
+    May: 4, Aug: 7, Oct: 9, Dec: 11, // Inggris (baris lama)
+    Mei: 4, Agu: 7, Okt: 9, Des: 11, // Indonesia
   };
   const m = /^(\d{1,2}) ([A-Za-z]{3}) (\d{4}), (\d{2}):(\d{2})$/.exec(tanggal);
   if (m && m[2] in bulan) {
