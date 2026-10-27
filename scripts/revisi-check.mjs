@@ -207,12 +207,32 @@ let idBtor = 0;
     { name: "e2e-a.png", mimeType: "image/png", buffer: png },
     { name: "e2e-b.png", mimeType: "image/png", buffer: png },
   ]);
+  // Batalkan 1 file SEBELUM unggah (tombol ✕ di daftar file terpilih).
+  await kartu
+    .locator('[data-testid="file-ok"] li')
+    .nth(1)
+    .getByRole("button", { name: "Batalkan e2e-b.png" })
+    .click();
+  const sisaTerpilih = await kartu.locator('[data-testid="file-ok"] li').count();
+  assert(sisaTerpilih === 1, `batal 1 file sebelum unggah — sisa ${sisaTerpilih} terpilih`);
   await kartu.locator('button:has-text("Unggah")').click();
-  await kartu.locator("text=2 foto tagging terunggah.").waitFor({ timeout: 30000 });
+  await kartu.locator("text=1 foto tagging terunggah.").waitFor({ timeout: 30000 });
   const sesudah = Number(rows(`SELECT COUNT(*) FROM foto_tagging WHERE idadopsi=3617`)[0][0]);
-  assert(sesudah - sebelum === 2, `2 foto baru tersimpan (${sebelum} → ${sesudah})`);
+  assert(sesudah - sebelum === 1, `hanya file tersisa yang terunggah (${sebelum} → ${sesudah})`);
+
+  // Hapus foto yang barusan diunggah (✕ di thumbnail + modal konfirmasi).
+  await kartu.locator('[data-testid="hapus-foto-tagging"]').last().waitFor({ timeout: 20000 });
+  await kartu.locator('[data-testid="hapus-foto-tagging"]').last().click();
+  await p.locator("[data-confirm-submit]").click();
+  await waitForDb(
+    () =>
+      Number(rows(`SELECT COUNT(*) FROM foto_tagging WHERE idadopsi=3617`)[0][0]) === sebelum,
+    20000,
+    "foto terhapus",
+  );
+  assert(true, `foto terunggah dihapus — kembali ke ${sebelum}`);
   await ctx.close();
-  console.log("— multi-upload OK");
+  console.log("— multi-upload + batal/hapus foto OK");
 }
 
 bersihkan();

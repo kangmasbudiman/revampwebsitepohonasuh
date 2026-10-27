@@ -68,6 +68,29 @@ export async function uploadTaggingPhoto(
   return { saved: true, pesan: `${ok} foto tagging terunggah.` };
 }
 
+// Hapus SATU foto tagging (koreksi salah unggah) — hanya selama order masih
+// proses 2 + acc (foto order selesai terkunci sebagai bukti tagging).
+export async function hapusFotoTagging(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/admin/tagging?error=Foto+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("hapusfototaging", {
+      id,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/tagging?error=${encodeURIComponent(res.pesan ?? "Gagal menghapus foto.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/tagging?error=Gagal+menghapus+foto");
+  }
+
+  revalidatePath("/admin/tagging");
+  redirect("/admin/tagging?proses=2&fotodihapus=1");
+}
+
 export async function markInProgress(formData: FormData) {
   await requireAdmin();
   const id = Number(formData.get("id"));

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CheckCircle2, Printer } from "lucide-react";
+import { CheckCircle2, Printer, X } from "lucide-react";
 import { requireAdmin } from "@/lib/guard";
 import { apiAssetUrl, apiPost, mapOrderRows, type ApiOrderRow } from "@/lib/api";
 import { rupiah } from "@/lib/format";
@@ -11,7 +11,7 @@ import PapanCheck from "@/components/admin/papan-check";
 import PapanCheckAll from "@/components/admin/papan-check-all";
 import PapanBatchBar from "@/components/admin/papan-batch-bar";
 import DesaFilter from "@/components/admin/desa-filter";
-import { updateOrderNote, accTagging } from "@/lib/actions/tagging";
+import { updateOrderNote, accTagging, hapusFotoTagging } from "@/lib/actions/tagging";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import SuccessPopup from "@/components/admin/success-popup";
 
@@ -65,17 +65,19 @@ export default async function TaggingPage({
   // fototagingorder per invoice — riwayat foto siklus adopsi LAMA tidak ikut,
   // sehingga pohon yang pernah ditandai di adopsi sebelumnya tetap dianggap
   // belum ditagging untuk order berjalan.
-  const fotosByOrder: Record<number, string[]> = {};
+  const fotosByOrder: Record<number, { id: number; url: string }[]> = {};
   await Promise.all(
     [...new Set(filtered.map((o) => o.invoice))].map(async (inv) => {
       try {
         const rows = await apiPost<
-          { idadopsi?: number | string; foto?: { url?: string }[] }[]
+          { idadopsi?: number | string; foto?: { id?: number | string; url?: string }[] }[]
         >("fototagingorder", { invoice: inv });
         for (const r of rows) {
-          fotosByOrder[Number(r.idadopsi)] = (r.foto ?? [])
-            .map((f) => apiAssetUrl(f.url))
-            .filter((u): u is string => !!u);
+          fotosByOrder[Number(r.idadopsi)] = (r.foto ?? []).flatMap((f) => {
+            const url = apiAssetUrl(f.url);
+            const id = Number(f.id);
+            return url && id > 0 ? [{ id, url }] : [];
+          });
         }
       } catch {
         // kartu tetap dirender tanpa foto
@@ -157,6 +159,11 @@ export default async function TaggingPage({
       {sp?.catatan && (
         <SuccessPopup paramKey="catatan" title="Tersimpan">
           Catatan order tersimpan.
+        </SuccessPopup>
+      )}
+      {sp?.fotodihapus && (
+        <SuccessPopup paramKey="fotodihapus" title="Foto Dihapus">
+          Foto tagging dihapus.
         </SuccessPopup>
       )}
       {sp?.batal && (
@@ -319,15 +326,30 @@ export default async function TaggingPage({
                     Foto tagging ({fotosByOrder[order.id].length})
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {fotosByOrder[order.id].map((u, i) => (
-                      <Image
-                        key={`${u}-${i}`}
-                        src={u}
-                        alt={`Foto tagging ${i + 1}`}
-                        width={64}
-                        height={64}
-                        className="h-16 w-16 rounded-lg border border-emerald-100 dark:border-night-700 object-cover"
-                      />
+                    {fotosByOrder[order.id].map((f, i) => (
+                      <div key={f.id} className="relative">
+                        <Image
+                          src={f.url}
+                          alt={`Foto tagging ${i + 1}`}
+                          width={64}
+                          height={64}
+                          className="h-16 w-16 rounded-lg border border-emerald-100 dark:border-night-700 object-cover"
+                        />
+                        {order.proses === 2 && order.acc && (
+                          <form action={hapusFotoTagging} className="absolute -right-1.5 -top-1.5">
+                            <input type="hidden" name="id" value={f.id} />
+                            <ConfirmSubmit
+                              testId="hapus-foto-tagging"
+                              title="Hapus foto ini"
+                              message="Hapus foto tagging ini? Foto dihapus permanen dari server."
+                              confirmLabel="Ya, Hapus"
+                              className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-white shadow-sm transition-colors hover:bg-red-700"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </ConfirmSubmit>
+                          </form>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>

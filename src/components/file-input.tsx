@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleCheck, TriangleAlert, X } from "lucide-react";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
 
 const mb = (n: number) => `${(n / 1048576).toFixed(1)} MB`;
@@ -26,7 +26,7 @@ export default function FileInput({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<{ nama: string; ukuran: number } | null>(null);
-  const [siap, setSiap] = useState<{ nama: string; ukuran: number }[]>([]);
+  const [siap, setSiap] = useState<File[]>([]);
 
   useEffect(() => {
     const form = inputRef.current?.form;
@@ -59,8 +59,27 @@ export default function FileInput({
       return;
     }
     setError(null);
-    setSiap(files.map((f) => ({ nama: f.name, ukuran: f.size })));
+    setSiap(files);
     onFileChange?.(files[0] ?? null);
+  };
+
+  // Batalkan satu file dari seleksi SEBELUM unggah — sinkronkan FileList di
+  // input agar form hanya mengirim sisa file (input.files hanya bisa
+  // diganti utuh lewat DataTransfer).
+  const batalkan = (i: number) => {
+    const sisa = siap.filter((_, idx) => idx !== i);
+    setSiap(sisa);
+    const input = inputRef.current;
+    if (input) {
+      if (sisa.length === 0) {
+        input.value = "";
+      } else {
+        const dt = new DataTransfer();
+        for (const f of sisa) dt.items.add(f);
+        input.files = dt.files;
+      }
+    }
+    onFileChange?.(sisa[0] ?? null);
   };
 
   return (
@@ -104,16 +123,25 @@ export default function FileInput({
 
       {siap.length > 0 && !error && (
         <ul data-testid="file-ok" className="mt-2 space-y-1">
-          {siap.map((f) => (
+          {siap.map((f, i) => (
             <li
-              key={f.nama}
+              key={`${f.name}-${i}`}
               className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300"
             >
               <CircleCheck className="h-4 w-4 shrink-0" />
-              <span className="truncate font-medium">{f.nama}</span>
+              <span className="truncate font-medium">{f.name}</span>
               <span className="shrink-0 text-emerald-600/70 dark:text-emerald-400/70">
-                ({mb(f.ukuran)})
+                ({mb(f.size)})
               </span>
+              <button
+                type="button"
+                aria-label={`Batalkan ${f.name}`}
+                title="Batalkan file ini"
+                onClick={() => batalkan(i)}
+                className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </li>
           ))}
         </ul>
