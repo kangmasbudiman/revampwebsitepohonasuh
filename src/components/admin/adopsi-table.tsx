@@ -23,12 +23,15 @@ const csvCell = (v: string | number | null | undefined) => {
 
 export default function AdopsiTable({
   rows,
+  provinsiByDesa = {},
   initialQuery = "",
 }: {
   rows: ApiAdopsi[];
+  provinsiByDesa?: Record<string, string | null>;
   initialQuery?: string;
 }) {
   const [q, setQ] = useState(initialQuery);
+  const [provinsi, setProvinsi] = useState("semua");
   const [desa, setDesa] = useState("semua");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(50);
@@ -39,14 +42,35 @@ export default function AdopsiTable({
     setQrBase(window.location.origin);
   }, []);
 
+  const provinsiList = useMemo(
+    () =>
+      [
+        ...new Set(
+          rows
+            .map((r) => provinsiByDesa[r.desa] ?? null)
+            .filter((p): p is string => !!p),
+        ),
+      ].sort((a, b) => a.localeCompare(b)),
+    [rows, provinsiByDesa],
+  );
+
   const desaList = useMemo(
-    () => [...new Set(rows.map((r) => r.desa).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
-    [rows],
+    () =>
+      [
+        ...new Set(
+          rows
+            .filter((r) => provinsi === "semua" || provinsiByDesa[r.desa] === provinsi)
+            .map((r) => r.desa)
+            .filter(Boolean),
+        ),
+      ].sort((a, b) => a.localeCompare(b)),
+    [rows, provinsi, provinsiByDesa],
   );
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return rows.filter((r) => {
+      if (provinsi !== "semua" && provinsiByDesa[r.desa] !== provinsi) return false;
       if (desa !== "semua" && r.desa !== desa) return false;
       if (!needle) return true;
       return (
@@ -57,7 +81,7 @@ export default function AdopsiTable({
         r.invoice.toLowerCase().includes(needle)
       );
     });
-  }, [rows, q, desa]);
+  }, [rows, q, provinsi, desa, provinsiByDesa]);
 
   const totalUsd = filtered.reduce((s, r) => s + (r.cur === "USD" ? r.price ?? 0 : 0), 0);
   const totalIdr = filtered.reduce((s, r) => s + (r.cur !== "USD" ? r.price ?? 0 : 0), 0);
@@ -157,6 +181,25 @@ export default function AdopsiTable({
             className="w-64 rounded-xl border border-zinc-200 bg-white py-2 pr-3 pl-9 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
           />
         </div>
+        {provinsiList.length > 0 && (
+          <select
+            value={provinsi}
+            onChange={(e) => {
+              setProvinsi(e.target.value);
+              setDesa("semua");
+              setPage(1);
+            }}
+            className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+            aria-label="Filter provinsi"
+          >
+            <option value="semua">Semua provinsi</option>
+            {provinsiList.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        )}
         <select
           value={desa}
           onChange={(e) => {

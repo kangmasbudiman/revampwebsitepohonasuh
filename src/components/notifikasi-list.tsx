@@ -54,9 +54,11 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
   }, [modalOpen]);
 
   const tandaiDibaca = (row: PesanRow) => {
-    if (row.status !== "noread") return;
-    setItems((its) => its.map((i) => (i.id === row.id ? { ...i, status: "read" } : i)));
-    void markPesanRead(row.id).then(() => router.refresh());
+    if (row.status === "noread") {
+      setItems((its) => its.map((i) => (i.id === row.id ? { ...i, status: "read" } : i)));
+      void markPesanRead(row.id).then(() => router.refresh());
+    }
+    if (row.link) router.push(row.link);
   };
 
   const jalankanHapus = async () => {
@@ -117,19 +119,20 @@ export default function NotifikasiList({ rows }: { rows: PesanRow[] }) {
       <div className="space-y-3">
         {items.map((row) => {
           const belum = row.status === "noread";
+          const bisaDibuka = belum || !!row.link;
           return (
             <div
               key={row.id}
               className={`flex items-start gap-4 rounded-2xl border p-5 shadow-sm transition-colors ${
-                belum
+                bisaDibuka
                   ? "cursor-pointer border-emerald-200 bg-white hover:bg-emerald-50/50"
                   : "border-emerald-100 bg-white/70"
               }`}
               onClick={() => tandaiDibaca(row)}
-              role={belum ? "button" : undefined}
-              tabIndex={belum ? 0 : undefined}
+              role={bisaDibuka ? "button" : undefined}
+              tabIndex={bisaDibuka ? 0 : undefined}
               onKeyDown={
-                belum
+                bisaDibuka
                   ? (e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();

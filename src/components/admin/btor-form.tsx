@@ -194,6 +194,7 @@ export default function BtorForm({
 
   return (
     <form onSubmit={onSubmit} className="w-full">
+      <input type="hidden" name="id" value={btor?.id ?? ""} />
       {btor?.status === "revisi" && btor.catatanRevisi && (
         <p className="mb-4 rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-700 dark:bg-orange-950/40 dark:text-orange-300">
           <span className="font-semibold">Catatan revisi: </span>

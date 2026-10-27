@@ -7,7 +7,7 @@ import { requireAdminLevel } from "@/lib/guard";
 import { apiPost, apiPostForm } from "@/lib/api";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
 
-export type AdminState = { error?: string; saved?: boolean };
+export type AdminState = { error?: string; saved?: boolean; pesan?: string };
 
 // id = id confirmation (ordercustomer mengembalikannya sebagai confirmasiid).
 // verivication Laravel sekaligus menerbitkan certnum semua pohon pada

@@ -1,6 +1,6 @@
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
-import { apiGet, mapAdopsis, type ApiAdopsi } from "@/lib/api";
+import { apiGet, mapAdopsis, mapDesa, type ApiAdopsi } from "@/lib/api";
 import AdopsiTable from "@/components/admin/adopsi-table";
 
 export const metadata = { title: "Data Adopsi | Pohon Asuh" };
@@ -12,9 +12,14 @@ export default async function DataAdopsiPage({
   const sp = await searchParams;
 
   let rows: ApiAdopsi[] = [];
+  let provinsiByDesa: Record<string, string | null> = {};
   let fetchError = false;
   try {
     rows = mapAdopsis(await apiGet<Record<string, unknown>[]>("adopsilist"));
+    const desaRows = await apiGet<Record<string, unknown>[]>("getdesa");
+    provinsiByDesa = Object.fromEntries(
+      desaRows.map(mapDesa).map((d) => [d.name, d.provinsi]),
+    );
   } catch {
     fetchError = true;
   }
@@ -23,8 +28,8 @@ export default async function DataAdopsiPage({
     <main className="w-full px-6 py-8 lg:px-10">
       <h1 className="text-xl font-bold pa-hgrad">Data Adopsi</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Seluruh catatan adopsi pohon beserta grafik dana dan total donasi. Filter per lokasi,
-        cari, sunting, hapus, cetak QR label pohon, atau ekspor ke CSV.
+        Seluruh catatan adopsi pohon beserta grafik dana dan total donasi. Filter per provinsi
+        dan lokasi, cari, sunting, hapus, cetak QR label pohon, atau ekspor ke CSV.
       </p>
 
       {sp?.saved && (
@@ -50,6 +55,7 @@ export default async function DataAdopsiPage({
       ) : (
         <AdopsiTable
           rows={rows}
+          provinsiByDesa={provinsiByDesa}
           initialQuery={(Array.isArray(sp?.q) ? sp.q[0] : sp.q) ?? ""}
         />
       )}

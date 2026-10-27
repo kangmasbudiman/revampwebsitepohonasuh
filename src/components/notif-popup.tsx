@@ -156,6 +156,35 @@ export default function NotifPopup({
         ) : (
           items.map((row) => {
             const baru = row.status === "noread";
+            const isiItem = (
+              <>
+                <span
+                  className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                    baru
+                      ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-sm shadow-emerald-500/30"
+                      : "bg-zinc-100 text-zinc-400 dark:bg-night-800 dark:text-zinc-500"
+                  }`}
+                >
+                  {baru ? <BellRing className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={`line-clamp-2 text-sm leading-snug ${
+                      baru
+                        ? "font-semibold text-zinc-800 dark:text-zinc-100"
+                        : "text-zinc-500 dark:text-zinc-400"
+                    }`}
+                  >
+                    {teksPesan(row.pesan, row.pesanEn, locale)}
+                  </span>
+                  <span className="mt-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
+                    {waktuLalu(t, row.tanggal, row.createdAt, locale)}
+                  </span>
+                </span>
+              </>
+            );
+            const kelasItem =
+              "flex min-w-0 flex-1 items-start gap-3 px-3.5 py-3 text-left transition-colors hover:bg-emerald-50 dark:hover:bg-night-800/70";
             return (
               <div
                 key={row.id}
@@ -163,36 +192,25 @@ export default function NotifPopup({
                   baru ? "border-l-emerald-500 bg-emerald-50/60 dark:bg-night-800/40" : "border-l-transparent"
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() => onRead(row)}
-                  title={baru ? t.markRead : undefined}
-                  className="flex min-w-0 flex-1 items-start gap-3 px-3.5 py-3 text-left transition-colors hover:bg-emerald-50 dark:hover:bg-night-800/70"
-                >
-                  <span
-                    className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                      baru
-                        ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-sm shadow-emerald-500/30"
-                        : "bg-zinc-100 text-zinc-400 dark:bg-night-800 dark:text-zinc-500"
-                    }`}
+                {row.link ? (
+                  <Link
+                    href={row.link}
+                    onClick={() => onRead(row)}
+                    title={baru ? t.markRead : undefined}
+                    className={kelasItem}
                   >
-                    {baru ? <BellRing className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span
-                      className={`line-clamp-2 text-sm leading-snug ${
-                        baru
-                          ? "font-semibold text-zinc-800 dark:text-zinc-100"
-                          : "text-zinc-500 dark:text-zinc-400"
-                      }`}
-                    >
-                      {teksPesan(row.pesan, row.pesanEn, locale)}
-                    </span>
-                    <span className="mt-1 block text-[11px] font-medium text-zinc-400 dark:text-zinc-500">
-                      {waktuLalu(t, row.tanggal, row.createdAt, locale)}
-                    </span>
-                  </span>
-                </button>
+                    {isiItem}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onRead(row)}
+                    title={baru ? t.markRead : undefined}
+                    className={kelasItem}
+                  >
+                    {isiItem}
+                  </button>
+                )}
                 <button
                   type="button"
                   aria-label={`${t.deleteLabel} ${row.id}`}

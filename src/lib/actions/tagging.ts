@@ -18,32 +18,54 @@ export async function uploadTaggingPhoto(
   const idadopsi = Number(formData.get("idadopsi"));
   if (!idpohon || !idadopsi) return { error: "Order tidak ditemukan." };
 
-  const file = formData.get("foto");
-  if (!(file instanceof File) || file.size === 0) {
+  const files = formData
+    .getAll("foto")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length === 0) {
     return { error: "Pilih foto tagging terlebih dahulu." };
   }
-  if (!file.type.startsWith("image/")) return { error: "File harus berupa gambar." };
-  if (file.size > MAX_FOTO_BYTES) return { error: "Ukuran foto maksimal 2MB." };
 
-  const fd = new FormData();
-  fd.append("image", file);
-  fd.append("idpohon", idpohon);
-  fd.append("idadopsi", String(idadopsi));
-  fd.append("idmember", String(session.userId));
-  fd.append("tanggal", new Date().toISOString().slice(0, 10));
+  let ok = 0;
+  const gagal: string[] = [];
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) {
+      gagal.push(`${file.name}: bukan gambar`);
+      continue;
+    }
+    if (file.size > MAX_FOTO_BYTES) {
+      gagal.push(`${file.name}: melebihi 2MB`);
+      continue;
+    }
 
-  let res: { value?: string | number; pesan?: string };
-  try {
-    res = await apiPostForm<{ value?: string | number; pesan?: string }>("uploadfototaging", fd);
-  } catch (e) {
-    return { error: e instanceof Error && e.message ? e.message : "Gagal mengunggah foto." };
-  }
-  if (Number(res.value) !== 200) {
-    return { error: res.pesan ?? "Gagal mengunggah foto." };
+    const fd = new FormData();
+    fd.append("image", file);
+    fd.append("idpohon", idpohon);
+    fd.append("idadopsi", String(idadopsi));
+    fd.append("idmember", String(session.userId));
+    fd.append("tanggal", new Date().toISOString().slice(0, 10));
+
+    try {
+      const res = await apiPostForm<{ value?: string | number; pesan?: string }>(
+        "uploadfototaging",
+        fd,
+      );
+      if (Number(res.value) === 200) ok++;
+      else gagal.push(`${file.name}: ${res.pesan ?? "gagal"}`);
+    } catch (e) {
+      gagal.push(
+        `${file.name}: ${e instanceof Error && e.message ? e.message : "gagal"}`,
+      );
+    }
   }
 
   revalidatePath("/admin/tagging");
-  return { saved: true };
+  if (ok === 0) {
+    return { error: gagal.join(" · ") || "Gagal mengunggah foto." };
+  }
+  if (gagal.length > 0) {
+    return { saved: true, pesan: `${ok} foto terunggah. Gagal: ${gagal.join(" · ")}` };
+  }
+  return { saved: true, pesan: `${ok} foto tagging terunggah.` };
 }
 
 export async function markInProgress(formData: FormData) {

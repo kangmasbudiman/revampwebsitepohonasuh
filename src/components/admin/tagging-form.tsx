@@ -52,10 +52,13 @@ export default function TaggingForm({
           <input type="hidden" name="idadopsi" value={id} />
           <input type="hidden" name="idpohon" value={idpohon} />
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">
-            Foto Tagging <span className="text-zinc-400 dark:text-zinc-500">(jpg/png/webp, maks 2MB)</span>
+            Foto Tagging{" "}
+            <span className="text-zinc-400 dark:text-zinc-500">
+              (jpg/png/webp, maks 2MB — bisa pilih beberapa sekaligus)
+            </span>
           </label>
           <div className="flex flex-wrap items-center gap-2">
-            <FileInput name="foto" className="mt-1 min-w-0 flex-1" />
+            <FileInput name="foto" multiple className="mt-1 min-w-0 flex-1" />
             <button
               type="submit"
               disabled={pending}
@@ -69,7 +72,7 @@ export default function TaggingForm({
           )}
           {state.saved && !state.error && (
             <p className="rounded-lg bg-emerald-50 dark:bg-night-800 px-3 py-2 text-sm text-emerald-700">
-              Foto tagging terunggah.
+              {state.pesan ?? "Foto tagging terunggah."}
             </p>
           )}
         </form>

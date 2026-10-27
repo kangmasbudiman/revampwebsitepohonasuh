@@ -8,6 +8,7 @@ export type PesanRow = {
   id: number;
   pesan: string;
   pesanEn: string | null;
+  link: string | null;
   status: string;
   tanggal: string | null;
   createdAt: string | null;
@@ -56,6 +57,7 @@ export async function listPesan(): Promise<PesanRow[]> {
         id: Number(r.id),
         pesan: String(r.pesan ?? ""),
         pesanEn: r.pesan_en ? String(r.pesan_en) : null,
+        link: r.link ? String(r.link) : null,
         status: String(r.status ?? ""),
         tanggal: r.tanggal ? String(r.tanggal) : null,
         createdAt: r.created_at ? String(r.created_at) : null,

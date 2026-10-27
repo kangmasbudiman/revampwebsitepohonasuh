@@ -15,16 +15,18 @@ export default function FileInput({
   name,
   accept = "image/jpeg,image/png,image/webp",
   className = "mt-1",
+  multiple = false,
   onFileChange,
 }: {
   name: string;
   accept?: string;
   className?: string;
+  multiple?: boolean;
   onFileChange?: (file: File | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<{ nama: string; ukuran: number } | null>(null);
-  const [siap, setSiap] = useState<{ nama: string; ukuran: number } | null>(null);
+  const [siap, setSiap] = useState<{ nama: string; ukuran: number }[]>([]);
 
   useEffect(() => {
     const form = inputRef.current?.form;
@@ -41,23 +43,24 @@ export default function FileInput({
   }, [error]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.currentTarget.files?.[0];
-    if (!f) {
+    const files = Array.from(e.currentTarget.files ?? []);
+    if (files.length === 0) {
       setError(null);
-      setSiap(null);
+      setSiap([]);
       onFileChange?.(null);
       return;
     }
-    if (f.size > MAX_UPLOAD_BYTES) {
-      setSiap(null);
-      setError({ nama: f.name, ukuran: f.size });
+    const besar = files.find((f) => f.size > MAX_UPLOAD_BYTES);
+    if (besar) {
+      setSiap([]);
+      setError({ nama: besar.name, ukuran: besar.size });
       e.currentTarget.value = "";
       onFileChange?.(null);
       return;
     }
     setError(null);
-    setSiap({ nama: f.name, ukuran: f.size });
-    onFileChange?.(f);
+    setSiap(files.map((f) => ({ nama: f.name, ukuran: f.size })));
+    onFileChange?.(files[0] ?? null);
   };
 
   return (
@@ -67,6 +70,7 @@ export default function FileInput({
         name={name}
         type="file"
         accept={accept}
+        multiple={multiple}
         onChange={onChange}
         aria-invalid={!!error}
         className={`w-full rounded-xl border bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-colors file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:font-medium file:text-emerald-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:bg-night-950 dark:text-zinc-100 dark:file:bg-night-800 dark:file:text-emerald-300 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40 ${
@@ -98,17 +102,21 @@ export default function FileInput({
         </div>
       )}
 
-      {siap && !error && (
-        <p
-          data-testid="file-ok"
-          className="mt-2 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300"
-        >
-          <CircleCheck className="h-4 w-4 shrink-0" />
-          <span className="truncate font-medium">{siap.nama}</span>
-          <span className="shrink-0 text-emerald-600/70 dark:text-emerald-400/70">
-            ({mb(siap.ukuran)})
-          </span>
-        </p>
+      {siap.length > 0 && !error && (
+        <ul data-testid="file-ok" className="mt-2 space-y-1">
+          {siap.map((f) => (
+            <li
+              key={f.nama}
+              className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300"
+            >
+              <CircleCheck className="h-4 w-4 shrink-0" />
+              <span className="truncate font-medium">{f.nama}</span>
+              <span className="shrink-0 text-emerald-600/70 dark:text-emerald-400/70">
+                ({mb(f.ukuran)})
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
