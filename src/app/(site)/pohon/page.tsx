@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { apiGet, apiPost, mapDesa, mapTrees, type ApiDesa, type ApiTree } from "@/lib/api";
-import { co2TotalKg } from "@/lib/karbon";
 import { labelLokasi, rupiah } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
@@ -183,7 +182,6 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
                 key={`${tree.code}-${i}`}
                 tree={{
                   ...tree,
-                  co2Kg: co2TotalKg(tree.diameterCm),
                   location: { name: tree.desa, label: labelByNama.get(tree.desa) ?? null },
                 }}
               />

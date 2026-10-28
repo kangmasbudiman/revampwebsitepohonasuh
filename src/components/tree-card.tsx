@@ -5,7 +5,7 @@ import StatusBadge from "@/components/status-badge";
 import AddToCartButton from "@/components/add-to-cart-button";
 import CartMarker from "@/components/cart-marker";
 import { labelLokasi, rupiah, TREE_STATUS } from "@/lib/format";
-import { formatCo2 } from "@/lib/karbon";
+import { co2TotalKg, formatCo2 } from "@/lib/karbon";
 import { getDict, getLocale } from "@/lib/i18n";
 
 type TreeCardProps = {
@@ -18,6 +18,7 @@ type TreeCardProps = {
     photoUrl: string | null;
     desa?: string | null;
     diameterCm?: number | null;
+    heightM?: number | null;
     co2Kg?: number | null;
     location?: { name: string; label?: string | null } | null;
   };
@@ -32,6 +33,9 @@ export default async function TreeCard({ tree }: TreeCardProps) {
     RESERVED: t.statusReserved,
     ADOPTED: t.statusAdopted,
   };
+  // Serapan CO₂ dihitung dari diameter (rumus sama dengan detail pohon) agar
+  // kartu di semua halaman tampil konsisten tanpa menunggu properti co2Kg.
+  const co2Kg = tree.co2Kg ?? co2TotalKg(tree.diameterCm);
 
   return (
     <Link
@@ -70,17 +74,17 @@ export default async function TreeCard({ tree }: TreeCardProps) {
             />
           </div>
         )}
-        {tree.co2Kg != null && (
+        {co2Kg != null && (
           <span
             className={`absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold shadow-sm backdrop-blur ${
-              tree.co2Kg > 0 ? "text-emerald-700" : "text-zinc-500"
+              co2Kg > 0 ? "text-emerald-700" : "text-zinc-500"
             }`}
             title={dict.pages.spesies.carbonMethod}
           >
             <Leaf aria-hidden className="h-3.5 w-3.5" />
             {dict.pages.spesies.carbonEst.replaceAll(
               "{v}",
-              formatCo2(tree.co2Kg, locale),
+              formatCo2(co2Kg, locale),
             )}
           </span>
         )}
@@ -98,11 +102,13 @@ export default async function TreeCard({ tree }: TreeCardProps) {
         {tree.location && (
           <p className="mt-2 text-sm text-zinc-600">📍 {labelLokasi(tree.location)}</p>
         )}
-        {tree.diameterCm ? (
+        {(tree.heightM || tree.diameterCm) && (
           <p className={`${tree.location ? "" : "mt-2"} text-sm text-zinc-600`}>
-            📏 Ø {tree.diameterCm} cm
+            📏 {tree.heightM ? `T ${tree.heightM} m` : ""}
+            {tree.heightM && tree.diameterCm ? " · " : ""}
+            {tree.diameterCm ? `Ø ${tree.diameterCm} cm` : ""}
           </p>
-        ) : null}
+        )}
         <p className="mt-3 text-lg font-bold text-emerald-700">{rupiah(tree.priceIdr)}</p>
         <p className="text-xs text-zinc-500">{t.perYear}</p>
       </div>

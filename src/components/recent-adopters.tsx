@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Sprout } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
@@ -111,9 +112,10 @@ export default function RecentAdopters({
         className="mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((it, i) => (
-          <div
+          <Link
             key={`${it.code}-${i}`}
-            className="flex min-w-[270px] max-w-[320px] flex-1 snap-start items-center gap-3 rounded-2xl border border-emerald-100 bg-white p-3 shadow-sm"
+            href={`/pohon/${it.code}`}
+            className="flex min-w-[270px] max-w-[320px] flex-1 snap-start items-center gap-3 rounded-2xl border border-emerald-100 bg-white p-3 shadow-sm transition-all hover:border-emerald-300 hover:shadow-md"
           >
             {it.photoUrl && (
               <Image
@@ -135,7 +137,7 @@ export default function RecentAdopters({
                 {it.tanggal ? ` · ${fmtTanggal(it.tanggal)}` : ""}
               </p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
