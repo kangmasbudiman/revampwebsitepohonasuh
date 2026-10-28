@@ -191,6 +191,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
                 key={r.id}
                 foto={r.foto}
                 label={d.riwayatFoto}
+                judul={r.nama}
                 statusPill={
                   <span
                     className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${

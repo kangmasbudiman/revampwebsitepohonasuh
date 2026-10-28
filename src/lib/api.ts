@@ -208,7 +208,7 @@ export type ApiRiwayatPohon = {
   tglExp: string | null;
   dur: number;
   aktif: boolean;
-  foto: { url: string; tanggal: string | null }[];
+  foto: { id: number; url: string; tanggal: string | null }[];
 };
 
 export function mapRiwayatPohon(r: Record<string, unknown>): ApiRiwayatPohon {
@@ -223,6 +223,7 @@ export function mapRiwayatPohon(r: Record<string, unknown>): ApiRiwayatPohon {
     foto: Array.isArray(r.foto)
       ? (r.foto as Record<string, unknown>[])
           .map((f) => ({
+            id: Number(f.id) || 0,
             url: apiAssetUrl(f.url as string | null) ?? "",
             tanggal: f.tanggal ? String(f.tanggal) : null,
           }))

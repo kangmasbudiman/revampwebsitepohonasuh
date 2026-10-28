@@ -3,23 +3,28 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ChevronDown, Images } from "lucide-react";
+import LaporanFotoPopup from "@/components/admin/laporan-foto-popup";
 
 // Kartu riwayat adopsi di detail pohon + tombol "Foto Tagging" yang
 // me-expand galeri bukti tagging siklus adopsi itu (collapse per kartu).
-// children (avatar + kolom info) dan statusPill dirender server — komponen
-// ini hanya mengelola state buka/tutup.
+// Klik thumbnail membuka popup galeri (komponen sama dengan galeri foto
+// pohon/laporan), bukan tab baru. children (avatar + kolom info) dan
+// statusPill dirender server — komponen ini hanya mengelola state UI.
 export default function RiwayatFotoTagging({
   foto,
   label,
+  judul,
   children,
   statusPill,
 }: {
-  foto: { url: string; tanggal: string | null }[];
+  foto: { id: number; url: string; tanggal: string | null }[];
   label: string;
+  judul: string;
   children: React.ReactNode;
   statusPill: React.ReactNode;
 }) {
   const [buka, setBuka] = useState(false);
+  const [popup, setPopup] = useState<number | null>(null);
 
   return (
     <li
@@ -54,13 +59,13 @@ export default function RiwayatFotoTagging({
           className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6"
         >
           {foto.map((f, i) => (
-            <a
-              key={`${f.url}-${i}`}
-              href={f.url}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              key={`${f.id}-${i}`}
+              type="button"
+              aria-label={`${label} ${i + 1}`}
               title={f.tanggal ?? label}
-              className="block"
+              onClick={() => setPopup(i)}
+              className="block cursor-zoom-in"
             >
               <Image
                 src={f.url}
@@ -69,9 +74,19 @@ export default function RiwayatFotoTagging({
                 height={160}
                 className="h-20 w-full rounded-lg border border-emerald-100 object-cover transition-opacity hover:opacity-90"
               />
-            </a>
+            </button>
           ))}
         </div>
+      )}
+
+      {popup !== null && (
+        <LaporanFotoPopup
+          judul={judul}
+          fotos={foto}
+          entity="tagging"
+          start={popup}
+          onClose={() => setPopup(null)}
+        />
       )}
     </li>
   );
