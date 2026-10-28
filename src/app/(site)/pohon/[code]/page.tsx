@@ -20,6 +20,7 @@ import StatusBadge from "@/components/status-badge";
 import TreeCard from "@/components/tree-card";
 import AdoptPanel from "@/components/adopt-panel";
 import TreeHero from "@/components/tree-hero";
+import RiwayatFotoTagging from "@/components/riwayat-foto-tagging";
 
 export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) {
   const { code } = await props.params;
@@ -186,10 +187,21 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
           </p>
           <ol className="mt-6 space-y-3">
             {riwayat.map((r) => (
-              <li
+              <RiwayatFotoTagging
                 key={r.id}
-                data-testid="riwayat-item"
-                className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm"
+                foto={r.foto}
+                label={d.riwayatFoto}
+                statusPill={
+                  <span
+                    className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${
+                      r.aktif
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-zinc-100 text-zinc-600"
+                    }`}
+                  >
+                    {r.aktif ? d.riwayatAktif : d.riwayatSelesai}
+                  </span>
+                }
               >
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
@@ -213,16 +225,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
                     {tglTampil(r.tglExp)}
                   </p>
                 </div>
-                <span
-                  className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${
-                    r.aktif
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-zinc-100 text-zinc-600"
-                  }`}
-                >
-                  {r.aktif ? d.riwayatAktif : d.riwayatSelesai}
-                </span>
-              </li>
+              </RiwayatFotoTagging>
             ))}
           </ol>
         </section>

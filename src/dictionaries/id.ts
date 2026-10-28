@@ -714,6 +714,7 @@ export const dict = {
       riwayatSelesai: "Selesai",
       riwayatMulai: "Mulai",
       riwayatAkhir: "Selesai",
+      riwayatFoto: "Foto Tagging",
     },
     spesies: {
       title: "Katalog Spesies",
