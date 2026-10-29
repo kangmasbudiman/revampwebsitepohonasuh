@@ -18,10 +18,15 @@ export default async function VerificationDetailPage(
     // notFound di bawah yang menangani
   }
 
+  // [code] = ID confirmation (angka). Notifikasi checkout lama pernah
+  // mengirim invoice di URL — biarkan tetap 404 alih-alih crash: tanpa ID
+  // yang valid order memang tak bisa ditemukan.
   const orderRows = rows.filter((r) => r.confirmasiId === Number(code));
-  if (orderRows.length === 0 || orderRows[0].confirmation !== "no" || !orderRows[0].fotoBuktiUrl) {
+  if (orderRows.length === 0) {
     notFound();
   }
+  const sudah = orderRows[0].confirmation !== "no";
+  const adaBukti = Boolean(orderRows[0].fotoBuktiUrl);
 
   const subtotal = orderRows.reduce((sum, r) => sum + r.price, 0);
   const total = orderRows[0].total;
@@ -39,7 +44,14 @@ export default async function VerificationDetailPage(
         ← Kembali ke daftar verifikasi
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold pa-hgrad">Verifikasi {invoice}</h1>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-bold pa-hgrad">Verifikasi {invoice}</h1>
+        {sudah && (
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            Sudah diverifikasi
+          </span>
+        )}
+      </div>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <div className="space-y-4">
@@ -109,12 +121,26 @@ export default async function VerificationDetailPage(
 
           <div className="mt-6 rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">
             <h2 className="font-semibold pa-hgrad">Tindakan</h2>
-            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              Verifikasi akan menandai pohon sebagai teradopsi dan menerbitkan sertifikat.
-            </p>
-            <div className="mt-4">
-              <VerifyPanel confirmasiId={Number(code)} />
-            </div>
+            {sudah ? (
+              <p className="mt-3 rounded-xl bg-emerald-50 dark:bg-night-800 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">
+                Pembayaran order ini sudah diverifikasi — tidak ada tindakan lain.
+              </p>
+            ) : !adaBukti ? (
+              <p className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+                Pengadopsi belum mengunggah bukti transfer. Jika order ini dibayar
+                online, pembayaran akan terkonfirmasi otomatis — bila transfer
+                manual, tunggu bukti diunggah sebelum memverifikasi.
+              </p>
+            ) : (
+              <>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  Verifikasi akan menandai pohon sebagai teradopsi dan menerbitkan sertifikat.
+                </p>
+                <div className="mt-4">
+                  <VerifyPanel confirmasiId={Number(code)} />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
