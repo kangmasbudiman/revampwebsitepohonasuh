@@ -4,6 +4,7 @@ import Link from "next/link";
 import { use, useActionState } from "react";
 import { register, type AuthState } from "@/lib/actions/auth";
 import { useI18n } from "@/components/i18n-provider";
+import KirimUlangVerifikasi from "@/components/kirim-ulang-verifikasi";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
@@ -28,6 +29,28 @@ export default function RegisterPage(props: PageProps<"/daftar">) {
           </Link>
         </p>
 
+        {state.success && state.emaile ? (
+          <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-5">
+            <h2 className="flex items-center gap-2 text-lg font-bold text-emerald-900">
+              <span aria-hidden>📧</span> {t.checkEmailTitle}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-emerald-900/80">
+              {t.checkEmailDesc.replaceAll("{email}", state.emaile)}
+            </p>
+            <div className="mt-4">
+              <KirimUlangVerifikasi
+                emailAwal={state.emaile}
+                labels={{ resend: t.resend, resending: t.resending, sent: t.resendSent }}
+              />
+            </div>
+            <Link
+              href="/masuk"
+              className="mt-4 inline-block text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              {t.backToLogin} →
+            </Link>
+          </div>
+        ) : (
         <form action={action} className="mt-6 space-y-4">
           <input type="hidden" name="next" value={next} />
           <div>
@@ -82,6 +105,7 @@ export default function RegisterPage(props: PageProps<"/daftar">) {
             {pending ? t.processing : t.submit}
           </button>
         </form>
+        )}
       </div>
     </main>
   );

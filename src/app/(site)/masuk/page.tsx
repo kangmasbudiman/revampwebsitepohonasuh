@@ -4,6 +4,7 @@ import Link from "next/link";
 import { use, useActionState } from "react";
 import { login, type AuthState } from "@/lib/actions/auth";
 import { useI18n } from "@/components/i18n-provider";
+import KirimUlangVerifikasi from "@/components/kirim-ulang-verifikasi";
 
 export default function LoginPage(props: PageProps<"/masuk">) {
   const searchParams = use(props.searchParams);
@@ -53,8 +54,25 @@ export default function LoginPage(props: PageProps<"/masuk">) {
               className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
             />
           </div>
-          {state.error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>
+          {state.unverified ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-sm leading-6 text-amber-800">{t.unverifiedNotice}</p>
+              {state.emaile && (
+                <div className="mt-3">
+                  <KirimUlangVerifikasi
+                    emailAwal={state.emaile}
+                    labels={{
+                      resend: t.resendVerification,
+                      resending: t.resending,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            state.error && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>
+            )
           )}
           <button
             type="submit"
@@ -63,6 +81,14 @@ export default function LoginPage(props: PageProps<"/masuk">) {
           >
             {pending ? t.processing : t.submit}
           </button>
+          <p className="text-right">
+            <Link
+              href="/lupa-password"
+              className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
+            >
+              {t.forgotPassword}
+            </Link>
+          </p>
         </form>
       </div>
     </main>
