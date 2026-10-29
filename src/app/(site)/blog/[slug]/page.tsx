@@ -1,17 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { CalendarDays, Eye, User } from "lucide-react";
 import { apiGet, apiPost, mapPost, mapPosts, type ApiPost } from "@/lib/api";
 import { tanggal } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import PostCard from "@/components/post-card";
 
-type Props = PageProps<"/blog/[id]">;
+type Props = PageProps<"/blog/[slug]">;
 
-async function getPost(id: number): Promise<ApiPost | null> {
+// Param bisa slug ("fh-unib-ikut-jaga...") atau id numerik dari tautan lama.
+async function getPost(by: { slug: string } | { id: number }): Promise<ApiPost | null> {
   try {
-    const row = await apiGet<Record<string, unknown>>(`blogbyid?id=${id}`);
+    const qs = "slug" in by ? `slug=${encodeURIComponent(by.slug)}` : `id=${by.id}`;
+    const row = await apiGet<Record<string, unknown>>(`blogbyid?${qs}`);
     return row ? mapPost(row) : null;
   } catch {
     return null;
@@ -19,8 +21,12 @@ async function getPost(id: number): Promise<ApiPost | null> {
 }
 
 export async function generateMetadata(props: Props) {
-  const { id } = await props.params;
-  const [post, d] = await Promise.all([getPost(Number(id)), getDict()]);
+  const { slug } = await props.params;
+  const param = decodeURIComponent(slug);
+  const [post, d] = await Promise.all([
+    /^\d+$/.test(param) ? getPost({ id: Number(param) }) : getPost({ slug: param }),
+    getDict(),
+  ]);
   return {
     title: post
       ? d.pages.blogDetail.title.replaceAll("{title}", post.title)
@@ -29,11 +35,17 @@ export async function generateMetadata(props: Props) {
 }
 
 export default async function BlogDetailPage(props: Props) {
-  const { id } = await props.params;
-  const postId = Number(id);
-  if (!Number.isInteger(postId) || postId <= 0) notFound();
+  const { slug } = await props.params;
+  const param = decodeURIComponent(slug);
 
-  const post = await getPost(postId);
+  let post: ApiPost | null;
+  if (/^\d+$/.test(param)) {
+    // Tautan lama ber-ID: alihkan permanen ke URL slug.
+    post = await getPost({ id: Number(param) });
+    if (post?.slug) permanentRedirect(`/blog/${post.slug}`);
+  } else {
+    post = await getPost({ slug: param });
+  }
   if (!post) notFound();
 
   // Naikkan pembaca (endpoint ini tak pernah dipanggil mobile — viewer
@@ -41,7 +53,7 @@ export default async function BlogDetailPage(props: Props) {
   // boleh memblokir halaman.
   let viewer = post.viewer;
   try {
-    await apiPost("addviewer", { id: postId });
+    await apiPost("addviewer", { id: post.id });
     viewer += 1;
   } catch {
     // biarkan nilai lama
@@ -51,7 +63,7 @@ export default async function BlogDetailPage(props: Props) {
   try {
     others = mapPosts(await apiGet<Record<string, unknown>[]>("blog"))
       .sort((a, b) => b.id - a.id)
-      .filter((p) => p.id !== postId)
+      .filter((p) => p.id !== post!.id)
       .slice(0, 3);
   } catch {
     // section opsional

@@ -79,7 +79,7 @@ export default async function BlogListPage(props: PageProps<"/blog">) {
         <>
           {featured && (
             <Link
-              href={`/blog/${featured.id}`}
+              href={`/blog/${featured.slug || featured.id}`}
               className="group mt-6 grid overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:grid-cols-2"
             >
               <div className="relative h-56 w-full bg-emerald-50 md:h-full md:min-h-64">

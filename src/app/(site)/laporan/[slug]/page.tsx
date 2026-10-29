@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { BadgeCheck, CalendarDays, Coins, MapPin, User } from "lucide-react";
 import {
   apiGet,
@@ -12,13 +12,15 @@ import { getDict, getLocale } from "@/lib/i18n";
 import LaporanGaleri from "@/components/laporan-galeri";
 import { periodeLaporan } from "@/components/laporan-card";
 
-type Props = PageProps<"/laporan/[id]">;
+type Props = PageProps<"/laporan/[slug]">;
 
-// Hanya laporan ber-status disetujui yang boleh dilihat publik.
-async function getLaporan(id: number): Promise<ApiLaporan | null> {
+// Param bisa slug ("beasiswa-dari-pohon-asuh...") atau id numerik dari
+// tautan lama. Hanya laporan ber-status disetujui yang boleh dilihat publik.
+async function getLaporan(by: { slug: string } | { id: number }): Promise<ApiLaporan | null> {
   try {
+    const qs = "slug" in by ? `slug=${encodeURIComponent(by.slug)}` : `id=${by.id}`;
     const rows = mapLaporans(
-      await apiGet<Record<string, unknown>[]>(`laporanlist?id=${id}`),
+      await apiGet<Record<string, unknown>[]>(`laporanlist?${qs}`),
     );
     const l = rows[0];
     return l && l.status === "disetujui" ? l : null;
@@ -28,8 +30,12 @@ async function getLaporan(id: number): Promise<ApiLaporan | null> {
 }
 
 export async function generateMetadata(props: Props) {
-  const { id } = await props.params;
-  const [laporan, d] = await Promise.all([getLaporan(Number(id)), getDict()]);
+  const { slug } = await props.params;
+  const param = decodeURIComponent(slug);
+  const [laporan, d] = await Promise.all([
+    /^\d+$/.test(param) ? getLaporan({ id: Number(param) }) : getLaporan({ slug: param }),
+    getDict(),
+  ]);
   return {
     title: laporan
       ? d.pages.laporanDetail.title.replaceAll("{title}", laporan.judul)
@@ -38,11 +44,17 @@ export async function generateMetadata(props: Props) {
 }
 
 export default async function LaporanDetailPage(props: Props) {
-  const { id } = await props.params;
-  const laporanId = Number(id);
-  if (!Number.isInteger(laporanId) || laporanId <= 0) notFound();
+  const { slug } = await props.params;
+  const param = decodeURIComponent(slug);
 
-  const laporan = await getLaporan(laporanId);
+  let laporan: ApiLaporan | null;
+  if (/^\d+$/.test(param)) {
+    // Tautan lama ber-ID: alihkan permanen ke URL slug.
+    laporan = await getLaporan({ id: Number(param) });
+    if (laporan?.slug) permanentRedirect(`/laporan/${laporan.slug}`);
+  } else {
+    laporan = await getLaporan({ slug: param });
+  }
   if (!laporan) notFound();
   const [d, locale] = await Promise.all([getDict(), getLocale()]);
   const dd = d.pages.laporanDetail;

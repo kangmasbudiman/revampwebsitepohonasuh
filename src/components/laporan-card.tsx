@@ -50,7 +50,7 @@ export default function LaporanCard({
 
   return (
     <Link
-      href={`/laporan/${laporan.id}`}
+      href={`/laporan/${laporan.slug || laporan.id}`}
       className="group relative flex items-stretch gap-4 overflow-hidden rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
       <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">

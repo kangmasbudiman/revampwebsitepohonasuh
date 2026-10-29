@@ -17,7 +17,7 @@ export default async function PostCard({ post }: { post: ApiPost }) {
 
   return (
     <Link
-      href={`/blog/${post.id}`}
+      href={`/blog/${post.slug || post.id}`}
       className="group flex h-full gap-4 overflow-hidden rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
     >
       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-emerald-50">

@@ -95,7 +95,7 @@ export default async function AdminBlogPage({
                 </td>
                 <td className="max-w-[260px] px-4 py-3">
                   <Link
-                    href={`/blog/${post.id}`}
+                    href={`/blog/${post.slug || post.id}`}
                     className="line-clamp-1 font-medium text-emerald-900 dark:text-emerald-100 hover:underline"
                   >
                     {post.title}

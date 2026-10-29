@@ -544,6 +544,7 @@ export function mapOrderRow(r: Record<string, unknown>): ApiOrderRow {
 // yang mengirim tanggal bersih.
 export type ApiPost = {
   id: number;
+  slug: string; // URL detail /blog/{slug} — fallback ke id bila kosong
   title: string; // name
   description: string;
   coverUrl: string | null;
@@ -556,6 +557,7 @@ export type ApiPost = {
 export function mapPost(r: Record<string, unknown>): ApiPost {
   return {
     id: Number(r.id),
+    slug: String(r.slug ?? ""),
     title: String(r.name ?? ""),
     description: String(r.deskripsi ?? ""),
     coverUrl: assetUrl(r.cover as string | null),
@@ -1317,6 +1319,7 @@ export type ApiLaporanFoto = { id: number; url: string };
 
 export type ApiLaporan = {
   id: number;
+  slug: string; // URL detail /laporan/{slug} — fallback ke id bila kosong
   idpetugas: number;
   petugas: string;
   judul: string;
@@ -1335,6 +1338,7 @@ export type ApiLaporan = {
 export function mapLaporans(rows: Record<string, unknown>[]): ApiLaporan[] {
   return rows.map((r) => ({
     id: Number(r.id),
+    slug: String(r.slug ?? ""),
     idpetugas: Number(r.idpetugas) || 0,
     petugas: String(r.petugas ?? ""),
     judul: String(r.judul ?? ""),
