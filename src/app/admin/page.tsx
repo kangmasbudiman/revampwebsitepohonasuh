@@ -60,24 +60,34 @@ export default async function AdminHomePage() {
     // biarkan 0
   }
 
-  const pendingIds = new Set(
+  // Order berjalan = confirmation 'no', dua tahap: belum upload bukti
+  // (menunggu pembayaran member) dan sudah upload (menunggu verifikasi admin).
+  const bayarIds = new Set(
+    rows
+      .filter((r) => r.confirmation === "no" && !r.fotoBuktiUrl)
+      .map((r) => r.confirmasiId),
+  );
+  const verifIds = new Set(
     rows
       .filter((r) => r.confirmation === "no" && r.fotoBuktiUrl)
       .map((r) => r.confirmasiId),
   );
+  const pendingIds = new Set([...bayarIds, ...verifIds]);
   const activeCount = rows.filter((r) => r.confirmation === "yes").length;
 
   const stats: {
     label: string;
     value: number;
+    sub?: string;
     href: string;
     icon: LucideIcon;
     grad: string;
     shadow: string;
   }[] = [
     {
-      label: "Menunggu Verifikasi",
+      label: "Order Berjalan",
       value: pendingIds.size,
+      sub: `${bayarIds.size} menunggu pembayaran · ${verifIds.size} menunggu verifikasi`,
       href: "/admin/verifikasi",
       icon: BadgeCheck,
       grad: "from-amber-400 to-orange-500",
@@ -131,6 +141,9 @@ export default async function AdminHomePage() {
               </span>
               <p className="relative mt-4 text-sm font-medium text-white/85">{stat.label}</p>
               <p className="relative mt-1 text-3xl font-extrabold tracking-tight">{stat.value}</p>
+              {stat.sub ? (
+                <p className="relative mt-1 text-xs font-medium text-white/80">{stat.sub}</p>
+              ) : null}
             </Link>
           );
         })}
@@ -177,13 +190,13 @@ export default async function AdminHomePage() {
         </div>
       </div>
 
-      {pendingIds.size > 0 && (
+      {verifIds.size > 0 && (
         <Link
           href="/admin/verifikasi"
           className="mt-6 flex items-center justify-between rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 p-5 text-white shadow-lg shadow-amber-500/30 transition-all hover:-translate-y-0.5 hover:shadow-xl"
         >
           <p className="text-sm font-semibold">
-            Ada {pendingIds.size} pembayaran menunggu verifikasi.
+            Ada {verifIds.size} pembayaran menunggu verifikasi.
           </p>
           <span className="text-sm font-bold">Verifikasi sekarang →</span>
         </Link>
