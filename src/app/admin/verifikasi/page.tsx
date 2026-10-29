@@ -3,6 +3,7 @@ import { apiGet, mapOrderRows, type ApiOrderRow } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
 import { rupiah } from "@/lib/format";
 import SuccessPopup from "@/components/admin/success-popup";
+import CancelOrderButton from "@/components/admin/cancel-order-button";
 
 export const metadata = { title: "Admin — Verifikasi Pembayaran" };
 
@@ -18,17 +19,22 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
   }
 
   // Satu order (confirmation) bisa berisi beberapa pohon — grup per confirmasiId.
-  const orders = new Map<number, { rows: ApiOrderRow[]; nama: string; invoice: string; tanggal: string }>();
+  // Dua daftar: sudah upload bukti (menunggu verifikasi) dan belum (menunggu
+  // pembayaran donor).
+  type OrderGroup = { rows: ApiOrderRow[]; nama: string; invoice: string; tanggal: string };
+  const orders = new Map<number, OrderGroup>();
+  const unpaid = new Map<number, OrderGroup>();
   for (const r of rows) {
-    if (r.confirmation !== "no" || !r.fotoBuktiUrl) continue;
-    const o = orders.get(r.confirmasiId) ?? {
+    if (r.confirmation !== "no") continue;
+    const target = r.fotoBuktiUrl ? orders : unpaid;
+    const o = target.get(r.confirmasiId) ?? {
       rows: [],
       nama: r.nama,
       invoice: r.invoice,
       tanggal: r.createdAt ?? r.tglAdopt ?? "",
     };
     o.rows.push(r);
-    orders.set(r.confirmasiId, o);
+    target.set(r.confirmasiId, o);
   }
 
   return (
@@ -47,6 +53,16 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
       {searchParams.rejected === "1" && (
         <SuccessPopup paramKey="rejected" tone="err" title="Ditolak" buttonLabel="Tutup">
           Pembayaran ditolak, pohon dikembalikan menjadi tersedia.
+        </SuccessPopup>
+      )}
+      {searchParams.batal === "1" && (
+        <SuccessPopup paramKey="batal" tone="err" title="Order Dibatalkan" buttonLabel="Tutup">
+          Order dibatalkan, semua pohon pada invoice dikembalikan menjadi tersedia.
+        </SuccessPopup>
+      )}
+      {searchParams.error && (
+        <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
+          {String(searchParams.error)}
         </SuccessPopup>
       )}
 
@@ -77,6 +93,51 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
         {orders.size === 0 && (
           <p className="rounded-2xl border border-dashed border-emerald-200 dark:border-night-700 bg-emerald-50 dark:bg-night-800/40 px-4 py-12 text-center text-zinc-500 dark:text-zinc-400">
             Tidak ada pembayaran menunggu verifikasi. 🎉
+          </p>
+        )}
+      </div>
+
+      <h2 className="mt-10 text-xl font-bold pa-hgrad">Menunggu Pembayaran ({unpaid.size})</h2>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+        Order sudah dibuat tetapi bukti transfer belum diunggah. Order baru dibatalkan
+        otomatis 24 jam setelah dibuat; order lama yang tertinggal (mis. order tahun
+        kemarin) dapat dibatalkan manual di sini — pohonnya dikembalikan ke daftar adopsi.
+      </p>
+      <div className="mt-4 space-y-4">
+        {[...unpaid.entries()].map(([id, o]) => {
+          const total = o.rows[0]?.total ?? 0;
+          return (
+            <div
+              key={id}
+              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-100 bg-amber-50/40 p-5 shadow-sm dark:border-night-700 dark:bg-night-800/40"
+            >
+              <div className="min-w-0">
+                <p className="font-semibold text-emerald-950 dark:text-emerald-50">{o.nama}</p>
+                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                  {o.rows.length} pohon · {o.rows.map((r) => r.localName).join(", ")}
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                  Invoice {o.invoice}
+                  {o.tanggal ? ` · dibuat ${o.tanggal}` : ""}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <p className="text-lg font-bold text-emerald-700">{rupiah(total)}</p>
+                <CancelOrderButton
+                  confirmasiId={id}
+                  invoice={o.invoice}
+                  idpohon={o.rows[0].idpohon}
+                  localName={o.rows[0].localName}
+                  nama={o.nama}
+                  redirectTo="/admin/verifikasi"
+                />
+              </div>
+            </div>
+          );
+        })}
+        {unpaid.size === 0 && (
+          <p className="rounded-2xl border border-dashed border-amber-200 dark:border-night-700 px-4 py-10 text-center text-zinc-500 dark:text-zinc-400">
+            Tidak ada order menunggu pembayaran.
           </p>
         )}
       </div>

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/guard";
+import { requireAdmin, requireAdminLevel } from "@/lib/guard";
 import { apiPost, apiPostForm } from "@/lib/api";
 import type { AdminState } from "@/lib/actions/admin";
 
@@ -163,14 +163,18 @@ export async function markComplete(formData: FormData) {
   redirect("/admin/tagging?selesai=1");
 }
 
-// Batalkan order dari halaman tagging (batalverivication): seluruh pohon
-// pada invoice dikembalikan ke available agar bisa diadopsi donor lain,
-// data adopsi + foto tagging dihapus, donatur dinotifikasi. Berlaku per
-// INVOICE — order multi-pohon ikut terbatalkan sekaligus.
+// Batalkan order (batalverivication): seluruh pohon pada invoice dikembalikan
+// ke available agar bisa diadopsi donor lain, data adopsi + foto tagging
+// dihapus, donatur dinotifikasi. Berlaku per INVOICE — order multi-pohon ikut
+// terbatalkan sekaligus. Dipakai dari halaman tagging maupun verifikasi
+// (order belum dibayar); form `next` menentukan halaman kembali.
 export async function cancelOrder(formData: FormData) {
-  const session = await requireAdmin();
+  const session = await requireAdminLevel();
   const confirmasiId = Number(formData.get("confirmasiId"));
-  if (!confirmasiId) redirect("/admin/tagging?error=Order+tidak+ditemukan");
+  const next = String(formData.get("next") ?? "");
+  const back = next.startsWith("/") && !next.startsWith("//") ? next : "/admin/tagging";
+  const sep = back.includes("?") ? "&" : "?";
+  if (!confirmasiId) redirect(`${back}${sep}error=Order+tidak+ditemukan`);
 
   try {
     const res = await apiPost<{ code?: number | string; message?: string }>(
@@ -179,19 +183,19 @@ export async function cancelOrder(formData: FormData) {
     );
     if (Number(res.code) !== 200) {
       redirect(
-        `/admin/tagging?error=${encodeURIComponent(res.message ?? "Gagal membatalkan order.")}`,
+        `${back}${sep}error=${encodeURIComponent(res.message ?? "Gagal membatalkan order.")}`,
       );
     }
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect("/admin/tagging?error=Gagal+membatalkan+order");
+    redirect(`${back}${sep}error=Gagal+membatalkan+order`);
   }
 
   revalidatePath("/admin/tagging");
   revalidatePath("/admin");
   revalidatePath("/admin/verifikasi");
   revalidatePath("/pohon");
-  redirect("/admin/tagging?batal=1");
+  redirect(`${back}${sep}batal=1`);
 }
 
 // Batalkan PROSES tagging satu pohon (batalproses) — khusus petugas:

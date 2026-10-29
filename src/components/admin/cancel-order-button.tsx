@@ -21,12 +21,14 @@ export default function CancelOrderButton({
   idpohon,
   localName,
   nama,
+  redirectTo,
 }: {
   confirmasiId: number;
   invoice: string;
   idpohon: string;
   localName: string;
   nama: string;
+  redirectTo?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -49,6 +51,7 @@ export default function CancelOrderButton({
   const jalankan = () => {
     const fd = new FormData();
     fd.set("confirmasiId", String(confirmasiId));
+    if (redirectTo) fd.set("next", redirectTo);
     startTransition(async () => {
       await cancelOrder(fd);
     });
