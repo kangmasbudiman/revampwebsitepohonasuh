@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import {
+  adopsiSlug,
   apiPost,
   certUrl,
   shareUrl,
@@ -139,7 +140,7 @@ export default async function DashboardPage() {
                   <div className="flex items-center justify-end gap-2">
                     {r.conf && (
                       <Link
-                        href={`/dashboard/adopsi/${r.conf.id}`}
+                        href={`/dashboard/adopsi/${adopsiSlug(r.conf)}`}
                         className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
                       >
                         {d.detail}

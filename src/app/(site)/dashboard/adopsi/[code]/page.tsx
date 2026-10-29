@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
+  adopsiSlug,
   apiGet,
   apiPost,
   adoptionStatus,
@@ -47,7 +48,12 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
     const confs = mapConfirmations(
       await apiPost<Record<string, unknown>[]>("getconfirmasi", { idmember: session.userId }),
     );
-    conf = confs.find((c) => c.id === Number(code)) ?? null;
+    // Utama: cocokkan invoice (slug unik). Fallback angka = ID order untuk
+    // link lama /dashboard/adopsi/<id> agar bookmark lama tetap hidup.
+    const slug = code.trim().replace(/^#/, "").toUpperCase();
+    conf =
+      confs.find((c) => adopsiSlug(c) === slug) ??
+      (/^\d+$/.test(slug) ? (confs.find((c) => c.id === Number(slug)) ?? null) : null);
     if (conf) {
       trees = mapAdopsiPohons(
         await apiPost<Record<string, unknown>[]>("mytrees", { iduser: session.userId }),

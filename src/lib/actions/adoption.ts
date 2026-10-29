@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
-import { apiPost, apiPostForm } from "@/lib/api";
+import { apiPost, apiPostForm, adopsiSlug } from "@/lib/api";
 
 export type AdoptionState = { error?: string };
 export type UnavailableTree = { code: string; localName: string };
@@ -28,7 +28,7 @@ type CheckoutItem = {
 };
 
 type CheckoutResult =
-  | { ok: true; id: number; unavailable: UnavailableTree[] }
+  | { ok: true; id: number; invoice: string; unavailable: UnavailableTree[] }
   | { ok: false; error: string; unavailable: UnavailableTree[] };
 
 // Batas atas senyap menjaga tgl_exp (DATE) tetap valid — sama dengan
@@ -129,7 +129,7 @@ async function checkoutTrees(
   }
 
   try {
-    const conf = await apiPost<{ code?: string | number; id?: number }>(
+    const conf = await apiPost<{ code?: string | number; id?: number; invoice?: string }>(
       "confirmasipembayaran",
       {
         id_member: session.userId,
@@ -149,7 +149,12 @@ async function checkoutTrees(
     }
     revalidatePath("/pohon");
     revalidatePath("/dashboard");
-    return { ok: true, id: conf.id, unavailable };
+    return {
+      ok: true,
+      id: conf.id,
+      invoice: String(conf.invoice ?? conf.id),
+      unavailable,
+    };
   } catch {
     return {
       ok: false,
@@ -180,7 +185,7 @@ export async function createAdoption(
   if (!result.ok) return { error: result.error };
 
   revalidatePath(`/pohon/${treeCode}`);
-  redirect(`/dashboard/adopsi/${result.id}`);
+  redirect(`/dashboard/adopsi/${adopsiSlug({ invoice: result.invoice })}`);
 }
 
 // Checkout keranjang guest (localStorage). codes dikirim klien hanya sebagai
@@ -230,7 +235,7 @@ export async function checkoutCart(
   }
   return {
     ok: true,
-    redirectTo: `/dashboard/adopsi/${result.id}`,
+    redirectTo: `/dashboard/adopsi/${adopsiSlug({ invoice: result.invoice })}`,
     unavailable: result.unavailable,
   };
 }
@@ -279,7 +284,7 @@ export async function submitPayment(
     return { error: "Gagal mengunggah bukti. Coba lagi." };
   }
 
-  revalidatePath(`/dashboard/adopsi/${confirmationId}`);
+  revalidatePath(`/dashboard/adopsi/${adopsiSlug({ invoice: String(order.invoice ?? "") })}`);
   revalidatePath("/dashboard");
   return {};
 }
@@ -331,7 +336,7 @@ export async function createPaymentLink(
     return { error: res.message ?? "Gagal membuat tagihan online. Coba lagi." };
   }
 
-  revalidatePath(`/dashboard/adopsi/${confirmationId}`);
+  revalidatePath(`/dashboard/adopsi/${adopsiSlug({ invoice: String(order.invoice ?? "") })}`);
   return { link: res.link };
 }
 

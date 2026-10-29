@@ -402,6 +402,13 @@ export function mapConfirmations(rows: Record<string, unknown>[]): ApiConfirmati
   return rows.map(mapConfirmation);
 }
 
+// Identifier order untuk URL /dashboard/adopsi/<slug> — invoice tanpa "#",
+// tidak berurutan (order baru memakai invoice acak). Order lama yang masih
+// memakai invoice "#Ymd<urut>" tetap unik sebagai slug.
+export function adopsiSlug(conf: { invoice: string }): string {
+  return conf.invoice.replace(/^#/, "").trim().toUpperCase();
+}
+
 // Baris mytrees (satu baris per pohon dalam order).
 export type ApiAdopsiPohon = {
   id: number;
