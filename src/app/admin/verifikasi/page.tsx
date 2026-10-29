@@ -116,9 +116,19 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
                 <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
                   {o.rows.length} pohon · {o.rows.map((r) => r.localName).join(", ")}
                 </p>
-                <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
-                  Invoice {o.invoice}
-                  {o.tanggal ? ` · dibuat ${o.tanggal}` : ""}
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-400 dark:text-zinc-500">
+                  <span>
+                    Invoice {o.invoice}
+                    {o.tanggal ? ` · dibuat ${o.tanggal}` : ""}
+                  </span>
+                  {o.rows[0]?.linkInvoice && (
+                    <span
+                      title="Donor sudah membuat tautan pembayaran online (Mayar) untuk order ini"
+                      className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 font-semibold text-sky-700 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-300"
+                    >
+                      ⚡ Tagihan online
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-4">
@@ -130,6 +140,7 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
                   localName={o.rows[0].localName}
                   nama={o.nama}
                   redirectTo="/admin/verifikasi"
+                  tagihanOnline={Boolean(o.rows[0]?.linkInvoice)}
                 />
               </div>
             </div>

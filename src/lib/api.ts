@@ -497,6 +497,7 @@ export type ApiOrderRow = {
   acc: boolean; // permintaan "Mulai Proses" sudah di-acc admin (form foto/catatan terbuka)
   confirmation: string;
   confirmasiId: number;
+  linkInvoice: string | null; // tautan bayar online Mayar (bila tagihan dibuat)
   fotoBuktiUrl: string | null;
   tglAdopt: string | null;
   tglExp: string | null;
@@ -531,6 +532,7 @@ export function mapOrderRow(r: Record<string, unknown>): ApiOrderRow {
     acc: Number(r.acc) === 1,
     confirmation: String(r.confirmasi ?? ""),
     confirmasiId: Number(r.confirmasiid) || 0,
+    linkInvoice: r.link_invoice ? String(r.link_invoice) : null,
     fotoBuktiUrl: assetUrl(r.fotopembayaran as string | null),
     tglAdopt: r.tgl_adopt ? String(r.tgl_adopt) : null,
     tglExp: r.tgl_exp ? String(r.tgl_exp) : null,

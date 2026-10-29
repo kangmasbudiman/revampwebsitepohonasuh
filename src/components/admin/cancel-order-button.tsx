@@ -22,6 +22,7 @@ export default function CancelOrderButton({
   localName,
   nama,
   redirectTo,
+  tagihanOnline,
 }: {
   confirmasiId: number;
   invoice: string;
@@ -29,6 +30,7 @@ export default function CancelOrderButton({
   localName: string;
   nama: string;
   redirectTo?: string;
+  tagihanOnline?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -112,6 +114,12 @@ export default function CancelOrderButton({
                   </li>
                 ))}
               </ul>
+              {tagihanOnline && (
+                <p className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm leading-5 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                  <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                  Order ini memiliki tautan pembayaran online (Mayar) — donor mungkin sedang membayar. Pembayaran yang datang setelah pembatalan akan ditolak sistem dan admin menerima notifikasi pengembalian dana.
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col-reverse gap-2 border-t border-emerald-50 px-5 py-4 sm:flex-row sm:justify-end dark:border-night-800">
