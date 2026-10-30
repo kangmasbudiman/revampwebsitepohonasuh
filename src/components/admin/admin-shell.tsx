@@ -195,7 +195,9 @@ export default function AdminShell({
         </>
       )}
 
-      <div className="min-w-0 flex-1">
+      {/* Padding bawah mengompensasi bilah navigasi mobile yang fixed —
+          tanpa ini konten terakhir tertutup bilah. */}
+      <div className="min-w-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <header className="sticky top-0 z-40 border-b border-emerald-100/80 bg-gradient-to-r from-white/90 via-emerald-50/70 to-teal-50/80 backdrop-blur-md print:hidden dark:border-night-700 dark:from-night-900/90 dark:via-night-900/80 dark:to-night-950/90">
           <div className="flex h-16 items-center gap-2 px-4 lg:px-6">
             <button
@@ -319,12 +321,17 @@ export default function AdminShell({
               </div>
             </div>
           </div>
-          <nav className="flex items-center gap-1 overflow-x-auto border-t border-emerald-100 px-4 py-2 md:hidden dark:border-night-700">
-            <AdminNavMobile level={level} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
-          </nav>
         </header>
         {children}
       </div>
+
+      {/* Navigasi mobile sebagai bilah tetap di bawah — dekat jari. z-30
+          agar tertutup scrim drawer (z-40) dan sheet notifikasi (z-70). */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-emerald-100 bg-white/90 backdrop-blur-md md:hidden print:hidden dark:border-night-700 dark:bg-night-900/90">
+        <div className="flex items-center gap-1 overflow-x-auto px-4 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+          <AdminNavMobile level={level} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
+        </div>
+      </nav>
 
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
