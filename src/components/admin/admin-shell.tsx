@@ -9,6 +9,7 @@ import {
   Maximize2,
   Minimize2,
   ChevronDown,
+  LayoutDashboard,
   LogOut,
   Settings,
   UserRound,
@@ -282,6 +283,13 @@ export default function AdminShell({
                         {level === 2 ? "Petugas" : "Admin"} · ID {userId}
                       </p>
                     </div>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setOpenMenu(null)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-night-800"
+                    >
+                      <LayoutDashboard className="h-4 w-4" /> Dashboard
+                    </Link>
                     <Link
                       href="/dashboard/profil"
                       onClick={() => setOpenMenu(null)}
