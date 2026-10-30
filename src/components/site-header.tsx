@@ -307,6 +307,17 @@ export default function SiteHeader({ session }: { session: Session | null }) {
         </div>
 
         <div className="flex items-center gap-1 xl:hidden">
+          {session && (
+            <Link
+              href={dashboardHref}
+              aria-label={dashboardLabel}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${
+                overlay ? "text-white hover:bg-white/10" : "text-emerald-900 hover:bg-emerald-50"
+              }`}
+            >
+              <DashboardIcon className="h-5 w-5" />
+            </Link>
+          )}
           <CartBadge overlay={overlay} />
           <button
             type="button"
