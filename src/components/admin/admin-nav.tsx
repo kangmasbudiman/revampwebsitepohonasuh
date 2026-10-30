@@ -286,7 +286,7 @@ export function AdminNavMobile({
           <Link
             key={item.href}
             href={item.href}
-            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${
               isActive(item.href, pathname)
                 ? "pa-btn-primary text-white"
                 : "text-emerald-800 hover:bg-emerald-50 dark:text-emerald-100 dark:hover:bg-night-800"
