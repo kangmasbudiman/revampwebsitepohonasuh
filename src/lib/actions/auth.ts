@@ -124,22 +124,26 @@ export async function lupaPassword(_prev: AuthState, formData: FormData): Promis
 }
 
 export async function resetPassword(_prev: AuthState, formData: FormData): Promise<AuthState> {
-  const token = String(formData.get("token") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const kode = String(formData.get("kode") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const konfirmasi = String(formData.get("konfirmasi") ?? "");
+  if (!email) return { error: "Email wajib diisi." };
+  if (!/^\d{6}$/.test(kode)) return { error: "Kode OTP harus 6 angka." };
   if (password.length < 6) return { error: "Kata sandi minimal 6 karakter." };
   if (password !== konfirmasi) return { error: "Konfirmasi kata sandi tidak sama." };
 
   let res: { value?: string | number; pesan?: string };
   try {
     res = await apiPost<{ value?: string | number; pesan?: string }>("resetpassword", {
-      token,
+      emaile: email,
+      kode,
       passe: password,
     });
   } catch {
     return { error: "Gagal menghubungi server. Coba lagi sebentar." };
   }
-  if (String(res.value) !== "1") return { error: res.pesan ?? "Token tidak valid." };
+  if (String(res.value) !== "1") return { error: res.pesan ?? "Kode tidak valid." };
   return { success: true };
 }
 

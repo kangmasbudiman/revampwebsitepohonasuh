@@ -26,11 +26,19 @@ export default function LupaPasswordPage() {
               {t.sentDesc.replaceAll("{email}", state.emaile)}
             </p>
             <Link
-              href="/masuk"
-              className="mt-4 inline-block text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+              href={`/reset-password?emaile=${encodeURIComponent(state.emaile)}`}
+              className="mt-4 inline-block rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              {t.backToLogin} →
+              {t.toCode} →
             </Link>
+            <p className="mt-3">
+              <Link
+                href="/masuk"
+                className="text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+              >
+                {t.backToLogin}
+              </Link>
+            </p>
           </div>
         ) : (
           <>

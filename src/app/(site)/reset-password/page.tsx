@@ -8,11 +8,12 @@ import { useI18n } from "@/components/i18n-provider";
 const inputClass =
   "mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
 
-// Tujuan klik tautan reset dari email (?token=...). Form mengirim token +
-// kata sandi baru ke endpoint resetpassword (token sekali pakai, 60 menit).
+// Lanjutan alur lupa password: setelah kode OTP 6 digit dikirim via email,
+// pengguna memasukkan kode + kata sandi baru di sini. Email boleh datang
+// terisi otomatis dari ?emaile= (tombol di halaman lupa password).
 export default function ResetPasswordPage(props: PageProps<"/reset-password">) {
   const searchParams = use(props.searchParams);
-  const token = typeof searchParams.token === "string" ? searchParams.token : "";
+  const emaile = typeof searchParams.emaile === "string" ? searchParams.emaile : "";
   const [state, action, pending] = useActionState<AuthState, FormData>(resetPassword, {});
   const t = useI18n().dict.pages.resetPassword;
 
@@ -38,7 +39,37 @@ export default function ResetPasswordPage(props: PageProps<"/reset-password">) {
           <>
             <p className="mt-1 text-sm leading-6 text-zinc-500">{t.desc}</p>
             <form action={action} className="mt-6 space-y-4">
-              <input type="hidden" name="token" value={token} />
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-zinc-700">
+                  {t.email}
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  defaultValue={emaile}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="kode" className="block text-sm font-medium text-zinc-700">
+                  {t.kode}
+                </label>
+                <input
+                  id="kode"
+                  name="kode"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                  pattern="\d{6}"
+                  maxLength={6}
+                  className={`${inputClass} text-center font-mono text-lg tracking-[0.5em]`}
+                />
+                <p className="mt-1 text-xs text-zinc-400">{t.kodeHint}</p>
+              </div>
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-zinc-700">
                   {t.password}
