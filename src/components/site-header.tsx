@@ -165,7 +165,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-4 xl:flex">
+        <nav className="hidden items-center gap-3 xl:flex">
           {NAV.map((item) =>
             item.href === "/pohon" ? (
               <NavPohonMenu
@@ -223,6 +223,19 @@ export default function SiteHeader({ session }: { session: Session | null }) {
           <LangToggle overlay={overlay} />
           <CartBadge overlay={overlay} />
           {session && <MemberBell overlay={overlay} />}
+          {session && (
+            <Link
+              href={dashboardHref}
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-all duration-300 ${
+                overlay
+                  ? "bg-white/15 text-white ring-1 ring-white/40 hover:bg-white/25"
+                  : "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-500/25 hover:from-emerald-500 hover:to-emerald-400"
+              }`}
+            >
+              <DashboardIcon className="h-4 w-4" />
+              {dashboardLabel}
+            </Link>
+          )}
           {session ? (
             <div className="group relative">
               <button
@@ -249,13 +262,6 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                     </p>
                   </div>
                   <div className="my-1 h-px bg-emerald-50" />
-                  <Link
-                    href={dashboardHref}
-                    className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
-                  >
-                    <DashboardIcon className="h-4 w-4 text-emerald-600" />
-                    {dashboardLabel}
-                  </Link>
                   <Link
                     href="/dashboard/profil"
                     className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
