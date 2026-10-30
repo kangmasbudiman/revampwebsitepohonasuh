@@ -44,7 +44,18 @@ export default function NotificationBell({
   const [unread, setUnread] = useState(0);
   const [items, setItems] = useState<PesanRow[] | null>(null);
   const [loading, setLoading] = useState(false);
+  // Layar HP: panel jadi bottom-sheet yang bisa digulir — dropdown jangkar
+  // tinggi 22rem terpotong tepi bawah viewport dan tak bisa digeser.
+  const [sheet, setSheet] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const onMq = () => setSheet(mq.matches);
+    onMq();
+    mq.addEventListener("change", onMq);
+    return () => mq.removeEventListener("change", onMq);
+  }, []);
 
   useEffect(() => {
     let batal = false;
@@ -71,11 +82,15 @@ export default function NotificationBell({
     };
   }, [open]);
 
-  // Klik di luar dropdown → tutup.
+  // Klik di luar dropdown → tutup. Klik di dalam panel sheet tetap diabaikan
+  // walau dirender via portal ke body (ditandai data-notif-popup).
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) onOpenChange(false);
+      const t = e.target as HTMLElement;
+      if (wrapRef.current?.contains(t)) return;
+      if (t.closest?.("[data-notif-popup]")) return;
+      onOpenChange(false);
     };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
@@ -123,6 +138,7 @@ export default function NotificationBell({
           onRead={tandaiDibaca}
           onDelete={hapus}
           onClose={() => onOpenChange(false)}
+          sheet={sheet}
         />
       )}
     </div>
