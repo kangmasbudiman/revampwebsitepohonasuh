@@ -286,13 +286,13 @@ export function AdminNavMobile({
           <Link
             key={item.href}
             href={item.href}
-            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium ${
               isActive(item.href, pathname)
                 ? "pa-btn-primary text-white"
                 : "text-emerald-800 hover:bg-emerald-50 dark:text-emerald-100 dark:hover:bg-night-800"
             }`}
           >
-            <Icon className="h-3.5 w-3.5" />
+            <Icon className="h-4 w-4" />
             {item.label}
             {!!badge && (
               <span
