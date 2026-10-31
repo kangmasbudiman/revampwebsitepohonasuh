@@ -1,14 +1,16 @@
 "use client";
 
 import { Download } from "lucide-react";
-import type { ApiAdopsiPohon, ApiConfirmation } from "@/lib/api";
+import type { ApiAdopsiPohon, ApiBank, ApiConfirmation } from "@/lib/api";
 import { namaDesa, rupiah } from "@/lib/format";
 import { fmtTanggal, muatLogo } from "@/components/admin/btor-memo-pdf";
 
-export type ReceiptLabels = {
+export type OrderPdfLabels = {
   button: string;
   title: string;
-  paid: string;
+  badge: string;
+  statusValue: string;
+  totalLabel: string;
   invoiceNo: string;
   donor: string;
   orderDate: string;
@@ -21,28 +23,42 @@ export type ReceiptLabels = {
   fee: string;
   subtotal: string;
   uniqueCode: string;
-  totalPaid: string;
   printedAt: string;
   footerNote: string;
   year: string;
   years: string;
+  // khusus invoice
+  dueAt?: string;
+  bankTitle?: string;
+  careOf?: string;
 };
 
-// Unduh Receipt (PDF) untuk order yang sudah terverifikasi lunas —
-// generate client-side dengan jsPDF, pola tombol BTOR admin.
-export default function ReceiptPdfButton({
+// Unduh dokumen order sebagai PDF (generate client-side dengan jsPDF, pola
+// tombol BTOR admin). Dua mode:
+// - "invoice": tagihan order belum dibayar — badge BELUM DIBAYAR, batas bayar,
+//   rekening transfer, peringatan auto-batal.
+// - "receipt": tanda terima order sudah diverifikasi lunas.
+export default function OrderPdfButton({
+  mode,
   conf,
   trees,
   name,
   t,
   compact,
+  dueValue,
+  banks = [],
 }: {
+  mode: "invoice" | "receipt";
   conf: ApiConfirmation;
   trees: ApiAdopsiPohon[];
   name: string;
-  t: ReceiptLabels;
+  t: OrderPdfLabels;
   compact?: boolean;
+  dueValue?: string;
+  banks?: ApiBank[];
 }) {
+  const invoice = mode === "invoice";
+
   const unduh = async () => {
     const [{ default: jsPDF }, logo] = await Promise.all([import("jspdf"), muatLogo()]);
 
@@ -51,6 +67,7 @@ export default function ReceiptPdfButton({
     const H = doc.internal.pageSize.getHeight();
     const M = 46;
     const EMERALD: [number, number, number] = [5, 150, 105];
+    const AMBER: [number, number, number] = [217, 119, 6];
     const ABU: [number, number, number] = [110, 110, 110];
 
     let y = M;
@@ -74,13 +91,13 @@ export default function ReceiptPdfButton({
     doc.setTextColor(0);
     doc.text(t.title.toUpperCase(), W / 2, y, { align: "center" });
     y += 16;
-    // Badge LUNAS terpusat di bawah judul
+    // Badge status terpusat di bawah judul: LUNAS (emerald) / BELUM DIBAYAR (amber)
     doc.setFontSize(9);
-    const bw = doc.getTextWidth(t.paid) + 22;
-    doc.setFillColor(...EMERALD);
+    const bw = doc.getTextWidth(t.badge) + 22;
+    doc.setFillColor(...(invoice ? AMBER : EMERALD));
     doc.roundedRect(W / 2 - bw / 2, y - 10, bw, 16, 8, 8, "F");
     doc.setTextColor(255, 255, 255);
-    doc.text(t.paid, W / 2, y + 1, { align: "center" });
+    doc.text(t.badge, W / 2, y + 1, { align: "center" });
     doc.setTextColor(0);
     y += 30;
 
@@ -99,8 +116,12 @@ export default function ReceiptPdfButton({
     info(W / 2 + 10, t.orderDate, fmtTanggal(conf.tanggal));
     y += 34;
     info(M, t.donor, name);
-    info(W / 2 + 10, t.status, t.paid);
+    info(W / 2 + 10, t.status, t.statusValue);
     y += 34;
+    if (invoice && dueValue) {
+      info(M, t.dueAt ?? "", dueValue);
+      y += 34;
+    }
 
     // Tabel pohon: header berlatar emerald muda, garis grid tipis.
     const kolX = [M, M + 26, M + 96, M + 252, M + 350, W - M];
@@ -166,8 +187,9 @@ export default function ReceiptPdfButton({
     // Ringkasan biaya di kanan bawah tabel
     const subtotal = trees.reduce((s, tr) => s + tr.price, 0);
     const unik = Math.max(0, conf.price - subtotal);
-    y += 24;
+    const yRingkas = y + 24;
     const ringX = W - M - 220;
+    y = yRingkas;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(t.subtotal, ringX, y);
@@ -178,10 +200,34 @@ export default function ReceiptPdfButton({
     y += 20;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.text(t.totalPaid, ringX, y);
+    doc.text(t.totalLabel, ringX, y);
     doc.text(rupiah(conf.price), W - M, y, { align: "right" });
     doc.setLineWidth(0.75);
     doc.line(ringX - 8, y + 6, W - M, y + 6);
+
+    // Invoice: blok rekening transfer di kiri, sejajar ringkasan biaya.
+    if (invoice && banks.length) {
+      let yb = yRingkas;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+      doc.text(t.bankTitle ?? "", M, yb);
+      doc.setDrawColor(...AMBER);
+      doc.setLineWidth(0.75);
+      doc.line(M, yb + 4, M + 120, yb + 4);
+      yb += 18;
+      for (const b of banks) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9.5);
+        const namaBank =
+          (doc.splitTextToSize(b.bankName.toUpperCase(), ringX - M - 16) as string[])[0] ?? "";
+        doc.text(namaBank, M, yb);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${b.accountNumber}   ${t.careOf ?? ""} ${b.accountName}`, M, yb + 12);
+        yb += 28;
+      }
+      y = Math.max(y, yb);
+    }
 
     // Footer
     doc.setFont("helvetica", "normal");
@@ -198,18 +244,22 @@ export default function ReceiptPdfButton({
       H - 36,
     );
 
-    doc.save(`Receipt-${conf.invoice.replace(/^#/, "")}.pdf`);
+    doc.save(`${invoice ? "Invoice" : "Receipt"}-${conf.invoice.replace(/^#/, "")}.pdf`);
   };
 
   return (
     <button
       type="button"
       onClick={unduh}
-      data-testid="unduh-receipt"
+      data-testid={invoice ? "unduh-invoice" : "unduh-receipt"}
       className={
-        compact
-          ? "inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50"
-          : "inline-flex items-center gap-2 rounded-full border border-emerald-300 px-6 py-2.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+        invoice
+          ? compact
+            ? "inline-flex items-center gap-1.5 rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50"
+            : "inline-flex items-center gap-2 rounded-full border border-amber-300 px-6 py-2.5 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100"
+          : compact
+            ? "inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50"
+            : "inline-flex items-center gap-2 rounded-full border border-emerald-300 px-6 py-2.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
       }
     >
       <Download className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />

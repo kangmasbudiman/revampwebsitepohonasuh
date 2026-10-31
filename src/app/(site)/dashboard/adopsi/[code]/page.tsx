@@ -27,7 +27,7 @@ import OnlinePayment from "@/components/online-payment";
 import CancelAdoptionButton from "@/components/cancel-adoption-button";
 import TaggingProgress from "@/components/tagging-progress";
 import GiftSend from "@/components/gift-send";
-import ReceiptPdfButton from "@/components/receipt-pdf-button";
+import OrderPdfButton from "@/components/order-pdf-button";
 
 export default async function AdoptionDetailPage(props: PageProps<"/dashboard/adopsi/[code]">) {
   const { code } = await props.params;
@@ -213,6 +213,19 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
                 </div>
               ))}
             </div>
+            {trees.length > 0 && (
+              <div className="mt-4">
+                <OrderPdfButton
+                  mode="invoice"
+                  conf={conf}
+                  trees={trees}
+                  name={session.name}
+                  t={d.invoice}
+                  banks={banks}
+                  dueValue={batasPembayaran ? batasStr : undefined}
+                />
+              </div>
+            )}
           </div>
 
           <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
@@ -245,6 +258,19 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
                 />
               </div>
             )}
+            {trees.length > 0 && (
+              <div className="mt-4">
+                <OrderPdfButton
+                  mode="invoice"
+                  compact
+                  conf={conf}
+                  trees={trees}
+                  name={session.name}
+                  t={d.invoice}
+                  banks={banks}
+                />
+              </div>
+            )}
           </div>
           <CancelAdoptionButton confirmationId={conf.id} />
         </section>
@@ -260,7 +286,13 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
             <strong>{trees[0]?.nama?.trim() || session.name}</strong>.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-            <ReceiptPdfButton conf={conf} trees={trees} name={session.name} t={d.receipt} />
+            <OrderPdfButton
+              mode="receipt"
+              conf={conf}
+              trees={trees}
+              name={session.name}
+              t={d.receipt}
+            />
             {sertifikatRows.map((t) => (
               <Link
                 key={`cert-${t.id}`}

@@ -2,20 +2,23 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 import {
   adopsiSlug,
+  apiGet,
   apiPost,
   certUrl,
   shareUrl,
   mapAdopsiPohons,
+  mapBank,
   mapConfirmations,
   adoptionStatus,
   type ApiAdopsiPohon,
+  type ApiBank,
   type ApiConfirmation,
 } from "@/lib/api";
 import { requireUser } from "@/lib/guard";
 import { namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
-import { getDict } from "@/lib/i18n";
+import { getDict, getLocale } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
-import ReceiptPdfButton from "@/components/receipt-pdf-button";
+import OrderPdfButton from "@/components/order-pdf-button";
 
 export async function generateMetadata() {
   return { title: (await getDict()).dashboard.title };
@@ -24,6 +27,7 @@ export async function generateMetadata() {
 export default async function DashboardPage() {
   const session = await requireUser();
   const d = (await getDict()).dashboard;
+  const locale = await getLocale();
   const statusLabel: Record<string, string> = {
     PENDING_PAYMENT: d.statusPendingPayment,
     PENDING_VERIFICATION: d.statusPendingVerification,
@@ -66,11 +70,35 @@ export default async function DashboardPage() {
   // Receipt diterbitkan per invoice (bukan per pohon): tombol hanya di
   // baris pertama tiap order yang sudah lunas terverifikasi.
   const receiptRows = new Map<string, (typeof rows)[number]>();
+  const invoiceRows = new Map<string, (typeof rows)[number]>();
   for (const r of rows) {
-    if (r.status === "ACTIVE" && r.conf && !receiptRows.has(r.conf.invoice)) {
-      receiptRows.set(r.conf.invoice, r);
+    if (!r.conf || receiptRows.has(r.conf.invoice) || invoiceRows.has(r.conf.invoice))
+      continue;
+    if (r.status === "ACTIVE") receiptRows.set(r.conf.invoice, r);
+    else if (r.status === "PENDING_PAYMENT" || r.status === "PENDING_VERIFICATION")
+      invoiceRows.set(r.conf.invoice, r);
+  }
+
+  // Invoice PDF memuat rekening transfer — hanya fetch bila ada order unpaid.
+  let banks: ApiBank[] = [];
+  if (invoiceRows.size > 0) {
+    try {
+      banks = (await apiGet<Record<string, unknown>[]>("getrekening")).map(mapBank);
+    } catch {
+      // tombol invoice tetap tampil tanpa blok rekening
     }
   }
+  const dueStr = (createdAt: string | null) => {
+    if (!createdAt) return undefined;
+    const t = new Date(createdAt).getTime() + 24 * 60 * 60 * 1000;
+    return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(t));
+  };
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
@@ -156,8 +184,23 @@ export default async function DashboardPage() {
                         {d.detail}
                       </Link>
                     )}
+                    {r.conf && invoiceRows.get(r.invoice) === r && (
+                      <OrderPdfButton
+                        mode="invoice"
+                        compact
+                        conf={r.conf}
+                        trees={trees.filter((t) => t.invoice === r.invoice)}
+                        name={session.name}
+                        t={d.invoice}
+                        banks={banks}
+                        dueValue={
+                          r.status === "PENDING_PAYMENT" ? dueStr(r.conf.createdAt) : undefined
+                        }
+                      />
+                    )}
                     {r.conf && receiptRows.get(r.invoice) === r && (
-                      <ReceiptPdfButton
+                      <OrderPdfButton
+                        mode="receipt"
                         compact
                         conf={r.conf}
                         trees={trees.filter((t) => t.invoice === r.invoice)}
