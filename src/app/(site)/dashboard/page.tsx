@@ -67,21 +67,47 @@ export default async function DashboardPage() {
     .filter((c) => c.confirmation === "yes")
     .reduce((sum, c) => sum + c.price, 0);
 
-  // Receipt diterbitkan per invoice (bukan per pohon): tombol hanya di
-  // baris pertama tiap order yang sudah lunas terverifikasi.
-  const receiptRows = new Map<string, (typeof rows)[number]>();
-  const invoiceRows = new Map<string, (typeof rows)[number]>();
+  // Baris daftar per ORDER (satu invoice satu baris): satu order bisa memuat
+  // pohon dari beberapa desa dan tiap desa punya nomor sertifikat sendiri
+  // → tombol Sertifikat/Bagikan muncul per lokasi.
+  type OrderRow = {
+    key: string;
+    invoice: string;
+    conf: ApiConfirmation | null;
+    trees: (typeof rows)[number][];
+    status: string;
+    subtotal: number;
+    tanggal: string | null;
+  };
+  const orderByKey = new Map<string, OrderRow>();
   for (const r of rows) {
-    if (!r.conf || receiptRows.has(r.conf.invoice) || invoiceRows.has(r.conf.invoice))
-      continue;
-    if (r.status === "ACTIVE") receiptRows.set(r.conf.invoice, r);
-    else if (r.status === "PENDING_PAYMENT" || r.status === "PENDING_VERIFICATION")
-      invoiceRows.set(r.conf.invoice, r);
+    const key = r.invoice || `id-${r.id}`;
+    let o = orderByKey.get(key);
+    if (!o) {
+      o = {
+        key,
+        invoice: r.invoice,
+        conf: r.conf ?? null,
+        trees: [],
+        status: r.status,
+        subtotal: 0,
+        tanggal: r.conf?.tanggal ?? r.tglAdopt ?? null,
+      };
+      orderByKey.set(key, o);
+    }
+    if (r.conf) o.conf = r.conf;
+    o.trees.push(r);
+    o.subtotal += r.price;
+    if (!o.tanggal) o.tanggal = r.tglAdopt ?? null;
   }
+  const orders = [...orderByKey.values()];
 
   // Invoice PDF memuat rekening transfer — hanya fetch bila ada order unpaid.
+  const adaTagihan = orders.some(
+    (o) => o.status === "PENDING_PAYMENT" || o.status === "PENDING_VERIFICATION",
+  );
   let banks: ApiBank[] = [];
-  if (invoiceRows.size > 0) {
+  if (adaTagihan) {
     try {
       banks = (await apiGet<Record<string, unknown>[]>("getrekening")).map(mapBank);
     } catch {
@@ -100,58 +126,80 @@ export default async function DashboardPage() {
     }).format(new Date(t));
   };
 
+  // Sertifikat diterbitkan per lokasi: kelompokkan pohon lunas per certnum.
+  const sertifikatPerLokasi = (o: OrderRow) => {
+    const perCert = new Map<string, ApiAdopsiPohon[]>();
+    for (const t of o.trees) {
+      if (!t.certnum) continue;
+      const arr = perCert.get(t.certnum) ?? [];
+      arr.push(t);
+      perCert.set(t.certnum, arr);
+    }
+    return [...perCert.entries()].map(([certnum, list]) => ({
+      certnum,
+      desa: list[0].desa,
+      jumlah: list.length,
+    }));
+  };
+
   // Tombol aksi dipakai bersama tabel desktop & kartu mobile.
-  const aksiAdopsi = (r: (typeof rows)[number]) => (
-    <>
-      {r.conf && (
-        <Link
-          href={`/dashboard/adopsi/${adopsiSlug(r.conf)}`}
-          className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
-        >
-          {d.detail}
-        </Link>
-      )}
-      {r.conf && invoiceRows.get(r.invoice) === r && (
-        <OrderPdfButton
-          mode="invoice"
-          compact
-          conf={r.conf}
-          trees={trees.filter((t) => t.invoice === r.invoice)}
-          name={session.name}
-          t={d.invoice}
-          banks={banks}
-          dueValue={r.status === "PENDING_PAYMENT" ? dueStr(r.conf.createdAt) : undefined}
-        />
-      )}
-      {r.conf && receiptRows.get(r.invoice) === r && (
-        <OrderPdfButton
-          mode="receipt"
-          compact
-          conf={r.conf}
-          trees={trees.filter((t) => t.invoice === r.invoice)}
-          name={session.name}
-          t={d.receipt}
-          methodValue={metodeBayar(r.conf.methode, locale === "en")}
-        />
-      )}
-      {r.certnum && (
-        <Link
-          href={certUrl(r.certnum)}
-          className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-        >
-          {d.certificate}
-        </Link>
-      )}
-      {r.certnum && (
-        <Link
-          href={shareUrl(r.certnum)}
-          className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-        >
-          {d.share}
-        </Link>
-      )}
-    </>
-  );
+  const aksiAdopsi = (o: OrderRow) => {
+    const sertifikat = sertifikatPerLokasi(o);
+    return (
+      <>
+        {o.conf && (
+          <Link
+            href={`/dashboard/adopsi/${adopsiSlug(o.conf)}`}
+            className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+          >
+            {d.detail}
+          </Link>
+        )}
+        {o.conf && (o.status === "PENDING_PAYMENT" || o.status === "PENDING_VERIFICATION") && (
+          <OrderPdfButton
+            mode="invoice"
+            compact
+            conf={o.conf}
+            trees={o.trees}
+            name={session.name}
+            t={d.invoice}
+            banks={banks}
+            dueValue={o.status === "PENDING_PAYMENT" ? dueStr(o.conf.createdAt) : undefined}
+          />
+        )}
+        {o.conf && o.status === "ACTIVE" && (
+          <OrderPdfButton
+            mode="receipt"
+            compact
+            conf={o.conf}
+            trees={o.trees}
+            name={session.name}
+            t={d.receipt}
+            methodValue={metodeBayar(o.conf.methode, locale === "en")}
+          />
+        )}
+        {sertifikat.map((s) => (
+          <Link
+            key={`cert-${s.certnum}`}
+            href={certUrl(s.certnum)}
+            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+          >
+            {d.certificate} {namaDesa(s.desa)} ({s.jumlah}{" "}
+            {s.jumlah === 1 ? d.treeWord : d.treesWord})
+          </Link>
+        ))}
+        {sertifikat.map((s) => (
+          <Link
+            key={`share-${s.certnum}`}
+            href={shareUrl(s.certnum)}
+            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+          >
+            {d.share}
+          </Link>
+        ))}
+      </>
+    );
+  };
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
@@ -199,31 +247,37 @@ export default async function DashboardPage() {
       {/* Kartu mobile: kolom aksi tabel lebar 720px tak terlihat di HP tanpa
           scroll horizontal, jadi render ulang sebagai kartu bertumpuk. */}
       <div className="mt-4 space-y-3 md:hidden">
-        {rows.map((r) => (
-          <div key={r.id} className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
+        {orders.map((o) => (
+          <div key={o.key} className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-medium text-zinc-800">{r.localName}</p>
-                <p className="font-mono text-xs text-zinc-400">{r.idpohon}</p>
+                <p className="font-mono text-sm font-semibold text-zinc-800">
+                  {o.invoice || o.trees[0].idpohon}
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  {o.trees.length} {o.trees.length === 1 ? d.treeWord : d.treesWord}
+                </p>
               </div>
               <StatusBadge
-                label={statusLabel[r.status] ?? r.status}
-                className={ADOPTION_STATUS[r.status]?.className ?? "bg-zinc-100 text-zinc-600"}
+                label={statusLabel[o.status] ?? o.status}
+                className={ADOPTION_STATUS[o.status]?.className ?? "bg-zinc-100 text-zinc-600"}
               />
             </div>
-            <p className="mt-2 text-xs text-zinc-500">{namaDesa(r.desa)}</p>
+            <p className="mt-2 text-xs text-zinc-500">
+              {[...new Set(o.trees.map((t) => namaDesa(t.desa)).filter(Boolean))].join(", ")}
+            </p>
             <div className="mt-1 flex items-center justify-between gap-3">
               <span className="text-sm text-zinc-500">
-                {r.tglAdopt ? tanggal(new Date(r.tglAdopt)) : "—"}
+                {o.tanggal ? tanggal(new Date(o.tanggal)) : "—"}
               </span>
-              <span className="font-semibold text-emerald-800">{rupiah(r.price)}</span>
+              <span className="font-semibold text-emerald-800">{rupiah(o.subtotal)}</span>
             </div>
             <div className="mt-3 flex flex-wrap gap-2 border-t border-emerald-50 pt-3">
-              {aksiAdopsi(r)}
+              {aksiAdopsi(o)}
             </div>
           </div>
         ))}
-        {rows.length === 0 && (
+        {orders.length === 0 && (
           <p className="rounded-2xl border border-emerald-100 bg-white px-4 py-10 text-center text-zinc-500">
             {d.empty}{" "}
             <Link href="/pohon" className="font-semibold text-emerald-700 hover:text-emerald-800">
@@ -246,31 +300,37 @@ export default async function DashboardPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-emerald-50 bg-white">
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td className="px-4 py-3 font-mono text-xs text-zinc-500">{r.idpohon}</td>
+            {orders.map((o) => (
+              <tr key={o.key}>
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-500">
+                  {o.invoice || o.trees[0].idpohon}
+                </td>
                 <td className="px-4 py-3">
-                  <p className="font-medium text-zinc-800">{r.localName}</p>
-                  <p className="text-xs text-zinc-500">{namaDesa(r.desa)}</p>
+                  <p className="font-medium text-zinc-800">
+                    {o.trees.length} {o.trees.length === 1 ? d.treeWord : d.treesWord}
+                  </p>
+                  <p className="text-xs text-zinc-500">
+                    {[...new Set(o.trees.map((t) => namaDesa(t.desa)).filter(Boolean))].join(", ")}
+                  </p>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-zinc-500">
-                  {r.tglAdopt ? tanggal(new Date(r.tglAdopt)) : "—"}
+                  {o.tanggal ? tanggal(new Date(o.tanggal)) : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge
-                    label={statusLabel[r.status] ?? r.status}
-                    className={ADOPTION_STATUS[r.status]?.className ?? "bg-zinc-100 text-zinc-600"}
+                    label={statusLabel[o.status] ?? o.status}
+                    className={ADOPTION_STATUS[o.status]?.className ?? "bg-zinc-100 text-zinc-600"}
                   />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-emerald-800">
-                  {rupiah(r.price)}
+                  {rupiah(o.subtotal)}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">{aksiAdopsi(r)}</div>
+                  <div className="flex items-center justify-end gap-2">{aksiAdopsi(o)}</div>
                 </td>
               </tr>
             ))}
-            {rows.length === 0 && (
+            {orders.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-zinc-500">
                   {d.empty}{" "}

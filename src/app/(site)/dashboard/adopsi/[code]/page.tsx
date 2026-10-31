@@ -99,6 +99,14 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   const subtotal = trees.reduce((sum, t) => sum + t.price, 0);
   const unique = Math.max(0, conf.price - subtotal);
   const sertifikatRows = trees.filter((t) => t.certnum);
+  // Sertifikat diterbitkan per lokasi: satu order bisa memuat pohon dari
+  // beberapa desa dan tiap desa punya nomor sertifikat sendiri.
+  const certPerLokasi = new Map<string, ApiAdopsiPohon[]>();
+  for (const t of sertifikatRows) {
+    const arr = certPerLokasi.get(t.certnum!) ?? [];
+    arr.push(t);
+    certPerLokasi.set(t.certnum!, arr);
+  }
   // Adopsi hadiah = ada baris sertifikat atas nama orang lain (bukan kosong).
   const giftRow = sertifikatRows.find((t) => t.nama.trim()) ?? null;
   const giftLink = giftRow ? await absoluteUrl(certUrl(giftRow.certnum!)) : "";
@@ -294,22 +302,23 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               t={d.receipt}
               methodValue={metodeBayar(conf.methode, locale === "en")}
             />
-            {sertifikatRows.map((t) => (
+            {[...certPerLokasi.entries()].map(([certnum, list]) => (
               <Link
-                key={`cert-${t.id}`}
-                href={certUrl(t.certnum!)}
+                key={`cert-${certnum}`}
+                href={certUrl(certnum)}
                 className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
               >
-                {d.certificate} {t.idpohon}
+                {d.certificate} {namaDesa(list[0].desa)} ({list.length}{" "}
+                {list.length === 1 ? d.treeWord : d.treesWord})
               </Link>
             ))}
-            {sertifikatRows.map((t) => (
+            {[...certPerLokasi.entries()].map(([certnum, list]) => (
               <Link
-                key={`share-${t.id}`}
-                href={`${shareUrl(t.certnum!)}?pohon=${encodeURIComponent(t.idpohon ?? "")}`}
+                key={`share-${certnum}`}
+                href={`${shareUrl(certnum)}?pohon=${encodeURIComponent(list[0].idpohon ?? "")}`}
                 className="inline-block rounded-full border border-emerald-300 px-6 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
               >
-                {d.share} {t.idpohon}
+                {d.share} {namaDesa(list[0].desa)}
               </Link>
             ))}
           </div>
