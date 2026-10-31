@@ -31,6 +31,15 @@ export function tanggal(value: Date | string): string {
   }).format(new Date(value));
 }
 
+// Label metode pembayaran dari kolom confirmation.methode ("Transfer",
+// "Mayar", nama bank, "Cash") untuk ditampilkan di receipt.
+export function metodeBayar(m: string, en = false): string {
+  const v = m.trim().toLowerCase();
+  if (v === "transfer") return en ? "Bank Transfer" : "Transfer Bank";
+  if (v === "mayar") return en ? "Online Payment (Mayar)" : "Bayar Online (Mayar)";
+  return m.trim() || "-";
+}
+
 export const ADOPTION_STATUS: Record<string, { label: string; className: string }> = {
   PENDING_PAYMENT: {
     label: "Menunggu Pembayaran",

@@ -31,6 +31,8 @@ export type OrderPdfLabels = {
   dueAt?: string;
   bankTitle?: string;
   careOf?: string;
+  // khusus receipt
+  method?: string;
 };
 
 // Unduh dokumen order sebagai PDF (generate client-side dengan jsPDF, pola
@@ -46,6 +48,7 @@ export default function OrderPdfButton({
   t,
   compact,
   dueValue,
+  methodValue,
   banks = [],
 }: {
   mode: "invoice" | "receipt";
@@ -55,6 +58,7 @@ export default function OrderPdfButton({
   t: OrderPdfLabels;
   compact?: boolean;
   dueValue?: string;
+  methodValue?: string;
   banks?: ApiBank[];
 }) {
   const invoice = mode === "invoice";
@@ -120,6 +124,11 @@ export default function OrderPdfButton({
     y += 34;
     if (invoice && dueValue) {
       info(M, t.dueAt ?? "", dueValue);
+      y += 34;
+    }
+    // Receipt: metode pembayaran yang dipakai pengadopsi (Transfer/Mayar/dll).
+    if (!invoice && methodValue) {
+      info(M, t.method ?? "", methodValue);
       y += 34;
     }
 

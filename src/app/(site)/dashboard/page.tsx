@@ -15,7 +15,7 @@ import {
   type ApiConfirmation,
 } from "@/lib/api";
 import { requireUser } from "@/lib/guard";
-import { namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
+import { metodeBayar, namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import OrderPdfButton from "@/components/order-pdf-button";
@@ -206,6 +206,7 @@ export default async function DashboardPage() {
                         trees={trees.filter((t) => t.invoice === r.invoice)}
                         name={session.name}
                         t={d.receipt}
+                        methodValue={metodeBayar(r.conf.methode, locale === "en")}
                       />
                     )}
                     {r.certnum && (

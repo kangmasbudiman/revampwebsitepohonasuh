@@ -19,7 +19,7 @@ import {
 } from "@/lib/api";
 import { requireUser } from "@/lib/guard";
 import { absoluteUrl } from "@/lib/site-url";
-import { namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
+import { metodeBayar, namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import PaymentForm from "@/components/payment-form";
@@ -292,6 +292,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               trees={trees}
               name={session.name}
               t={d.receipt}
+              methodValue={metodeBayar(conf.methode, locale === "en")}
             />
             {sertifikatRows.map((t) => (
               <Link

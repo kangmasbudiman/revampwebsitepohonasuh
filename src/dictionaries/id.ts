@@ -297,6 +297,7 @@ export const dict = {
       title: "Tanda Terima Pembayaran",
       badge: "LUNAS",
       statusValue: "Lunas",
+      method: "Metode Pembayaran",
       invoiceNo: "No. Invoice",
       donor: "Nama Donor",
       orderDate: "Tanggal Order",

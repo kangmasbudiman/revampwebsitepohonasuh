@@ -296,6 +296,7 @@ export const dict: Dict = {
       title: "Payment Receipt",
       badge: "PAID",
       statusValue: "Paid",
+      method: "Payment Method",
       invoiceNo: "Invoice No.",
       donor: "Donor Name",
       orderDate: "Order Date",

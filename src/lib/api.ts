@@ -379,6 +379,7 @@ export type ApiConfirmation = {
   tanggal: string;
   jmlPohon: number;
   confirmation: string;
+  methode: string; // metode bayar saat checkout (Transfer/Mayar/dll)
   createdAt: string | null; // order dibuat (batas pembayaran = +24 jam)
   fotoUrl: string | null;
   linkInvoice: string | null;
@@ -392,6 +393,7 @@ export function mapConfirmation(r: Record<string, unknown>): ApiConfirmation {
     tanggal: String(r.tanggal ?? ""),
     jmlPohon: Number(r.jml_pohon) || 1,
     confirmation: String(r.confirmation ?? "no"),
+    methode: String(r.methode ?? ""),
     createdAt: r.created_at ? String(r.created_at) : null,
     fotoUrl: assetUrl(r.foto as string | null),
     linkInvoice: r.link_invoice ? String(r.link_invoice) : null,
