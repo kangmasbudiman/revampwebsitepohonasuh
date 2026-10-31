@@ -44,17 +44,34 @@ export function fmtTanggal(s: string): string {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 }
 
+// Logo untuk kop PDF: PNG asli 1040px/~437KB membengkakkan PDF jadi
+// MB-an — turunkan skala ke 96px (cukup tajam untuk ikon kop 36pt).
 export async function muatLogo(): Promise<string | null> {
   try {
     const res = await fetch("/images/logo_icon.png");
     if (!res.ok) return null;
     const blob = await res.blob();
-    return await new Promise((resolve) => {
+    const dataUrl = await new Promise<string | null>((resolve) => {
       const fr = new FileReader();
       fr.onload = () => resolve(String(fr.result));
       fr.onerror = () => resolve(null);
       fr.readAsDataURL(blob);
     });
+    if (!dataUrl) return null;
+    const img = await new Promise<HTMLImageElement | null>((resolve) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => resolve(null);
+      im.src = dataUrl;
+    });
+    if (!img || !img.width) return null;
+    const cv = document.createElement("canvas");
+    cv.width = 96;
+    cv.height = 96;
+    const ctx = cv.getContext("2d");
+    if (!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, 96, 96);
+    return cv.toDataURL("image/png");
   } catch {
     return null;
   }

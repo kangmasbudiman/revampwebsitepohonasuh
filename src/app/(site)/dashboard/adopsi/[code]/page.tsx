@@ -27,6 +27,7 @@ import OnlinePayment from "@/components/online-payment";
 import CancelAdoptionButton from "@/components/cancel-adoption-button";
 import TaggingProgress from "@/components/tagging-progress";
 import GiftSend from "@/components/gift-send";
+import ReceiptPdfButton from "@/components/receipt-pdf-button";
 
 export default async function AdoptionDetailPage(props: PageProps<"/dashboard/adopsi/[code]">) {
   const { code } = await props.params;
@@ -259,6 +260,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
             <strong>{trees[0]?.nama?.trim() || session.name}</strong>.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <ReceiptPdfButton conf={conf} trees={trees} name={session.name} t={d.receipt} />
             {sertifikatRows.map((t) => (
               <Link
                 key={`cert-${t.id}`}

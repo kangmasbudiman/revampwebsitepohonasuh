@@ -15,6 +15,7 @@ import { requireUser } from "@/lib/guard";
 import { namaDesa, rupiah, tanggal, ADOPTION_STATUS } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
+import ReceiptPdfButton from "@/components/receipt-pdf-button";
 
 export async function generateMetadata() {
   return { title: (await getDict()).dashboard.title };
@@ -61,6 +62,15 @@ export default async function DashboardPage() {
   const totalContribution = confs
     .filter((c) => c.confirmation === "yes")
     .reduce((sum, c) => sum + c.price, 0);
+
+  // Receipt diterbitkan per invoice (bukan per pohon): tombol hanya di
+  // baris pertama tiap order yang sudah lunas terverifikasi.
+  const receiptRows = new Map<string, (typeof rows)[number]>();
+  for (const r of rows) {
+    if (r.status === "ACTIVE" && r.conf && !receiptRows.has(r.conf.invoice)) {
+      receiptRows.set(r.conf.invoice, r);
+    }
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
@@ -145,6 +155,15 @@ export default async function DashboardPage() {
                       >
                         {d.detail}
                       </Link>
+                    )}
+                    {r.conf && receiptRows.get(r.invoice) === r && (
+                      <ReceiptPdfButton
+                        compact
+                        conf={r.conf}
+                        trees={trees.filter((t) => t.invoice === r.invoice)}
+                        name={session.name}
+                        t={d.receipt}
+                      />
                     )}
                     {r.certnum && (
                       <Link
