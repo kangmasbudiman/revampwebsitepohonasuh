@@ -62,7 +62,9 @@ export default function TaggingProgress({ trees }: { trees: ApiTaggingTree[] }) 
                     {t.localName || d.tree}{" "}
                     <span className="font-normal text-zinc-400">({t.idpohon})</span>
                   </p>
-                  <p className="text-xs text-zinc-500">📍 {namaDesa(t.desa)}</p>
+                  <p className="text-xs text-zinc-500">
+                    📍 {t.desaLabel || namaDesa(t.desa)}
+                  </p>
                 </div>
                 <span
                   data-tagging-status={t.idpohon}

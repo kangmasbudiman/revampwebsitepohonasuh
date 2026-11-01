@@ -69,7 +69,9 @@ export default function PapanTaging({
   order: ApiOrderRow;
   chrome?: boolean;
 }) {
-  const namaDesa = kapital(order.desa);
+  // Label tampilan desa dari kelola lokasi — data_adopsi.desa menyimpan nama
+  // internal satu kata (mis. "pondokparianlunang").
+  const namaDesa = order.desaLabel || kapital(order.desa);
   const subLokasi = [
     order.kecamatan.trim() && `Kec. ${kapital(order.kecamatan)}`,
     order.kabupaten.trim() && `Kab. ${kapital(order.kabupaten)}`,

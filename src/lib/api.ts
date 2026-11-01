@@ -428,6 +428,7 @@ export type ApiAdopsiPohon = {
   nama: string; // nama penerima di sertifikat
   memo: string; // memo/pesan sertifikat
   gift: boolean; // adopsi hadiah (data_adopsi.gfrom = 1)
+  desaLabel: string; // label tampilan (kelola lokasi), bukan nama internal
 };
 
 export function mapAdopsiPohon(r: Record<string, unknown>): ApiAdopsiPohon {
@@ -438,6 +439,7 @@ export function mapAdopsiPohon(r: Record<string, unknown>): ApiAdopsiPohon {
     localName: String(r.localname ?? ""),
     photoUrl: treePhotoUrl(r.foto_pohon as string | null),
     desa: String(r.desa ?? ""),
+    desaLabel: String(r.desa_label ?? ""),
     price: Number(r.price) || 0,
     proses: Number(r.proses) || 0,
     certnum: r.certnum ? String(r.certnum) : null,
@@ -461,6 +463,7 @@ export type ApiTaggingTree = {
   idpohon: string;
   localName: string;
   desa: string;
+  desaLabel: string; // label tampilan (kelola lokasi), bukan nama internal
   proses: number;
   foto: { url: string; tanggal: string | null }[];
 };
@@ -471,6 +474,7 @@ export function mapTaggingTrees(rows: Record<string, unknown>[]): ApiTaggingTree
     idpohon: String(r.idpohon ?? ""),
     localName: String(r.localname ?? ""),
     desa: String(r.desa ?? ""),
+    desaLabel: String(r.desa_label ?? ""),
     proses: Number(r.proses) || 0,
     foto: Array.isArray(r.foto)
       ? (r.foto as Record<string, unknown>[])
@@ -495,6 +499,7 @@ export type ApiOrderRow = {
   nama: string;
   pengasuh: number;
   desa: string;
+  desaLabel: string; // label tampilan (kelola lokasi), bukan nama internal
   price: number; // subtotal pohon
   total: number; // total confirmation (dengan kode unik)
   proses: number;
@@ -530,6 +535,7 @@ export function mapOrderRow(r: Record<string, unknown>): ApiOrderRow {
     nama: String(r.nama ?? ""),
     pengasuh: Number(r.pengasuh) || 0,
     desa: String(r.desa ?? ""),
+    desaLabel: String(r.desa_label ?? ""),
     price: Number(r.price) || 0,
     total: Number(r.total) || 0,
     proses: Number(r.proses) || 0,

@@ -45,6 +45,7 @@ type ApiSertifikat = {
   invoice?: string | null;
   idpohon?: string | null;
   desa?: string | null;
+  desa_label?: string | null;
   kecamatan?: string | null;
   kabupaten?: string | null;
   provinsi?: string | null;
@@ -98,8 +99,9 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
     null;
 
   const jml = Number(s.jml_pohon) || 1;
+  const desaTampil = s.desa_label || s.desa || "";
   const lokasi = [
-    s.desa ? `${titleCase(s.desa)} Village Forest` : null,
+    desaTampil ? `${titleCase(desaTampil)} Village Forest` : null,
     s.kecamatan ? `${titleCase(s.kecamatan)} Subdistrict` : null,
     s.kabupaten ? `${titleCase(s.kabupaten)} District` : null,
     s.provinsi ? `${titleCase(s.provinsi)} Province` : null,

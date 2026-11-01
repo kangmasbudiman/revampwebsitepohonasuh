@@ -245,7 +245,7 @@ export default async function DashboardPage() {
               />
             </div>
             <p className="mt-2 text-xs text-zinc-500">
-              {[...new Set(o.trees.map((t) => namaDesa(t.desa)).filter(Boolean))].join(", ")}
+              {[...new Set(o.trees.map((t) => t.desaLabel || namaDesa(t.desa)).filter(Boolean))].join(", ")}
             </p>
             <div className="mt-1 flex items-center justify-between gap-3">
               <span className="text-sm text-zinc-500">
@@ -291,7 +291,7 @@ export default async function DashboardPage() {
                     {o.trees.length} {o.trees.length === 1 ? d.treeWord : d.treesWord}
                   </p>
                   <p className="text-xs text-zinc-500">
-                    {[...new Set(o.trees.map((t) => namaDesa(t.desa)).filter(Boolean))].join(", ")}
+                    {[...new Set(o.trees.map((t) => t.desaLabel || namaDesa(t.desa)).filter(Boolean))].join(", ")}
                   </p>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-zinc-500">

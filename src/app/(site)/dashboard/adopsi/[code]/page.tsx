@@ -78,6 +78,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
       idpohon: t.idpohon,
       localName: t.localName,
       desa: t.desa,
+      desaLabel: t.desaLabel,
       proses: t.proses,
       foto: [],
     }));
@@ -136,12 +137,12 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
     }
     certItems.push({
       certnum,
-      desa: list[0].desa,
+      desa: list[0].desaLabel || list[0].desa,
       penerima: hadiah ? nama : "",
       jumlah: list.length,
       idpohon: list[0].idpohon ?? "",
       kata: [
-        namaDesa(list[0].desa),
+        namaDesa(list[0].desaLabel || list[0].desa),
         nama,
         ...list.map((t) => t.idpohon),
         ...list.map((t) => t.localName),
@@ -188,7 +189,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               <p className="font-semibold text-emerald-950">
                 {t.localName} <span className="font-normal text-zinc-400">({t.idpohon})</span>
               </p>
-              <p className="mt-1 text-sm text-zinc-600">📍 {namaDesa(t.desa)}</p>
+              <p className="mt-1 text-sm text-zinc-600">📍 {t.desaLabel || namaDesa(t.desa)}</p>
               <p className="text-xs text-zinc-400">
                 {d.duration} {t.dur} {t.dur === 1 ? d.year : d.years}
               </p>
