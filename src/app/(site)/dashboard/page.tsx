@@ -126,7 +126,8 @@ export default async function DashboardPage() {
     }).format(new Date(t));
   };
 
-  // Sertifikat diterbitkan per lokasi: kelompokkan pohon lunas per certnum.
+  // Sertifikat diterbitkan per lokasi (dan per penerima hadiah):
+  // kelompokkan pohon lunas per certnum.
   const sertifikatPerLokasi = (o: OrderRow) => {
     const perCert = new Map<string, ApiAdopsiPohon[]>();
     for (const t of o.trees) {
@@ -139,8 +140,14 @@ export default async function DashboardPage() {
       certnum,
       desa: list[0].desa,
       jumlah: list.length,
+      // Penerima hadiah (nama lain) supaya tombol pembeda dengan lembar sendiri.
+      penerima: (list[0].nama ?? "").trim(),
     }));
   };
+  const labelSertifikat = (s: { desa: string; jumlah: number; penerima: string }) =>
+    `${d.certificate} ${namaDesa(s.desa)}` +
+    (s.penerima && s.penerima !== session.name ? ` — ${s.penerima}` : "") +
+    ` (${s.jumlah} ${s.jumlah === 1 ? d.treeWord : d.treesWord})`;
 
   // Tombol aksi dipakai bersama tabel desktop & kartu mobile.
   const aksiAdopsi = (o: OrderRow) => {
@@ -184,8 +191,7 @@ export default async function DashboardPage() {
             href={certUrl(s.certnum)}
             className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
           >
-            {d.certificate} {namaDesa(s.desa)} ({s.jumlah}{" "}
-            {s.jumlah === 1 ? d.treeWord : d.treesWord})
+            {labelSertifikat(s)}
           </Link>
         ))}
         {sertifikat.map((s) => (

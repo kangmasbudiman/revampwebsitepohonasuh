@@ -308,8 +308,11 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
                 href={certUrl(certnum)}
                 className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
               >
-                {d.certificate} {namaDesa(list[0].desa)} ({list.length}{" "}
-                {list.length === 1 ? d.treeWord : d.treesWord})
+                {d.certificate} {namaDesa(list[0].desa)}
+                {(list[0].nama ?? "").trim() && list[0].nama.trim() !== session.name
+                  ? ` — ${list[0].nama.trim()}`
+                  : ""}{" "}
+                ({list.length} {list.length === 1 ? d.treeWord : d.treesWord})
               </Link>
             ))}
             {[...certPerLokasi.entries()].map(([certnum, list]) => (
