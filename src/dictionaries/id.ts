@@ -225,6 +225,8 @@ export const dict = {
     statOngoing: "Sedang Berjalan",
     statContribution: "Total Kontribusi",
     myAdoptions: "Adopsi Saya",
+    tableHint:
+      "Unduh Receipt dan sertifikat Anda dari tombol pada tiap baris: klik Detail untuk membuka halaman order, atau klik angka sertifikat untuk langsung menuju daftar sertifikat (lengkap dengan tombol lihat & bagikan aksi).",
     colCode: "No Order",
     colTree: "Jumlah Adopsi",
     colDate: "Tanggal",

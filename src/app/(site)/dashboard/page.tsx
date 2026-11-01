@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, Info } from "lucide-react";
 import {
   adopsiSlug,
   apiGet,
@@ -220,6 +220,10 @@ export default async function DashboardPage() {
       </div>
 
       <h2 className="mt-10 text-xl font-bold text-emerald-950">{d.myAdoptions}</h2>
+      <p className="mt-2 flex items-start gap-2 rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-sm leading-5 text-emerald-900/80">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+        <span>{d.tableHint}</span>
+      </p>
 
       {/* Kartu mobile: kolom aksi tabel lebar 720px tak terlihat di HP tanpa
           scroll horizontal, jadi render ulang sebagai kartu bertumpuk. */}

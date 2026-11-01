@@ -224,6 +224,8 @@ export const dict: Dict = {
     statOngoing: "In Progress",
     statContribution: "Total Contribution",
     myAdoptions: "My Adoptions",
+    tableHint:
+      "Download your receipt and certificates from the buttons on each row: click Detail to open the order page, or the certificate count to jump straight to your certificate list (with view & share buttons).",
     colCode: "Order No",
     colTree: "Adopted Trees",
     colDate: "Date",
