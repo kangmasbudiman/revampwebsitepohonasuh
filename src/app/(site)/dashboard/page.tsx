@@ -136,17 +136,27 @@ export default async function DashboardPage() {
       arr.push(t);
       perCert.set(t.certnum, arr);
     }
-    return [...perCert.entries()].map(([certnum, list]) => ({
-      certnum,
-      desa: list[0].desa,
-      jumlah: list.length,
-      // Penerima hadiah (nama lain) supaya tombol pembeda dengan lembar sendiri.
-      penerima: (list[0].nama ?? "").trim(),
-    }));
+    return [...perCert.entries()].map(([certnum, list]) => {
+      const penerima = (list[0].nama ?? "").trim();
+      return {
+        certnum,
+        desa: list[0].desa,
+        jumlah: list.length,
+        penerima,
+        // gfrom = 1 utk order baru; fallback nama lain utk order lama
+        // (pohon sendiri pun bernama lengkap sejak checkout baru).
+        hadiah: list[0].gift || (penerima !== "" && penerima !== session.name),
+      };
+    });
   };
-  const labelSertifikat = (s: { desa: string; jumlah: number; penerima: string }) =>
+  const labelSertifikat = (s: {
+    desa: string;
+    jumlah: number;
+    penerima: string;
+    hadiah: boolean;
+  }) =>
     `${d.certificate} ${namaDesa(s.desa)}` +
-    (s.penerima && s.penerima !== session.name ? ` — ${s.penerima}` : "") +
+    (s.hadiah && s.penerima ? ` — ${s.penerima}` : "") +
     ` (${s.jumlah} ${s.jumlah === 1 ? d.treeWord : d.treesWord})`;
 
   // Tombol aksi dipakai bersama tabel desktop & kartu mobile.

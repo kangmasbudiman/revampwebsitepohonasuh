@@ -427,6 +427,7 @@ export type ApiAdopsiPohon = {
   dur: number; // durasi adopsi (tahun)
   nama: string; // nama penerima di sertifikat
   memo: string; // memo/pesan sertifikat
+  gift: boolean; // adopsi hadiah (data_adopsi.gfrom = 1)
 };
 
 export function mapAdopsiPohon(r: Record<string, unknown>): ApiAdopsiPohon {
@@ -445,6 +446,7 @@ export function mapAdopsiPohon(r: Record<string, unknown>): ApiAdopsiPohon {
     dur: Number(r.dur) || 1,
     nama: String(r.nama ?? ""),
     memo: String(r.memo ?? ""),
+    gift: Number(r.gfrom) === 1,
   };
 }
 

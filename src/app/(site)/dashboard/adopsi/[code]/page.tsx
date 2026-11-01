@@ -107,13 +107,25 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
     arr.push(t);
     certPerLokasi.set(t.certnum!, arr);
   }
-  // Adopsi hadiah = ada baris sertifikat atas nama orang lain (bukan kosong).
-  const giftRow = sertifikatRows.find((t) => t.nama.trim()) ?? null;
-  const giftLink = giftRow ? await absoluteUrl(certUrl(giftRow.certnum!)) : "";
-  const localnames = [...new Set(trees.map((t) => t.localName).filter(Boolean))];
-  const pohonLabel = `${trees.length} ${trees.length === 1 ? d.treeWord : d.treesWord}${
-    localnames.length ? ": " + localnames.join(", ") : ""
-  }`;
+  // Adopsi hadiah = lembar sertifikat atas nama orang lain (checkout selalu
+  // mengisi nama member untuk pohon sendiri, jadi penerima beda = hadiah).
+  // Tiap penerima hadiah punya lembar sendiri → tombol kirim per penerima.
+  const hadiahList: { nama: string; certnum: string; pohonLabel: string; link: string }[] = [];
+  for (const [certnum, list] of certPerLokasi) {
+    const nama = list[0].nama.trim();
+    // gfrom = 1 utk order baru; fallback nama lain utk order lama.
+    const hadiah = list[0].gift || (nama !== "" && nama !== session.name);
+    if (!hadiah || !nama) continue;
+    const localnames = [...new Set(list.map((t) => t.localName).filter(Boolean))];
+    hadiahList.push({
+      nama,
+      certnum,
+      pohonLabel: `${list.length} ${list.length === 1 ? d.treeWord : d.treesWord}${
+        localnames.length ? ": " + localnames.join(", ") : ""
+      }`,
+      link: await absoluteUrl(certUrl(certnum)),
+    });
+  }
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
@@ -302,19 +314,21 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               t={d.receipt}
               methodValue={metodeBayar(conf.methode, locale === "en")}
             />
-            {[...certPerLokasi.entries()].map(([certnum, list]) => (
-              <Link
-                key={`cert-${certnum}`}
-                href={certUrl(certnum)}
-                className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                {d.certificate} {namaDesa(list[0].desa)}
-                {(list[0].nama ?? "").trim() && list[0].nama.trim() !== session.name
-                  ? ` — ${list[0].nama.trim()}`
-                  : ""}{" "}
-                ({list.length} {list.length === 1 ? d.treeWord : d.treesWord})
-              </Link>
-            ))}
+            {[...certPerLokasi.entries()].map(([certnum, list]) => {
+              const penerima = (list[0].nama ?? "").trim();
+              const hadiah = list[0].gift || (penerima !== "" && penerima !== session.name);
+              return (
+                <Link
+                  key={`cert-${certnum}`}
+                  href={certUrl(certnum)}
+                  className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  {d.certificate} {namaDesa(list[0].desa)}
+                  {hadiah && penerima ? ` — ${penerima}` : ""} ({list.length}{" "}
+                  {list.length === 1 ? d.treeWord : d.treesWord})
+                </Link>
+              );
+            })}
             {[...certPerLokasi.entries()].map(([certnum, list]) => (
               <Link
                 key={`share-${certnum}`}
@@ -325,17 +339,17 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               </Link>
             ))}
           </div>
-          {giftRow && (
-            <div className="mt-3 flex justify-center">
+          {hadiahList.map((h) => (
+            <div key={h.certnum} className="mt-3 flex justify-center">
               <GiftSend
-                certnum={giftRow.certnum!}
-                namaPenerima={giftRow.nama.trim()}
+                certnum={h.certnum}
+                namaPenerima={h.nama}
                 namaPengirim={session.name}
-                pohonLabel={pohonLabel}
-                link={giftLink}
+                pohonLabel={h.pohonLabel}
+                link={h.link}
               />
             </div>
-          )}
+          ))}
         </section>
         <TaggingProgress trees={tagging} />
         </>
