@@ -7,7 +7,6 @@ import {
   apiPost,
   adoptionStatus,
   certUrl,
-  shareUrl,
   mapAdopsiPohons,
   mapBank,
   mapConfirmations,
@@ -26,6 +25,7 @@ import PaymentForm from "@/components/payment-form";
 import OnlinePayment from "@/components/online-payment";
 import CancelAdoptionButton from "@/components/cancel-adoption-button";
 import TaggingProgress from "@/components/tagging-progress";
+import CertificateList from "@/components/certificate-list";
 import GiftSend from "@/components/gift-send";
 import OrderPdfButton from "@/components/order-pdf-button";
 
@@ -111,19 +111,43 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   // mengisi nama member untuk pohon sendiri, jadi penerima beda = hadiah).
   // Tiap penerima hadiah punya lembar sendiri → tombol kirim per penerima.
   const hadiahList: { nama: string; certnum: string; pohonLabel: string; link: string }[] = [];
+  const certItems: {
+    certnum: string;
+    desa: string;
+    penerima: string;
+    jumlah: number;
+    idpohon: string;
+    kata: string;
+  }[] = [];
   for (const [certnum, list] of certPerLokasi) {
-    const nama = list[0].nama.trim();
+    const nama = (list[0].nama ?? "").trim();
     // gfrom = 1 utk order baru; fallback nama lain utk order lama.
     const hadiah = list[0].gift || (nama !== "" && nama !== session.name);
-    if (!hadiah || !nama) continue;
-    const localnames = [...new Set(list.map((t) => t.localName).filter(Boolean))];
-    hadiahList.push({
-      nama,
+    if (hadiah && nama) {
+      const localnames = [...new Set(list.map((t) => t.localName).filter(Boolean))];
+      hadiahList.push({
+        nama,
+        certnum,
+        pohonLabel: `${list.length} ${list.length === 1 ? d.treeWord : d.treesWord}${
+          localnames.length ? ": " + localnames.join(", ") : ""
+        }`,
+        link: await absoluteUrl(certUrl(certnum)),
+      });
+    }
+    certItems.push({
       certnum,
-      pohonLabel: `${list.length} ${list.length === 1 ? d.treeWord : d.treesWord}${
-        localnames.length ? ": " + localnames.join(", ") : ""
-      }`,
-      link: await absoluteUrl(certUrl(certnum)),
+      desa: list[0].desa,
+      penerima: hadiah ? nama : "",
+      jumlah: list.length,
+      idpohon: list[0].idpohon ?? "",
+      kata: [
+        namaDesa(list[0].desa),
+        nama,
+        ...list.map((t) => t.idpohon),
+        ...list.map((t) => t.localName),
+      ]
+        .join(" ")
+        .toLowerCase(),
     });
   }
 
@@ -314,30 +338,6 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               t={d.receipt}
               methodValue={metodeBayar(conf.methode, locale === "en")}
             />
-            {[...certPerLokasi.entries()].map(([certnum, list]) => {
-              const penerima = (list[0].nama ?? "").trim();
-              const hadiah = list[0].gift || (penerima !== "" && penerima !== session.name);
-              return (
-                <Link
-                  key={`cert-${certnum}`}
-                  href={certUrl(certnum)}
-                  className="inline-block rounded-full bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
-                >
-                  {d.certificate} {namaDesa(list[0].desa)}
-                  {hadiah && penerima ? ` — ${penerima}` : ""} ({list.length}{" "}
-                  {list.length === 1 ? d.treeWord : d.treesWord})
-                </Link>
-              );
-            })}
-            {[...certPerLokasi.entries()].map(([certnum, list]) => (
-              <Link
-                key={`share-${certnum}`}
-                href={`${shareUrl(certnum)}?pohon=${encodeURIComponent(list[0].idpohon ?? "")}`}
-                className="inline-block rounded-full border border-emerald-300 px-6 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
-              >
-                {d.share} {namaDesa(list[0].desa)}
-              </Link>
-            ))}
           </div>
           {hadiahList.map((h) => (
             <div key={h.certnum} className="mt-3 flex justify-center">
@@ -350,6 +350,21 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
               />
             </div>
           ))}
+        </section>
+        <section id="sertifikat" className="mt-8 scroll-mt-24">
+          <CertificateList
+            items={certItems}
+            labels={{
+              title: d.certificate,
+              searchPh: d.certSearchPh,
+              view: d.certView,
+              share: d.certShare,
+              certificate: d.certificate,
+              certificates: d.certificates,
+              treeWord: d.treeWord,
+              treesWord: d.treesWord,
+            }}
+          />
         </section>
         <TaggingProgress trees={tagging} />
         </>

@@ -4,8 +4,6 @@ import {
   adopsiSlug,
   apiGet,
   apiPost,
-  certUrl,
-  shareUrl,
   mapAdopsiPohons,
   mapBank,
   mapConfirmations,
@@ -126,42 +124,15 @@ export default async function DashboardPage() {
     }).format(new Date(t));
   };
 
-  // Sertifikat diterbitkan per lokasi (dan per penerima hadiah):
-  // kelompokkan pohon lunas per certnum.
-  const sertifikatPerLokasi = (o: OrderRow) => {
-    const perCert = new Map<string, ApiAdopsiPohon[]>();
-    for (const t of o.trees) {
-      if (!t.certnum) continue;
-      const arr = perCert.get(t.certnum) ?? [];
-      arr.push(t);
-      perCert.set(t.certnum, arr);
-    }
-    return [...perCert.entries()].map(([certnum, list]) => {
-      const penerima = (list[0].nama ?? "").trim();
-      return {
-        certnum,
-        desa: list[0].desa,
-        jumlah: list.length,
-        penerima,
-        // gfrom = 1 utk order baru; fallback nama lain utk order lama
-        // (pohon sendiri pun bernama lengkap sejak checkout baru).
-        hadiah: list[0].gift || (penerima !== "" && penerima !== session.name),
-      };
-    });
-  };
-  const labelSertifikat = (s: {
-    desa: string;
-    jumlah: number;
-    penerima: string;
-    hadiah: boolean;
-  }) =>
-    `${d.certificate} ${namaDesa(s.desa)}` +
-    (s.hadiah && s.penerima ? ` — ${s.penerima}` : "") +
-    ` (${s.jumlah} ${s.jumlah === 1 ? d.treeWord : d.treesWord})`;
+  // Jumlah lembar sertifikat order (satu per lokasi & per penerima hadiah).
+  // Daftar lengkap + pencarian ada di halaman detail — baris dashboard tetap
+  // pendek untuk order besar (mis. 100 pohon lintas banyak desa).
+  const jumlahSertifikat = (o: OrderRow) =>
+    new Set(o.trees.filter((t) => t.certnum).map((t) => t.certnum)).size;
 
   // Tombol aksi dipakai bersama tabel desktop & kartu mobile.
   const aksiAdopsi = (o: OrderRow) => {
-    const sertifikat = sertifikatPerLokasi(o);
+    const nSertifikat = jumlahSertifikat(o);
     return (
       <>
         {o.conf && (
@@ -195,24 +166,14 @@ export default async function DashboardPage() {
             methodValue={metodeBayar(o.conf.methode, locale === "en")}
           />
         )}
-        {sertifikat.map((s) => (
+        {o.conf && nSertifikat > 0 && (
           <Link
-            key={`cert-${s.certnum}`}
-            href={certUrl(s.certnum)}
+            href={`/dashboard/adopsi/${adopsiSlug(o.conf)}#sertifikat`}
             className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
           >
-            {labelSertifikat(s)}
+            {nSertifikat} {nSertifikat === 1 ? d.certificate : d.certificates}
           </Link>
-        ))}
-        {sertifikat.map((s) => (
-          <Link
-            key={`share-${s.certnum}`}
-            href={shareUrl(s.certnum)}
-            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-          >
-            {d.share}
-          </Link>
-        ))}
+        )}
       </>
     );
   };
