@@ -5,6 +5,7 @@ import { Plus_Jakarta_Sans, Nunito, Barlow_Semi_Condensed } from "next/font/goog
 import { apiGet, mapTemplatesertifikatList, type ApiTemplateSertifikat } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { getDict } from "@/lib/i18n";
+import { sebutanDesa } from "@/lib/format";
 import CertificateName from "@/components/sertifikat/certificate-name";
 import PrintButton from "@/components/sertifikat/print-button";
 import SertifikatMemoForm from "@/components/sertifikat-memo-form";
@@ -100,8 +101,10 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
 
   const jml = Number(s.jml_pohon) || 1;
   const desaTampil = s.desa_label || s.desa || "";
+  // Sumatera Barat: unitnya Nagari — "Nagari Forest", bukan "Village Forest".
+  const hutanDesa = sebutanDesa(s.provinsi) === "Nagari" ? "Nagari Forest" : "Village Forest";
   const lokasi = [
-    desaTampil ? `${titleCase(desaTampil)} Village Forest` : null,
+    desaTampil ? `${titleCase(desaTampil)} ${hutanDesa}` : null,
     s.kecamatan ? `${titleCase(s.kecamatan)} Subdistrict` : null,
     s.kabupaten ? `${titleCase(s.kabupaten)} District` : null,
     s.provinsi ? `${titleCase(s.provinsi)} Province` : null,

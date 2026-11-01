@@ -15,6 +15,14 @@ export function labelLokasi(d: { label?: string | null; name: string }): string 
   return s || namaDesa(d.name);
 }
 
+// Sebutan unit pemerintahan terkecil: Nagari di Sumatera Barat, Desa di
+// provinsi lain (nilai provinsi dari tabel desa).
+export function sebutanDesa(provinsi?: string | null): string {
+  return /sumatera\s*barat|sumatra\s*barat|west\s*sumatra/i.test(provinsi ?? "")
+    ? "Nagari"
+    : "Desa";
+}
+
 export function rupiah(value: number): string {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",

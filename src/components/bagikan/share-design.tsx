@@ -37,6 +37,7 @@ export type ShareDesignData = {
   localName: string;
   species: string | null;
   desaLabel: string;
+  sebutanDesa?: string; // "Desa"/"Nagari" (Sumatera Barat); default "Desa"
   lokasiSub?: string | null; // subtext kartu lokasi template (mis. hutan adat)
   tglAdopt: string | null;
   memo: string | null;
@@ -225,16 +226,16 @@ function TemplateFillDesign({
         </div>
       </div>
 
-      {/* Kartu 2 — lokasi: "Desa X" + subtext (kartu polos tanpa label) */}
+      {/* Kartu 2 — lokasi: "Desa/Nagari X" + subtext (kartu polos tanpa label) */}
       <div
         className="absolute flex flex-col items-center justify-center px-[2%] text-center"
         style={{ top: "49.3%", height: "8.7%", left: "35.8%", width: "28.7%" }}
       >
         <FitText
-          fitKey={data.desaLabel}
+          fitKey={`${data.sebutanDesa ?? "Desa"}${data.desaLabel}`}
           className={`text-[2.9cqw] font-extrabold leading-tight text-emerald-900 ${HALO}`}
         >
-          Desa {data.desaLabel || "-"}
+          {data.sebutanDesa ?? "Desa"} {data.desaLabel || "-"}
         </FitText>
         {lokasiSub !== "" && (
           <p

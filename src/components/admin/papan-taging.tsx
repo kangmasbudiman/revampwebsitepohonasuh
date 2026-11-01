@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Printer } from "lucide-react";
 import { Playfair_Display } from "next/font/google";
 import type { ApiOrderRow } from "@/lib/api";
+import { sebutanDesa } from "@/lib/format";
 
 // Desain papan taging disalin dari mobile (download_form_taging): template
 // 2382×1684 + overlay pada posisi pecahan ukuran papan. Rasio papan tetap,
@@ -72,6 +73,8 @@ export default function PapanTaging({
   // Label tampilan desa dari kelola lokasi — data_adopsi.desa menyimpan nama
   // internal satu kata (mis. "pondokparianlunang").
   const namaDesa = order.desaLabel || kapital(order.desa);
+  // Nagari di Sumatera Barat, Desa di provinsi lain.
+  const sebutan = sebutanDesa(order.provinsi);
   const subLokasi = [
     order.kecamatan.trim() && `Kec. ${kapital(order.kecamatan)}`,
     order.kabupaten.trim() && `Kab. ${kapital(order.kabupaten)}`,
@@ -111,7 +114,10 @@ export default function PapanTaging({
             style={{ top: "16.8%" }}
           >
             <div className="mx-auto max-w-[90%]">
-              <FitText value={namaDesa ? `Desa ${namaDesa}` : "Desa -"} className="text-[2.47cqw]" />
+              <FitText
+                value={namaDesa ? `${sebutan} ${namaDesa}` : `${sebutan} -`}
+                className="text-[2.47cqw]"
+              />
             </div>
           </div>
 

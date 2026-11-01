@@ -6,7 +6,7 @@ import {
   type ApiSertifikatPublik,
   type ApiTemplateShare,
 } from "@/lib/api";
-import { labelLokasi, namaDesa } from "@/lib/format";
+import { labelLokasi, namaDesa, sebutanDesa } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import { getSession } from "@/lib/auth";
 import ShareDesign from "@/components/bagikan/share-design";
@@ -84,6 +84,7 @@ export default async function BagikanPage(props: PageProps<"/bagikan/[...code]">
     localName: terpilihPohon.localname || (detailPohon?.localname ?? ""),
     species: detailPohon?.species ? String(detailPohon.species) : null,
     desaLabel,
+    sebutanDesa: sebutanDesa(s.provinsi),
     lokasiSub: terpilih?.subtext || null,
     tglAdopt: s.tgl_adopt ?? null,
     memo: s.memo ?? "",
