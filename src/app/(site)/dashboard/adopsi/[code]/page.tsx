@@ -177,7 +177,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
             key={t.id}
             className="flex flex-wrap items-center gap-4 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm"
           >
-            <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-emerald-50">
+            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-emerald-50">
               {t.photoUrl ? (
                 <Image src={t.photoUrl} alt={t.localName} fill sizes="80px" className="object-cover" />
               ) : (
@@ -204,7 +204,9 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
                 </p>
               )}
             </div>
-            <div className="text-right">
+            {/* basis-full: harga turun ke baris sendiri di layar sempit supaya
+                kolom teks tidak terdesak jadi kata-per-baris. */}
+            <div className="basis-full text-right sm:basis-auto">
               <p className="text-xs text-zinc-500">{d.adoptionFee}</p>
               <p className="text-lg font-bold text-emerald-700">{rupiah(t.price)}</p>
             </div>
