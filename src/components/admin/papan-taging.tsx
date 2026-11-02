@@ -88,7 +88,7 @@ export default function PapanTaging({
     { label: "Nama Pohon", nilai: order.localName || "-", italic: true },
     { label: "Diameter", nilai: `${order.diameter || 0} Cm` },
     { label: "Koordinat", nilai: `${order.lng ?? "-"}°, ${order.lat ?? "-"}°` },
-    { label: "Berlaku", nilai: fmtBerlaku(order.tglExp) || "-" },
+    { label: "Berlaku Hingga", nilai: fmtBerlaku(order.tglExp) || "-" },
   ];
 
   return (
@@ -153,9 +153,11 @@ export default function PapanTaging({
                 fontFamily: '"Times New Roman", Times, serif',
               }}
             >
-              <span className="w-[22.5%] shrink-0 text-[3.2cqw]">{b.label}</span>
+              <span className="w-[26%] shrink-0 whitespace-nowrap text-[3.2cqw]">
+                {b.label}
+              </span>
               <span className="text-[3.2cqw]">:&nbsp;&nbsp;</span>
-              <span className={`min-w-0 ${i === 4 ? "max-w-[40%]" : "max-w-[52%]"}`}>
+              <span className={`min-w-0 ${i === 4 ? "max-w-[36%]" : "max-w-[50%]"}`}>
                 <FitText value={b.nilai} className={`text-[3.2cqw] ${b.italic ? "italic" : ""}`} />
               </span>
             </div>
