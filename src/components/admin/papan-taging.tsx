@@ -118,7 +118,7 @@ export default function PapanTaging({
             <div className="mx-auto max-w-[90%]">
               <FitText
                 value={namaDesa ? `${sebutan} ${namaDesa}` : `${sebutan} -`}
-                className="text-[3.4cqw]"
+                className="text-[2.8cqw]"
               />
             </div>
           </div>
