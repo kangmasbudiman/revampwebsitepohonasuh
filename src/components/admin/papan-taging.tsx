@@ -109,15 +109,23 @@ export default function PapanTaging({
             className="absolute inset-0 h-full w-full object-cover"
           />
 
+          {/* Kepala 3 baris: sebutan (Desa/Nagari), nama desa, lalu
+              kecamatan–provinsi. */}
           <div
             className="absolute inset-x-0 text-center leading-[1.1] font-bold text-[#161616]"
-            style={{ top: "16.8%" }}
+            style={{ top: "14%" }}
           >
             <div className="mx-auto max-w-[90%]">
-              <FitText
-                value={namaDesa ? `${sebutan} ${namaDesa}` : `${sebutan} -`}
-                className="text-[4cqw]"
-              />
+              <FitText value={sebutan} className="text-[2.2cqw]" />
+            </div>
+          </div>
+
+          <div
+            className="absolute inset-x-0 text-center leading-[1.1] font-bold text-[#161616]"
+            style={{ top: "18.2%" }}
+          >
+            <div className="mx-auto max-w-[90%]">
+              <FitText value={namaDesa || "-"} className="text-[3.4cqw]" />
             </div>
           </div>
 
@@ -145,7 +153,11 @@ export default function PapanTaging({
             <div
               key={b.label}
               className="absolute left-0 flex w-full items-baseline leading-[1.1] font-bold text-[#161616]"
-              style={{ top: `${52.75 + 7.93 * i}%`, paddingLeft: "7.98%" }}
+              style={{
+                top: `${52.75 + 7.93 * i}%`,
+                paddingLeft: "7.98%",
+                fontFamily: '"Times New Roman", Times, serif',
+              }}
             >
               <span className="w-[22.5%] shrink-0 text-[3.2cqw]">{b.label}</span>
               <span className="text-[3.2cqw]">:&nbsp;&nbsp;</span>
