@@ -116,7 +116,7 @@ export default function PapanTaging({
             <div className="mx-auto max-w-[90%]">
               <FitText
                 value={namaDesa ? `${sebutan} ${namaDesa}` : `${sebutan} -`}
-                className="text-[2.47cqw]"
+                className="text-[4cqw]"
               />
             </div>
           </div>
@@ -127,17 +127,17 @@ export default function PapanTaging({
               style={{ top: "24.3%" }}
             >
               <div className="mx-auto max-w-[90%]">
-                <FitText value={subLokasi} className="text-[2.05cqw]" />
+                <FitText value={subLokasi} className="text-[2.7cqw]" />
               </div>
             </div>
           )}
 
           <div
-            className="absolute inset-x-0 flex items-center justify-center leading-[1.1] font-bold text-[#161616]"
+            className="absolute inset-x-0 flex items-center justify-center leading-[1.1] font-black text-[#161616]"
             style={{ top: "30.5%", height: "12.9%" }}
           >
             <div className="max-w-[72%]">
-              <FitText value={order.nama || "-"} className="text-[2.9cqw]" />
+              <FitText value={order.nama || "-"} className="text-[4.4cqw]" />
             </div>
           </div>
 
@@ -147,10 +147,10 @@ export default function PapanTaging({
               className="absolute left-0 flex w-full items-baseline leading-[1.1] font-bold text-[#161616]"
               style={{ top: `${52.75 + 7.93 * i}%`, paddingLeft: "7.98%" }}
             >
-              <span className="w-[22.5%] shrink-0 text-[2.19cqw]">{b.label}</span>
-              <span className="text-[2.19cqw]">:&nbsp;&nbsp;</span>
+              <span className="w-[22.5%] shrink-0 text-[3.2cqw]">{b.label}</span>
+              <span className="text-[3.2cqw]">:&nbsp;&nbsp;</span>
               <span className={`min-w-0 ${i === 4 ? "max-w-[40%]" : "max-w-[52%]"}`}>
-                <FitText value={b.nilai} className={`text-[2.19cqw] ${b.italic ? "italic" : ""}`} />
+                <FitText value={b.nilai} className={`text-[3.2cqw] ${b.italic ? "italic" : ""}`} />
               </span>
             </div>
           ))}

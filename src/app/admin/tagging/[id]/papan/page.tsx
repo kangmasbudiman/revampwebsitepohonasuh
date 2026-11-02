@@ -16,9 +16,13 @@ export default async function PapanTagingPage({
 
   let orders: ApiOrderRow[] = [];
   try {
+    // Admin program tanpa penugasan desa tetap bisa membuka papan order
+    // mana pun (param `semua`, sama seperti daftar tagging).
+    const isAdmin = (session.level ?? 1) === 1;
     orders = mapOrderRows(
       await apiPost<Record<string, unknown>[]>("ordercustomerbypengurus", {
         iduser: session.userId,
+        ...(isAdmin ? { semua: 1 } : {}),
       }),
     ).filter((o) => o.confirmation === "yes");
   } catch {
