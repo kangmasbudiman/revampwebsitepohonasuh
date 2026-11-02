@@ -109,23 +109,17 @@ export default function PapanTaging({
             className="absolute inset-0 h-full w-full object-cover"
           />
 
-          {/* Kepala 3 baris: sebutan (Desa/Nagari), nama desa, lalu
-              kecamatan–provinsi. */}
+          {/* Kepala: sebutan (Desa/Nagari) sejajar satu baris dengan nama
+              desa, lalu kecamatan–provinsi di bawahnya. */}
           <div
             className="absolute inset-x-0 text-center leading-[1.1] font-bold text-[#161616]"
-            style={{ top: "14%" }}
+            style={{ top: "17.5%" }}
           >
             <div className="mx-auto max-w-[90%]">
-              <FitText value={sebutan} className="text-[2.2cqw]" />
-            </div>
-          </div>
-
-          <div
-            className="absolute inset-x-0 text-center leading-[1.1] font-bold text-[#161616]"
-            style={{ top: "18.2%" }}
-          >
-            <div className="mx-auto max-w-[90%]">
-              <FitText value={namaDesa || "-"} className="text-[3.4cqw]" />
+              <FitText
+                value={namaDesa ? `${sebutan} ${namaDesa}` : `${sebutan} -`}
+                className="text-[3.4cqw]"
+              />
             </div>
           </div>
 
