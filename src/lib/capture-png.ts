@@ -5,11 +5,11 @@ import { toSvg } from "html-to-image";
 // masih lazy sehingga hasilnya bisa kehilangan overlay DOM/CSS (hanya
 // <img> yang sempat tampil). Tunggu dua frame + jeda ekstra sebelum
 // drawImage; tanpa jeda overlay hilang, dengan jeda tampil penuh.
-export async function renderNodeToPng(
+async function nodeToCanvas(
   node: HTMLElement,
   width: number,
   height: number,
-): Promise<Blob> {
+): Promise<HTMLCanvasElement> {
   const dataUrl = await toSvg(node, { width, height, pixelRatio: 1 });
   const img = new Image();
   img.crossOrigin = "anonymous";
@@ -26,7 +26,26 @@ export async function renderNodeToPng(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("context 2d tidak tersedia");
   ctx.drawImage(img, 0, 0, width, height);
+  return canvas;
+}
+
+export async function renderNodeToPng(
+  node: HTMLElement,
+  width: number,
+  height: number,
+): Promise<Blob> {
+  const canvas = await nodeToCanvas(node, width, height);
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
   if (!blob) throw new Error("toBlob PNG kosong");
   return blob;
+}
+
+// Data URL PNG — dipakai jsPDF addImage (unduh papan taging PDF).
+export async function renderNodeToPngDataUrl(
+  node: HTMLElement,
+  width: number,
+  height: number,
+): Promise<string> {
+  const canvas = await nodeToCanvas(node, width, height);
+  return canvas.toDataURL("image/png");
 }

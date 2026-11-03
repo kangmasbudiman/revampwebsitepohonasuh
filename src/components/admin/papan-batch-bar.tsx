@@ -2,9 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useSyncExternalStore } from "react";
-import JSZip from "jszip";
 import { Download, Loader2, X } from "lucide-react";
-import { renderNodeToPng } from "@/lib/capture-png";
+import { renderNodeToPngDataUrl } from "@/lib/capture-png";
 import type { ApiOrderRow } from "@/lib/api";
 import {
   clearPapanSelection,
@@ -13,20 +12,17 @@ import {
 } from "@/lib/papan-selection";
 import PapanTaging from "./papan-taging";
 
-// Ukuran template papan asli — dirender offscreen 1:1 supaya hasil PNG
+// Ukuran template papan asli — dirender offscreen 1:1 supaya hasil
 // beresolusi cetak (±200 DPI pada A4 lanskap).
 const LEBAR = 2382;
 const TINGGI = 1684;
 
-function namaFile(o: ApiOrderRow) {
-  return `papan-${o.idpohon || "pohon"}-${o.id}.png`;
-}
-
 // Bar aksi melayang: unduh SEMUA papan taging pohon yang diconteng dalam
-// satu file ZIP (render PNG satu-per-satu dari komponen PapanTaging yang
-// sama dengan halaman pratinjau). Pohon yang sudah ditagging (punya foto /
-// selesai) otomatis digugurkan dari seleksi — termasuk seleksi basi yang
-// diconteng sebelum foto tagging diunggah.
+// SATU file PDF — satu halaman A4 lanskap per papan (rasio papan
+// 2382:1684 ≈ √2 sama dengan A4, jadi tiap papan memenuhi halaman).
+// Pohon yang sudah ditagging (punya foto / selesai) otomatis digugurkan
+// dari seleksi — termasuk seleksi basi yang diconteng sebelum foto
+// tagging diunggah.
 export default function PapanBatchBar({ taggedIds = [] }: { taggedIds?: number[] }) {
   const sel = useSyncExternalStore(subscribePapan, papanSnapshot, papanSnapshot);
   const tagged = new Set(taggedIds);
@@ -42,7 +38,10 @@ export default function PapanBatchBar({ taggedIds = [] }: { taggedIds?: number[]
     setProses(true);
     setSelesai(0);
     setGagal(0);
-    const zip = new JSZip();
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const HAL_W = 297;
+    const HAL_H = 210;
     let sukses = 0;
     try {
       await document.fonts.ready;
@@ -62,8 +61,9 @@ export default function PapanBatchBar({ taggedIds = [] }: { taggedIds?: number[]
           });
         }
         try {
-          const blob = await renderNodeToPng(node, LEBAR, TINGGI);
-          zip.file(namaFile(list[i]), blob);
+          const dataUrl = await renderNodeToPngDataUrl(node, LEBAR, TINGGI);
+          if (sukses > 0) doc.addPage("a4", "landscape");
+          doc.addImage(dataUrl, "PNG", 0, 0, HAL_W, HAL_H);
           sukses++;
         } catch {
           setGagal((g) => g + 1);
@@ -71,13 +71,7 @@ export default function PapanBatchBar({ taggedIds = [] }: { taggedIds?: number[]
         setSelesai(i + 1);
       }
       if (sukses > 0) {
-        const out = await zip.generateAsync({ type: "blob" });
-        const url = URL.createObjectURL(out);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `papan-taging-${new Date().toISOString().slice(0, 10)}.zip`;
-        a.click();
-        URL.revokeObjectURL(url);
+        doc.save(`papan-taging-${new Date().toISOString().slice(0, 10)}.pdf`);
       }
     } finally {
       setCurrent(null);

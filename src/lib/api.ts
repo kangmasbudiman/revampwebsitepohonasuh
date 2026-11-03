@@ -497,6 +497,7 @@ export type ApiOrderRow = {
   photoUrl: string;
   invoice: string;
   nama: string;
+  memo: string; // pesan & impresi (tampil di papan taging)
   pengasuh: number;
   desa: string;
   desaLabel: string; // label tampilan (kelola lokasi), bukan nama internal
@@ -533,6 +534,7 @@ export function mapOrderRow(r: Record<string, unknown>): ApiOrderRow {
     photoUrl: treePhotoUrl(r.foto_pohon as string | null),
     invoice: String(r.invoice ?? ""),
     nama: String(r.nama ?? ""),
+    memo: String(r.memo ?? ""),
     pengasuh: Number(r.pengasuh) || 0,
     desa: String(r.desa ?? ""),
     desaLabel: String(r.desa_label ?? ""),

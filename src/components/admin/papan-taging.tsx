@@ -89,6 +89,7 @@ export default function PapanTaging({
     { label: "Diameter", nilai: `${order.diameter || 0} Cm` },
     { label: "Koordinat", nilai: `${order.lng ?? "-"}°, ${order.lat ?? "-"}°` },
     { label: "Berlaku Hingga", nilai: fmtBerlaku(order.tglExp) || "-" },
+    { label: "Pesan & Impresi", nilai: order.memo.trim() || "-", italic: true },
   ];
 
   return (
@@ -143,12 +144,14 @@ export default function PapanTaging({
             </div>
           </div>
 
+          {/* Enam baris detail dirapatkan (langkah 7%) agar baris Pesan &
+              Impresi muat di dalam kartu putih. */}
           {baris.map((b, i) => (
             <div
               key={b.label}
               className="absolute left-0 flex w-full items-baseline leading-[1.1] font-bold text-[#161616]"
               style={{
-                top: `${52.75 + 7.93 * i}%`,
+                top: `${50.4 + 7 * i}%`,
                 paddingLeft: "7.98%",
                 fontFamily: '"Times New Roman", Times, serif',
               }}
@@ -157,13 +160,17 @@ export default function PapanTaging({
                 {b.label}
               </span>
               <span className="text-[3.2cqw]">:&nbsp;&nbsp;</span>
-              <span className={`min-w-0 ${i === 4 ? "max-w-[36%]" : "max-w-[50%]"}`}>
+              <span
+                className={`min-w-0 ${i === 4 ? "max-w-[36%]" : i === 5 ? "max-w-[44%]" : "max-w-[50%]"}`}
+              >
                 <FitText value={b.nilai} className={`text-[3.2cqw] ${b.italic ? "italic" : ""}`} />
               </span>
             </div>
           ))}
 
-          <div className="absolute" style={{ left: "82.8%", top: "86.5%", width: "5.44cqw" }}>
+          {/* QR kanan-bawah kartu (meniru papan fisik: ±86–93% kiri, lebar
+              6.8% papan) — di kanan baris Pesan & Impresi. */}
+          <div className="absolute" style={{ left: "86%", top: "83.5%", width: "6.8cqw" }}>
             <QRCodeSVG
               value={`https://www.google.com/maps/search/?api=1&query=${order.lat ?? ""},${order.lng ?? ""}`}
               size={256}
