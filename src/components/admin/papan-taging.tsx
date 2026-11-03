@@ -42,6 +42,66 @@ function FitText({ value, className }: { value: string; className?: string }) {
   );
 }
 
+// Memo panjang dibungkus maksimal DUA baris dengan pembatas tegas sebelum
+// kolom QR: coba dulu satu baris (menyusut s.d. 75%), bila tidak muat
+// bungkus dua baris (font maks agar kedua baris tetap di dalam kartu,
+// minimum 50%); lebih panjang dari itu diakhiri "…".
+function MemoFit({ value, className }: { value: string; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const parent = el?.parentElement;
+    if (!el || !parent) return;
+    const ukur = <T,>(fn: () => T): T => {
+      el.style.display = "block";
+      el.style.webkitLineClamp = "unset";
+      try {
+        return fn();
+      } finally {
+        el.style.display = "";
+        el.style.webkitLineClamp = "";
+      }
+    };
+    const fit = () => {
+      el.style.removeProperty("font-size");
+      ukur(() => {
+        const base = parseFloat(getComputedStyle(el).fontSize);
+        // Satu baris dulu — bila muat dengan pengecilan wajar, selesai.
+        el.style.whiteSpace = "nowrap";
+        let f = base;
+        while (f > base * 0.75 && el.scrollWidth > el.clientWidth) {
+          f -= 0.25;
+          el.style.fontSize = `${f}px`;
+        }
+        const muatSatuBaris = el.scrollWidth <= el.clientWidth;
+        el.style.whiteSpace = "";
+        if (muatSatuBaris) return;
+        // Dua baris — font maksimum agar tinggi total ≤ 8.2% tinggi papan
+        // (batas kartu putih), menyusut lagi bila teks lebih dari 2 baris.
+        const w = el.closest(".pa-papan")?.clientWidth ?? parent.clientWidth;
+        f = Math.min(base, (w / (2382 / 1684) * 0.082) / 2 / 1.12);
+        el.style.fontSize = `${f}px`;
+        while (f > base * 0.5 && el.scrollHeight > Math.ceil(f * 1.12 * 2) + 1) {
+          f -= 0.25;
+          el.style.fontSize = `${f}px`;
+        }
+      });
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(parent);
+    return () => ro.disconnect();
+  }, [value]);
+  return (
+    <span
+      ref={ref}
+      className={`overflow-hidden break-words leading-[1.12] line-clamp-2 ${className ?? ""}`}
+    >
+      {value}
+    </span>
+  );
+}
+
 function kapital(s: string) {
   const t = s.trim().replace(/\s+/g, " ");
   if (!t) return t;
@@ -83,13 +143,13 @@ export default function PapanTaging({
     .filter(Boolean)
     .join(", ");
 
-  const baris: { label: string; nilai: string; italic?: boolean }[] = [
+  const baris: { label: string; nilai: string; italic?: boolean; memo?: boolean }[] = [
     { label: "ID", nilai: order.idpohon || "-" },
     { label: "Nama Pohon", nilai: order.localName || "-", italic: true },
     { label: "Diameter", nilai: `${order.diameter || 0} Cm` },
     { label: "Koordinat", nilai: `${order.lng ?? "-"}°, ${order.lat ?? "-"}°` },
     { label: "Berlaku Hingga", nilai: fmtBerlaku(order.tglExp) || "-" },
-    { label: "Pesan & Impresi", nilai: order.memo.trim() || "-", italic: true },
+    { label: "Pesan & Impresi", nilai: order.memo.trim() || "-", italic: true, memo: true },
   ];
 
   return (
@@ -163,7 +223,11 @@ export default function PapanTaging({
               <span
                 className={`min-w-0 ${i === 4 ? "max-w-[36%]" : i === 5 ? "max-w-[44%]" : "max-w-[50%]"}`}
               >
-                <FitText value={b.nilai} className={`text-[3.2cqw] ${b.italic ? "italic" : ""}`} />
+                {b.memo ? (
+                  <MemoFit value={b.nilai} className={`text-[3.2cqw] ${b.italic ? "italic" : ""}`} />
+                ) : (
+                  <FitText value={b.nilai} className={`text-[3.2cqw] ${b.italic ? "italic" : ""}`} />
+                )}
               </span>
             </div>
           ))}
