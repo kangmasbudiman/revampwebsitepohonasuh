@@ -250,7 +250,11 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
               <p className="absolute top-[58.88%] left-[23.75%] font-[family-name:var(--font-cert-title)] text-[2.58cqw] font-medium text-[#208745]">
                 Message and Impression:
               </p>
-              <p className="absolute top-[63.4%] left-[23.99%] w-[72.4%] font-[family-name:var(--font-cert-nunito)] text-[1.5cqw] leading-[1.4] text-[#3f3e3e]">
+              {/* Kolom memo disempitkan (ujung kanan ±87,5% — sejajar ritme
+                  baris di atasnya, tidak menabrak dekorasi kanan) dan dibatasi
+                  maks 3 baris + elipsis agar tak menimpa baris tanggal/tanda
+                  tangan di bawahnya. */}
+              <p className="absolute top-[63.4%] left-[23.99%] w-[63.5%] overflow-hidden break-words font-[family-name:var(--font-cert-nunito)] text-[1.5cqw] leading-[1.4] text-[#3f3e3e] line-clamp-3">
                 {memo}
               </p>
             </>

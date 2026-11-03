@@ -366,7 +366,7 @@ function GradientDesign({
       {adaMemo && (
         <div className={ZONE} style={{ top: "60%", height: "18%" }}>
           <div className="w-[74%] rounded-2xl bg-black/30 px-[5%] py-[3%] backdrop-blur-[2px] ring-1 ring-white/15">
-            <p className="text-[2.5cqw] leading-snug italic text-emerald-50">
+            <p className="line-clamp-4 text-[2.5cqw] leading-snug italic text-emerald-50">
               &ldquo;{memo}&rdquo;
             </p>
           </div>
