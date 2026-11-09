@@ -26,6 +26,7 @@ import OnlinePayment from "@/components/online-payment";
 import CancelAdoptionButton from "@/components/cancel-adoption-button";
 import TaggingProgress from "@/components/tagging-progress";
 import CertificateList from "@/components/certificate-list";
+import CertNameForm from "@/components/cert-name-form";
 import GiftSend from "@/components/gift-send";
 import OrderPdfButton from "@/components/order-pdf-button";
 
@@ -111,7 +112,13 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   // Adopsi hadiah = lembar sertifikat atas nama orang lain (checkout selalu
   // mengisi nama member untuk pohon sendiri, jadi penerima beda = hadiah).
   // Tiap penerima hadiah punya lembar sendiri → tombol kirim per penerima.
-  const hadiahList: { nama: string; certnum: string; pohonLabel: string; link: string }[] = [];
+  const hadiahList: {
+    nama: string;
+    certnum: string;
+    pohonLabel: string;
+    link: string;
+    terkunci: boolean;
+  }[] = [];
   const certItems: {
     certnum: string;
     desa: string;
@@ -122,8 +129,12 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   }[] = [];
   for (const [certnum, list] of certPerLokasi) {
     const nama = (list[0].nama ?? "").trim();
-    // gfrom = 1 utk order baru; fallback nama lain utk order lama.
-    const hadiah = list[0].gift || (nama !== "" && nama !== session.name);
+    const namaTagging = (list[0].namaTagging ?? "").trim();
+    // gfrom = 1 utk order baru; fallback nama tagging lain utk order lama.
+    const hadiah = list[0].gift || (namaTagging !== "" && namaTagging !== session.name);
+    // Begitu ada pohon yang masuk antrian tagging (proses >= 2), nama pada
+    // papan tagging dikunci — revisi hanya berlaku untuk nama sertifikat.
+    const terkunci = list.some((t) => t.proses >= 2);
     if (hadiah && nama) {
       const localnames = [...new Set(list.map((t) => t.localName).filter(Boolean))];
       hadiahList.push({
@@ -133,6 +144,7 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
           localnames.length ? ": " + localnames.join(", ") : ""
         }`,
         link: await absoluteUrl(certUrl(certnum)),
+        terkunci,
       });
     }
     certItems.push({
@@ -343,13 +355,19 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
             />
           </div>
           {hadiahList.map((h) => (
-            <div key={h.certnum} className="mt-3 flex justify-center">
+            <div key={h.certnum} className="mt-3 flex flex-wrap items-center justify-center gap-3">
               <GiftSend
                 certnum={h.certnum}
                 namaPenerima={h.nama}
                 namaPengirim={session.name}
                 pohonLabel={h.pohonLabel}
                 link={h.link}
+              />
+              <CertNameForm
+                certnum={h.certnum}
+                nama={h.nama}
+                terkunci={h.terkunci}
+                kembali={`/dashboard/adopsi/${encodeURIComponent(code)}`}
               />
             </div>
           ))}

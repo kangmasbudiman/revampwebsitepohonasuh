@@ -425,7 +425,9 @@ export type ApiAdopsiPohon = {
   tglAdopt: string | null;
   tglExp: string | null;
   dur: number; // durasi adopsi (tahun)
-  nama: string; // nama penerima di sertifikat
+  nama: string; // nama penerima di sertifikat (sudah di-resolve server)
+  namaTagging: string; // nama pada papan/data tagging (dikunci saat proses >= 2)
+  namaSertifikat: string | null; // override nama sertifikat (hadiah pasca-tagging)
   memo: string; // memo/pesan sertifikat
   gift: boolean; // adopsi hadiah (data_adopsi.gfrom = 1)
   desaLabel: string; // label tampilan (kelola lokasi), bukan nama internal
@@ -447,6 +449,8 @@ export function mapAdopsiPohon(r: Record<string, unknown>): ApiAdopsiPohon {
     tglExp: r.tgl_exp ? String(r.tgl_exp) : null,
     dur: Number(r.dur) || 1,
     nama: String(r.nama ?? ""),
+    namaTagging: String(r.nama_tagging ?? r.nama ?? ""),
+    namaSertifikat: r.nama_sertifikat ? String(r.nama_sertifikat) : null,
     memo: String(r.memo ?? ""),
     gift: Number(r.gfrom) === 1,
   };
@@ -792,6 +796,8 @@ export type ApiSertifikatPublik = {
   provinsi?: string | null;
   tgl_adopt?: string | null;
   tgl_exp?: string | null;
+  gfrom?: number | string | null; // adopsi hadiah
+  nama_terkunci?: boolean; // nama tagging sudah masuk antrian (proses >= 2)
   pohon_list?: ApiPohonSertifikatPublik[] | null;
 };
 

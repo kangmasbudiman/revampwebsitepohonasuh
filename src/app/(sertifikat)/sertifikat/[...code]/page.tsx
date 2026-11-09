@@ -8,6 +8,7 @@ import { getDict } from "@/lib/i18n";
 import { sebutanDesa } from "@/lib/format";
 import CertificateName from "@/components/sertifikat/certificate-name";
 import PrintButton from "@/components/sertifikat/print-button";
+import CertNameForm from "@/components/cert-name-form";
 import SertifikatMemoForm from "@/components/sertifikat-memo-form";
 import TemplateShare from "@/components/sertifikat/template-share";
 
@@ -40,6 +41,9 @@ type ApiPohonSertifikat = {
 type ApiSertifikat = {
   certnum?: string | null;
   nama?: string | null;
+  nama_pengasuh?: string | null;
+  gfrom?: number | string | null; // adopsi hadiah
+  nama_terkunci?: boolean; // nama tagging sudah masuk antrian (proses >= 2)
   memo?: string | null;
   pengasuh?: number | string | null;
   jml_pohon?: number | string | null;
@@ -115,6 +119,13 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   const adaMemo = memo !== "" && memo !== "-" && memo.toLowerCase() !== "null";
   const session = await getSession();
   const pemilik = !!session && Number(s.pengasuh) === session.userId;
+  // Adopsi hadiah = lembar sertifikat atas nama orang lain. gfrom dipakai
+  // order baru; fallback nama penerima ≠ nama donor untuk data lama.
+  const namaPenerima = (s.nama ?? "").trim();
+  const namaPengasuh = (s.nama_pengasuh ?? "").trim();
+  const hadiah =
+    Number(s.gfrom) === 1 ||
+    (namaPenerima !== "" && namaPengasuh !== "" && namaPenerima !== namaPengasuh);
 
   const tglAdopt = s.tgl_adopt ? new Date(s.tgl_adopt) : null;
   const jambi = tglAdopt
@@ -281,6 +292,14 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
 
       {pemilik && (
         <TemplateShare templates={templates} certnum={s.certnum ?? ""} terpilihId={terpilih?.id ?? null} />
+      )}
+      {pemilik && hadiah && (
+        <CertNameForm
+          certnum={s.certnum ?? ""}
+          nama={namaPenerima}
+          terkunci={!!s.nama_terkunci}
+          variant="card"
+        />
       )}
       {pemilik && <SertifikatMemoForm certnum={s.certnum ?? ""} memo={memo} />}
 

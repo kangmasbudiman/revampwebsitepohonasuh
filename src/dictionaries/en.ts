@@ -482,6 +482,27 @@ export const dict: Dict = {
     templateHint:
       "The selected background is also printed (the Print button uses the active view), and the link you share displays this background.",
   },
+  certName: {
+    button: "Change Recipient Name",
+    cardTitle: "Certificate Recipient Name",
+    cardDesc: "You adopted this tree as a gift — the recipient's name can be revised.",
+    title: "Change Certificate Recipient Name",
+    label: "Recipient name",
+    placeholder: "Recipient's full name",
+    unlockedTitle: "Tagging name is not locked yet",
+    unlockedDesc:
+      "The tree has not entered the tagging queue, so this change also updates the name used for tagging.",
+    lockedTitle: "Tagging name is locked",
+    lockedDesc:
+      "A tree on this certificate has entered the tagging queue. The name used for tagging can no longer change — this update only applies to the certificate name.",
+    save: "Save Name",
+    saving: "Saving…",
+    saved: "Certificate name updated ✓",
+    savedLocked:
+      "Certificate name updated. The tagging name keeps using the previous name.",
+    close: "Close",
+    cancel: "Cancel",
+  },
   bagikan: {
     title: "Share My Action",
     sub: "1080×1920 story design — ready for Instagram Story, WhatsApp Status, and Facebook Story.",

@@ -483,6 +483,27 @@ export const dict = {
     templateHint:
       "Latar terpilih ikut tercetak saat mencetak (tombol Cetak memakai tampilan aktif), dan tautan yang Anda bagikan menampilkan latar ini.",
   },
+  certName: {
+    button: "Ubah Nama Penerima",
+    cardTitle: "Nama Penerima Sertifikat",
+    cardDesc: "Anda mengadopsi pohon ini sebagai hadiah — nama penerima dapat direvisi.",
+    title: "Ubah Nama Penerima Sertifikat",
+    label: "Nama penerima",
+    placeholder: "Nama lengkap penerima",
+    unlockedTitle: "Nama tagging belum dikunci",
+    unlockedDesc:
+      "Pohon belum masuk antrian proses tagging, jadi perubahan nama juga memperbarui nama pada data tagging.",
+    lockedTitle: "Nama tagging sudah terkunci",
+    lockedDesc:
+      "Pohon pada sertifikat ini sudah masuk antrian proses tagging. Nama pada tagging tidak dapat diubah lagi — perubahan hanya berlaku pada nama di sertifikat.",
+    save: "Simpan Nama",
+    saving: "Menyimpan…",
+    saved: "Nama sertifikat berhasil diperbarui ✓",
+    savedLocked:
+      "Nama di sertifikat berhasil diperbarui. Nama pada tagging tetap memakai nama sebelumnya.",
+    close: "Tutup",
+    cancel: "Batal",
+  },
   bagikan: {
     title: "Bagikan Aksi Saya",
     sub: "Design story 1080×1920 — siap untuk Instagram Story, WhatsApp Status, dan Facebook Story.",
