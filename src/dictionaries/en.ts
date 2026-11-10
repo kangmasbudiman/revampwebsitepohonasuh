@@ -473,9 +473,15 @@ export const dict: Dict = {
     memoSaving: "Saving…",
     memoSaved: "Message saved ✓",
     templateTitle: "Share Certificate",
-    templateDesc: "Pick a certificate background, then share the link — your choice shows in the link.",
+    templateDesc:
+      "Pick a certificate background & language, then share the link — your choices show in the link.",
     templateDefault: "Default",
     templateUtamaBadge: "Main",
+    langTitle: "Certificate Language",
+    langDesc:
+      "Choose the language printed on the certificate — the choice is carried in the shared link.",
+    langId: "Bahasa Indonesia",
+    langEn: "English",
     copyLink: "Copy Link",
     linkCopied: "Copied ✓",
     shareWa: "Share on WhatsApp",

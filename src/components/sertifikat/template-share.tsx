@@ -15,10 +15,12 @@ export default function TemplateShare({
   templates,
   certnum,
   terpilihId,
+  lang,
 }: {
   templates: ApiTemplateSertifikat[];
   certnum: string;
   terpilihId: number | null;
+  lang: "id" | "en";
 }) {
   const { dict } = useI18n();
   const t = dict.sertifikat;
@@ -28,9 +30,17 @@ export default function TemplateShare({
   const adaUtama = templates.some((tpl) => tpl.utama);
   const certPath = certnum.split("/").map(encodeURIComponent).join("/");
 
-  const pilih = (id: number | null) => {
-    router.push(id ? `/sertifikat/${certPath}?tpl=${id}` : `/sertifikat/${certPath}`);
+  // ?tpl= dan ?lang= selalu dibawa bersama agar tautan hasil share menampilkan
+  // latar + bahasa yang sedang dipilih.
+  const urlCert = (tplId: number | null, bahasa: "id" | "en") => {
+    const q = new URLSearchParams();
+    if (tplId) q.set("tpl", String(tplId));
+    q.set("lang", bahasa);
+    return `/sertifikat/${certPath}?${q.toString()}`;
   };
+
+  const pilih = (id: number | null) => router.push(urlCert(id, lang));
+  const pilihBahasa = (bahasa: "id" | "en") => router.push(urlCert(terpilihId, bahasa));
 
   const salin = async () => {
     try {
@@ -111,6 +121,30 @@ export default function TemplateShare({
             </p>
           </button>
         ))}
+      </div>
+
+      <div className="mt-5 border-t border-emerald-50 pt-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700/70">
+          {t.langTitle}
+        </p>
+        <p className="mt-0.5 text-xs text-zinc-500">{t.langDesc}</p>
+        <div className="mt-2 inline-flex rounded-xl border border-emerald-200 bg-emerald-50/60 p-1">
+          {(["id", "en"] as const).map((kode) => (
+            <button
+              key={kode}
+              type="button"
+              onClick={() => pilihBahasa(kode)}
+              aria-pressed={lang === kode}
+              className={`rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                lang === kode
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "text-emerald-800 hover:bg-emerald-100"
+              }`}
+            >
+              {kode === "id" ? t.langId : t.langEn}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">

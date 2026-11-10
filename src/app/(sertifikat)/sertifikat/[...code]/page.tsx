@@ -75,9 +75,43 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   const { code } = await props.params;
   const sp = await props.searchParams;
   const certnum = code.map(decodeURIComponent).join("/");
-  // Lembar sertifikat memakai teks Inggris tetap (kalibrasi template PDF) —
-  // yang diterjemahkan hanya laman di sekelilingnya.
+  // Teks lembar sertifikat mengikuti ?lang=id|en. Default en agar tautan lama
+  // tidak berubah tampilan; pilihan bahasa ikut saat sertifikat dibagikan.
   const t = (await getDict()).sertifikat;
+  const lang: "id" | "en" =
+    (Array.isArray(sp?.lang) ? sp?.lang[0] : sp?.lang) === "id" ? "id" : "en";
+  const L =
+    lang === "id"
+      ? {
+          intro1: "Pohonasuh dimaknai sebagai penghargaan publik yang diberikan",
+          intro2: "kepada masyarakat atas kontribusinya dalam merawat pohon di hutan.",
+          thanks: "Kami memberikan apresiasi dan terima kasih kepada:",
+          adopted: (n: number) => `telah mengadopsi ${n} pohon di`,
+          from: "dari",
+          until: "sampai",
+          memoTitle: "Pesan dan Kesan:",
+          treesTitle: "Pohon yang Diadopsi",
+          totalTrees: (n: number) => `Total ${n} pohon`,
+          biomass: "estimasi biomassa",
+          speciesLine: (n: number, m: number) => `${n} pohon · ${m} spesies`,
+          tons: "ton",
+          dateLocale: "id-ID",
+        }
+      : {
+          intro1: "Pohonasuh is interpreted as a public reward given to a community",
+          intro2: "for its contributions to care trees in the forest.",
+          thanks: "We give appreciation and thanks to:",
+          adopted: (n: number) => `has adopted ${n} ${n === 1 ? "tree" : "trees"} in`,
+          from: "from",
+          until: "until",
+          memoTitle: "Message and Impression:",
+          treesTitle: "Adopted Trees",
+          totalTrees: (n: number) => `Total ${n} trees`,
+          biomass: "estimated biomass",
+          speciesLine: (n: number, m: number) => `${n} trees · ${m} species`,
+          tons: "tons",
+          dateLocale: "en-US",
+        };
 
   let s: ApiSertifikat | null = null;
   try {
@@ -106,15 +140,27 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   const jml = Number(s.jml_pohon) || 1;
   const desaTampil = s.desa_label || s.desa || "";
   // Sumatera Barat: unitnya Nagari — "Nagari Forest", bukan "Village Forest".
-  const hutanDesa = sebutanDesa(s.provinsi) === "Nagari" ? "Nagari Forest" : "Village Forest";
-  const lokasi = [
-    desaTampil ? `${titleCase(desaTampil)} ${hutanDesa}` : null,
-    s.kecamatan ? `${titleCase(s.kecamatan)} Subdistrict` : null,
-    s.kabupaten ? `${titleCase(s.kabupaten)} District` : null,
-    s.provinsi ? `${titleCase(s.provinsi)} Province` : null,
-  ]
-    .filter(Boolean)
-    .join(", ");
+  const nagari = sebutanDesa(s.provinsi) === "Nagari";
+  const lokasi =
+    lang === "id"
+      ? [
+          desaTampil ? `Hutan ${nagari ? "Nagari" : "Desa"} ${titleCase(desaTampil)}` : null,
+          s.kecamatan ? `Kec. ${titleCase(s.kecamatan)}` : null,
+          s.kabupaten ? `Kab. ${titleCase(s.kabupaten)}` : null,
+          s.provinsi ? `Prov. ${titleCase(s.provinsi)}` : null,
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : [
+          desaTampil
+            ? `${titleCase(desaTampil)} ${nagari ? "Nagari" : "Village"} Forest`
+            : null,
+          s.kecamatan ? `${titleCase(s.kecamatan)} Subdistrict` : null,
+          s.kabupaten ? `${titleCase(s.kabupaten)} District` : null,
+          s.provinsi ? `${titleCase(s.provinsi)} Province` : null,
+        ]
+          .filter(Boolean)
+          .join(", ");
   const memo = (s.memo ?? "").trim();
   const adaMemo = memo !== "" && memo !== "-" && memo.toLowerCase() !== "null";
   const session = await getSession();
@@ -129,7 +175,11 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
 
   const tglAdopt = s.tgl_adopt ? new Date(s.tgl_adopt) : null;
   const jambi = tglAdopt
-    ? `Jambi, ${tglAdopt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+    ? `Jambi, ${tglAdopt.toLocaleDateString(L.dateLocale, {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })}`
     : "Jambi";
 
   // Blok pohon bawah-kiri (jenis + Ø + tonase per batang). Order besar
@@ -144,7 +194,8 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   }));
   const labelPohon = (p: (typeof pohonList)[number]) =>
     p.lokal && p.spesies ? `${p.lokal} (${p.spesies})` : p.lokal || p.spesies || p.kode;
-  const fmtTon = (t: number) => `± ${t.toLocaleString("en-US", { maximumFractionDigits: 1 })} tons`;
+  const fmtTon = (t: number) =>
+    `± ${t.toLocaleString(L.dateLocale, { maximumFractionDigits: 1 })} ${L.tons}`;
 
   const barisPohon: string[] = [];
   let totalTonase = 0;
@@ -183,13 +234,13 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
         barisPohon.push(bagian.join(" · "));
       }
       if (totalTonase > 0) {
-        barisPohon.push(`Total ${pohonList.length} trees · ${fmtTon(totalTonase)} estimated biomass`);
+        barisPohon.push(`${L.totalTrees(pohonList.length)} · ${fmtTon(totalTonase)} ${L.biomass}`);
       }
     } else {
       const dSemua = pohonList.filter((p) => p.diameter > 0).map((p) => p.diameter);
       barisPohon.push(
         [
-          `${pohonList.length} trees · ${daftarGrup.length} species`,
+          `${L.speciesLine(pohonList.length, daftarGrup.length)}`,
           dSemua.length > 0
             ? `Ø ${Math.min(...dSemua)}–${Math.max(...dSemua)} cm`
             : "",
@@ -237,11 +288,11 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
 
           <div className="absolute top-[27.45%] left-[23.91%] w-[72.2%] font-[family-name:var(--font-cert-sans)] text-[1.69cqw] leading-[1.07] text-[#545353]">
             <p>
-              Pohonasuh is interpreted as a public reward given to a community
+              {L.intro1}
               <br />
-              for its contributions to care trees in the forest.
+              {L.intro2}
             </p>
-            <p className="mt-[1.05em]">We give appreciation and thanks to:</p>
+            <p className="mt-[1.05em]">{L.thanks}</p>
           </div>
 
           <div className="absolute top-[38.3%] left-[23.83%] w-[72.5%]">
@@ -252,14 +303,15 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
           </div>
 
           <p className="absolute top-[47.95%] left-[23.75%] w-[72.3%] font-[family-name:var(--font-cert-sans)] text-[1.69cqw] leading-[1.14] text-[#545353]">
-            has adopted {jml} {jml === 1 ? "tree" : "trees"} in {lokasi}, INDONESIA. from{" "}
-            {s.tgl_adopt ?? "—"} until {s.tgl_exp ?? "—"}.
+            {L.adopted(jml)} {lokasi}, INDONESIA.
+            <br />
+            {L.from} {s.tgl_adopt ?? "—"} {L.until} {s.tgl_exp ?? "—"}.
           </p>
 
           {adaMemo && (
             <>
               <p className="absolute top-[58.5%] left-[23.75%] font-[family-name:var(--font-cert-title)] text-[2.58cqw] font-medium text-[#208745]">
-                Message and Impression:
+                {L.memoTitle}
               </p>
               {/* Kolom memo disempitkan (ujung kanan ±87,5%) dan dibatasi 2
                   baris — template punya garis dekoratif pada ±68,9% tinggi
@@ -278,7 +330,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
           {barisPohon.length > 0 && (
             <div className="absolute top-[78.2%] left-[23.91%] w-[54%] font-[family-name:var(--font-cert-sans)]">
               <p className="text-[1.24cqw] font-semibold tracking-wide text-[#208745] uppercase">
-                Adopted Trees
+                {L.treesTitle}
               </p>
               <ul className="mt-[0.5cqw] space-y-[0.28cqw] text-[1.12cqw] leading-[1.32] text-[#545353]">
                 {barisPohon.map((b, i) => (
@@ -291,7 +343,12 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
       </div>
 
       {pemilik && (
-        <TemplateShare templates={templates} certnum={s.certnum ?? ""} terpilihId={terpilih?.id ?? null} />
+        <TemplateShare
+          templates={templates}
+          certnum={s.certnum ?? ""}
+          terpilihId={terpilih?.id ?? null}
+          lang={lang}
+        />
       )}
       {pemilik && hadiah && (
         <CertNameForm

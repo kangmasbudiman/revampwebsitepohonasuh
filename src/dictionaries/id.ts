@@ -474,9 +474,15 @@ export const dict = {
     memoSaving: "Menyimpan…",
     memoSaved: "Pesan tersimpan ✓",
     templateTitle: "Bagikan Sertifikat",
-    templateDesc: "Pilih latar sertifikat, lalu bagikan tautannya — latar pilihan ikut tampil di tautan.",
+    templateDesc:
+      "Pilih latar & bahasa sertifikat, lalu bagikan tautannya — pilihan ikut tampil di tautan.",
     templateDefault: "Bawaan",
     templateUtamaBadge: "Utama",
+    langTitle: "Bahasa Sertifikat",
+    langDesc:
+      "Pilih bahasa teks yang tercetak di sertifikat — pilihan ini ikut pada tautan yang dibagikan.",
+    langId: "Bahasa Indonesia",
+    langEn: "English",
     copyLink: "Salin Tautan",
     linkCopied: "Tersalin ✓",
     shareWa: "Bagikan WhatsApp",
