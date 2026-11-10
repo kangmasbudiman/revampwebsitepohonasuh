@@ -464,6 +464,7 @@ export const dict: Dict = {
     verified: "Certificate verified",
     no: "No.",
     adoptOther: "Adopt another tree →",
+    backDashboard: "Back to Dashboard",
     print: "Print / Save PDF",
     verifyNote: "This certificate can be verified online using the certificate number above.",
     memoTitle: "Message & Impression",

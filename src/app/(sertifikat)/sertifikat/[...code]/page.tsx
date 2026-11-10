@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Plus_Jakarta_Sans, Nunito, Barlow_Semi_Condensed } from "next/font/google";
 import { apiGet, mapTemplatesertifikatList, type ApiTemplateSertifikat } from "@/lib/api";
@@ -96,12 +97,11 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   const L =
     lang === "id"
       ? {
-          // Narasi pembuka dipecah 3 baris (batas frasa, bukan wrap otomatis)
-          // agar tata letak template PDF tetap sama di semua perangkat.
+          // Narasi pembuka 2 baris (batas frasa, bukan wrap otomatis) agar
+          // tata letak template PDF tetap sama di semua perangkat.
           intro: [
             "Pohonasuh dimaknai sebagai penghargaan publik yang diberikan",
-            "kepada masyarakat atas kontribusinya",
-            "dalam merawat pohon di hutan.",
+            "kepada masyarakat atas kontribusinya dalam merawat pohon di hutan.",
           ],
           thanks: "Kami memberikan apresiasi dan terima kasih kepada:",
           adopted: (n: number) => `telah mengadopsi ${n} pohon di`,
@@ -117,9 +117,8 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
         }
       : {
           intro: [
-            "Pohonasuh is interpreted as a public reward given",
-            "to a community for its contributions",
-            "to care trees in the forest.",
+            "Pohonasuh is interpreted as a public reward given to a community",
+            "for its contributions to care trees in the forest.",
           ],
           thanks: "We give appreciation and thanks to:",
           adopted: (n: number) => `has adopted ${n} ${n === 1 ? "tree" : "trees"} in`,
@@ -167,28 +166,28 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   // "Skema / Institusi"), jadi ikut berubah bila admin memperbaruinya.
   const skema = (s.desa_skema ?? "").trim();
   const skemaId = SKEMA_ID[skema.toLowerCase()] ?? skema;
-  const lokasi =
+  // Baris lokasi dipecah 3 baris di sertifikat: (1) desa + skema hutan,
+  // (2) kecamatan/kabupaten/provinsi, (3) periode adopsi.
+  const lokasiSkema = desaTampil
+    ? lang === "id"
+      ? `${skemaId || `Hutan ${nagari ? "Nagari" : "Desa"}`} ${titleCase(desaTampil)}`
+      : `${titleCase(desaTampil)} ${skema || (nagari ? "Nagari" : "Village") + " Forest"}`
+    : "";
+  const lokasiWilayah = (
     lang === "id"
       ? [
-          desaTampil
-            ? `${skemaId || `Hutan ${nagari ? "Nagari" : "Desa"}`} ${titleCase(desaTampil)}`
-            : null,
           s.kecamatan ? `Kec. ${titleCase(s.kecamatan)}` : null,
           s.kabupaten ? `Kab. ${titleCase(s.kabupaten)}` : null,
           s.provinsi ? `Prov. ${titleCase(s.provinsi)}` : null,
         ]
-          .filter(Boolean)
-          .join(", ")
       : [
-          desaTampil
-            ? `${titleCase(desaTampil)} ${skema || (nagari ? "Nagari" : "Village") + " Forest"}`
-            : null,
           s.kecamatan ? `${titleCase(s.kecamatan)} Subdistrict` : null,
           s.kabupaten ? `${titleCase(s.kabupaten)} District` : null,
           s.provinsi ? `${titleCase(s.provinsi)} Province` : null,
         ]
-          .filter(Boolean)
-          .join(", ");
+  )
+    .filter(Boolean)
+    .join(", ");
   const memo = (s.memo ?? "").trim();
   const adaMemo = memo !== "" && memo !== "-" && memo.toLowerCase() !== "null";
   const session = await getSession();
@@ -287,7 +286,16 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-xs text-emerald-700">✓</span>
           {t.verified} · {t.no}{s.certnum}
         </p>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {session && (
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t.backDashboard}
+            </Link>
+          )}
           <Link href="/pohon" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
             {t.adoptOther}
           </Link>
@@ -314,7 +322,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
             No.{s.certnum}
           </p>
 
-          <div className="absolute top-[24.8%] left-[23.91%] w-[72.2%] font-[family-name:var(--font-cert-sans)] text-[1.69cqw] leading-[1.07] text-[#545353]">
+          <div className="absolute top-[27.45%] left-[23.91%] w-[72.2%] font-[family-name:var(--font-cert-sans)] text-[1.69cqw] leading-[1.07] text-[#545353]">
             <p>
               {L.intro.map((baris, i) => (
                 <Fragment key={baris}>
@@ -323,7 +331,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
                 </Fragment>
               ))}
             </p>
-            <p className="mt-[0.85em]">{L.thanks}</p>
+            <p className="mt-[1.05em]">{L.thanks}</p>
           </div>
 
           <div className="absolute top-[38.3%] left-[23.83%] w-[72.5%]">
@@ -334,7 +342,10 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
           </div>
 
           <p className="absolute top-[47.95%] left-[23.75%] w-[72.3%] font-[family-name:var(--font-cert-sans)] text-[1.69cqw] leading-[1.14] text-[#545353]">
-            {L.adopted(jml)} {lokasi}, INDONESIA.
+            {L.adopted(jml)}
+            {lokasiSkema && ` ${lokasiSkema},`}
+            <br />
+            {lokasiWilayah && `${lokasiWilayah}, `}INDONESIA.
             <br />
             {L.from} {s.tgl_adopt ?? "—"} {L.until} {s.tgl_exp ?? "—"}.
           </p>

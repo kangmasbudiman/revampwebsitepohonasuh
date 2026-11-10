@@ -465,6 +465,7 @@ export const dict = {
     verified: "Sertifikat terverifikasi",
     no: "No.",
     adoptOther: "Adopsi pohon lain →",
+    backDashboard: "Kembali ke Dashboard",
     print: "Cetak / Simpan PDF",
     verifyNote: "Sertifikat ini dapat diverifikasi secara daring melalui nomor sertifikat di atas.",
     memoTitle: "Pesan & Impresi",
