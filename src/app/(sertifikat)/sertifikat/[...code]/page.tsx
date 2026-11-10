@@ -52,6 +52,7 @@ type ApiSertifikat = {
   idpohon?: string | null;
   desa?: string | null;
   desa_label?: string | null;
+  desa_skema?: string | null; // skema/institusi dari master data lokasi
   kecamatan?: string | null;
   kabupaten?: string | null;
   provinsi?: string | null;
@@ -63,6 +64,17 @@ type ApiSertifikat = {
 export async function generateMetadata() {
   return { title: (await getDict()).sertifikat.title };
 }
+
+// Terjemahan istilah skema baku dari master data lokasi untuk versi Indonesia.
+// Nilai lain (di luar daftar) ditampilkan apa adanya seperti yang diinput admin.
+const SKEMA_ID: Record<string, string> = {
+  "village forest": "Hutan Desa",
+  "nagari forest": "Hutan Nagari",
+  "customary forest/ha": "Hutan Adat/HA",
+  "hutan desa": "Hutan Desa",
+  "hutan nagari": "Hutan Nagari",
+  "hutan adat/ha": "Hutan Adat/HA",
+};
 
 const titleCase = (s: string) =>
   s
@@ -148,12 +160,19 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
 
   const jml = Number(s.jml_pohon) || 1;
   const desaTampil = s.desa_label || s.desa || "";
-  // Sumatera Barat: unitnya Nagari — "Nagari Forest", bukan "Village Forest".
+  // Sumatera Barat: unitnya Nagari — hanya dipakai sebagai fallback bila
+  // master data lokasi belum mengisi kolom Skema/Institusi.
   const nagari = sebutanDesa(s.provinsi) === "Nagari";
+  // Skema hutan diambil dari master data lokasi (menu Data Lokasi → kolom
+  // "Skema / Institusi"), jadi ikut berubah bila admin memperbaruinya.
+  const skema = (s.desa_skema ?? "").trim();
+  const skemaId = SKEMA_ID[skema.toLowerCase()] ?? skema;
   const lokasi =
     lang === "id"
       ? [
-          desaTampil ? `Hutan ${nagari ? "Nagari" : "Desa"} ${titleCase(desaTampil)}` : null,
+          desaTampil
+            ? `${skemaId || `Hutan ${nagari ? "Nagari" : "Desa"}`} ${titleCase(desaTampil)}`
+            : null,
           s.kecamatan ? `Kec. ${titleCase(s.kecamatan)}` : null,
           s.kabupaten ? `Kab. ${titleCase(s.kabupaten)}` : null,
           s.provinsi ? `Prov. ${titleCase(s.provinsi)}` : null,
@@ -162,7 +181,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
           .join(", ")
       : [
           desaTampil
-            ? `${titleCase(desaTampil)} ${nagari ? "Nagari" : "Village"} Forest`
+            ? `${titleCase(desaTampil)} ${skema || (nagari ? "Nagari" : "Village") + " Forest"}`
             : null,
           s.kecamatan ? `${titleCase(s.kecamatan)} Subdistrict` : null,
           s.kabupaten ? `${titleCase(s.kabupaten)} District` : null,
