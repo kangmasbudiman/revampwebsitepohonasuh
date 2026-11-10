@@ -94,46 +94,48 @@ export default async function KoreksiOrderPage(
       )}
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-        <table className="w-full text-left text-sm">
-          <thead className="pa-thead text-xs uppercase tracking-wide">
-            <tr>
-              <th className="px-4 py-3">Kode</th>
-              <th className="px-4 py-3">Pohon</th>
-              <th className="px-4 py-3">Desa</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Harga</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td className="px-4 py-3 font-mono text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                  {r.idpohon}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="pa-thead text-xs uppercase tracking-wide">
+              <tr>
+                <th className="px-4 py-3">Kode</th>
+                <th className="px-4 py-3">Pohon</th>
+                <th className="px-4 py-3">Desa</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">Harga</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
+              {rows.map((r) => (
+                <tr key={r.id}>
+                  <td className="px-4 py-3 font-mono text-xs font-semibold whitespace-nowrap text-emerald-800 dark:text-emerald-300">
+                    {r.idpohon}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-800 dark:text-zinc-100">{r.localName}</td>
+                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{namaDesa(r.desa)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:bg-night-700 dark:text-zinc-300">
+                      {PROSES_LABEL[r.proses] ?? `Proses ${r.proses}`}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right font-semibold whitespace-nowrap text-emerald-800 dark:text-emerald-300">
+                    {rupiah(r.price)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-emerald-100 dark:border-night-700">
+                <td colSpan={4} className="px-4 py-3 text-right text-sm text-zinc-500 dark:text-zinc-400">
+                  Total invoice
                 </td>
-                <td className="px-4 py-3 text-zinc-800 dark:text-zinc-100">{r.localName}</td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{namaDesa(r.desa)}</td>
-                <td className="px-4 py-3">
-                  <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:bg-night-700 dark:text-zinc-300">
-                    {PROSES_LABEL[r.proses] ?? `Proses ${r.proses}`}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right font-semibold text-emerald-800 dark:text-emerald-300">
-                  {rupiah(r.price)}
+                <td className="px-4 py-3 text-right font-bold whitespace-nowrap text-emerald-800 dark:text-emerald-300">
+                  {rupiah(total)}
                 </td>
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="border-t border-emerald-100 dark:border-night-700">
-              <td colSpan={4} className="px-4 py-3 text-right text-sm text-zinc-500 dark:text-zinc-400">
-                Total invoice
-              </td>
-              <td className="px-4 py-3 text-right font-bold text-emerald-800 dark:text-emerald-300">
-                {rupiah(total)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+            </tfoot>
+          </table>
+        </div>
       </div>
 
       <form
