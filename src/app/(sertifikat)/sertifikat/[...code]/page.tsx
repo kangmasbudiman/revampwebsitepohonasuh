@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import { Plus_Jakarta_Sans, Nunito, Barlow_Semi_Condensed } from "next/font/google";
 import { apiGet, mapTemplatesertifikatList, type ApiTemplateSertifikat } from "@/lib/api";
@@ -83,8 +84,13 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   const L =
     lang === "id"
       ? {
-          intro1: "Pohonasuh dimaknai sebagai penghargaan publik yang diberikan",
-          intro2: "kepada masyarakat atas kontribusinya dalam merawat pohon di hutan.",
+          // Narasi pembuka dipecah 3 baris (batas frasa, bukan wrap otomatis)
+          // agar tata letak template PDF tetap sama di semua perangkat.
+          intro: [
+            "Pohonasuh dimaknai sebagai penghargaan publik yang diberikan",
+            "kepada masyarakat atas kontribusinya",
+            "dalam merawat pohon di hutan.",
+          ],
           thanks: "Kami memberikan apresiasi dan terima kasih kepada:",
           adopted: (n: number) => `telah mengadopsi ${n} pohon di`,
           from: "dari",
@@ -98,8 +104,11 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
           dateLocale: "id-ID",
         }
       : {
-          intro1: "Pohonasuh is interpreted as a public reward given to a community",
-          intro2: "for its contributions to care trees in the forest.",
+          intro: [
+            "Pohonasuh is interpreted as a public reward given",
+            "to a community for its contributions",
+            "to care trees in the forest.",
+          ],
           thanks: "We give appreciation and thanks to:",
           adopted: (n: number) => `has adopted ${n} ${n === 1 ? "tree" : "trees"} in`,
           from: "from",
@@ -286,13 +295,16 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
             No.{s.certnum}
           </p>
 
-          <div className="absolute top-[27.45%] left-[23.91%] w-[72.2%] font-[family-name:var(--font-cert-sans)] text-[1.69cqw] leading-[1.07] text-[#545353]">
+          <div className="absolute top-[24.8%] left-[23.91%] w-[72.2%] font-[family-name:var(--font-cert-sans)] text-[1.69cqw] leading-[1.07] text-[#545353]">
             <p>
-              {L.intro1}
-              <br />
-              {L.intro2}
+              {L.intro.map((baris, i) => (
+                <Fragment key={baris}>
+                  {i > 0 && <br />}
+                  {baris}
+                </Fragment>
+              ))}
             </p>
-            <p className="mt-[1.05em]">{L.thanks}</p>
+            <p className="mt-[0.85em]">{L.thanks}</p>
           </div>
 
           <div className="absolute top-[38.3%] left-[23.83%] w-[72.5%]">
