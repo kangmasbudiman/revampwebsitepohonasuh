@@ -50,6 +50,17 @@ export default async function DataLokasiPage({
           Lokasi dihapus.
         </SuccessPopup>
       )}
+      {sp?.beku === "1" && (
+        <SuccessPopup paramKey="beku" title="Pohon Dibekukan">
+          {Number(sp?.jumlah) || 0} pohon di lokasi ini dibekukan — tetap tampil
+          di daftar publik, tetapi tidak bisa diadopsi sampai diaktifkan kembali.
+        </SuccessPopup>
+      )}
+      {sp?.beku === "0" && (
+        <SuccessPopup paramKey="beku" title="Pohon Diaktifkan">
+          {Number(sp?.jumlah) || 0} pohon di lokasi ini diaktifkan kembali.
+        </SuccessPopup>
+      )}
       {sp?.error && (
         <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(sp.error)}

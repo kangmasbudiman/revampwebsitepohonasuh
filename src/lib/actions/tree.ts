@@ -115,6 +115,88 @@ export async function removeTreeUnggulan(formData: FormData) {
   redirect("/admin/pohon?unggulan=0");
 }
 
+// ===== Pembekuan pohon & reservasi oleh admin =====
+
+// Bekukan / aktifkan satu pohon (kolom data_pohon.beku). Pohon beku tetap
+// tampil di daftar publik tetapi tidak bisa diadopsi.
+export async function toggleTreeFrozen(formData: FormData) {
+  await requireAdminLevel();
+  const code = String(formData.get("idpohon") ?? "").trim();
+  const beku = String(formData.get("beku") ?? "") === "yes" ? "yes" : "no";
+  if (!code) redirect("/admin/pohon?error=Pohon+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("bekukanpohon", {
+      idpohon: code,
+      beku,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/pohon?error=${encodeURIComponent(res.pesan ?? "Gagal mengubah status beku.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pohon?error=Gagal+mengubah+status+beku");
+  }
+
+  revalidatePath("/admin/pohon");
+  revalidatePath("/pohon");
+  revalidatePath(`/pohon/${code}`);
+  redirect(`/admin/pohon?beku=${beku === "yes" ? "1" : "0"}`);
+}
+
+// Pesan pohon untuk pemesan tertentu (status "Dipesan Admin") agar tidak bisa
+// diadopsi pengunjung sampai reservasi dibatalkan.
+export async function reserveTree(formData: FormData) {
+  await requireAdminLevel();
+  const code = String(formData.get("idpohon") ?? "").trim();
+  const nama = String(formData.get("nama") ?? "").trim();
+  if (!code) redirect("/admin/pohon?error=Pohon+tidak+ditemukan");
+  if (!nama) redirect("/admin/pohon?error=Nama+pemesan+wajib+diisi");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("pesanpohonadmin", {
+      idpohon: code,
+      nama,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/pohon?error=${encodeURIComponent(res.pesan ?? "Gagal memesan pohon.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pohon?error=Gagal+memesan+pohon");
+  }
+
+  revalidatePath("/admin/pohon");
+  revalidatePath("/pohon");
+  revalidatePath(`/pohon/${code}`);
+  redirect(`/admin/pohon?dipesan=1`);
+}
+
+// Batalkan reservasi admin → pohon kembali tersedia.
+export async function cancelReserveTree(formData: FormData) {
+  await requireAdminLevel();
+  const code = String(formData.get("idpohon") ?? "").trim();
+  if (!code) redirect("/admin/pohon?error=Pohon+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "batalpesanpohonadmin",
+      { idpohon: code },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/pohon?error=${encodeURIComponent(res.pesan ?? "Gagal membatalkan pesanan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pohon?error=Gagal+membatalkan+pesanan");
+  }
+
+  revalidatePath("/admin/pohon");
+  revalidatePath("/pohon");
+  revalidatePath(`/pohon/${code}`);
+  redirect("/admin/pohon?dibatalkan=1");
+}
+
 // ===== Galeri foto pohon (tabel imagepohon) =====
 
 const MAX_FOTO_BYTES = 2 * 1024 * 1024;

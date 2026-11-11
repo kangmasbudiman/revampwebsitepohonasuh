@@ -77,7 +77,9 @@ async function checkoutTrees(
         { idpohon: code },
       );
       const harga = Number(tree?.harga) || 0;
-      if (tree && String(tree.adopted) === "available" && harga > 0) {
+      const beku = String(tree?.beku ?? "").toLowerCase() === "yes";
+      const reservedAdmin = Number(tree?.reserved_admin ?? 0) === 1;
+      if (tree && String(tree.adopted) === "available" && !beku && !reservedAdmin && harga > 0) {
         valid.push({ ...item, code, harga, years: clampYears(item.years) });
       } else {
         unavailable.push({ code, localName: String(tree?.localname ?? code) });

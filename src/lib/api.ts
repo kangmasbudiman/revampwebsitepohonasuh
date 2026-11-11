@@ -160,6 +160,12 @@ export type ApiTree = {
   lat: number | null;
   lng: number | null;
   status: TreeStatus;
+  // Dibekukan admin: tetap tampil di daftar publik tapi tidak bisa diadopsi.
+  frozen: boolean;
+  // Dipesan admin ("Pesan Pohon"): reserved_admin=1, tidak bisa diadopsi
+  // pengunjung dan bisa dibatalkan kembali ke tersedia.
+  reservedAdmin: boolean;
+  reservedName: string | null;
   tglExp: string | null;
   highlight: number | null;
 };
@@ -194,6 +200,9 @@ export function mapTree(r: Record<string, unknown>): ApiTree {
     lat: num(r.latitude),
     lng: num(r.longitude),
     status: TREE_STATUS_MAP[String(r.adopted ?? "")] ?? "ADOPTED",
+    frozen: String(r.beku ?? "").toLowerCase() === "yes",
+    reservedAdmin: Number(r.reserved_admin ?? 0) === 1,
+    reservedName: r.reserved_name ? String(r.reserved_name) : null,
     tglExp: r.tgl_exp ? String(r.tgl_exp) : null,
     highlight: num(r.highlight),
   };
@@ -897,6 +906,7 @@ export type ApiPetaPohon = {
   lng: number | null;
   desa: string | null;
   status: TreeStatus;
+  frozen: boolean;
 };
 
 export function mapPetaPohons(rows: Record<string, unknown>[]): ApiPetaPohon[] {
@@ -909,6 +919,7 @@ export function mapPetaPohons(rows: Record<string, unknown>[]): ApiPetaPohon[] {
     lng: num(r.longitude),
     desa: r.desa ? String(r.desa) : null,
     status: TREE_STATUS_MAP[String(r.adopted ?? "").toLowerCase()] ?? "AVAILABLE",
+    frozen: String(r.beku ?? "").toLowerCase() === "yes",
   }));
 }
 
@@ -1262,6 +1273,8 @@ export type ApiSpeciesDetail = ApiSpecies & {
     priceIdr: number;
     photoUrl: string;
     status: TreeStatus;
+    frozen: boolean;
+    reservedAdmin: boolean;
   }[];
   desaTerkait: { nama: string; jml: number }[];
 };
@@ -1280,6 +1293,8 @@ export function mapSpeciesDetail(r: Record<string, unknown>): ApiSpeciesDetail {
       priceIdr: Number(p.harga) || 0,
       photoUrl: treePhotoUrl(p.foto_pohon as string | null),
       status: TREE_STATUS_MAP[String(p.adopted ?? "")] ?? "ADOPTED",
+      frozen: String(p.beku ?? "").toLowerCase() === "yes",
+      reservedAdmin: Number(p.reserved_admin ?? 0) === 1,
     })),
     desaTerkait: desa.map((d) => ({
       nama: String(d.nama ?? ""),

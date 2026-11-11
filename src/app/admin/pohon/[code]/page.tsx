@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink, Image as ImageIcon } from "lucide-react";
 import { apiGet, apiPost, isDefaultTreePhoto, mapDesa, mapTree, type ApiDesa, type ApiTree } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
-import { TREE_STATUS } from "@/lib/format";
+import { tampilanStatusTree } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
 import TreeForm from "@/components/admin/tree-form";
 import SuccessPopup from "@/components/admin/success-popup";
@@ -44,12 +44,7 @@ export default async function EditTreePage(props: PageProps<"/admin/pohon/[code]
           >
             Galeri Foto
           </Link>
-          <StatusBadge
-            {...(TREE_STATUS[tree.status] ?? {
-              label: tree.status,
-              className: "bg-zinc-100 text-zinc-600 dark:text-zinc-300",
-            })}
-          />
+          <StatusBadge {...tampilanStatusTree(tree)} />
         </div>
       </div>
 

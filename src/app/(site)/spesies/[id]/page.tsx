@@ -178,6 +178,8 @@ export default async function SpeciesDetailPage(props: Props) {
                   species: p.species,
                   priceIdr: p.priceIdr,
                   status: p.status,
+                  frozen: p.frozen,
+                  reservedAdmin: p.reservedAdmin,
                   photoUrl: p.photoUrl,
                   desa: p.desa,
                   location: { name: p.desa, label: labelDesa.get(p.desa) ?? null },

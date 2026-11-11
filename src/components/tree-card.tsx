@@ -4,7 +4,7 @@ import { Leaf } from "lucide-react";
 import StatusBadge from "@/components/status-badge";
 import AddToCartButton from "@/components/add-to-cart-button";
 import CartMarker from "@/components/cart-marker";
-import { labelLokasi, rupiah, TREE_STATUS } from "@/lib/format";
+import { labelLokasi, rupiah, tampilanStatusTree } from "@/lib/format";
 import { co2TotalKg, formatCo2 } from "@/lib/karbon";
 import { getDict, getLocale } from "@/lib/i18n";
 
@@ -15,6 +15,8 @@ type TreeCardProps = {
     species: string | null;
     priceIdr: number;
     status: string;
+    frozen?: boolean;
+    reservedAdmin?: boolean;
     photoUrl: string | null;
     desa?: string | null;
     diameterCm?: number | null;
@@ -32,7 +34,11 @@ export default async function TreeCard({ tree }: TreeCardProps) {
     AVAILABLE: t.statusAvailable,
     RESERVED: t.statusReserved,
     ADOPTED: t.statusAdopted,
+    FROZEN: t.statusFrozen,
+    RESERVED_ADMIN: t.statusReservedAdmin,
   };
+  const badge = tampilanStatusTree(tree);
+  const bisaDiadopsi = tree.status === "AVAILABLE" && !tree.frozen && !tree.reservedAdmin;
   // Serapan CO₂ dihitung dari diameter (rumus sama dengan detail pohon) agar
   // kartu di semua halaman tampil konsisten tanpa menunggu properti co2Kg.
   const co2Kg = tree.co2Kg ?? co2TotalKg(tree.diameterCm);
@@ -56,11 +62,11 @@ export default async function TreeCard({ tree }: TreeCardProps) {
         )}
         <div className="absolute left-3 top-3">
           <StatusBadge
-            label={statusLabel[tree.status] ?? tree.status}
-            className={TREE_STATUS[tree.status]?.className ?? "bg-zinc-100 text-zinc-600"}
+            label={statusLabel[badge.statusKey] ?? badge.label}
+            className={badge.className}
           />
         </div>
-        {tree.status === "AVAILABLE" && (
+        {bisaDiadopsi && (
           <div className="absolute right-3 top-3">
             <AddToCartButton
               variant="icon"

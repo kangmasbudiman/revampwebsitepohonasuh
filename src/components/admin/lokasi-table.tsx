@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, MapPin, Pencil, Search } from "lucide-react";
+import { Eye, EyeOff, MapPin, Pencil, Search, Snowflake, Sun } from "lucide-react";
 import type { ApiLokasi, ApiPetaPohon } from "@/lib/api";
 import { namaDesa } from "@/lib/format";
-import { hapusLokasi, toggleLokasiAktif } from "@/lib/actions/lokasi";
+import { hapusLokasi, toggleLokasiAktif, toggleLokasiBeku } from "@/lib/actions/lokasi";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import LokasiForm from "@/components/admin/lokasi-form";
 import LokasiPetaLoader from "@/components/admin/lokasi-peta-loader";
@@ -33,6 +33,15 @@ export default function LokasiTable({
   }, [lokasi, q]);
 
   const petaDipakai = pohon.length > 0;
+
+  // Jumlah pohon beku per desa — untuk label tombol Bekukan/Aktifkan.
+  const bekuPerDesa = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of pohon) {
+      if (p.frozen && p.desa) m.set(p.desa, (m.get(p.desa) ?? 0) + 1);
+    }
+    return m;
+  }, [pohon]);
 
   return (
     <>
@@ -150,6 +159,33 @@ export default function LokasiTable({
                         <MapPin className="h-4 w-4" />
                       </button>
                     )}
+                    {(() => {
+                      const beku = bekuPerDesa.get(l.nama) ?? 0;
+                      return beku > 0 ? (
+                        <form action={toggleLokasiBeku} className="mr-1 inline">
+                          <input type="hidden" name="desa" value={l.nama} />
+                          <input type="hidden" name="beku" value="no" />
+                          <button
+                            type="submit"
+                            title={`Aktifkan kembali ${beku} pohon beku di lokasi ini`}
+                            className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+                          >
+                            <Sun className="h-3.5 w-3.5" /> Aktifkan ({beku})
+                          </button>
+                        </form>
+                      ) : (
+                        <form action={toggleLokasiBeku} className="mr-1 inline">
+                          <input type="hidden" name="desa" value={l.nama} />
+                          <input type="hidden" name="beku" value="yes" />
+                          <ConfirmSubmit
+                            message={`Bekukan semua pohon tersedia di ${l.nama}? Pohon tetap tampil tetapi tidak bisa diadopsi sampai diaktifkan kembali.`}
+                            className="inline-flex items-center gap-1 rounded-xl border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-50 dark:border-sky-900/60 dark:text-sky-300 dark:hover:bg-sky-950/40"
+                          >
+                            <Snowflake className="h-3.5 w-3.5" /> Bekukan
+                          </ConfirmSubmit>
+                        </form>
+                      );
+                    })()}
                     <Link
                       href={`/admin/lokasi/${l.id}/edit`}
                       className="mr-1 inline-block rounded-xl border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-50 dark:border-amber-900/60 dark:text-amber-300 dark:hover:bg-amber-950/40"

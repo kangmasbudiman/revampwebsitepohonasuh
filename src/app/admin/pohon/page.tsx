@@ -41,6 +41,28 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
           Status unggulan dilepas.
         </SuccessPopup>
       )}
+      {searchParams.dipesan && (
+        <SuccessPopup paramKey="dipesan" title="Pohon Dipesan">
+          Pohon berhasil dipesan untuk pemesan tertentu — statusnya kini
+          Dipesan Admin dan tidak bisa diadopsi pengunjung.
+        </SuccessPopup>
+      )}
+      {searchParams.dibatalkan && (
+        <SuccessPopup paramKey="dibatalkan" title="Pesanan Dibatalkan">
+          Reservasi dibatalkan — pohon kembali tersedia untuk umum.
+        </SuccessPopup>
+      )}
+      {searchParams.beku === "1" && (
+        <SuccessPopup paramKey="beku" title="Pohon Dibekukan">
+          Pohon tetap tampil di daftar publik, tetapi tidak bisa diadopsi
+          sampai diaktifkan kembali.
+        </SuccessPopup>
+      )}
+      {searchParams.beku === "0" && (
+        <SuccessPopup paramKey="beku" title="Pohon Diaktifkan">
+          Pohon kembali bisa diadopsi pengunjung.
+        </SuccessPopup>
+      )}
       {searchParams.error && (
         <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(searchParams.error)}

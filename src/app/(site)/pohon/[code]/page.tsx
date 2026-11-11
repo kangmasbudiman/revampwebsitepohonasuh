@@ -14,7 +14,7 @@ import {
 } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { co2TotalKg, formatCo2 } from "@/lib/karbon";
-import { namaDesa, rupiah } from "@/lib/format";
+import { namaDesa, rupiah, tampilanStatusTree } from "@/lib/format";
 import { getDict, getLocale } from "@/lib/i18n";
 import StatusBadge from "@/components/status-badge";
 import TreeCard from "@/components/tree-card";
@@ -122,11 +122,20 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
 
         <div>
           <div className="flex items-center gap-3">
-            <StatusBadge {...(tree.status === "AVAILABLE"
-              ? { label: statusLabel.statusAvailable, className: "bg-emerald-100 text-emerald-800" }
-              : tree.status === "RESERVED"
-                ? { label: statusLabel.statusReserved, className: "bg-amber-100 text-amber-800" }
-                : { label: statusLabel.statusAdopted, className: "bg-zinc-100 text-zinc-600" })} />
+            <StatusBadge
+              label={
+                tree.reservedAdmin
+                  ? statusLabel.statusReservedAdmin
+                  : tree.frozen
+                    ? statusLabel.statusFrozen
+                    : tree.status === "AVAILABLE"
+                      ? statusLabel.statusAvailable
+                      : tree.status === "RESERVED"
+                        ? statusLabel.statusReserved
+                        : statusLabel.statusAdopted
+              }
+              className={tampilanStatusTree(tree).className}
+            />
             <Link
               href={`/lokasi/${slugify(tree.desa)}`}
               className="text-sm font-medium text-emerald-700 hover:text-emerald-800"
@@ -156,7 +165,7 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
             </div>
             <p className="mt-1 text-right text-xs text-zinc-500">{d.perYear}</p>
             <div className="mt-4">
-              {tree.status === "AVAILABLE" ? (
+              {tree.status === "AVAILABLE" && !tree.frozen && !tree.reservedAdmin ? (
                 <AdoptPanel
                   tree={{
                     code: tree.code,
@@ -169,7 +178,11 @@ export default async function TreeDetailPage(props: PageProps<"/pohon/[code]">) 
                 />
               ) : (
                 <p className="rounded-xl bg-zinc-50 px-4 py-3 text-center text-sm text-zinc-500">
-                  {d.unavailable}
+                  {tree.reservedAdmin
+                    ? statusLabel.reservedAdminNote
+                    : tree.frozen
+                      ? statusLabel.frozenNote
+                      : d.unavailable}
                 </p>
               )}
             </div>

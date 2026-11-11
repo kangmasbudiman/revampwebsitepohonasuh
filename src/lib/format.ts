@@ -80,4 +80,28 @@ export const TREE_STATUS: Record<string, { label: string; className: string }> =
     label: "Teradopsi",
     className: "bg-zinc-100 text-zinc-600 dark:bg-night-700 dark:text-zinc-300",
   },
+  FROZEN: {
+    label: "Dibekukan",
+    className: "bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300",
+  },
+  RESERVED_ADMIN: {
+    label: "Dipesan Admin",
+    className: "bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300",
+  },
 };
+
+// Status tampilan satu pohon: beku & reservasi admin didahulukan agar badge
+// publik/admin konsisten (pohon beku tetap adopted='available').
+export function tampilanStatusTree(tree: {
+  status: string;
+  frozen?: boolean;
+  reservedAdmin?: boolean;
+}): { statusKey: string; label: string; className: string } {
+  const statusKey = tree.reservedAdmin
+    ? "RESERVED_ADMIN"
+    : tree.frozen
+      ? "FROZEN"
+      : tree.status;
+  const meta = TREE_STATUS[statusKey] ?? TREE_STATUS.AVAILABLE;
+  return { statusKey, ...meta };
+}

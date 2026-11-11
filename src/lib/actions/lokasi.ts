@@ -149,6 +149,37 @@ export async function toggleLokasiAktif(formData: FormData) {
   redirect("/admin/lokasi?saved=1");
 }
 
+// Bekukan / aktifkan semua pohon tersedia di satu desa (menu Data Lokasi).
+// Pohon tetap tampil di daftar publik tetapi tidak bisa diadopsi.
+export async function toggleLokasiBeku(formData: FormData) {
+  await requireAdminLevel();
+  const desa = String(formData.get("desa") ?? "").trim();
+  const beku = String(formData.get("beku") ?? "") === "yes" ? "yes" : "no";
+  if (!desa) redirect("/admin/lokasi?error=Nama+desa+tidak+ditemukan");
+
+  let jumlah = 0;
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string; jumlah?: number }>(
+      "bekukandesa",
+      { desa, beku },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(
+        `/admin/lokasi?error=${encodeURIComponent(res.pesan ?? "Gagal mengubah status beku desa.")}`,
+      );
+    }
+    jumlah = Number(res.jumlah) || 0;
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/lokasi?error=Gagal+mengubah+status+beku+desa");
+  }
+
+  revalidatePath("/admin/lokasi");
+  revalidatePath("/pohon");
+  revalidatePath("/lokasi");
+  redirect(`/admin/lokasi?beku=${beku === "yes" ? "1" : "0"}&jumlah=${jumlah}`);
+}
+
 export async function hapusLokasi(formData: FormData) {
   await requireAdminLevel();
   const id = Number(formData.get("id"));

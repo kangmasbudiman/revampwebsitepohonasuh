@@ -3,13 +3,14 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowDown, ArrowDownUp, ArrowUp, ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react";
-import type { ApiTree, TreeStatus } from "@/lib/api";
-import { namaDesa, rupiah, TREE_STATUS } from "@/lib/format";
+import { ArrowDown, ArrowDownUp, ArrowUp, ChevronLeft, ChevronRight, RotateCcw, Search, Snowflake, Sun, X } from "lucide-react";
+import type { ApiTree } from "@/lib/api";
+import { namaDesa, rupiah, tampilanStatusTree } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import RowsPerPage from "@/components/admin/rows-per-page";
-import { deleteTree, setTreeUnggulan, removeTreeUnggulan } from "@/lib/actions/tree";
+import ReserveTreeButton from "@/components/admin/reserve-tree-button";
+import { deleteTree, setTreeUnggulan, removeTreeUnggulan, toggleTreeFrozen, cancelReserveTree } from "@/lib/actions/tree";
 
 
 const selectClass =
@@ -36,7 +37,10 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
     const needle = q.trim().toLowerCase();
     return trees.filter((t) => {
       if (desa !== "semua" && t.desa !== desa) return false;
-      if (status !== "semua" && t.status !== (status as TreeStatus)) return false;
+      if (status !== "semua") {
+        const eff = t.reservedAdmin ? "RESERVED_ADMIN" : t.frozen ? "FROZEN" : t.status;
+        if (eff !== status) return false;
+      }
       if (unggulan === "unggulan" && t.highlight !== 1) return false;
       if (unggulan === "biasa" && t.highlight === 1) return false;
       if (!needle) return true;
@@ -112,6 +116,8 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
           <option value="AVAILABLE">Tersedia</option>
           <option value="RESERVED">Dipesan</option>
           <option value="ADOPTED">Teradopsi</option>
+          <option value="RESERVED_ADMIN">Dipesan Admin</option>
+          <option value="FROZEN">Dibekukan</option>
         </select>
         <div className="flex gap-1.5" role="group" aria-label="Filter unggulan">
           {(
@@ -225,12 +231,12 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                   </p>
                 </td>
                 <td className="px-4 py-3">
-                  <StatusBadge
-                    {...(TREE_STATUS[tree.status] ?? {
-                      label: tree.status,
-                      className: "bg-zinc-100 text-zinc-600 dark:text-zinc-300",
-                    })}
-                  />
+                  <StatusBadge {...tampilanStatusTree(tree)} />
+                  {tree.reservedAdmin && tree.reservedName && (
+                    <p className="mt-1 max-w-[160px] truncate text-xs text-violet-700 dark:text-violet-300">
+                      untuk {tree.reservedName}
+                    </p>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-center">
                   {tree.highlight === 1 ? (
@@ -249,10 +255,10 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                       <input type="hidden" name="id" value={tree.id} />
                       <button
                         type="submit"
-                        disabled={tree.status !== "AVAILABLE"}
+                        disabled={tree.status !== "AVAILABLE" || tree.frozen || tree.reservedAdmin}
                         title={
-                          tree.status !== "AVAILABLE"
-                            ? "Hanya pohon berstatus tersedia yang bisa diunggulkan"
+                          tree.status !== "AVAILABLE" || tree.frozen || tree.reservedAdmin
+                            ? "Hanya pohon tersedia (tidak beku/dipesan admin) yang bisa diunggulkan"
                             : "Tampilkan pohon ini di beranda"
                         }
                         className="rounded-full border border-emerald-200 dark:border-night-700 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-emerald-300 dark:hover:bg-night-800"
@@ -266,7 +272,44 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                   {rupiah(tree.priceIdr)}
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {tree.reservedAdmin ? (
+                      <form action={cancelReserveTree}>
+                        <input type="hidden" name="idpohon" value={tree.code} />
+                        <ConfirmSubmit
+                          message={`Batalkan pesanan pohon ${tree.code}${tree.reservedName ? ` untuk ${tree.reservedName}` : ""}? Pohon akan kembali tersedia untuk umum.`}
+                          className="inline-flex items-center gap-1 rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-night-700 dark:text-zinc-300 dark:hover:bg-night-800"
+                        >
+                          <X aria-hidden className="h-3.5 w-3.5" /> Batalkan Pesanan
+                        </ConfirmSubmit>
+                      </form>
+                    ) : tree.status === "AVAILABLE" && !tree.frozen ? (
+                      <ReserveTreeButton code={tree.code} localName={tree.localName} />
+                    ) : null}
+
+                    {tree.status === "AVAILABLE" && (
+                      <form action={toggleTreeFrozen}>
+                        <input type="hidden" name="idpohon" value={tree.code} />
+                        <input type="hidden" name="beku" value={tree.frozen ? "no" : "yes"} />
+                        {tree.frozen ? (
+                          <button
+                            type="submit"
+                            title="Aktifkan kembali — pohon bisa diadopsi"
+                            className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+                          >
+                            <Sun aria-hidden className="h-3.5 w-3.5" /> Aktifkan
+                          </button>
+                        ) : (
+                          <ConfirmSubmit
+                            message={`Bekukan pohon ${tree.code}? Pohon tetap tampil di daftar publik tetapi tidak bisa diadopsi.`}
+                            className="inline-flex items-center gap-1 rounded-lg border border-sky-200 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-900 dark:text-sky-300 dark:hover:bg-night-800"
+                          >
+                            <Snowflake aria-hidden className="h-3.5 w-3.5" /> Bekukan
+                          </ConfirmSubmit>
+                        )}
+                      </form>
+                    )}
+
                     <Link
                       href={`/admin/pohon/${encodeURIComponent(tree.code)}`}
                       className="rounded-lg border border-emerald-200 dark:border-night-700 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:hover:bg-night-800"
