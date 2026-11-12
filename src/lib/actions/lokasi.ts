@@ -160,9 +160,10 @@ export async function toggleLokasiBeku(formData: FormData) {
   const d = new Date();
   d.setDate(d.getDate() + hari);
   const sampai = hari > 0 ? d.toISOString().slice(0, 10) : "";
-  if (!desa) redirect("/admin/lokasi?error=Nama+desa+tidak+ditemukan");
+  const balik = String(formData.get("balik") ?? "/admin/lokasi");
+  if (!desa) redirect(`${balik}?error=Nama+desa+tidak+ditemukan`);
   if (beku === "yes" && !alasan) {
-    redirect(`/admin/lokasi?error=${encodeURIComponent("Alasan pembekuan wajib diisi.")}`);
+    redirect(`${balik}?error=${encodeURIComponent("Alasan pembekuan wajib diisi.")}`);
   }
 
   let jumlah = 0;
@@ -173,20 +174,20 @@ export async function toggleLokasiBeku(formData: FormData) {
     );
     if (Number(res.value) !== 200) {
       redirect(
-        `/admin/lokasi?error=${encodeURIComponent(res.pesan ?? "Gagal mengubah status beku desa.")}`,
+        `${balik}?error=${encodeURIComponent(res.pesan ?? "Gagal mengubah status beku desa.")}`,
       );
     }
     jumlah = Number(res.jumlah) || 0;
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect("/admin/lokasi?error=Gagal+mengubah+status+beku+desa");
+    redirect(`${balik}?error=Gagal+mengubah+status+beku+desa`);
   }
 
   revalidatePath("/admin/lokasi");
   revalidatePath("/admin/pohon/beku");
   revalidatePath("/pohon");
   revalidatePath("/lokasi");
-  redirect(`/admin/lokasi?beku=${beku === "yes" ? "1" : "0"}&jumlah=${jumlah}`);
+  redirect(`${balik}?beku=${beku === "yes" ? "1" : "0"}&jumlah=${jumlah}`);
 }
 
 export async function hapusLokasi(formData: FormData) {
