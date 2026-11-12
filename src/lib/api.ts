@@ -43,6 +43,26 @@ export async function apiPost<T>(
   });
 }
 
+// POST yang tetap mengembalikan JSON meski status bukan 2xx — beberapa
+// endpoint admin mengirim HTTP 400/403/409 dengan pesan di body JSON.
+export async function apiPostAny<T>(
+  path: string,
+  data: Record<string, string | number | null | undefined>,
+  headers?: Record<string, string>,
+): Promise<T> {
+  const body = new URLSearchParams();
+  for (const [k, v] of Object.entries(data)) {
+    if (v !== null && v !== undefined) body.set(k, String(v));
+  }
+  const res = await fetch(`${BASE}/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", ...headers },
+    body,
+    cache: "no-store",
+  });
+  return (await res.json()) as T;
+}
+
 // Unduh respons biner dari API (mis. file backup .sql.gz).
 export async function apiFetchBinary(
   path: string,

@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdminLevel } from "@/lib/guard";
-import { apiPost, apiPostForm } from "@/lib/api";
+import { apiPost, apiPostAny, apiPostForm } from "@/lib/api";
 import type { AdminState } from "@/lib/actions/admin";
 
 export async function updateTree(_prev: AdminState, formData: FormData): Promise<AdminState> {
@@ -145,7 +145,7 @@ export async function freezeTrees(formData: FormData) {
   let jumlah = 0;
   let dilewati = 0;
   try {
-    const res = await apiPost<{
+    const res = await apiPostAny<{
       value?: string | number;
       pesan?: string;
       jumlah?: number;
@@ -188,7 +188,7 @@ export async function unfreezeTrees(formData: FormData) {
 
   let jumlah = 0;
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string; jumlah?: number }>(
+    const res = await apiPostAny<{ value?: string | number; pesan?: string; jumlah?: number }>(
       "bekukanpohonbanyak",
       { idpohon: codes.join(","), beku: "no" },
     );

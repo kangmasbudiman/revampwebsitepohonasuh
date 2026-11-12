@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/guard";
-import { apiPost } from "@/lib/api";
+import { apiPostAny } from "@/lib/api";
 
 const BALIK = "/admin/pohon/beku";
 
@@ -28,7 +28,7 @@ export async function ajukanPembekuan(formData: FormData) {
   }
 
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>("ajukanbeku", {
+    const res = await apiPostAny<{ value?: string | number; pesan?: string }>("ajukanbeku", {
       idmember: session.userId,
       tipe,
       desa,
@@ -62,7 +62,7 @@ export async function prosesPengajuan(formData: FormData) {
 
   let jumlah = 0;
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string; jumlah?: number }>(
+    const res = await apiPostAny<{ value?: string | number; pesan?: string; jumlah?: number }>(
       aksi === "tolak" ? "tolakbeku" : "setujuibeku",
       { idadmin: session.userId, id, catatan },
     );

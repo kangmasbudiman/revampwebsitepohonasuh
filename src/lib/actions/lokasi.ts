@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdminLevel } from "@/lib/guard";
-import { apiPost, apiPostForm } from "@/lib/api";
+import { apiPost, apiPostAny, apiPostForm } from "@/lib/api";
 import { MAX_UPLOAD_BYTES } from "@/lib/file-guard";
 import type { AdminState } from "@/lib/actions/admin";
 
@@ -168,7 +168,7 @@ export async function toggleLokasiBeku(formData: FormData) {
 
   let jumlah = 0;
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string; jumlah?: number }>(
+    const res = await apiPostAny<{ value?: string | number; pesan?: string; jumlah?: number }>(
       "bekukandesa",
       { desa, beku, alasan, sampai },
     );
