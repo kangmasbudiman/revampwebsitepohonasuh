@@ -5,20 +5,13 @@ import { useActionState } from "react";
 import { tambahLokasi, updateLokasi } from "@/lib/actions/lokasi";
 import FileInput from "@/components/file-input";
 import { apiAssetUrl, type ApiLokasi } from "@/lib/api";
+import { SKEMA_PILIHAN } from "@/lib/skema";
 import type { AdminState } from "@/lib/actions/admin";
 
 const inputClass =
   "mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40";
 
 const labelClass = "block text-sm font-medium text-zinc-700 dark:text-zinc-200";
-
-const SKEMA = [
-  "Hutan Adat/HA",
-  "Hutan Desa (Village Forest)",
-  "Hutan Kemasyarakatan",
-  "Customary Forest/HA",
-  "Village Forest",
-];
 
 export default function LokasiForm({ lokasi }: { lokasi?: ApiLokasi }) {
   const edit = Boolean(lokasi);
@@ -101,7 +94,7 @@ export default function LokasiForm({ lokasi }: { lokasi?: ApiLokasi }) {
             className={inputClass}
           />
           <datalist id="lokasi-skema">
-            {SKEMA.map((s) => (
+            {SKEMA_PILIHAN.map((s) => (
               <option key={s} value={s} />
             ))}
           </datalist>

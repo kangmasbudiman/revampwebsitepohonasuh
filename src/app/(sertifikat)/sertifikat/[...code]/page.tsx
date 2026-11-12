@@ -8,6 +8,7 @@ import { apiGet, mapTemplatesertifikatList, type ApiTemplateSertifikat } from "@
 import { getSession } from "@/lib/auth";
 import { getDict } from "@/lib/i18n";
 import { sebutanDesa } from "@/lib/format";
+import { skemaSertifikat } from "@/lib/skema";
 import CertificateName from "@/components/sertifikat/certificate-name";
 import PrintButton from "@/components/sertifikat/print-button";
 import CertNameForm from "@/components/cert-name-form";
@@ -66,17 +67,9 @@ export async function generateMetadata() {
   return { title: (await getDict()).sertifikat.title };
 }
 
-// Terjemahan istilah skema baku dari master data lokasi untuk versi Indonesia.
-// Nilai lain (di luar daftar) ditampilkan apa adanya seperti yang diinput admin.
-const SKEMA_ID: Record<string, string> = {
-  "village forest": "Hutan Desa",
-  "nagari forest": "Hutan Nagari",
-  "customary forest/ha": "Hutan Adat/HA",
-  "hutan desa": "Hutan Desa",
-  "hutan nagari": "Hutan Nagari",
-  "hutan adat/ha": "Hutan Adat/HA",
-};
-
+// Terjemahan istilah skema memakai pemetaan bilingual dinamis di
+// src/lib/skema.ts (nilai baku diterjemahkan sesuai bahasa lembar; nilai
+// bebas tampil apa adanya).
 const titleCase = (s: string) =>
   s
     .trim()
@@ -161,17 +154,16 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
   const desaTampil = s.desa_label || s.desa || "";
   // Sumatera Barat: unitnya Nagari — hanya dipakai sebagai fallback bila
   // master data lokasi belum mengisi kolom Skema/Institusi.
-  const nagari = sebutanDesa(s.provinsi) === "Nagari";
   // Skema hutan diambil dari master data lokasi (menu Data Lokasi → kolom
-  // "Skema / Institusi"), jadi ikut berubah bila admin memperbaruinya.
-  const skema = (s.desa_skema ?? "").trim();
-  const skemaId = SKEMA_ID[skema.toLowerCase()] ?? skema;
+  // "Skema / Institusi"), diterjemahkan sesuai bahasa lembar secara dinamis.
+  const nagari = sebutanDesa(s.provinsi) === "Nagari";
+  const skema = skemaSertifikat(s.desa_skema, lang, nagari);
   // Baris lokasi dipecah 3 baris di sertifikat: (1) desa + skema hutan,
   // (2) kecamatan/kabupaten/provinsi, (3) periode adopsi.
   const lokasiSkema = desaTampil
     ? lang === "id"
-      ? `${skemaId || `Hutan ${nagari ? "Nagari" : "Desa"}`} ${titleCase(desaTampil)}`
-      : `${titleCase(desaTampil)} ${skema || (nagari ? "Nagari" : "Village") + " Forest"}`
+      ? `${skema} ${titleCase(desaTampil)}`
+      : `${titleCase(desaTampil)} ${skema}`
     : "";
   const lokasiWilayah = (
     lang === "id"
