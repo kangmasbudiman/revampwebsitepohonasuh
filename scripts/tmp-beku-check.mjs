@@ -48,9 +48,14 @@ try {
   await page.goto(`${BASE}/admin/pohon/beku`, { waitUntil: "networkidle" });
 
   // ---- Mode pohon: A168, alasan, sementara 7 hari ----
+  await page.getByLabel("Lokasi desa").selectOption("semua");
   await page.getByPlaceholder("Cari kode / nama pohon…").fill("A168");
-  await page.getByRole("checkbox", { name: /A168/ }).first().check();
+  const cb = page.getByRole("checkbox", { name: /A168/ }).first();
+  await cb.check();
+  console.log("dbg checked:", await cb.isChecked());
+  console.log("dbg hidden:", await page.locator('input[type=hidden][name="idpohon"]').count());
   await page.getByLabel("Alasan pembekuan").fill("Uji UI sementara");
+  console.log("dbg hidden2:", await page.locator('input[type=hidden][name="idpohon"]').count());
   await page.getByLabel("Berlaku").selectOption("7");
   await page.getByRole("button", { name: /Konfirmasi Pembekuan/i }).click();
   await page.waitForURL(/beku=1/, { timeout: 30000 });

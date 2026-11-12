@@ -95,6 +95,8 @@ export default function PembekuanPanel({
         className="mt-4 grid gap-4 md:grid-cols-2"
       >
         <input type="hidden" name="balik" value="/admin/pohon/beku" />
+        {mode === "pohon" &&
+          [...terpilih].map((c) => <input key={c} type="hidden" name="idpohon" value={c} />)}
         {mode === "desa" && (
           <>
             <input type="hidden" name="desa" value={desa} />
