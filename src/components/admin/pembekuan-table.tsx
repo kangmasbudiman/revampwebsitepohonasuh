@@ -18,7 +18,10 @@ export default function PembekuanTable({
   bisaBuka?: boolean;
 }) {
   const [q, setQ] = useState("");
+  const [hal, setHal] = useState(1);
   const [terpilih, setTerpilih] = useState<Set<string>>(new Set());
+
+  const PER_HAL = 20;
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -31,6 +34,19 @@ export default function PembekuanTable({
         (t.frozenReason?.toLowerCase().includes(needle) ?? false),
     );
   }, [frozen, q]);
+
+  // Paginasi klien: 20 baris per halaman agar tak scroll panjang.
+  const totalHal = Math.max(1, Math.ceil(filtered.length / PER_HAL));
+  const halAman = Math.min(hal, totalHal);
+  const mulai = (halAman - 1) * PER_HAL;
+  const barisHalaman = filtered.slice(mulai, mulai + PER_HAL);
+
+  // Nomor halaman tampil: maks 5 tombol dengan jendela di sekitar halaman aktif.
+  const nomorHalaman = useMemo(() => {
+    if (totalHal <= 5) return Array.from({ length: totalHal }, (_, i) => i + 1);
+    const awal = Math.max(1, Math.min(halAman - 2, totalHal - 4));
+    return Array.from({ length: 5 }, (_, i) => awal + i);
+  }, [totalHal, halAman]);
 
   const semuaTerpilih = filtered.length > 0 && filtered.every((t) => terpilih.has(t.code));
 
@@ -79,7 +95,10 @@ export default function PembekuanTable({
         <Search className="pointer-events-none absolute top-2.5 left-3 h-4 w-4 text-zinc-400" />
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setHal(1);
+          }}
           aria-label="Cari pohon dibekukan"
           placeholder="Cari kode / nama / desa / alasan…"
           className="w-full rounded-xl border border-zinc-200 bg-white py-2 pr-3 pl-9 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
@@ -111,7 +130,7 @@ export default function PembekuanTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-              {filtered.map((t) => (
+              {barisHalaman.map((t) => (
                 <tr key={t.code} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                   {bisaBuka && (
                     <td className="px-4 py-3">
@@ -170,6 +189,48 @@ export default function PembekuanTable({
           </table>
         </div>
       </div>
+
+      {totalHal > 1 && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Menampilkan {mulai + 1}–{Math.min(mulai + PER_HAL, filtered.length)} dari{" "}
+            {filtered.length} pohon
+          </p>
+          <nav className="flex items-center gap-1" aria-label="Paginasi tabel dibekukan">
+            <button
+              type="button"
+              onClick={() => setHal(halAman - 1)}
+              disabled={halAman <= 1}
+              className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+            >
+              ‹ Sebelumnya
+            </button>
+            {nomorHalaman.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setHal(n)}
+                aria-current={n === halAman ? "page" : undefined}
+                className={`min-w-8 rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors ${
+                  n === halAman
+                    ? "pa-btn-primary text-white"
+                    : "border border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setHal(halAman + 1)}
+              disabled={halAman >= totalHal}
+              className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+            >
+              Berikutnya ›
+            </button>
+          </nav>
+        </div>
+      )}
     </div>
   );
 }

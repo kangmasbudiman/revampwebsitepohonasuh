@@ -100,8 +100,18 @@ const PETUGAS_HREFS = new Set([
 ]);
 const ALL_ITEMS: Item[] = GROUPS.flatMap((g) => g.items);
 
+// Item aktif = pencocokan pathname TERPANJANG di antara semua menu, agar
+// /admin/pohon/beku tidak ikut menyalakan /admin/pohon (dan sebaliknya
+// halaman detail /admin/pohon/[id] tetap menyalakan /admin/pohon).
 const isActive = (href: string, pathname: string) =>
   href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+
+const hrefAktif = (pathname: string) => {
+  const cocok = ALL_ITEMS.filter((i) => isActive(i.href, pathname));
+  if (cocok.length === 0) return null;
+  // pilih href terpanjang (paling spesifik)
+  return cocok.reduce((a, b) => (b.href.length > a.href.length ? b : a)).href;
+};
 
 // Chip ikon menu: kotak kecil rounded agar tiap baris menu punya jangkar
 // visual sendiri — sidebar selalu gelap jadi warnanya fixed.
@@ -163,10 +173,11 @@ export default function AdminNav({
   taggingMenunggu?: number;
 }) {
   const pathname = usePathname();
+  const aktif = hrefAktif(pathname);
   // Grup yang memuat halaman aktif terbuka secara bawaan; sisanya collapsed.
   const [open, setOpen] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(
-      GROUPS.map((g) => [g.title, g.items.some((i) => isActive(i.href, pathname))]),
+      GROUPS.map((g) => [g.title, g.items.some((i) => i.href === aktif)]),
     ),
   );
 
@@ -177,9 +188,9 @@ export default function AdminNav({
           <Link
             key={item.href}
             href={item.href}
-            className={itemCls(isActive(item.href, pathname))}
+            className={itemCls(item.href === aktif)}
           >
-            <NavIcon item={item} active={isActive(item.href, pathname)} />
+            <NavIcon item={item} active={item.href === aktif} />
             {item.label}
           </Link>
         ))}
@@ -210,7 +221,7 @@ export default function AdminNav({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={itemCls(isActive(item.href, pathname))}
+                    className={itemCls(item.href === aktif)}
                   >
                     <NavIcon item={item} active={isActive(item.href, pathname)} />
                     {item.label}
@@ -272,6 +283,7 @@ export function AdminNavMobile({
   taggingMenunggu?: number;
 }) {
   const pathname = usePathname();
+  const aktifMobile = hrefAktif(pathname);
 
   const items = level === 2 ? ALL_ITEMS.filter((i) => PETUGAS_HREFS.has(i.href)) : ALL_ITEMS;
 
@@ -290,7 +302,7 @@ export function AdminNavMobile({
             key={item.href}
             href={item.href}
             className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium ${
-              isActive(item.href, pathname)
+              item.href === aktifMobile
                 ? "pa-btn-primary text-white"
                 : "text-emerald-800 hover:bg-emerald-50 dark:text-emerald-100 dark:hover:bg-night-800"
             }`}

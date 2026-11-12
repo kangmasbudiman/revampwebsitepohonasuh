@@ -121,9 +121,10 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
 
       {adminUtama ? (
         <>
+          {/* Permintaan dari pengelola desa di bagian atas agar cepat terlihat */}
+          <PengajuanTable key={spKey} rows={pengajuan} peran="admin" />
           <PembekuanPanel desas={namaDesaList} tersedia={tersedia} />
           <PembekuanTable frozen={frozen} />
-          <PengajuanTable key={spKey} rows={pengajuan} peran="admin" />
         </>
       ) : (
         <>
