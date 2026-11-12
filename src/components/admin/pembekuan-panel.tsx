@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search, Snowflake } from "lucide-react";
 import { freezeTrees } from "@/lib/actions/tree";
 import { toggleLokasiBeku } from "@/lib/actions/lokasi";
+import SubmitButton from "@/components/admin/submit-button";
 
 type TreePilihan = {
   code: string;
@@ -213,8 +214,9 @@ export default function PembekuanPanel({
         </div>
 
         <div className="md:col-span-2 flex justify-end">
-          <button
-            type="submit"
+          <SubmitButton
+            icon={Snowflake}
+            pendingLabel="Membekukan pohon…"
             disabled={mode === "pohon" && terpilih.size === 0}
             title={
               mode === "pohon" && terpilih.size === 0
@@ -223,9 +225,8 @@ export default function PembekuanPanel({
             }
             className="pa-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <Snowflake aria-hidden className="h-4 w-4" />
             Konfirmasi Pembekuan
-          </button>
+          </SubmitButton>
         </div>
       </form>
     </div>

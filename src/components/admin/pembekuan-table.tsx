@@ -6,6 +6,7 @@ import type { ApiTree } from "@/lib/api";
 import { namaDesa, tampilanStatusTree } from "@/lib/format";
 import StatusBadge from "@/components/status-badge";
 import { unfreezeTrees } from "@/lib/actions/tree";
+import SubmitButton from "@/components/admin/submit-button";
 
 // Daftar pohon yang sedang dibekukan + pembukaan pembekuan (satu / beberapa).
 // Untuk pengelola desa (bisaBuka=false) tabel hanya menampilkan status.
@@ -63,13 +64,13 @@ export default function PembekuanTable({
             {[...terpilih].map((c) => (
               <input key={c} type="hidden" name="idpohon" value={c} />
             ))}
-            <button
-              type="submit"
-              className="pa-btn-primary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
-            >
-              <Sun aria-hidden className="h-4 w-4" />
-              Buka Pembekuan ({terpilih.size})
-            </button>
+          <SubmitButton
+            icon={Sun}
+            pendingLabel="Membuka pembekuan…"
+            className="pa-btn-primary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+          >
+            Buka Pembekuan ({terpilih.size})
+          </SubmitButton>
           </form>
         )}
       </div>
@@ -142,12 +143,13 @@ export default function PembekuanTable({
                       <form action={unfreezeTrees}>
                         <input type="hidden" name="idpohon" value={t.code} />
                         <input type="hidden" name="balik" value="/admin/pohon/beku" />
-                        <button
-                          type="submit"
+                        <SubmitButton
+                          icon={Sun}
+                          pendingLabel="Memproses…"
                           className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
                         >
                           Buka Pembekuan
-                        </button>
+                        </SubmitButton>
                       </form>
                     ) : (
                       <span className="text-xs text-zinc-400 dark:text-zinc-500">menunggu admin</span>

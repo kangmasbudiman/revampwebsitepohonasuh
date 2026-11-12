@@ -11,6 +11,7 @@ import ConfirmSubmit from "@/components/admin/confirm-submit";
 import RowsPerPage from "@/components/admin/rows-per-page";
 import ReserveTreeButton from "@/components/admin/reserve-tree-button";
 import FreezeButton from "@/components/admin/freeze-button";
+import SubmitButton from "@/components/admin/submit-button";
 import { deleteTree, setTreeUnggulan, removeTreeUnggulan, unfreezeTrees, cancelReserveTree } from "@/lib/actions/tree";
 
 
@@ -303,13 +304,14 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                         <form action={unfreezeTrees}>
                           <input type="hidden" name="idpohon" value={tree.code} />
                           <input type="hidden" name="balik" value="/admin/pohon" />
-                          <button
-                            type="submit"
+                          <SubmitButton
+                            icon={Sun}
+                            pendingLabel="Memproses…"
                             title="Buka pembekuan — pohon kembali bisa diadopsi"
                             className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
                           >
-                            <Sun aria-hidden className="h-3.5 w-3.5" /> Aktifkan
-                          </button>
+                            Aktifkan
+                          </SubmitButton>
                         </form>
                       ) : (
                         <FreezeButton

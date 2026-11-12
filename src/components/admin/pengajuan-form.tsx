@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search, Send } from "lucide-react";
 import { ajukanPembekuan } from "@/lib/actions/pembekuan";
+import SubmitButton from "@/components/admin/submit-button";
 
 type TreePilihan = {
   code: string;
@@ -217,8 +218,9 @@ export default function PengajuanForm({
         </div>
 
         <div className="md:col-span-2 flex justify-end">
-          <button
-            type="submit"
+          <SubmitButton
+            icon={Send}
+            pendingLabel="Mengirim pengajuan…"
             disabled={mode === "pohon" && terpilih.size === 0}
             title={
               mode === "pohon" && terpilih.size === 0
@@ -227,9 +229,8 @@ export default function PengajuanForm({
             }
             className="pa-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <Send aria-hidden className="h-4 w-4" />
             Kirim Pengajuan
-          </button>
+          </SubmitButton>
         </div>
       </form>
     </div>

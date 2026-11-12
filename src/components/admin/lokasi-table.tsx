@@ -7,6 +7,7 @@ import type { ApiLokasi, ApiPetaPohon } from "@/lib/api";
 import { namaDesa } from "@/lib/format";
 import { hapusLokasi, toggleLokasiAktif, toggleLokasiBeku } from "@/lib/actions/lokasi";
 import FreezeButton from "@/components/admin/freeze-button";
+import SubmitButton from "@/components/admin/submit-button";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import LokasiForm from "@/components/admin/lokasi-form";
 import LokasiPetaLoader from "@/components/admin/lokasi-peta-loader";
@@ -166,13 +167,14 @@ export default function LokasiTable({
                         <form action={toggleLokasiBeku} className="mr-1 inline">
                           <input type="hidden" name="desa" value={l.nama} />
                           <input type="hidden" name="beku" value="no" />
-                          <button
-                            type="submit"
+                          <SubmitButton
+                            icon={Sun}
+                            pendingLabel="Memproses…"
                             title={`Buka pembekuan ${beku} pohon di lokasi ini`}
                             className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
                           >
-                            <Sun className="h-3.5 w-3.5" /> Aktifkan ({beku})
-                          </button>
+                            Aktifkan ({beku})
+                          </SubmitButton>
                         </form>
                       ) : (
                         <FreezeButton

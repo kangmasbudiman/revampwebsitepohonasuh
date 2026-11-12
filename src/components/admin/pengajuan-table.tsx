@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, ThumbsDown } from "lucide-react";
 import type { ApiPengajuanBeku } from "@/lib/api";
 import { prosesPengajuan } from "@/lib/actions/pembekuan";
+import SubmitButton from "@/components/admin/submit-button";
 
 const STATUS: Record<ApiPengajuanBeku["status"], { label: string; cls: string }> = {
   menunggu: {
@@ -81,13 +82,14 @@ export default function PengajuanTable({
               <form action={prosesPengajuan}>
                 <input type="hidden" name="id" value={p.id} />
                 <input type="hidden" name="aksi" value="setuju" />
-                <button
-                  type="submit"
+                <SubmitButton
+                  icon={Check}
+                  pendingLabel="Memproses…"
                   title="Setujui — pembekuan langsung dijalankan"
                   className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
                 >
-                  <Check aria-hidden className="h-3.5 w-3.5" /> Setujui
-                </button>
+                  Setujui
+                </SubmitButton>
               </form>
               <button
                 type="button"
@@ -196,7 +198,6 @@ export default function PengajuanTable({
             </p>
             <form
               action={prosesPengajuan}
-              onSubmit={() => setTolak(null)}
               className="mt-4"
             >
               <input type="hidden" name="id" value={tolak.id} />
@@ -219,12 +220,12 @@ export default function PengajuanTable({
                 >
                   Batal
                 </button>
-                <button
-                  type="submit"
+                <SubmitButton
+                  pendingLabel="Menolak…"
                   className="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700"
                 >
                   Tolak Pengajuan
-                </button>
+                </SubmitButton>
               </div>
             </form>
           </div>

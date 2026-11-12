@@ -1,13 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { freezeTrees } from "@/lib/actions/tree";
 import { toggleLokasiBeku } from "@/lib/actions/lokasi";
+import SubmitButton from "@/components/admin/submit-button";
 
 // Tombol pembekuan dengan modal "Konfirmasi Pembekuan": alasan (wajib) +
 // durasi (manual atau preset 7/30/90 hari). Target bisa daftar kode pohon
 // ATAU satu desa (semua pohon tersedia di desa itu).
-export default function FreezeButton({
+// Modal tetap terbuka selama proses (spinner pada tombol submit); setelah
+// server action me-redirect, wrapper me-remount inner (key = searchParams)
+// sehingga modal tertutup otomatis dengan state segar.
+export default function FreezeButton(props: React.ComponentProps<typeof FreezeButtonInner>) {
+  const searchParams = useSearchParams();
+  return <FreezeButtonInner key={searchParams.toString()} {...props} />;
+}
+
+function FreezeButtonInner({
   codes,
   desa,
   children,
@@ -58,7 +68,6 @@ export default function FreezeButton({
 
             <form
               action={desa ? toggleLokasiBeku : freezeTrees}
-              onSubmit={() => setTimeout(() => setOpen(false), 100)}
               className="mt-4"
             >
               {desa ? (
@@ -116,12 +125,12 @@ export default function FreezeButton({
                 >
                   Batal
                 </button>
-                <button
-                  type="submit"
+                <SubmitButton
+                  pendingLabel="Membekukan…"
                   className="pa-btn-primary rounded-xl px-4 py-2 text-sm font-semibold text-white"
                 >
                   Konfirmasi Pembekuan
-                </button>
+                </SubmitButton>
               </div>
             </form>
           </div>

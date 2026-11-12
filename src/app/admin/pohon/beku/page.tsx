@@ -30,6 +30,9 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
   const session = await requireAdmin();
   const adminUtama = (session.level ?? 1) === 1;
   const searchParams = await props.searchParams;
+  // Kunci remount: setelah server action me-redirect (param berubah),
+  // tabel pengajuan dibuat ulang sehingga modal Tolak tertutup otomatis.
+  const spKey = JSON.stringify(searchParams);
 
   let trees: ApiTree[] = [];
   let desas: ApiDesa[] = [];
@@ -120,13 +123,13 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
         <>
           <PembekuanPanel desas={namaDesaList} tersedia={tersedia} />
           <PembekuanTable frozen={frozen} />
-          <PengajuanTable rows={pengajuan} peran="admin" />
+          <PengajuanTable key={spKey} rows={pengajuan} peran="admin" />
         </>
       ) : (
         <>
           <PengajuanForm desas={namaDesaList} tersedia={tersedia} />
           <PembekuanTable frozen={frozen} bisaBuka={false} />
-          <PengajuanTable rows={pengajuan} peran="pengelola" />
+          <PengajuanTable key={spKey} rows={pengajuan} peran="pengelola" />
         </>
       )}
     </main>
