@@ -86,6 +86,40 @@ export default function TreeForm({
           </select>
         </div>
       </div>
+      <div className="grid gap-3 sm:grid-cols-4">
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">GPS Lintang</label>
+          <input
+            name="latitude"
+            type="number"
+            step="any"
+            min="-90"
+            max="90"
+            defaultValue={tree?.lat ?? ""}
+            className={inputClass}
+            placeholder="contoh: -0.54321"
+          />
+          <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+            Koordinat satelit (negatif = selatan)
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">GPS Bujur</label>
+          <input
+            name="longitude"
+            type="number"
+            step="any"
+            min="-180"
+            max="180"
+            defaultValue={tree?.lng ?? ""}
+            className={inputClass}
+            placeholder="contoh: 101.12345"
+          />
+          <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+            Koordinat satelit (positif = timur)
+          </p>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div>
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">Diameter (cm)</label>

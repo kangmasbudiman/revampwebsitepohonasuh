@@ -86,6 +86,8 @@ export async function createTree(_prev: AdminState, formData: FormData): Promise
     harga,
     diameter: Number.isNaN(diameter) || !diameter ? 0 : diameter,
     tinggi: Number.isNaN(heightM) || !heightM ? 0 : heightM,
+    latitude: formData.get("latitude") !== null ? Number(formData.get("latitude")) : 0,
+    longitude: formData.get("longitude") !== null ? Number(formData.get("longitude")) : 0,
     foto_pohon: photoUrl,
   };
 
