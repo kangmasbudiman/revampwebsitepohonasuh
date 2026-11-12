@@ -174,6 +174,7 @@ export default function PembekuanPanel({
                       <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-emerald-50/60 dark:hover:bg-night-800/60">
                         <input
                           type="checkbox"
+                          aria-label={`Pilih ${t.code}`}
                           checked={terpilih.has(t.code)}
                           onChange={() => toggle(t.code)}
                           className="h-4 w-4 rounded border-zinc-300 accent-emerald-600"
