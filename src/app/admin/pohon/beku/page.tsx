@@ -17,6 +17,9 @@ import PengajuanForm from "@/components/admin/pengajuan-form";
 import PengajuanTable from "@/components/admin/pengajuan-table";
 
 export const metadata = { title: "Admin — Pembekuan Pohon" };
+// Data pohon & pengajuan sering berubah lewat server action lain (setujui,
+// bekukan) — jangan pakai cache router agar tabel selalu segar.
+export const dynamic = "force-dynamic";
 
 // Menu "Pembekuan Pohon" untuk dua peran:
 // - Admin utama (level 1): membekukan langsung + menyetujui/menolak
