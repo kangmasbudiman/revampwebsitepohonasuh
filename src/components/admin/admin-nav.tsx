@@ -96,6 +96,7 @@ const PETUGAS_HREFS = new Set([
   "/admin/btor",
   "/admin/laporan",
   "/admin/peta",
+  "/admin/pohon/beku",
 ]);
 const ALL_ITEMS: Item[] = GROUPS.flatMap((g) => g.items);
 

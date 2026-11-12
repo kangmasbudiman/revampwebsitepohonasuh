@@ -266,6 +266,8 @@ export type ApiDesa = {
   donasi: number;
   donasiTahun: number;
   aktif: boolean;
+  // id member pengelola desa (kolom desa.admin_desa); null = belum ada.
+  adminDesaId: number | null;
 };
 
 export function slugify(s: string): string {
@@ -302,6 +304,45 @@ export function mapDesa(r: Record<string, unknown>): ApiDesa {
     donasi: Number(r.donasi) || 0,
     donasiTahun: Number(r.donasi_tahun) || 0,
     aktif: Number(r.aktif ?? 1) === 1,
+    adminDesaId: r.admin_desa_id ? Number(r.admin_desa_id) : null,
+  };
+}
+
+// Baris getpengajuanbeku → ApiPengajuanBeku (pengajuan pembekuan oleh
+// pengelola desa, menunggu persetujuan admin utama).
+export type ApiPengajuanBeku = {
+  id: number;
+  desa: string;
+  idpohon: string | null; // CSV kode pohon; null = seluruh desa
+  tipe: "pohon" | "desa";
+  alasan: string;
+  hari: number; // 0 = dibuka manual
+  status: "menunggu" | "disetujui" | "ditolak";
+  catatan: string | null;
+  namaPengaju: string | null;
+  namaProses: string | null;
+  createdAt: string | null;
+  processedAt: string | null;
+};
+
+export function mapPengajuanBeku(r: Record<string, unknown>): ApiPengajuanBeku {
+  const status = String(r.status ?? "menunggu");
+  return {
+    id: Number(r.id),
+    desa: String(r.desa ?? ""),
+    idpohon: r.idpohon ? String(r.idpohon) : null,
+    tipe: String(r.tipe ?? "pohon") === "desa" ? "desa" : "pohon",
+    alasan: String(r.alasan ?? ""),
+    hari: Number(r.hari) || 0,
+    status:
+      status === "disetujui" || status === "ditolak"
+        ? (status as ApiPengajuanBeku["status"])
+        : "menunggu",
+    catatan: r.catatan ? String(r.catatan) : null,
+    namaPengaju: r.nama_pengaju ? String(r.nama_pengaju) : null,
+    namaProses: r.nama_proses ? String(r.nama_proses) : null,
+    createdAt: r.created_at ? String(r.created_at) : null,
+    processedAt: r.processed_at ? String(r.processed_at) : null,
   };
 }
 

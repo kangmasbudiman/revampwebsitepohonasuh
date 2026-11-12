@@ -8,7 +8,14 @@ import StatusBadge from "@/components/status-badge";
 import { unfreezeTrees } from "@/lib/actions/tree";
 
 // Daftar pohon yang sedang dibekukan + pembukaan pembekuan (satu / beberapa).
-export default function PembekuanTable({ frozen }: { frozen: ApiTree[] }) {
+// Untuk pengelola desa (bisaBuka=false) tabel hanya menampilkan status.
+export default function PembekuanTable({
+  frozen,
+  bisaBuka = true,
+}: {
+  frozen: ApiTree[];
+  bisaBuka?: boolean;
+}) {
   const [q, setQ] = useState("");
   const [terpilih, setTerpilih] = useState<Set<string>>(new Set());
 
@@ -50,7 +57,7 @@ export default function PembekuanTable({ frozen }: { frozen: ApiTree[] }) {
         <h2 className="text-lg font-bold text-emerald-950 dark:text-zinc-100">
           Pohon Sedang Dibekukan ({frozen.length})
         </h2>
-        {terpilih.size > 0 && (
+        {bisaBuka && terpilih.size > 0 && (
           <form action={unfreezeTrees}>
             <input type="hidden" name="balik" value="/admin/pohon/beku" />
             {[...terpilih].map((c) => (
@@ -83,15 +90,17 @@ export default function PembekuanTable({ frozen }: { frozen: ApiTree[] }) {
           <table className="w-full min-w-[820px] text-left text-sm">
             <thead className="pa-thead border-b border-emerald-100 dark:border-night-700">
               <tr>
-                <th className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    aria-label="Pilih semua pohon dibekukan"
-                    checked={semuaTerpilih}
-                    onChange={pilihSemua}
-                    className="h-4 w-4 rounded border-zinc-300 accent-emerald-600"
-                  />
-                </th>
+                {bisaBuka && (
+                  <th className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      aria-label="Pilih semua pohon dibekukan"
+                      checked={semuaTerpilih}
+                      onChange={pilihSemua}
+                      className="h-4 w-4 rounded border-zinc-300 accent-emerald-600"
+                    />
+                  </th>
+                )}
                 <th className="px-4 py-3 font-semibold">Kode</th>
                 <th className="px-4 py-3 font-semibold">Pohon</th>
                 <th className="px-4 py-3 font-semibold">Lokasi</th>
@@ -103,15 +112,17 @@ export default function PembekuanTable({ frozen }: { frozen: ApiTree[] }) {
             <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
               {filtered.map((t) => (
                 <tr key={t.code} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      aria-label={`Pilih ${t.code}`}
-                      checked={terpilih.has(t.code)}
-                      onChange={() => toggle(t.code)}
-                      className="h-4 w-4 rounded border-zinc-300 accent-emerald-600"
-                    />
-                  </td>
+                  {bisaBuka && (
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        aria-label={`Pilih ${t.code}`}
+                        checked={terpilih.has(t.code)}
+                        onChange={() => toggle(t.code)}
+                        className="h-4 w-4 rounded border-zinc-300 accent-emerald-600"
+                      />
+                    </td>
+                  )}
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-emerald-900 dark:text-emerald-100">
                     {t.code}
                   </td>
@@ -127,22 +138,26 @@ export default function PembekuanTable({ frozen }: { frozen: ApiTree[] }) {
                     {t.frozenUntil ?? "Dibuka manual"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <form action={unfreezeTrees}>
-                      <input type="hidden" name="idpohon" value={t.code} />
-                      <input type="hidden" name="balik" value="/admin/pohon/beku" />
-                      <button
-                        type="submit"
-                        className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
-                      >
-                        Buka Pembekuan
-                      </button>
-                    </form>
+                    {bisaBuka ? (
+                      <form action={unfreezeTrees}>
+                        <input type="hidden" name="idpohon" value={t.code} />
+                        <input type="hidden" name="balik" value="/admin/pohon/beku" />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+                        >
+                          Buka Pembekuan
+                        </button>
+                      </form>
+                    ) : (
+                      <span className="text-xs text-zinc-400 dark:text-zinc-500">menunggu admin</span>
+                    )}
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-zinc-500 dark:text-zinc-400">
+                  <td colSpan={bisaBuka ? 7 : 5} className="px-4 py-10 text-center text-zinc-500 dark:text-zinc-400">
                     {frozen.length === 0
                       ? "Tidak ada pohon yang sedang dibekukan."
                       : "Tidak ada pohon yang cocok dengan pencarian."}
