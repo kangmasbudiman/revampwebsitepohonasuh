@@ -135,7 +135,7 @@ export const dict: Dict = {
     statusAvailable: "Available",
     statusReserved: "Reserved",
     statusAdopted: "Adopted",
-    statusFrozen: "Frozen",
+    statusFrozen: "Tree Frozen",
     statusReservedAdmin: "Reserved by Admin",
     frozenNote: "This tree is temporarily frozen — it is still visible but not yet adoptable.",
     reservedAdminNote: "This tree is reserved for a specific adopter and is not yet adoptable.",

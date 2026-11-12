@@ -162,6 +162,8 @@ export type ApiTree = {
   status: TreeStatus;
   // Dibekukan admin: tetap tampil di daftar publik tapi tidak bisa diadopsi.
   frozen: boolean;
+  frozenReason: string | null;
+  frozenUntil: string | null; // YYYY-MM-DD; null = dibuka manual
   // Dipesan admin ("Pesan Pohon"): reserved_admin=1, tidak bisa diadopsi
   // pengunjung dan bisa dibatalkan kembali ke tersedia.
   reservedAdmin: boolean;
@@ -201,6 +203,8 @@ export function mapTree(r: Record<string, unknown>): ApiTree {
     lng: num(r.longitude),
     status: TREE_STATUS_MAP[String(r.adopted ?? "")] ?? "ADOPTED",
     frozen: String(r.beku ?? "").toLowerCase() === "yes",
+    frozenReason: r.beku_alasan ? String(r.beku_alasan) : null,
+    frozenUntil: r.beku_sampai ? String(r.beku_sampai).slice(0, 10) : null,
     reservedAdmin: Number(r.reserved_admin ?? 0) === 1,
     reservedName: r.reserved_name ? String(r.reserved_name) : null,
     tglExp: r.tgl_exp ? String(r.tgl_exp) : null,

@@ -117,31 +117,94 @@ export async function removeTreeUnggulan(formData: FormData) {
 
 // ===== Pembekuan pohon & reservasi oleh admin =====
 
-// Bekukan / aktifkan satu pohon (kolom data_pohon.beku). Pohon beku tetap
-// tampil di daftar publik tetapi tidak bisa diadopsi.
-export async function toggleTreeFrozen(formData: FormData) {
-  await requireAdminLevel();
-  const code = String(formData.get("idpohon") ?? "").trim();
-  const beku = String(formData.get("beku") ?? "") === "yes" ? "yes" : "no";
-  if (!code) redirect("/admin/pohon?error=Pohon+tidak+ditemukan");
+// Tanggal berakhir pembekuan sementara (hari ke-0 = dibuka manual).
+function tanggalBekuSampai(hari: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + hari);
+  return d.toISOString().slice(0, 10);
+}
 
+// Bekukan satu / beberapa pohon sekaligus (checkbox & modal "Konfirmasi
+// Pembekuan" berisi alasan + durasi). `balik` = path halaman pemanggil agar
+// popup hasil muncul di halaman yang benar.
+export async function freezeTrees(formData: FormData) {
+  await requireAdminLevel();
+  const balik = String(formData.get("balik") ?? "/admin/pohon/beku");
+  const codes = [
+    ...formData.getAll("idpohon").map((v) => String(v).trim()),
+    ...String(formData.get("idpohonStr") ?? "").split(","),
+  ]
+    .map((c) => c.trim())
+    .filter(Boolean);
+  const alasan = String(formData.get("alasan") ?? "").trim();
+  const hari = Math.max(0, Math.floor(Number(formData.get("hari") ?? 0)) || 0);
+  const sampai = hari > 0 ? tanggalBekuSampai(hari) : "";
+  if (codes.length === 0) redirect(`${balik}?error=${encodeURIComponent("Pilih minimal satu pohon.")}`);
+  if (!alasan) redirect(`${balik}?error=${encodeURIComponent("Alasan pembekuan wajib diisi.")}`);
+
+  let jumlah = 0;
+  let dilewati = 0;
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>("bekukanpohon", {
-      idpohon: code,
-      beku,
+    const res = await apiPost<{
+      value?: string | number;
+      pesan?: string;
+      jumlah?: number;
+      dilewati?: number;
+    }>("bekukanpohonbanyak", {
+      idpohon: codes.join(","),
+      beku: "yes",
+      alasan,
+      sampai,
     });
     if (Number(res.value) !== 200) {
-      redirect(`/admin/pohon?error=${encodeURIComponent(res.pesan ?? "Gagal mengubah status beku.")}`);
+      redirect(`${balik}?error=${encodeURIComponent(res.pesan ?? "Gagal membekukan pohon.")}`);
     }
+    jumlah = Number(res.jumlah) || 0;
+    dilewati = Number(res.dilewati) || 0;
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect("/admin/pohon?error=Gagal+mengubah+status+beku");
+    redirect(`${balik}?error=Gagal+membekukan+pohon`);
   }
 
   revalidatePath("/admin/pohon");
+  revalidatePath("/admin/pohon/beku");
   revalidatePath("/pohon");
-  revalidatePath(`/pohon/${code}`);
-  redirect(`/admin/pohon?beku=${beku === "yes" ? "1" : "0"}`);
+  redirect(
+    `${balik}?beku=1&jumlah=${jumlah}${dilewati ? `&lewati=${dilewati}` : ""}`,
+  );
+}
+
+// Buka pembekuan satu / beberapa pohon sekaligus (kembali bisa diadopsi).
+export async function unfreezeTrees(formData: FormData) {
+  await requireAdminLevel();
+  const balik = String(formData.get("balik") ?? "/admin/pohon/beku");
+  const codes = [
+    ...formData.getAll("idpohon").map((v) => String(v).trim()),
+    ...String(formData.get("idpohonStr") ?? "").split(","),
+  ]
+    .map((c) => c.trim())
+    .filter(Boolean);
+  if (codes.length === 0) redirect(`${balik}?error=${encodeURIComponent("Pilih minimal satu pohon.")}`);
+
+  let jumlah = 0;
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string; jumlah?: number }>(
+      "bekukanpohonbanyak",
+      { idpohon: codes.join(","), beku: "no" },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`${balik}?error=${encodeURIComponent(res.pesan ?? "Gagal membuka pembekuan.")}`);
+    }
+    jumlah = Number(res.jumlah) || 0;
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect(`${balik}?error=Gagal+membuka+pembekuan`);
+  }
+
+  revalidatePath("/admin/pohon");
+  revalidatePath("/admin/pohon/beku");
+  revalidatePath("/pohon");
+  redirect(`${balik}?beku=0&jumlah=${jumlah}`);
 }
 
 // Pesan pohon untuk pemesan tertentu (status "Dipesan Admin") agar tidak bisa

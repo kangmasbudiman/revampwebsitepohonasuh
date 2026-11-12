@@ -28,6 +28,7 @@ import {
   Settings,
   Share2,
   ShieldCheck,
+  Snowflake,
   Tag,
   TreePine,
   UserCog,
@@ -63,6 +64,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
     title: "Konten",
     items: [
       { href: "/admin/pohon", label: "Kelola Pohon", icon: TreePine },
+      { href: "/admin/pohon/beku", label: "Pembekuan Pohon", icon: Snowflake },
       { href: "/admin/spesies", label: "Kelola Spesies", icon: Leaf },
       { href: "/admin/blog", label: "Kelola Blog", icon: Newspaper },
       { href: "/admin/cerita", label: "Cerita Dampak", icon: BookHeart },

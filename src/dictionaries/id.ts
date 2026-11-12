@@ -136,7 +136,7 @@ export const dict = {
     statusAvailable: "Tersedia",
     statusReserved: "Dipesan",
     statusAdopted: "Teradopsi",
-    statusFrozen: "Dibekukan",
+    statusFrozen: "Pohon Sedang Dibekukan",
     statusReservedAdmin: "Dipesan Admin",
     frozenNote: "Pohon ini dibekukan sementara — tetap tampil, tetapi belum bisa diadopsi.",
     reservedAdminNote: "Pohon ini sudah dipesan untuk pemesan tertentu dan belum bisa diadopsi.",

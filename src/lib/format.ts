@@ -81,7 +81,7 @@ export const TREE_STATUS: Record<string, { label: string; className: string }> =
     className: "bg-zinc-100 text-zinc-600 dark:bg-night-700 dark:text-zinc-300",
   },
   FROZEN: {
-    label: "Dibekukan",
+    label: "Pohon Sedang Dibekukan",
     className: "bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300",
   },
   RESERVED_ADMIN: {

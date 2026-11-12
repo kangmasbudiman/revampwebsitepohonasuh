@@ -6,6 +6,7 @@ import { Eye, EyeOff, MapPin, Pencil, Search, Snowflake, Sun } from "lucide-reac
 import type { ApiLokasi, ApiPetaPohon } from "@/lib/api";
 import { namaDesa } from "@/lib/format";
 import { hapusLokasi, toggleLokasiAktif, toggleLokasiBeku } from "@/lib/actions/lokasi";
+import FreezeButton from "@/components/admin/freeze-button";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import LokasiForm from "@/components/admin/lokasi-form";
 import LokasiPetaLoader from "@/components/admin/lokasi-peta-loader";
@@ -167,23 +168,20 @@ export default function LokasiTable({
                           <input type="hidden" name="beku" value="no" />
                           <button
                             type="submit"
-                            title={`Aktifkan kembali ${beku} pohon beku di lokasi ini`}
+                            title={`Buka pembekuan ${beku} pohon di lokasi ini`}
                             className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
                           >
                             <Sun className="h-3.5 w-3.5" /> Aktifkan ({beku})
                           </button>
                         </form>
                       ) : (
-                        <form action={toggleLokasiBeku} className="mr-1 inline">
-                          <input type="hidden" name="desa" value={l.nama} />
-                          <input type="hidden" name="beku" value="yes" />
-                          <ConfirmSubmit
-                            message={`Bekukan semua pohon tersedia di ${l.nama}? Pohon tetap tampil tetapi tidak bisa diadopsi sampai diaktifkan kembali.`}
-                            className="inline-flex items-center gap-1 rounded-xl border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-50 dark:border-sky-900/60 dark:text-sky-300 dark:hover:bg-sky-950/40"
-                          >
-                            <Snowflake className="h-3.5 w-3.5" /> Bekukan
-                          </ConfirmSubmit>
-                        </form>
+                        <FreezeButton
+                          desa={l.nama}
+                          balik="/admin/lokasi"
+                          className="mr-1 inline-flex items-center gap-1 rounded-xl border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-50 dark:border-sky-900/60 dark:text-sky-300 dark:hover:bg-sky-950/40"
+                        >
+                          <Snowflake className="h-3.5 w-3.5" /> Bekukan
+                        </FreezeButton>
                       );
                     })()}
                     <Link

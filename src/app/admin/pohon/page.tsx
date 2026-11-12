@@ -1,5 +1,6 @@
 import { apiGet, mapDesa, mapTrees, type ApiDesa, type ApiTree } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
+import Link from "next/link";
 import TreeForm from "@/components/admin/tree-form";
 import PohonTable from "@/components/admin/pohon-table";
 import SuccessPopup from "@/components/admin/success-popup";
@@ -24,7 +25,15 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
 
   return (
     <main className="w-full px-6 py-8 lg:px-10">
-      <h1 className="text-3xl font-bold pa-hgrad">Kelola Pohon</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold pa-hgrad">Kelola Pohon</h1>
+        <Link
+          href="/admin/pohon/beku"
+          className="inline-flex items-center gap-2 rounded-xl border border-sky-200 px-4 py-2 text-sm font-semibold text-sky-700 transition-colors hover:bg-sky-50 dark:border-sky-900 dark:text-sky-300 dark:hover:bg-night-800"
+        >
+          ❄ Pembekuan Pohon
+        </Link>
+      </div>
 
       {searchParams.deleted && (
         <SuccessPopup paramKey="deleted" title="Terhapus">
@@ -54,13 +63,16 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
       )}
       {searchParams.beku === "1" && (
         <SuccessPopup paramKey="beku" title="Pohon Dibekukan">
-          Pohon tetap tampil di daftar publik, tetapi tidak bisa diadopsi
-          sampai diaktifkan kembali.
+          {Number(searchParams.jumlah) || 1} pohon dibekukan — tetap tampil di daftar publik,
+          tetapi tidak bisa diadopsi.{" "}
+          <Link href="/admin/pohon/beku" className="font-semibold text-emerald-700 underline">
+            Menu Pembekuan Pohon
+          </Link>
         </SuccessPopup>
       )}
       {searchParams.beku === "0" && (
-        <SuccessPopup paramKey="beku" title="Pohon Diaktifkan">
-          Pohon kembali bisa diadopsi pengunjung.
+        <SuccessPopup paramKey="beku" title="Pembekuan Dibuka">
+          {Number(searchParams.jumlah) || 1} pohon diaktifkan kembali.
         </SuccessPopup>
       )}
       {searchParams.error && (

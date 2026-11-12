@@ -155,13 +155,21 @@ export async function toggleLokasiBeku(formData: FormData) {
   await requireAdminLevel();
   const desa = String(formData.get("desa") ?? "").trim();
   const beku = String(formData.get("beku") ?? "") === "yes" ? "yes" : "no";
+  const alasan = String(formData.get("alasan") ?? "").trim();
+  const hari = Math.max(0, Math.floor(Number(formData.get("hari") ?? 0)) || 0);
+  const d = new Date();
+  d.setDate(d.getDate() + hari);
+  const sampai = hari > 0 ? d.toISOString().slice(0, 10) : "";
   if (!desa) redirect("/admin/lokasi?error=Nama+desa+tidak+ditemukan");
+  if (beku === "yes" && !alasan) {
+    redirect(`/admin/lokasi?error=${encodeURIComponent("Alasan pembekuan wajib diisi.")}`);
+  }
 
   let jumlah = 0;
   try {
     const res = await apiPost<{ value?: string | number; pesan?: string; jumlah?: number }>(
       "bekukandesa",
-      { desa, beku },
+      { desa, beku, alasan, sampai },
     );
     if (Number(res.value) !== 200) {
       redirect(
@@ -175,6 +183,7 @@ export async function toggleLokasiBeku(formData: FormData) {
   }
 
   revalidatePath("/admin/lokasi");
+  revalidatePath("/admin/pohon/beku");
   revalidatePath("/pohon");
   revalidatePath("/lokasi");
   redirect(`/admin/lokasi?beku=${beku === "yes" ? "1" : "0"}&jumlah=${jumlah}`);

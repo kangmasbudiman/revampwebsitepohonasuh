@@ -10,7 +10,8 @@ import StatusBadge from "@/components/status-badge";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import RowsPerPage from "@/components/admin/rows-per-page";
 import ReserveTreeButton from "@/components/admin/reserve-tree-button";
-import { deleteTree, setTreeUnggulan, removeTreeUnggulan, toggleTreeFrozen, cancelReserveTree } from "@/lib/actions/tree";
+import FreezeButton from "@/components/admin/freeze-button";
+import { deleteTree, setTreeUnggulan, removeTreeUnggulan, unfreezeTrees, cancelReserveTree } from "@/lib/actions/tree";
 
 
 const selectClass =
@@ -237,6 +238,16 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                       untuk {tree.reservedName}
                     </p>
                   )}
+                  {tree.frozen && tree.frozenReason && (
+                    <p className="mt-1 max-w-[180px] truncate text-xs text-sky-700 dark:text-sky-300" title={tree.frozenReason}>
+                      ❄ {tree.frozenReason}
+                    </p>
+                  )}
+                  {tree.frozen && tree.frozenUntil && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      s.d. {tree.frozenUntil}
+                    </p>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-center">
                   {tree.highlight === 1 ? (
@@ -288,26 +299,28 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                     ) : null}
 
                     {tree.status === "AVAILABLE" && (
-                      <form action={toggleTreeFrozen}>
-                        <input type="hidden" name="idpohon" value={tree.code} />
-                        <input type="hidden" name="beku" value={tree.frozen ? "no" : "yes"} />
-                        {tree.frozen ? (
+                      tree.frozen ? (
+                        <form action={unfreezeTrees}>
+                          <input type="hidden" name="idpohon" value={tree.code} />
+                          <input type="hidden" name="balik" value="/admin/pohon" />
                           <button
                             type="submit"
-                            title="Aktifkan kembali — pohon bisa diadopsi"
+                            title="Buka pembekuan — pohon kembali bisa diadopsi"
                             className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
                           >
                             <Sun aria-hidden className="h-3.5 w-3.5" /> Aktifkan
                           </button>
-                        ) : (
-                          <ConfirmSubmit
-                            message={`Bekukan pohon ${tree.code}? Pohon tetap tampil di daftar publik tetapi tidak bisa diadopsi.`}
-                            className="inline-flex items-center gap-1 rounded-lg border border-sky-200 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-900 dark:text-sky-300 dark:hover:bg-night-800"
-                          >
-                            <Snowflake aria-hidden className="h-3.5 w-3.5" /> Bekukan
-                          </ConfirmSubmit>
-                        )}
-                      </form>
+                        </form>
+                      ) : (
+                        <FreezeButton
+                          codes={[tree.code]}
+                          balik="/admin/pohon"
+                          title="Bekukan pohon ini"
+                          className="inline-flex items-center gap-1 rounded-lg border border-sky-200 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-50 dark:border-sky-900 dark:text-sky-300 dark:hover:bg-night-800"
+                        >
+                          <Snowflake aria-hidden className="h-3.5 w-3.5" /> Bekukan
+                        </FreezeButton>
+                      )
                     )}
 
                     <Link
