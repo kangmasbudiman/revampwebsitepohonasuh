@@ -569,7 +569,7 @@ export default async function DetailBtorPage(props: Props) {
           <h1 className="mt-3 text-2xl font-bold text-emerald-950 dark:text-emerald-100">{btor.judul}</h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             {btor.petugas}
-            {btor.jabatan ? ` · ${btor.jabatan}` : ""} · {waktu} · {btor.desa ? namaDesa(btor.desa) : ""}
+            {btor.jabatan ? ` · ${btor.jabatan}` : ""} · {btor.desa ? namaDesa(btor.desa) : ""}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
