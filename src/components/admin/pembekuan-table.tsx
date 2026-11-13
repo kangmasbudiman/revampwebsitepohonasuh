@@ -13,9 +13,11 @@ import SubmitButton from "@/components/admin/submit-button";
 export default function PembekuanTable({
   frozen,
   bisaBuka = true,
+  balik = "/admin/pohon/beku",
 }: {
   frozen: ApiTree[];
   bisaBuka?: boolean;
+  balik?: string;
 }) {
   const [q, setQ] = useState("");
   const [hal, setHal] = useState(1);
@@ -76,7 +78,7 @@ export default function PembekuanTable({
         </h2>
         {bisaBuka && terpilih.size > 0 && (
           <form action={unfreezeTrees}>
-            <input type="hidden" name="balik" value="/admin/pohon/beku" />
+            <input type="hidden" name="balik" value={balik} />
             {[...terpilih].map((c) => (
               <input key={c} type="hidden" name="idpohon" value={c} />
             ))}
@@ -161,7 +163,7 @@ export default function PembekuanTable({
                     {bisaBuka ? (
                       <form action={unfreezeTrees}>
                         <input type="hidden" name="idpohon" value={t.code} />
-                        <input type="hidden" name="balik" value="/admin/pohon/beku" />
+                        <input type="hidden" name="balik" value={balik} />
                         <SubmitButton
                           icon={Sun}
                           pendingLabel="Memproses…"

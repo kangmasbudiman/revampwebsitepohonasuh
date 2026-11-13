@@ -178,13 +178,15 @@ export async function freezeTrees(formData: FormData) {
 export async function unfreezeTrees(formData: FormData) {
   await requireAdminLevel();
   const balik = String(formData.get("balik") ?? "/admin/pohon/beku");
+  // `balik` boleh membawa query (mis. ?desa=nama) → pakai & agar tidak dobel "?".
+  const sep = balik.includes("?") ? "&" : "?";
   const codes = [
     ...formData.getAll("idpohon").map((v) => String(v).trim()),
     ...String(formData.get("idpohonStr") ?? "").split(","),
   ]
     .map((c) => c.trim())
     .filter(Boolean);
-  if (codes.length === 0) redirect(`${balik}?error=${encodeURIComponent("Pilih minimal satu pohon.")}`);
+  if (codes.length === 0) redirect(`${balik}${sep}error=${encodeURIComponent("Pilih minimal satu pohon.")}`);
 
   let jumlah = 0;
   try {
@@ -193,18 +195,18 @@ export async function unfreezeTrees(formData: FormData) {
       { idpohon: codes.join(","), beku: "no" },
     );
     if (Number(res.value) !== 200) {
-      redirect(`${balik}?error=${encodeURIComponent(res.pesan ?? "Gagal membuka pembekuan.")}`);
+      redirect(`${balik}${sep}error=${encodeURIComponent(res.pesan ?? "Gagal membuka pembekuan.")}`);
     }
     jumlah = Number(res.jumlah) || 0;
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect(`${balik}?error=Gagal+membuka+pembekuan`);
+    redirect(`${balik}${sep}error=Gagal+membuka+pembekuan`);
   }
 
   revalidatePath("/admin/pohon");
   revalidatePath("/admin/pohon/beku");
   revalidatePath("/pohon");
-  redirect(`${balik}?beku=0&jumlah=${jumlah}`);
+  redirect(`${balik}${sep}beku=0&jumlah=${jumlah}`);
 }
 
 // Pesan pohon untuk pemesan tertentu (status "Dipesan Admin") agar tidak bisa

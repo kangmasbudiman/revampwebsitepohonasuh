@@ -10,6 +10,7 @@ import {
   type ApiTree,
 } from "@/lib/api";
 import { requireAdmin } from "@/lib/guard";
+import { labelLokasi, namaDesa, sebutanDesa } from "@/lib/format";
 import SuccessPopup from "@/components/admin/success-popup";
 import PembekuanPanel from "@/components/admin/pembekuan-panel";
 import PembekuanTable from "@/components/admin/pembekuan-table";
@@ -25,15 +26,15 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
   const searchParams = await props.searchParams;
   const spKey = JSON.stringify(searchParams);
 
-  // Ambil parameter desa dari URL (?desa=nama)
-  const desaDariParam = searchParams.desa as string | string[] | undefined;
-  const desaTerpilih = typeof desaDariParam === "string" ? desaDariParam : null;
+  // Desa dipilih lewat URL (?desa=nama) supaya tautan bisa dibagikan/di-refresh.
+  const desaParam = searchParams.desa;
+  const desaTerpilih =
+    typeof desaParam === "string" && desaParam.trim() ? desaParam.trim() : null;
 
   let trees: ApiTree[] = [];
   let desas: ApiDesa[] = [];
   let pengajuan: ApiPengajuanBeku[] = [];
-  let frozen: ApiTree[] = [];
-  let frozenJumlah = 0;
+  let gagalMuat = false;
 
   try {
     trees = mapTrees(await apiGet<Record<string, unknown>[]>("pohonmapall"));
@@ -42,89 +43,48 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
       idmember: session.userId,
     });
     pengajuan = (Array.isArray(rows) ? rows : []).map(mapPengajuanBeku);
-
-    // Jika ada desa yang dipilih dari URL, filter pohon beku hanya untuk desa tersebut
-    if (desaTerpilih) {
-      const frozenDariTrees = trees.filter((t) => t.frozen && t.desa === desaTerpilih);
-      frozen = frozenDariTrees;
-      frozenJumlah = frozenDariTrees.length;
-    } else {
-      // Default: tampilkan semua pohon beku (admin utama)
-      const allFrozen = trees.filter((t) => t.frozen);
-      frozen = allFrozen;
-      frozenJumlah = allFrozen.length;
-    }
   } catch {
-    frozen = [];
-    frozenJumlah = 0;
+    gagalMuat = true;
   }
 
-  // Daftar nama desa untuk admin utama (semua), atau hanya desa sendiri untuk pengelola
-  let namaDesaList: string[] = [];
-  if (adminUtama) {
-    namaDesaList = [...new Set(desas.map((d) => d.name))].sort();
-  } else {
-    const desasSaya = desas.filter((d) => d.adminDesaId === session.userId).map((d) => d.name);
-    namaDesaList = desasSaya.sort();
+  // Desa yang dikelola pengelola desa (admin utama melihat semua desa).
+  const desaSaya = desas.filter((d) => d.adminDesaId === session.userId);
+  const namaDiizinkan = adminUtama ? null : new Set(desaSaya.map((d) => d.name));
+
+  // Semua pohon beku yang boleh dilihat pengguna ini.
+  const semuaBeku = trees.filter(
+    (t) => t.frozen && (!namaDiizinkan || namaDiizinkan.has(t.desa)),
+  );
+
+  // Rekap jumlah pohon beku per desa, terbanyak lebih dulu.
+  const jumlahPerDesa = new Map<string, number>();
+  for (const t of semuaBeku) {
+    jumlahPerDesa.set(t.desa, (jumlahPerDesa.get(t.desa) ?? 0) + 1);
   }
 
-  // Jika ada desa terpilih, tampilkan info dan tabel untuk desa tersebut
-  // Jika tidak, tampilkan daftar desa untuk dipilih
+  const infoDesa = new Map(desas.map((d) => [d.name, d]));
+  const daftarDesa = [...jumlahPerDesa.entries()]
+    .map(([nama, jumlah]) => {
+      const d = infoDesa.get(nama);
+      return {
+        nama,
+        jumlah,
+        tampil: d ? labelLokasi(d) : namaDesa(nama),
+        sebutan: sebutanDesa(d?.provinsi),
+      };
+    })
+    .sort((a, b) => b.jumlah - a.jumlah || a.tampil.localeCompare(b.tampil, "id"));
+
+  // Daftar desa untuk pilihan pada panel pembekuan / form pengajuan.
+  const namaDesaList = (adminUtama ? desas : desaSaya).map((d) => d.name).sort();
+
+  const frozen = desaTerpilih
+    ? semuaBeku.filter((t) => t.desa === desaTerpilih)
+    : [];
+  const infoDesaTerpilih = desaTerpilih ? infoDesa.get(desaTerpilih) : undefined;
+
   return (
     <main className="w-full px-6 py-8 lg:px-10">
-      <Link href="/admin/pohon" className="text-sm font-medium text-emerald-700 hover:underline">
-        ← Kelola Pohon
-      </Link>
-      <h1 className="mt-3 text-3xl font-bold pa-hgrad">Pembekuan Pohon</h1>
-      <p className="mt-1 max-w-3xl text-sm text-zinc-500 dark:text-zinc-400">
-        {adminUtama ? (
-          <>
-            Pohon yang dibekukan tetap tampil di website publik (foto, nama, jenis, dan lokasi),
-            tetapi tidak bisa diadopsi sampai pembekuan dibuka — otomatis setelah batas waktu
-            (bila dipilih sementara) atau manual oleh admin.
-          </>
-        ) : (
-          <>
-            Anda dapat mengajukan pembekuan pohon di desa yang Anda kelola (mis. pohon tumbang
-            atau rusak). Pengajuan baru berjalan setelah disetujui admin utama.
-          </>
-        )}
-      </p>
-
-      {/* Bagian atas: pilihan desa atau info desa terpilih */}
-      {desaTerpilih ? (
-        <div className="mt-6">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Menampilkan pohon beku di: <strong>{desaTerpilih}</strong>
-            {frozenJumlah === 0 ? "" : ` (${frozen.length} pohon beku)`}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {namaDesaList.map((nama) => (
-            <div
-              key={nama}
-              onClick={() => window.location.href = `/admin/pohon/beka?desa=${encodeURIComponent(nama)}`}
-              className={desaTerpilih === nama
-                ? "bg-emerald-100 dark:bg-night-800 border-emerald-200 rounded-xl p-4 hover:bg-emerald-200 dark:hover:bg-night-700 transition-colors"
-                : "border rounded-xl p-3 hover:bg-white dark:hover:bg-night-900 transition-colors cursor-pointer"
-            }
-          >
-            <div className="font-medium text-emerald-950 dark:text-zinc-100">{nama}</div>
-            <div className="text-xs text-emerald-500 dark:text-emerald-400">
-              {frozenJumlah} pohon beku
-            </div>
-          </div>
-          ))}
-        </div>
-      )}
-
-      {/* Tabel pohon beku */}
-      <div className="mt-8">
-        <PembekuanTable frozen={frozen} />
-      </div>
-
-      {/* Sisa komponen tetap sama */}
       <Link href="/admin/pohon" className="text-sm font-medium text-emerald-700 hover:underline">
         ← Kelola Pohon
       </Link>
@@ -180,18 +140,111 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
         </SuccessPopup>
       )}
 
-      {adminUtama ? (
+      {gagalMuat && (
+        <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200">
+          Data pohon belum bisa dimuat dari server. Coba muat ulang halaman beberapa saat lagi.
+        </div>
+      )}
+
+      {desaTerpilih ? (
         <>
-          {/* Permintaan dari pengelola desa di bagian atas agar cepat terlihat */}
-          <PengajuanTable key={spKey} rows={pengajuan} peran="admin" />
-          <PembekuanPanel desas={namaDesaList} tersedia={trees.length > 0 ? trees : []} />
-          <PembekuanTable frozen={frozen} />
+          <div className="mt-6">
+            <Link
+              href="/admin/pohon/beku"
+              className="text-sm font-medium text-emerald-700 hover:underline"
+            >
+              ← Semua desa
+            </Link>
+            <h2 className="mt-2 text-xl font-bold text-emerald-950 dark:text-zinc-100">
+              {infoDesaTerpilih
+                ? `${sebutanDesa(infoDesaTerpilih.provinsi)} ${labelLokasi(infoDesaTerpilih)}`
+                : namaDesa(desaTerpilih)}
+            </h2>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              <strong className="font-semibold text-emerald-800 dark:text-emerald-300">
+                {frozen.length} pohon beku
+              </strong>{" "}
+              di desa ini.
+            </p>
+          </div>
+
+          <PembekuanTable
+            frozen={frozen}
+            bisaBuka={adminUtama}
+            balik={`/admin/pohon/beku?desa=${encodeURIComponent(desaTerpilih)}`}
+          />
+
+          {frozen.length === 0 && (
+            <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+              Tidak ada pohon yang sedang dibekukan di desa ini.{" "}
+              <Link href="/admin/pohon/beku" className="text-emerald-700 hover:underline">
+                Kembali ke daftar desa
+              </Link>
+              .
+            </p>
+          )}
         </>
       ) : (
         <>
-          <PengajuanForm desas={namaDesaList} tersedia={trees.length > 0 ? trees : []} />
-          <PembekuanTable frozen={frozen} bisaBuka={false} />
-          <PengajuanTable key={spKey} rows={pengajuan} peran="pengelola" />
+          <section className="mt-8">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-lg font-bold text-emerald-950 dark:text-zinc-100">
+                Pilih Desa
+              </h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                {semuaBeku.length} pohon beku di {daftarDesa.length} desa
+              </p>
+            </div>
+
+            {daftarDesa.length > 0 ? (
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {daftarDesa.map((d) => (
+                  <Link
+                    key={d.nama}
+                    href={{ pathname: "/admin/pohon/beku", query: { desa: d.nama } }}
+                    className="group rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm transition-colors hover:border-emerald-300 hover:bg-emerald-50/60 dark:border-night-700 dark:bg-night-950 dark:hover:border-emerald-700 dark:hover:bg-night-900"
+                  >
+                    <p className="text-xs font-medium tracking-wide text-emerald-600 uppercase dark:text-emerald-400">
+                      {d.sebutan}
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-emerald-950 dark:text-zinc-100">
+                      {d.tampil}
+                    </p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200">
+                        {d.jumlah} pohon beku
+                      </span>
+                      <span
+                        aria-hidden
+                        className="text-sm text-emerald-500 transition-transform group-hover:translate-x-0.5 dark:text-emerald-400"
+                      >
+                        Lihat →
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 rounded-xl border border-zinc-200 px-4 py-6 text-center text-sm text-zinc-500 dark:border-night-700 dark:text-zinc-400">
+                {gagalMuat
+                  ? "Data desa belum tersedia."
+                  : "Belum ada pohon yang dibekukan."}
+              </p>
+            )}
+          </section>
+
+          {adminUtama ? (
+            <>
+              {/* Permintaan dari pengelola desa di bagian atas agar cepat terlihat */}
+              <PengajuanTable key={spKey} rows={pengajuan} peran="admin" />
+              <PembekuanPanel desas={namaDesaList} tersedia={trees} />
+            </>
+          ) : (
+            <>
+              <PengajuanForm desas={namaDesaList} tersedia={trees} />
+              <PengajuanTable key={spKey} rows={pengajuan} peran="pengelola" />
+            </>
+          )}
         </>
       )}
     </main>

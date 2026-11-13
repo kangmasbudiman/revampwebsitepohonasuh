@@ -88,7 +88,7 @@ export default function TreeForm({
       </div>
       <div className="grid gap-3 sm:grid-cols-4">
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">GPS Lintang</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">Latitude</label>
           <input
             name="latitude"
             type="number"
@@ -104,7 +104,7 @@ export default function TreeForm({
           </p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">GPS Bujur</label>
+          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">Longitude</label>
           <input
             name="longitude"
             type="number"
