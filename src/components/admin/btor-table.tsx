@@ -111,6 +111,11 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
       <span className="text-xs text-zinc-400">—</span>
     );
 
+  const tanggalRange = (r: ApiBtor) =>
+    r.tanggalSelesai && r.tanggalSelesai !== r.tanggal
+      ? `${r.tanggal} – ${r.tanggalSelesai}`
+      : r.tanggal;
+
   const hapusForm = (r: ApiBtor) => (
     <form action={hapusBtor}>
       <input type="hidden" name="id" value={r.id} />
@@ -249,6 +254,7 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
                           Revisi: {r.catatanRevisi}
                         </p>
                       )}
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{tanggalRange(r)}</p>
                     </td>
                     <td className="px-4 py-3">{statusChip(r.status)}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
@@ -300,6 +306,7 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
                 >
                   {r.judul}
                 </Link>
+                <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{tanggalRange(r)}</p>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
                   {r.desa && (
                     <span className="inline-flex items-center gap-1">
