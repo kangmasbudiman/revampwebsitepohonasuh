@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  CalendarDays,
   ClipboardCheck,
   Coins,
   FileSignature,
@@ -28,6 +27,12 @@ const PENCAIRAN_CHIP: Record<string, string> = {
   menunggu: "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
   diproses: "bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300",
   dicairkan: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+};
+
+const PENCAIRAN_LABEL: Record<string, string> = {
+  menunggu: "Menunggu Pencairan",
+  diproses: "Sedang Diproses",
+  dicairkan: "Dana Dicairkan",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -99,17 +104,12 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
             PENCAIRAN_CHIP[r.memo.statusPencairan] ?? PENCAIRAN_CHIP.menunggu
           }`}
         >
-          {r.memo.statusPencairan}
+          {PENCAIRAN_LABEL[r.memo.statusPencairan] ?? r.memo.statusPencairan}
         </span>
       </span>
     ) : (
       <span className="text-xs text-zinc-400">—</span>
     );
-
-  const tanggalRange = (r: ApiBtor) =>
-    r.tanggalSelesai && r.tanggalSelesai !== r.tanggal
-      ? `${r.tanggal} – ${r.tanggalSelesai}`
-      : r.tanggal;
 
   const hapusForm = (r: ApiBtor) => (
     <form action={hapusBtor}>
@@ -224,7 +224,6 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
                 <tr>
-                  <th className="px-4 py-3">Tanggal</th>
                   <th className="px-4 py-3">Judul</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Desa</th>
@@ -238,9 +237,6 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
               <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
                 {filtered.map((r) => (
                   <tr key={r.id} className="hover:bg-emerald-50/40 dark:hover:bg-night-800/50">
-                    <td className="whitespace-nowrap px-4 py-3 text-zinc-600 dark:text-zinc-300">
-                      {tanggalRange(r)}
-                    </td>
                     <td className="max-w-[240px] px-4 py-3">
                       <Link
                         href={`/admin/btor/${r.id}`}
@@ -294,10 +290,6 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
                 className="rounded-2xl border border-emerald-100 pa-card p-4 shadow-sm dark:border-night-700"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                    <CalendarDays className="h-3.5 w-3.5" />
-                    {tanggalRange(r)}
-                  </span>
                   <span className="flex flex-wrap gap-1.5">
                     {statusChip(r.status)}
                   </span>
