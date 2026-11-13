@@ -31,13 +31,26 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
   const desaTerpilih =
     typeof desaParam === "string" && desaParam.trim() ? desaParam.trim() : null;
 
-  let trees: ApiTree[] = [];
+  let pohonBeku: ApiTree[] = [];
+  let tersediaAll: ApiTree[] = [];
   let desas: ApiDesa[] = [];
   let pengajuan: ApiPengajuanBeku[] = [];
   let gagalMuat = false;
 
   try {
-    trees = mapTrees(await apiGet<Record<string, unknown>[]>("pohonmapall"));
+    // Endpoint ringan khusus pohon beku (beku=yes) + pohon tersedia untuk
+    // panel pembekuan. Hindari pohonmapall: ribuan baris dengan query per
+    // pohon membuat halaman ini menggantung.
+    const bekuRaw = await apiGet<unknown>("pohonbeku");
+    const bekuItems: Record<string, unknown>[] = Array.isArray(bekuRaw)
+      ? bekuRaw
+      : Array.isArray((bekuRaw as { items?: unknown })?.items)
+        ? ((bekuRaw as { items: Record<string, unknown>[] }).items)
+        : [];
+    pohonBeku = mapTrees(bekuItems);
+    tersediaAll = mapTrees(
+      await apiPost<Record<string, unknown>[]>("filtertrees", { adopted: "available" }),
+    );
     desas = (await apiGet<Record<string, unknown>[]>("getdesa")).map(mapDesa);
     const rows = await apiPost<Record<string, unknown>[]>("getpengajuanbeku", {
       idmember: session.userId,
@@ -51,10 +64,17 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
   const desaSaya = desas.filter((d) => d.adminDesaId === session.userId);
   const namaDiizinkan = adminUtama ? null : new Set(desaSaya.map((d) => d.name));
 
-  // Semua pohon beku yang boleh dilihat pengguna ini.
-  const semuaBeku = trees.filter(
+  // Semua pohon beku yang boleh dilihat pengguna ini (endpoint sudah
+  // memfilter beku=yes; desa pengelola dibatasi).
+  const semuaBeku = pohonBeku.filter(
     (t) => t.frozen && (!namaDiizinkan || namaDiizinkan.has(t.desa)),
   );
+
+  // Kandidat pohon untuk panel "Bekukan Pohon": yang masih tersedia,
+  // bukan pohon beku, dan hanya desa milik pengelola.
+  const tersedia = tersediaAll
+    .filter((t) => !t.frozen && (!namaDiizinkan || namaDiizinkan.has(t.desa)))
+    .map(({ code, localName, desa }) => ({ code, localName, desa }));
 
   // Rekap jumlah pohon beku per desa, terbanyak lebih dulu.
   const jumlahPerDesa = new Map<string, number>();
@@ -237,11 +257,11 @@ export default async function PembekuanPohonPage(props: PageProps<"/admin/pohon/
             <>
               {/* Permintaan dari pengelola desa di bagian atas agar cepat terlihat */}
               <PengajuanTable key={spKey} rows={pengajuan} peran="admin" />
-              <PembekuanPanel desas={namaDesaList} tersedia={trees} />
+              <PembekuanPanel desas={namaDesaList} tersedia={tersedia} />
             </>
           ) : (
             <>
-              <PengajuanForm desas={namaDesaList} tersedia={trees} />
+              <PengajuanForm desas={namaDesaList} tersedia={tersedia} />
               <PengajuanTable key={spKey} rows={pengajuan} peran="pengelola" />
             </>
           )}
