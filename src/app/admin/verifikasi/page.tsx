@@ -142,6 +142,19 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
                   redirectTo="/admin/verifikasi"
                   tagihanOnline={Boolean(o.rows[0]?.linkInvoice)}
                 />
+                {/* Fitur admin: hapus invoice (batal order per-invoice) */}
+                <CancelOrderButton
+                  confirmasiId={id}
+                  invoice={o.invoice}
+                  idpohon={o.rows[0].idpohon}
+                  localName={o.rows[0].localName}
+                  nama={o.nama}
+                  redirectTo="/admin/verifikasi"
+                  tagihanOnline={Boolean(o.rows[0]?.linkInvoice)}
+                  label="Hapus Invoice"
+                  konfirmasi="Ya, Hapus Invoice"
+                  judul="Hapus invoice ini?"
+                />
               </div>
             </div>
           );

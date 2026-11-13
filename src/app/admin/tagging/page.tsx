@@ -312,6 +312,20 @@ export default async function TaggingPage({
                     nama={order.nama}
                   />
                 )}
+                {order.proses !== 3 && isAdmin && (
+                  /* Fitur admin: hapus invoice (batal order per-invoice) —
+                     alur backend sama dengan "Batalkan Order". */
+                  <CancelOrderButton
+                    confirmasiId={order.confirmasiId}
+                    invoice={order.invoice}
+                    idpohon={order.idpohon}
+                    localName={order.localName}
+                    nama={order.nama}
+                    label="Hapus Invoice"
+                    konfirmasi="Ya, Hapus Invoice"
+                    judul="Hapus invoice ini?"
+                  />
+                )}
                 {/* Petugas TIDAK boleh membatalkan order — hanya membatalkan
                     proses (kembalikan ke Baru), khusus order yang sedang
                     diproses (kebalikan "Mulai Proses"). */}
