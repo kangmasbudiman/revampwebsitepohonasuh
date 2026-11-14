@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowDown, ArrowDownUp, ArrowUp, Bookmark, ChevronLeft, ChevronRight, RotateCcw, Search, Snowflake, Sun, X } from "lucide-react";
@@ -14,77 +15,76 @@ import FreezeButton from "@/components/admin/freeze-button";
 import SubmitButton from "@/components/admin/submit-button";
 import { deleteTree, setTreeUnggulan, removeTreeUnggulan, unfreezeTrees, cancelReserveTree } from "@/lib/actions/tree";
 
-
 const selectClass =
   "rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
 
 type UrutUkuran = "off" | "desc" | "asc";
 
-export default function PohonTable({ trees }: { trees: ApiTree[] }) {
-  const [q, setQ] = useState("");
-  const [desa, setDesa] = useState("semua");
-  const [status, setStatus] = useState("semua");
-  const [unggulan, setUnggulan] = useState("semua");
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(50);
-  const [urut, setUrut] = useState<UrutUkuran>("off");
-  // Pilihan massal (kode pohon) untuk "Pesan Terpilih" — dipilih lewat checkbox.
-  // `dipilih` boleh menyimpan kode basi; yang dipakai UI hanya `terpilih`
-  // (kode yang masih bisa dipesan) sehingga tak perlu membersihkan manual.
+// Tabel Kelola Pohon — paginasi & filter server-side (URL-driven): halaman
+// server mengambil satu halaman pohon dari API, filter/sort/halaman berpindah
+// lewat query URL sehingga data yang ditransfer tetap ringan.
+export default function PohonTable({
+  trees,
+  total,
+  page,
+  perPage,
+  q,
+  desa,
+  status,
+  unggulan,
+  urut,
+  desas,
+  jmlUnggulan,
+  jmlDipesan,
+}: {
+  trees: ApiTree[];
+  total: number;
+  page: number;
+  perPage: number;
+  q: string;
+  desa: string;
+  status: string;
+  unggulan: string;
+  urut: UrutUkuran;
+  desas: string[];
+  jmlUnggulan: number;
+  jmlDipesan: number;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const sp = useSearchParams();
+  // Ketikan pencarian lokal + debounce sebelum mengubah URL.
+  const [qKetik, setQKetik] = useState(q);
+  // Pilihan massal (kode pohon) untuk "Pesan Terpilih" — dipilih lewat
+  // checkbox; lintas halaman tetap tersimpan sampai dikosongkan/diremount.
   const [dipilih, setDipilih] = useState<string[]>([]);
 
   // Pohon yang boleh dipesan: tersedia, tidak beku, belum dipesan admin.
   const bisaDipesan = (t: ApiTree) => !t.reservedAdmin && t.status === "AVAILABLE" && !t.frozen;
-  const terpilih = useMemo(
-    () => dipilih.filter((c) => trees.some((t) => t.code === c && bisaDipesan(t))),
-    [dipilih, trees],
-  );
 
-  const desaList = useMemo(
-    () => [...new Set(trees.map((t) => t.desa).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
-    [trees],
-  );
-  const jmlUnggulan = useMemo(() => trees.filter((t) => t.highlight === 1).length, [trees]);
-  const jmlDipesan = useMemo(() => trees.filter((t) => t.reservedAdmin).length, [trees]);
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return trees.filter((t) => {
-      if (desa !== "semua" && t.desa !== desa) return false;
-      if (status !== "semua") {
-        const eff = t.reservedAdmin ? "RESERVED_ADMIN" : t.frozen ? "FROZEN" : t.status;
-        if (eff !== status) return false;
+  const ubah = useCallback(
+    (patch: Record<string, string | null>) => {
+      const p = new URLSearchParams(sp.toString());
+      for (const [k, v] of Object.entries(patch)) {
+        if (v === null || v === "") p.delete(k);
+        else p.set(k, v);
       }
-      if (unggulan === "unggulan" && t.highlight !== 1) return false;
-      if (unggulan === "biasa" && t.highlight === 1) return false;
-      if (unggulan === "dipesan" && !t.reservedAdmin) return false;
-      if (!needle) return true;
-      return (
-        t.code.toLowerCase().includes(needle) ||
-        t.localName.toLowerCase().includes(needle) ||
-        (t.species?.toLowerCase().includes(needle) ?? false)
-      );
-    });
-  }, [trees, q, desa, status, unggulan]);
+      router.push(`${pathname}?${p.toString()}`);
+    },
+    [sp, router, pathname],
+  );
+  // Ubah filter → kembali ke halaman 1.
+  const setFilter = (k: string, v: string) => ubah({ [k]: v, page: null });
 
-  // Sort ukuran (tinggi) — pohon tanpa data tinggi (null/0) selalu di urutan bawah.
-  const sorted = useMemo(() => {
-    if (urut === "off") return filtered;
-    const ada = (x: number | null) => x !== null && x > 0;
-    return [...filtered].sort((a, b) => {
-      const va = ada(a.heightM) ? a.heightM : null;
-      const vb = ada(b.heightM) ? b.heightM : null;
-      if (va === null && vb === null) return 0;
-      if (va === null) return 1;
-      if (vb === null) return -1;
-      return urut === "desc" ? (vb as number) - (va as number) : (va as number) - (vb as number);
-    });
-  }, [filtered, urut]);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (qKetik !== q) ubah({ q: qKetik || null, page: null });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [qKetik, q, ubah]);
 
-  const totalPages = Math.max(1, Math.ceil(sorted.length / perPage));
-  const current = Math.min(page, totalPages);
-  const pageTrees = sorted.slice((current - 1) * perPage, current * perPage);
-  const adaFilter = q !== "" || desa !== "semua" || status !== "semua" || unggulan !== "semua";
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const adaFilter = q !== "" || desa !== "" || status !== "" || unggulan !== "";
 
   return (
     <div className="mt-8 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
@@ -92,38 +92,29 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
         <div className="relative">
           <Search className="pointer-events-none absolute top-2.5 left-3 h-4 w-4 text-zinc-400" />
           <input
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPage(1);
-            }}
+            value={qKetik}
+            onChange={(e) => setQKetik(e.target.value)}
             aria-label="Cari pohon"
             placeholder="Cari kode / nama lokal / spesies…"
             className="w-64 rounded-xl border border-zinc-200 bg-white py-2 pr-3 pl-9 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900/40"
           />
         </div>
         <select
-          value={desa}
-          onChange={(e) => {
-            setDesa(e.target.value);
-            setPage(1);
-          }}
+          value={desa || "semua"}
+          onChange={(e) => setFilter("desa", e.target.value === "semua" ? "" : e.target.value)}
           aria-label="Filter lokasi"
           className={selectClass}
         >
           <option value="semua">Semua lokasi</option>
-          {desaList.map((d) => (
+          {desas.map((d) => (
             <option key={d} value={d}>
               {namaDesa(d)}
             </option>
           ))}
         </select>
         <select
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(1);
-          }}
+          value={status || "semua"}
+          onChange={(e) => setFilter("status", e.target.value === "semua" ? "" : e.target.value)}
           aria-label="Filter status adopsi"
           className={selectClass}
         >
@@ -137,21 +128,22 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
         <div className="flex gap-1.5" role="group" aria-label="Filter unggulan">
           {(
             [
-              { v: "semua", l: "Semua pohon" },
-              { v: "unggulan", l: `★ Unggulan (${jmlUnggulan})` },
-              { v: "biasa", l: "Bukan unggulan" },
+              { v: "", l: "Semua pohon" },
+              { v: "1", l: `★ Unggulan (${jmlUnggulan})` },
+              { v: "0", l: "Bukan unggulan" },
               { v: "dipesan", l: `Dipesan (${jmlDipesan})` },
             ] as const
           ).map((f) => (
             <button
               key={f.v}
               type="button"
-              onClick={() => {
-                setUnggulan(f.v);
-                setPage(1);
-              }}
+              onClick={() =>
+                f.v === "dipesan"
+                  ? ubah({ unggulan: "dipesan", status: null, page: null })
+                  : setFilter("unggulan", f.v)
+              }
               className={`rounded-full px-3 py-2 text-xs font-medium transition-colors ${
-                unggulan === f.v
+                unggulan === f.v || (f.v === "" && unggulan === "")
                   ? "pa-btn-primary text-white"
                   : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
               }`}
@@ -165,11 +157,8 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
           <button
             type="button"
             onClick={() => {
-              setQ("");
-              setDesa("semua");
-              setStatus("semua");
-              setUnggulan("semua");
-              setPage(1);
+              setQKetik("");
+              ubah({ q: null, desa: null, status: null, unggulan: null, page: null });
             }}
             aria-label="Reset filter"
             className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-night-700 dark:text-zinc-300 dark:hover:bg-night-800"
@@ -178,18 +167,18 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
           </button>
         )}
         <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400" data-testid="jml-pohon">
-          {filtered.length.toLocaleString("id-ID")} pohon
+          {total.toLocaleString("id-ID")} pohon
         </span>
       </div>
 
       {/* Bar pilihan massal — muncul saat ada pohon terpilih via checkbox */}
-      {terpilih.length > 0 && (
+      {dipilih.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 border-b border-emerald-100 bg-violet-50/70 px-4 py-2.5 dark:border-night-700 dark:bg-violet-950/20">
           <span className="text-xs font-semibold text-violet-800 dark:text-violet-300">
-            {terpilih.length} pohon dipilih
+            {dipilih.length} pohon dipilih
           </span>
           <ReserveTreeButton
-            codes={terpilih}
+            codes={dipilih}
             label="Pesan Terpilih"
             title="Pesan semua pohon terpilih untuk satu nama pemesan"
             className="inline-flex items-center gap-1 rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800"
@@ -213,12 +202,11 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                   type="checkbox"
                   aria-label="Pilih semua pohon tersedia di halaman ini"
                   checked={
-                    pageTrees.some(bisaDipesan) &&
-                    pageTrees.filter(bisaDipesan).every((t) => terpilih.includes(t.code))
+                    trees.some(bisaDipesan) && trees.filter(bisaDipesan).every((t) => dipilih.includes(t.code))
                   }
-                  disabled={!pageTrees.some(bisaDipesan)}
+                  disabled={!trees.some(bisaDipesan)}
                   onChange={(e) => {
-                    const tersedia = pageTrees.filter(bisaDipesan).map((t) => t.code);
+                    const tersedia = trees.filter(bisaDipesan).map((t) => t.code);
                     setDipilih((prev) =>
                       e.target.checked
                         ? [...new Set([...prev, ...tersedia])]
@@ -235,10 +223,12 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                 <button
                   type="button"
                   data-testid="sort-ukuran"
-                  onClick={() => {
-                    setUrut((u) => (u === "off" ? "desc" : u === "desc" ? "asc" : "off"));
-                    setPage(1);
-                  }}
+                  onClick={() =>
+                    ubah({
+                      sort: urut === "off" ? "tinggi" : null,
+                      dir: urut === "off" ? "desc" : urut === "desc" ? "asc" : null,
+                    })
+                  }
                   title="Urutkan ukuran: terbesar → terkecil → terkecil → terbesar"
                   className="inline-flex items-center gap-1 transition-colors hover:text-emerald-700 dark:hover:text-emerald-300"
                 >
@@ -255,14 +245,14 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-            {pageTrees.map((tree, i) => (
+            {trees.map((tree, i) => (
               <tr key={`${tree.code}-${i}`} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                 <td className="px-3 py-3">
                   {bisaDipesan(tree) && (
                     <input
                       type="checkbox"
                       aria-label={`Pilih pohon ${tree.code}`}
-                      checked={terpilih.includes(tree.code)}
+                      checked={dipilih.includes(tree.code)}
                       onChange={(e) =>
                         setDipilih((prev) =>
                           e.target.checked
@@ -430,12 +420,12 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
                 </td>
               </tr>
             ))}
-            {pageTrees.length === 0 && (
+            {trees.length === 0 && (
               <tr>
                 <td colSpan={9} className="px-4 py-10 text-center text-zinc-500 dark:text-zinc-400">
-                  {trees.length === 0
-                    ? "Tidak ada data pohon."
-                    : "Tidak ada pohon yang cocok dengan pencarian/filter."}
+                  {total === 0 && adaFilter
+                    ? "Tidak ada pohon yang cocok dengan pencarian/filter."
+                    : "Tidak ada data pohon."}
                 </td>
               </tr>
             )}
@@ -446,30 +436,27 @@ export default function PohonTable({ trees }: { trees: ApiTree[] }) {
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-emerald-100 px-4 py-3 text-sm dark:border-night-700">
         <div className="flex flex-wrap items-center gap-4">
           <span className="text-xs text-zinc-500 dark:text-zinc-400">
-            Hal {current} dari {totalPages}
+            Hal {page} dari {totalPages}
           </span>
           <RowsPerPage
             value={perPage}
-            onChange={(n) => {
-              setPerPage(n);
-              setPage(1);
-            }}
+            onChange={(n) => ubah({ per: String(n), page: null })}
           />
         </div>
         {totalPages > 1 && (
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setPage(current - 1)}
-              disabled={current <= 1}
+              onClick={() => ubah({ page: String(page - 1) })}
+              disabled={page <= 1}
               className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
             >
               <ChevronLeft className="h-3.5 w-3.5" /> Sebelumnya
             </button>
             <button
               type="button"
-              onClick={() => setPage(current + 1)}
-              disabled={current >= totalPages}
+              onClick={() => ubah({ page: String(page + 1) })}
+              disabled={page >= totalPages}
               className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
             >
               Berikutnya <ChevronRight className="h-3.5 w-3.5" />

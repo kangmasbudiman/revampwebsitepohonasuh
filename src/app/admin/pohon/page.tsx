@@ -11,13 +11,61 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
   await requireAdminLevel();
   const searchParams = await props.searchParams;
 
+  // Tabel kini paginasi server-side (API pohonmapall?page=…) supaya tidak
+  // memuat ribuan pohon sekali jalan; filter & urutan lewat URL.
+  const page = Math.max(1, Number(searchParams.page) || 1);
+  const perPage = Math.min(200, Math.max(5, Number(searchParams.per) || 50));
+  const q = String(searchParams.q ?? "");
+  const desa = String(searchParams.desa ?? "");
+  const status = String(searchParams.status ?? "");
+  const unggulan = String(searchParams.unggulan ?? "");
+  const urut = searchParams.sort === "tinggi" ? (searchParams.dir === "asc" ? "asc" : "desc") : "off";
+
   let trees: ApiTree[] = [];
-  let desaList: ApiDesa[] = [];
+  let total = 0;
   try {
-    trees = mapTrees(await apiGet<Record<string, unknown>[]>("pohonmapall"));
-    desaList = (await apiGet<Record<string, unknown>[]>("getdesa")).map(mapDesa);
+    const sp = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+    if (q) sp.set("q", q);
+    if (desa) sp.set("desa", desa);
+    if (status) sp.set("status", status);
+    // Tab "Dipesan" = filter status RESERVED_ADMIN (konsep frontend).
+    if (unggulan === "dipesan") {
+      sp.set("status", "RESERVED_ADMIN");
+    } else if (unggulan) {
+      sp.set("unggulan", unggulan);
+    }
+    if (urut !== "off") {
+      sp.set("sort", "tinggi");
+      sp.set("dir", urut);
+    }
+    const res = await apiGet<{ data?: Record<string, unknown>[]; total?: number }>(
+      `pohonmapall?${sp.toString()}`,
+    );
+    trees = mapTrees(res.data ?? []);
+    total = Number(res.total) || 0;
   } catch {
     // tampilkan tabel kosong di bawah
+  }
+
+  // Hitungan label tab (dua permintaan ringan — hanya total, per_page=1).
+  let jmlUnggulan = 0;
+  let jmlDipesan = 0;
+  try {
+    const [ung, dipes] = await Promise.all([
+      apiGet<{ total?: number }>("pohonmapall?page=1&per_page=1&unggulan=1"),
+      apiGet<{ total?: number }>("pohonmapall?page=1&per_page=1&status=RESERVED_ADMIN"),
+    ]);
+    jmlUnggulan = Number(ung.total) || 0;
+    jmlDipesan = Number(dipes.total) || 0;
+  } catch {
+    // label tanpa angka
+  }
+
+  let desaList: ApiDesa[] = [];
+  try {
+    desaList = (await apiGet<Record<string, unknown>[]>("getdesa")).map(mapDesa);
+  } catch {
+    // dropdown lokasi kosong
   }
   const pohonBaru = searchParams.created
     ? trees.find((t) => t.code === String(searchParams.created))
@@ -111,7 +159,23 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
         </div>
       </details>
 
-      <PohonTable trees={trees} />
+      {/* Remount saat hasil aksi reservasi masuk URL — pilihan checkbox ikut
+          kosong otomatis tanpa perlu effect di komponen. */}
+      <PohonTable
+        key={`${searchParams.dipesan ?? ""}-${searchParams.dibatalkan ?? ""}`}
+        trees={trees}
+        total={total}
+        page={page}
+        perPage={perPage}
+        q={q}
+        desa={desa}
+        status={status}
+        unggulan={unggulan}
+        urut={urut}
+        desas={desaList.map((d) => d.name)}
+        jmlUnggulan={jmlUnggulan}
+        jmlDipesan={jmlDipesan}
+      />
     </main>
   );
 }
