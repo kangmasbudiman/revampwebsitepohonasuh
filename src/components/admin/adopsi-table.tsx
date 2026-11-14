@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
@@ -33,14 +33,11 @@ export default function AdopsiTable({
   const [q, setQ] = useState(initialQuery);
   const [provinsi, setProvinsi] = useState("semua");
   const [desa, setDesa] = useState("semua");
+  const [tahun, setTahun] = useState("semua");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(50);
   const [showQr, setShowQr] = useState(false);
   const [qrBase, setQrBase] = useState("");
-
-  useEffect(() => {
-    setQrBase(window.location.origin);
-  }, []);
 
   const provinsiList = useMemo(
     () =>
@@ -67,11 +64,25 @@ export default function AdopsiTable({
     [rows, provinsi, provinsiByDesa],
   );
 
+  // Daftar tahun adopsi (dari tglAdopt) untuk filter, urut terbaru dulu.
+  const tahunList = useMemo(
+    () =>
+      [
+        ...new Set(
+          rows
+            .map((r) => (r.tglAdopt ?? "").slice(0, 4))
+            .filter((t) => /^\d{4}$/.test(t)),
+        ),
+      ].sort((a, b) => Number(b) - Number(a)),
+    [rows],
+  );
+
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return rows.filter((r) => {
       if (provinsi !== "semua" && provinsiByDesa[r.desa] !== provinsi) return false;
       if (desa !== "semua" && r.desa !== desa) return false;
+      if (tahun !== "semua" && (r.tglAdopt ?? "").slice(0, 4) !== tahun) return false;
       if (!needle) return true;
       return (
         r.nama.toLowerCase().includes(needle) ||
@@ -81,7 +92,7 @@ export default function AdopsiTable({
         r.invoice.toLowerCase().includes(needle)
       );
     });
-  }, [rows, q, provinsi, desa, provinsiByDesa]);
+  }, [rows, q, provinsi, desa, tahun, provinsiByDesa]);
 
   const totalUsd = filtered.reduce((s, r) => s + (r.cur === "USD" ? r.price ?? 0 : 0), 0);
   const totalIdr = filtered.reduce((s, r) => s + (r.cur !== "USD" ? r.price ?? 0 : 0), 0);
@@ -216,13 +227,32 @@ export default function AdopsiTable({
             </option>
           ))}
         </select>
+        <select
+          value={tahun}
+          onChange={(e) => {
+            setTahun(e.target.value);
+            setPage(1);
+          }}
+          className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+          aria-label="Filter tahun adopsi"
+        >
+          <option value="semua">Semua tahun</option>
+          {tahunList.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
         <span className="text-xs text-zinc-500 dark:text-zinc-400">
           {filtered.length.toLocaleString("id-ID")} data
         </span>
         <div className="ml-auto flex gap-2">
           <button
             type="button"
-            onClick={() => setShowQr(true)}
+            onClick={() => {
+              setQrBase((b) => b || window.location.origin);
+              setShowQr(true);
+            }}
             className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
           >
             <QrCode className="h-4 w-4" /> QR Code
