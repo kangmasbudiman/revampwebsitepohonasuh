@@ -52,8 +52,15 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
       )}
       {searchParams.dipesan && (
         <SuccessPopup paramKey="dipesan" title="Pohon Dipesan">
-          Pohon berhasil dipesan untuk pemesan tertentu — statusnya kini
-          Dipesan Admin dan tidak bisa diadopsi pengunjung.
+          {Number(searchParams.jumlah) || 1} pohon dipesan — statusnya kini Dipesan
+          Admin dan tidak bisa diadopsi pengunjung.
+          {Number(searchParams.lewati) > 0 && (
+            <>
+              {" "}
+              {Number(searchParams.lewati)} pohon dilewati (sudah diadopsi, dipesan,
+              atau dibekukan).
+            </>
+          )}
         </SuccessPopup>
       )}
       {searchParams.dibatalkan && (

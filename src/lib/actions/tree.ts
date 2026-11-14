@@ -210,31 +210,45 @@ export async function unfreezeTrees(formData: FormData) {
 }
 
 // Pesan pohon untuk pemesan tertentu (status "Dipesan Admin") agar tidak bisa
-// diadopsi pengunjung sampai reservasi dibatalkan.
+// diadopsi pengunjung sampai reservasi dibatalkan. Mendukung banyak pohon
+// sekaligus: semua `idpohon` dalam form (+ `idpohonStr` koma) diproses satu
+// per satu; API `pesanpohonadmin` menerima satu kode per panggilan.
 export async function reserveTree(formData: FormData) {
   await requireAdminLevel();
-  const code = String(formData.get("idpohon") ?? "").trim();
   const nama = String(formData.get("nama") ?? "").trim();
-  if (!code) redirect("/admin/pohon?error=Pohon+tidak+ditemukan");
+  const codes = [
+    ...formData.getAll("idpohon").map((v) => String(v).trim()),
+    ...String(formData.get("idpohonStr") ?? "").split(","),
+  ]
+    .map((c) => c.trim())
+    .filter(Boolean);
+  if (codes.length === 0) redirect("/admin/pohon?error=Pilih+minimal+satu+pohon");
   if (!nama) redirect("/admin/pohon?error=Nama+pemesan+wajib+diisi");
 
-  try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>("pesanpohonadmin", {
-      idpohon: code,
-      nama,
-    });
-    if (Number(res.value) !== 200) {
-      redirect(`/admin/pohon?error=${encodeURIComponent(res.pesan ?? "Gagal memesan pohon.")}`);
+  let jumlah = 0;
+  let dilewati = 0;
+  for (const code of codes) {
+    try {
+      const res = await apiPost<{ value?: string | number; pesan?: string }>(
+        "pesanpohonadmin",
+        { idpohon: code, nama },
+      );
+      if (Number(res.value) === 200) jumlah++;
+      else dilewati++;
+    } catch {
+      dilewati++;
     }
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect("/admin/pohon?error=Gagal+memesan+pohon");
+  }
+  if (jumlah === 0) {
+    redirect(
+      `/admin/pohon?error=${encodeURIComponent("Tidak ada pohon yang bisa dipesan — pohon sudah diadopsi, dipesan, atau dibekukan.")}`,
+    );
   }
 
   revalidatePath("/admin/pohon");
   revalidatePath("/pohon");
-  revalidatePath(`/pohon/${code}`);
-  redirect(`/admin/pohon?dipesan=1`);
+  for (const code of codes) revalidatePath(`/pohon/${code}`);
+  redirect(`/admin/pohon?dipesan=1&jumlah=${jumlah}${dilewati ? `&lewati=${dilewati}` : ""}`);
 }
 
 // Batalkan reservasi admin → pohon kembali tersedia.
