@@ -224,9 +224,21 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
         </p>
       ) : (
         <>
-          {/* Desktop: tabel */}
+          {/* Desktop: tabel — table-fixed agar kolom Judul tidak tergencit
+              habis oleh kolom lain di layar sempit (14"); layar lebih kecil
+              dari lebar minimum cukup menggulir horizontal. */}
           <div className="hidden overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700 md:block">
-            <table className="w-full min-w-[900px] text-left text-sm">
+            <table className="w-full min-w-[1140px] table-fixed text-left text-sm">
+              <colgroup>
+                <col className="w-[240px]" />
+                <col className="w-[104px]" />
+                <col className="w-[176px]" />
+                {isAdmin && <col className="w-[140px]" />}
+                <col className="w-[56px]" />
+                <col className="w-[116px]" />
+                <col className="w-[150px]" />
+                <col />
+              </colgroup>
               <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
                 <tr>
                   <th className="px-4 py-3">Judul</th>
@@ -242,26 +254,26 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
               <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
                 {filtered.map((r) => (
                   <tr key={r.id} className="hover:bg-emerald-50/40 dark:hover:bg-night-800/50">
-                    <td className="max-w-[240px] px-4 py-3">
+                    <td className="px-4 py-3">
                       <Link
                         href={`/admin/btor/${r.id}`}
-                        className="line-clamp-1 font-medium text-emerald-900 hover:underline dark:text-emerald-100"
+                        className="line-clamp-2 break-words font-medium text-emerald-900 hover:underline dark:text-emerald-100"
                       >
                         {r.judul}
                       </Link>
                       {r.status === "revisi" && r.catatanRevisi && (
-                        <p className="line-clamp-1 text-xs text-orange-600 dark:text-orange-400">
+                        <p className="line-clamp-1 break-words text-xs text-orange-600 dark:text-orange-400">
                           Revisi: {r.catatanRevisi}
                         </p>
                       )}
                       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{tanggalRange(r)}</p>
                     </td>
                     <td className="px-4 py-3">{statusChip(r.status)}</td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
+                    <td className="break-words px-4 py-3 text-zinc-600 dark:text-zinc-300">
                       {r.desa ? namaDesa(r.desa) : "—"}
                     </td>
                     {isAdmin && (
-                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
+                      <td className="break-words px-4 py-3 text-zinc-600 dark:text-zinc-300">
                         {r.petugas || "—"}
                       </td>
                     )}
@@ -269,9 +281,9 @@ export default function BtorTable({ rows, level }: { rows: ApiBtor[]; level: num
                     <td className="whitespace-nowrap px-4 py-3 text-zinc-600 dark:text-zinc-300">
                       {r.dana !== null && r.dana > 0 ? rupiah(r.dana) : "—"}
                     </td>
-                    <td className="px-4 py-3">{memoCell(r)}</td>
+                    <td className="break-words px-4 py-3">{memoCell(r)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <Link
                           href={`/admin/btor/${r.id}`}
                           className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:hover:bg-night-800"
