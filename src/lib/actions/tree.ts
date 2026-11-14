@@ -216,6 +216,7 @@ export async function unfreezeTrees(formData: FormData) {
 // sertifikat. Semua kode dikirim dalam satu panggilan = satu invoice.
 export async function reserveTree(formData: FormData) {
   await requireAdminLevel();
+  const idMember = Number(formData.get("idmember")) || 0;
   const nama = String(formData.get("nama") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const dur = Math.max(1, Math.min(10, Number(formData.get("dur")) || 1));
@@ -226,7 +227,7 @@ export async function reserveTree(formData: FormData) {
     .map((c) => c.trim())
     .filter(Boolean);
   if (codes.length === 0) redirect("/admin/pohon?error=Pilih+minimal+satu+pohon");
-  if (!nama) redirect("/admin/pohon?error=Nama+pemesan+wajib+diisi");
+  if (!idMember) redirect("/admin/pohon?error=Pilih+akun+pemesan");
 
   let jumlah = 0;
   let dilewati = 0;
@@ -242,6 +243,7 @@ export async function reserveTree(formData: FormData) {
       dilewati?: number;
     }>("pesanpohonadminbanyak", {
       idpohon: codes.join(","),
+      idmember: idMember,
       nama,
       email,
       dur,

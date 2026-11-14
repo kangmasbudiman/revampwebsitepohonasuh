@@ -36,6 +36,7 @@ export default function PohonTable({
   desas,
   jmlUnggulan,
   jmlDipesan,
+  members,
 }: {
   trees: ApiTree[];
   total: number;
@@ -49,6 +50,7 @@ export default function PohonTable({
   desas: string[];
   jmlUnggulan: number;
   jmlDipesan: number;
+  members: { id: number; name: string; emaile: string }[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -194,6 +196,7 @@ export default function PohonTable({
               </span>
               <ReserveTreeButton
                 codes={dipilihPesan}
+                members={members}
                 label="Pesan Terpilih"
                 title="Pesan semua pohon terpilih untuk satu nama pemesan"
                 className="inline-flex items-center gap-1 rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800"
@@ -418,7 +421,7 @@ export default function PohonTable({
                         </ConfirmSubmit>
                       </form>
                     ) : bisaDipesan(tree) ? (
-                      <ReserveTreeButton codes={[tree.code]} localName={tree.localName} />
+                      <ReserveTreeButton codes={[tree.code]} localName={tree.localName} members={members} />
                     ) : null}
 
                     {tree.status === "AVAILABLE" && (

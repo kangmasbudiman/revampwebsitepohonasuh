@@ -67,6 +67,18 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
   } catch {
     // dropdown lokasi kosong
   }
+
+  let members: { id: number; name: string; emaile: string }[] = [];
+  try {
+    const mrows = await apiGet<Record<string, unknown>[]>("getmembers");
+    members = mrows.map((m) => ({
+      id: Number(m.id),
+      name: String(m.name ?? ""),
+      emaile: String(m.emaile ?? ""),
+    }));
+  } catch {
+    // dropdown akun kosong
+  }
   const pohonBaru = searchParams.created
     ? trees.find((t) => t.code === String(searchParams.created))
     : undefined;
@@ -201,6 +213,7 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
         desas={desaList.map((d) => d.name)}
         jmlUnggulan={jmlUnggulan}
         jmlDipesan={jmlDipesan}
+        members={members}
       />
     </main>
   );
