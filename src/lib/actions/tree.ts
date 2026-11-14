@@ -251,6 +251,45 @@ export async function reserveTree(formData: FormData) {
   redirect(`/admin/pohon?dipesan=1&jumlah=${jumlah}${dilewati ? `&lewati=${dilewati}` : ""}`);
 }
 
+// Batalkan banyak reservasi admin sekaligus → semua pohon kembali tersedia.
+// API `batalpesanpohonadmin` menerima satu kode per panggilan, jadi dipanggil
+// berulang; pohon yang gagal (mis. sudah diadopsi) dilewati dan dihitung.
+export async function cancelReserveTrees(formData: FormData) {
+  await requireAdminLevel();
+  const codes = [
+    ...formData.getAll("idpohon").map((v) => String(v).trim()),
+    ...String(formData.get("idpohonStr") ?? "").split(","),
+  ]
+    .map((c) => c.trim())
+    .filter(Boolean);
+  if (codes.length === 0) redirect("/admin/pohon?error=Pilih+minimal+satu+pohon");
+
+  let jumlah = 0;
+  let dilewati = 0;
+  for (const code of codes) {
+    try {
+      const res = await apiPost<{ value?: string | number; pesan?: string }>(
+        "batalpesanpohonadmin",
+        { idpohon: code },
+      );
+      if (Number(res.value) === 200) jumlah++;
+      else dilewati++;
+    } catch {
+      dilewati++;
+    }
+  }
+  if (jumlah === 0) {
+    redirect(
+      `/admin/pohon?error=${encodeURIComponent("Tidak ada pesanan yang bisa dibatalkan — pohon sudah tidak dalam status Dipesan Admin.")}`,
+    );
+  }
+
+  revalidatePath("/admin/pohon");
+  revalidatePath("/pohon");
+  for (const code of codes) revalidatePath(`/pohon/${code}`);
+  redirect(`/admin/pohon?dibatalkan=1&jumlah=${jumlah}${dilewati ? `&lewati=${dilewati}` : ""}`);
+}
+
 // Batalkan reservasi admin → pohon kembali tersedia.
 export async function cancelReserveTree(formData: FormData) {
   await requireAdminLevel();

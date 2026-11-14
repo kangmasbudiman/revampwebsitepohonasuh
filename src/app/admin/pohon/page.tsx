@@ -113,7 +113,16 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
       )}
       {searchParams.dibatalkan && (
         <SuccessPopup paramKey="dibatalkan" title="Pesanan Dibatalkan">
-          Reservasi dibatalkan — pohon kembali tersedia untuk umum.
+          {Number(searchParams.jumlah) > 1
+            ? `${Number(searchParams.jumlah)} pesanan dibatalkan`
+            : "Reservasi dibatalkan"}{" "}
+          — pohon kembali tersedia untuk umum.
+          {Number(searchParams.lewati) > 0 && (
+            <>
+              {" "}
+              {Number(searchParams.lewati)} dilewati (bukan status Dipesan Admin).
+            </>
+          )}
         </SuccessPopup>
       )}
       {searchParams.beku === "1" && (

@@ -13,7 +13,7 @@ import RowsPerPage from "@/components/admin/rows-per-page";
 import ReserveTreeButton from "@/components/admin/reserve-tree-button";
 import FreezeButton from "@/components/admin/freeze-button";
 import SubmitButton from "@/components/admin/submit-button";
-import { deleteTree, setTreeUnggulan, removeTreeUnggulan, unfreezeTrees, cancelReserveTree } from "@/lib/actions/tree";
+import { deleteTree, setTreeUnggulan, removeTreeUnggulan, unfreezeTrees, cancelReserveTree, cancelReserveTrees } from "@/lib/actions/tree";
 
 const selectClass =
   "rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
@@ -55,12 +55,25 @@ export default function PohonTable({
   const sp = useSearchParams();
   // Ketikan pencarian lokal + debounce sebelum mengubah URL.
   const [qKetik, setQKetik] = useState(q);
-  // Pilihan massal (kode pohon) untuk "Pesan Terpilih" — dipilih lewat
-  // checkbox; lintas halaman tetap tersimpan sampai dikosongkan/diremount.
-  const [dipilih, setDipilih] = useState<string[]>([]);
+  // Pilihan massal lewat checkbox, dibagi per aksi: pohon tersedia → bisa
+  // dipesan, pohon "Dipesan Admin" → bisa dibatalkan. Lintas halaman tetap
+  // tersimpan sampai dikosongkan/diremount.
+  const [dipilihPesan, setDipilihPesan] = useState<string[]>([]);
+  const [dipilihBatal, setDipilihBatal] = useState<string[]>([]);
+  const [tanyaBatal, setTanyaBatal] = useState(false);
 
   // Pohon yang boleh dipesan: tersedia, tidak beku, belum dipesan admin.
   const bisaDipesan = (t: ApiTree) => !t.reservedAdmin && t.status === "AVAILABLE" && !t.frozen;
+  // Pohon yang punya checkbox: bisa dipesan ATAU sedang dipesan admin.
+  const punyaAksi = (t: ApiTree) => bisaDipesan(t) || t.reservedAdmin;
+  const togglePilih = (t: ApiTree, on: boolean) => {
+    if (on) {
+      (t.reservedAdmin ? setDipilihBatal : setDipilihPesan)((prev) => [...prev, t.code]);
+    } else {
+      setDipilihPesan((prev) => prev.filter((c) => c !== t.code));
+      setDipilihBatal((prev) => prev.filter((c) => c !== t.code));
+    }
+  };
 
   const ubah = useCallback(
     (patch: Record<string, string | null>) => {
@@ -172,20 +185,56 @@ export default function PohonTable({
       </div>
 
       {/* Bar pilihan massal — muncul saat ada pohon terpilih via checkbox */}
-      {dipilih.length > 0 && (
+      {(dipilihPesan.length > 0 || dipilihBatal.length > 0) && (
         <div className="flex flex-wrap items-center gap-3 border-b border-emerald-100 bg-violet-50/70 px-4 py-2.5 dark:border-night-700 dark:bg-violet-950/20">
-          <span className="text-xs font-semibold text-violet-800 dark:text-violet-300">
-            {dipilih.length} pohon dipilih
-          </span>
-          <ReserveTreeButton
-            codes={dipilih}
-            label="Pesan Terpilih"
-            title="Pesan semua pohon terpilih untuk satu nama pemesan"
-            className="inline-flex items-center gap-1 rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800"
-          />
+          {dipilihPesan.length > 0 && (
+            <>
+              <span className="text-xs font-semibold text-violet-800 dark:text-violet-300">
+                {dipilihPesan.length} pohon dipilih
+              </span>
+              <ReserveTreeButton
+                codes={dipilihPesan}
+                label="Pesan Terpilih"
+                title="Pesan semua pohon terpilih untuk satu nama pemesan"
+                className="inline-flex items-center gap-1 rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800"
+              />
+            </>
+          )}
+          {dipilihBatal.length > 0 && (
+            <>
+              <span className="text-xs font-semibold text-sky-800 dark:text-sky-300">
+                {dipilihBatal.length} pesanan dipilih
+              </span>
+              <form action={cancelReserveTrees}>
+                <input type="hidden" name="idpohonStr" value={dipilihBatal.join(",")} />
+                {tanyaBatal ? (
+                  <SubmitButton
+                    icon={X}
+                    pendingLabel="Memproses…"
+                    title="Batalkan semua pesanan terpilih"
+                    className="inline-flex items-center gap-1 rounded-lg bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800"
+                  >
+                    Ya, Batalkan {dipilihBatal.length} Pesanan
+                  </SubmitButton>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setTanyaBatal(true)}
+                    className="inline-flex items-center gap-1 rounded-lg bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800"
+                  >
+                    Batalkan Terpilih
+                  </button>
+                )}
+              </form>
+            </>
+          )}
           <button
             type="button"
-            onClick={() => setDipilih([])}
+            onClick={() => {
+              setDipilihPesan([]);
+              setDipilihBatal([]);
+              setTanyaBatal(false);
+            }}
             className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-night-700 dark:text-zinc-300 dark:hover:bg-night-800"
           >
             Kosongkan
@@ -200,18 +249,29 @@ export default function PohonTable({
               <th className="px-3 py-3">
                 <input
                   type="checkbox"
-                  aria-label="Pilih semua pohon tersedia di halaman ini"
+                  aria-label="Pilih semua pohon yang punya aksi di halaman ini"
                   checked={
-                    trees.some(bisaDipesan) && trees.filter(bisaDipesan).every((t) => dipilih.includes(t.code))
+                    trees.some(punyaAksi) &&
+                    trees.filter(punyaAksi).every((t) =>
+                      t.reservedAdmin ? dipilihBatal.includes(t.code) : dipilihPesan.includes(t.code),
+                    )
                   }
-                  disabled={!trees.some(bisaDipesan)}
+                  disabled={!trees.some(punyaAksi)}
                   onChange={(e) => {
-                    const tersedia = trees.filter(bisaDipesan).map((t) => t.code);
-                    setDipilih((prev) =>
-                      e.target.checked
-                        ? [...new Set([...prev, ...tersedia])]
-                        : prev.filter((c) => !tersedia.includes(c)),
-                    );
+                    const aksi = trees.filter(punyaAksi);
+                    if (e.target.checked) {
+                      for (const t of aksi) {
+                        if (t.reservedAdmin) {
+                          setDipilihBatal((prev) => (prev.includes(t.code) ? prev : [...prev, t.code]));
+                        } else {
+                          setDipilihPesan((prev) => (prev.includes(t.code) ? prev : [...prev, t.code]));
+                        }
+                      }
+                    } else {
+                      const kodeAksi = aksi.map((t) => t.code);
+                      setDipilihPesan((prev) => prev.filter((c) => !kodeAksi.includes(c)));
+                      setDipilihBatal((prev) => prev.filter((c) => !kodeAksi.includes(c)));
+                    }
                   }}
                   className="h-4 w-4 accent-violet-700"
                 />
@@ -248,18 +308,16 @@ export default function PohonTable({
             {trees.map((tree, i) => (
               <tr key={`${tree.code}-${i}`} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                 <td className="px-3 py-3">
-                  {bisaDipesan(tree) && (
+                  {punyaAksi(tree) && (
                     <input
                       type="checkbox"
                       aria-label={`Pilih pohon ${tree.code}`}
-                      checked={dipilih.includes(tree.code)}
-                      onChange={(e) =>
-                        setDipilih((prev) =>
-                          e.target.checked
-                            ? [...prev, tree.code]
-                            : prev.filter((c) => c !== tree.code),
-                        )
+                      checked={
+                        tree.reservedAdmin
+                          ? dipilihBatal.includes(tree.code)
+                          : dipilihPesan.includes(tree.code)
                       }
+                      onChange={(e) => togglePilih(tree, e.target.checked)}
                       className="h-4 w-4 accent-violet-700"
                     />
                   )}
