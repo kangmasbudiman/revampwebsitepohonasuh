@@ -71,15 +71,16 @@ function ReserveTreeInner({
                   <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-zinc-700 dark:bg-night-800 dark:text-zinc-200">
                     {pratinjau}
                   </span>{" "}
-                  akan dipesan untuk satu nama pemesan — setelah dipesan, semua
-                  berstatus <strong>Dipesan Admin</strong> dan tidak bisa diadopsi
-                  pengunjung sampai pesanan dibatalkan.
+                  akan dipesan untuk satu nama pemesan — pesanan langsung dibuatkan{" "}
+                  <strong>invoice</strong> (muncul di Verifikasi Pembayaran) dan
+                  berstatus <strong>Dipesan Admin</strong> sehingga tidak bisa
+                  diadopsi pengunjung sampai dibatalkan.
                 </>
               ) : (
                 <>
-                  {localName} — setelah dipesan, pohon berstatus{" "}
-                  <strong>Dipesan Admin</strong> dan tidak bisa diadopsi pengunjung
-                  sampai pesanan dibatalkan.
+                  {localName} — pesanan langsung dibuatkan <strong>invoice</strong>{" "}
+                  (muncul di Verifikasi Pembayaran) dan pohon berstatus{" "}
+                  <strong>Dipesan Admin</strong> sampai pesanan dibatalkan.
                 </>
               )}
             </p>
@@ -103,6 +104,48 @@ function ReserveTreeInner({
                 placeholder="mis. Bapak Andi / PT Hijau Lestari"
                 className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
               />
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    htmlFor={`dur-pemesan-${codes[0]}`}
+                    className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Durasi adopsi
+                  </label>
+                  <select
+                    id={`dur-pemesan-${codes[0]}`}
+                    name="dur"
+                    defaultValue="1"
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+                  >
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <option key={n} value={n}>
+                        {n} tahun
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor={`email-pemesan-${codes[0]}`}
+                    className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Email{" "}
+                    <span className="text-xs font-normal text-zinc-400">
+                      (opsional)
+                    </span>
+                  </label>
+                  <input
+                    id={`email-pemesan-${codes[0]}`}
+                    name="email"
+                    type="email"
+                    maxLength={255}
+                    placeholder="untuk tagihan online"
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+                  />
+                </div>
+              </div>
 
               <div className="mt-5 flex justify-end gap-2">
                 <button

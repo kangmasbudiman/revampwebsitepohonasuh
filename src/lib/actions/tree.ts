@@ -209,13 +209,16 @@ export async function unfreezeTrees(formData: FormData) {
   redirect(`${balik}${sep}beku=0&jumlah=${jumlah}`);
 }
 
-// Pesan pohon untuk pemesan tertentu (status "Dipesan Admin") agar tidak bisa
-// diadopsi pengunjung sampai reservasi dibatalkan. Mendukung banyak pohon
-// sekaligus: semua `idpohon` dalam form (+ `idpohonStr` koma) diproses satu
-// per satu; API `pesanpohonadmin` menerima satu kode per panggilan.
+// Pesan pohon untuk pemesan tertentu (status "Dipesan Admin") dan LANGSUNG
+// menjadi order/invoice: endpoint `pesanpohonadminbanyak` membuat satu
+// Confirmasi (metode Admin) + baris Dataadopsi per pohon, sehingga pesanan
+// muncul di Verifikasi Pembayaran dan mengikuti alur bayar → verifikasi →
+// sertifikat. Semua kode dikirim dalam satu panggilan = satu invoice.
 export async function reserveTree(formData: FormData) {
   await requireAdminLevel();
   const nama = String(formData.get("nama") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const dur = Math.max(1, Math.min(10, Number(formData.get("dur")) || 1));
   const codes = [
     ...formData.getAll("idpohon").map((v) => String(v).trim()),
     ...String(formData.get("idpohonStr") ?? "").split(","),
@@ -227,28 +230,44 @@ export async function reserveTree(formData: FormData) {
 
   let jumlah = 0;
   let dilewati = 0;
-  for (const code of codes) {
-    try {
-      const res = await apiPost<{ value?: string | number; pesan?: string }>(
-        "pesanpohonadmin",
-        { idpohon: code, nama },
+  let invoice = "";
+  let idKonfirmasi = 0;
+  try {
+    const res = await apiPost<{
+      value?: string | number;
+      pesan?: string;
+      invoice?: string;
+      id?: number;
+      jumlah?: number;
+      dilewati?: number;
+    }>("pesanpohonadminbanyak", {
+      idpohon: codes.join(","),
+      nama,
+      email,
+      dur,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(
+        `/admin/pohon?error=${encodeURIComponent(res.pesan ?? "Gagal memesan pohon.")}`,
       );
-      if (Number(res.value) === 200) jumlah++;
-      else dilewati++;
-    } catch {
-      dilewati++;
     }
-  }
-  if (jumlah === 0) {
-    redirect(
-      `/admin/pohon?error=${encodeURIComponent("Tidak ada pohon yang bisa dipesan — pohon sudah diadopsi, dipesan, atau dibekukan.")}`,
-    );
+    jumlah = Number(res.jumlah) || 0;
+    dilewati = Number(res.dilewati) || 0;
+    invoice = String(res.invoice ?? "");
+    idKonfirmasi = Number(res.id) || 0;
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pohon?error=Gagal+membuat+pesanan");
   }
 
   revalidatePath("/admin/pohon");
+  revalidatePath("/admin/verifikasi");
   revalidatePath("/pohon");
   for (const code of codes) revalidatePath(`/pohon/${code}`);
-  redirect(`/admin/pohon?dipesan=1&jumlah=${jumlah}${dilewati ? `&lewati=${dilewati}` : ""}`);
+  redirect(
+    `/admin/pohon?dipesan=1&jumlah=${jumlah}${dilewati ? `&lewati=${dilewati}` : ""}` +
+      (invoice ? `&invoice=${encodeURIComponent(invoice)}&idconfirmasi=${idKonfirmasi}` : ""),
+  );
 }
 
 // Batalkan banyak reservasi admin sekaligus → semua pohon kembali tersedia.

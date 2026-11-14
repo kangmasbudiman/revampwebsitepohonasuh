@@ -99,9 +99,26 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
         </SuccessPopup>
       )}
       {searchParams.dipesan && (
-        <SuccessPopup paramKey="dipesan" title="Pohon Dipesan">
+        <SuccessPopup paramKey="dipesan" title="Pohon Dipesan — Invoice Dibuat">
           {Number(searchParams.jumlah) || 1} pohon dipesan — statusnya kini Dipesan
           Admin dan tidak bisa diadopsi pengunjung.
+          {searchParams.invoice && (
+            <>
+              {" "}
+              Invoice{" "}
+              <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                {String(searchParams.invoice)}
+              </span>{" "}
+              menunggu pembayaran —{" "}
+              <Link
+                href={`/admin/verifikasi/${Number(searchParams.idconfirmasi) || ""}`}
+                className="font-semibold text-emerald-700 underline"
+              >
+                buka Verifikasi Pembayaran
+              </Link>
+              .
+            </>
+          )}
           {Number(searchParams.lewati) > 0 && (
             <>
               {" "}
