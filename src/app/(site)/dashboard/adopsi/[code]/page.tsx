@@ -86,9 +86,11 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
   }
 
   const status = adoptionStatus(conf.confirmation, !!conf.fotoUrl);
-  const batasPembayaran = conf.createdAt
-    ? new Date(new Date(conf.createdAt).getTime() + 24 * 60 * 60 * 1000)
-    : null;
+  const isAdminOrder = conf.methode === "Admin";
+  const batasPembayaran =
+    !isAdminOrder && conf.createdAt
+      ? new Date(new Date(conf.createdAt).getTime() + 24 * 60 * 60 * 1000)
+      : null;
   const batasStr = batasPembayaran
     ? new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", {
         day: "numeric",
@@ -229,22 +231,39 @@ export default async function AdoptionDetailPage(props: PageProps<"/dashboard/ad
 
       {status === "PENDING_PAYMENT" && (
         <>
-        {batasPembayaran && (
+        {isAdminOrder ? (
           <div
             data-testid="batas-pembayaran"
-            className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-5"
+            className="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-5"
           >
             <span className="text-2xl leading-none" aria-hidden>
-              ⏰
+              ∞
             </span>
             <div>
-              <p className="font-bold text-amber-900">{d.pay.deadlineTitle}</p>
-              <p className="mt-1 text-sm font-semibold text-amber-900">
-                {d.pay.deadlineAt.replace("{time}", batasStr)}
+              <p className="font-bold text-emerald-900">Tanpa batas waktu pembayaran</p>
+              <p className="mt-1 text-xs leading-5 text-emerald-800/80">
+                Pesanan ini dibuat oleh admin — dapat dibayar kapan pun.
               </p>
-              <p className="mt-1 text-xs leading-5 text-amber-800/80">{d.pay.deadlineNote}</p>
             </div>
           </div>
+        ) : (
+          batasPembayaran && (
+            <div
+              data-testid="batas-pembayaran"
+              className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-5"
+            >
+              <span className="text-2xl leading-none" aria-hidden>
+                ⏰
+              </span>
+              <div>
+                <p className="font-bold text-amber-900">{d.pay.deadlineTitle}</p>
+                <p className="mt-1 text-sm font-semibold text-amber-900">
+                  {d.pay.deadlineAt.replace("{time}", batasStr)}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-amber-800/80">{d.pay.deadlineNote}</p>
+              </div>
+            </div>
+          )
         )}
         <OnlinePayment confirmationId={conf.id} linkInvoice={conf.linkInvoice} />
         <section className="mt-6 grid gap-6 md:grid-cols-2">

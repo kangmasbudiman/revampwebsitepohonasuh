@@ -152,7 +152,11 @@ export default async function DashboardPage() {
             name={session.name}
             t={d.invoice}
             banks={banks}
-            dueValue={o.status === "PENDING_PAYMENT" ? dueStr(o.conf.createdAt) : undefined}
+            dueValue={
+              o.status === "PENDING_PAYMENT" && o.conf?.methode !== "Admin"
+                ? dueStr(o.conf.createdAt)
+                : undefined
+            }
           />
         )}
         {o.conf && o.status === "ACTIVE" && (
