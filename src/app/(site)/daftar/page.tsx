@@ -107,15 +107,15 @@ export default function RegisterPage(props: PageProps<"/daftar">) {
         </form>
         )}
         {!state.success && (
-          <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5 text-center">
-            <p className="text-sm text-emerald-900">
+          <div className="mt-3">
+            <p className="text-center text-xs text-zinc-500">
               Lembaga/organisasi yang ingin menjadi mitra?
             </p>
             <Link
               href="/daftar-mitra"
-              className="mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow hover:from-emerald-500 hover:to-emerald-400"
+              className="mt-2 block w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-3 text-center text-sm font-semibold text-white shadow hover:from-emerald-500 hover:to-emerald-400 transition-colors"
             >
-              Daftar sebagai Mitra →
+              Daftar sebagai Mitra
             </Link>
           </div>
         )}
