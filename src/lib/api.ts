@@ -188,6 +188,7 @@ export type ApiTree = {
   // pengunjung dan bisa dibatalkan kembali ke tersedia.
   reservedAdmin: boolean;
   reservedName: string | null;
+  mitraId: number | null;
   tglExp: string | null;
   highlight: number | null;
 };
@@ -227,6 +228,7 @@ export function mapTree(r: Record<string, unknown>): ApiTree {
     frozenUntil: r.beku_sampai ? String(r.beku_sampai).slice(0, 10) : null,
     reservedAdmin: Number(r.reserved_admin ?? 0) === 1,
     reservedName: r.reserved_name ? String(r.reserved_name) : null,
+    mitraId: r.mitra_id ? Number(r.mitra_id) : null,
     tglExp: r.tgl_exp ? String(r.tgl_exp) : null,
     highlight: num(r.highlight),
   };
@@ -1770,4 +1772,27 @@ export function mapPembayaranRows(res: {
         : null,
     };
   });
+}
+
+// Baris tabel mitra → ApiMitra.
+export type ApiMitra = {
+  id: number;
+  nama: string;
+  slug: string;
+  logo: string | null;
+  taggingTemplate: string | null;
+  certTemplateId: number | null;
+  aktif: boolean;
+};
+
+export function mapMitra(r: Record<string, unknown>): ApiMitra {
+  return {
+    id: Number(r.id),
+    nama: String(r.nama ?? ""),
+    slug: String(r.slug ?? ""),
+    logo: r.logo ? String(r.logo) : null,
+    taggingTemplate: r.tagging_template ? String(r.tagging_template) : null,
+    certTemplateId: r.cert_template_id ? Number(r.cert_template_id) : null,
+    aktif: Number(r.aktif ?? 1) === 1,
+  };
 }

@@ -79,6 +79,14 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
   } catch {
     // dropdown akun kosong
   }
+
+  let mitras: { id: number; nama: string }[] = [];
+  try {
+    const mrows = await apiGet<Record<string, unknown>[]>("mitralist");
+    mitras = mrows.map((m) => ({ id: Number(m.id), nama: String(m.nama ?? "") }));
+  } catch {
+    // dropdown mitra kosong
+  }
   const pohonBaru = searchParams.created
     ? trees.find((t) => t.code === String(searchParams.created))
     : undefined;
@@ -168,6 +176,12 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
           {Number(searchParams.jumlah) || 1} pohon diaktifkan kembali.
         </SuccessPopup>
       )}
+      {searchParams.mitra === "1" && (
+        <SuccessPopup paramKey="mitra" title="Pohon Ditahan untuk Mitra">
+          {Number(searchParams.jumlah) || 0} pohon ditahan untuk mitra — statusnya kini
+          Dipesan Mitra dan tidak bisa diadopsi pengunjung.
+        </SuccessPopup>
+      )}
       {searchParams.error && (
         <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">
           {String(searchParams.error)}
@@ -214,6 +228,7 @@ export default async function AdminTreePage(props: PageProps<"/admin/pohon">) {
         jmlUnggulan={jmlUnggulan}
         jmlDipesan={jmlDipesan}
         members={members}
+        mitras={mitras}
       />
     </main>
   );

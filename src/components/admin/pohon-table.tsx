@@ -14,6 +14,7 @@ import ReserveTreeButton from "@/components/admin/reserve-tree-button";
 import FreezeButton from "@/components/admin/freeze-button";
 import SubmitButton from "@/components/admin/submit-button";
 import { deleteTree, setTreeUnggulan, removeTreeUnggulan, unfreezeTrees, cancelReserveTree, cancelReserveTrees } from "@/lib/actions/tree";
+import { tahanPohonMitra } from "@/lib/actions/mitra";
 
 const selectClass =
   "rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
@@ -37,6 +38,7 @@ export default function PohonTable({
   jmlUnggulan,
   jmlDipesan,
   members,
+  mitras,
 }: {
   trees: ApiTree[];
   total: number;
@@ -51,6 +53,7 @@ export default function PohonTable({
   jmlUnggulan: number;
   jmlDipesan: number;
   members: { id: number; name: string; emaile: string }[];
+  mitras: { id: number; nama: string }[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -138,6 +141,7 @@ export default function PohonTable({
           <option value="RESERVED">Dipesan</option>
           <option value="ADOPTED">Teradopsi</option>
           <option value="RESERVED_ADMIN">Dipesan Admin</option>
+          <option value="MITRA">Dipesan Mitra</option>
           <option value="FROZEN">Dibekukan</option>
         </select>
         <div className="flex gap-1.5" role="group" aria-label="Filter unggulan">
@@ -201,6 +205,19 @@ export default function PohonTable({
                 title="Pesan semua pohon terpilih untuk satu nama pemesan"
                 className="inline-flex items-center gap-1 rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-800"
               />
+
+              {mitras.length > 0 && (
+                <form action={tahanPohonMitra} className="inline-flex items-center gap-1">
+                  <input type="hidden" name="idpohonStr" value={dipilihPesan.join(",")} />
+                  <select name="mitra_id" required className="rounded-lg border border-teal-200 bg-white px-2 py-1.5 text-xs font-medium text-teal-800 dark:border-teal-900 dark:bg-night-950 dark:text-teal-300">
+                    <option value="">Tahan untuk mitra…</option>
+                    {mitras.map((m) => (
+                      <option key={m.id} value={m.id}>{m.nama}</option>
+                    ))}
+                  </select>
+                  <button type="submit" className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-800">Tahan</button>
+                </form>
+              )}
             </>
           )}
           {dipilihBatal.length > 0 && (

@@ -88,6 +88,10 @@ export const TREE_STATUS: Record<string, { label: string; className: string }> =
     label: "Dipesan Admin",
     className: "bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300",
   },
+  MITRA: {
+    label: "Dipesan Mitra",
+    className: "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300",
+  },
 };
 
 // Status tampilan satu pohon: beku & reservasi admin didahulukan agar badge
@@ -96,12 +100,15 @@ export function tampilanStatusTree(tree: {
   status: string;
   frozen?: boolean;
   reservedAdmin?: boolean;
+  mitraId?: number | null;
 }): { statusKey: string; label: string; className: string } {
-  const statusKey = tree.reservedAdmin
-    ? "RESERVED_ADMIN"
-    : tree.frozen
-      ? "FROZEN"
-      : tree.status;
+  const statusKey = tree.mitraId
+    ? "MITRA"
+    : tree.reservedAdmin
+      ? "RESERVED_ADMIN"
+      : tree.frozen
+        ? "FROZEN"
+        : tree.status;
   const meta = TREE_STATUS[statusKey] ?? TREE_STATUS.AVAILABLE;
   return { statusKey, ...meta };
 }

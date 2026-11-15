@@ -1,0 +1,104 @@
+import { requireAdminLevel } from "@/lib/guard";
+import SuccessPopup from "@/components/admin/success-popup";
+import { apiGet, mapMitra, type ApiMitra } from "@/lib/api";
+import { tambahMitra, editMitra, hapusMitra } from "@/lib/actions/mitra";
+import ConfirmSubmit from "@/components/admin/confirm-submit";
+import Link from "next/link";
+
+export const metadata = { title: "Mitra Adopsi | Pohon Asuh" };
+
+export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
+  await requireAdminLevel();
+  const sp = await props.searchParams;
+
+  let mitra: ApiMitra[] = [];
+  let fetchError = false;
+  try {
+    mitra = (await apiGet<Record<string, unknown>[]>("mitralist")).map(mapMitra);
+  } catch {
+    fetchError = true;
+  }
+
+  return (
+    <main className="w-full px-6 py-8 lg:px-10">
+      <h1 className="text-2xl font-bold pa-hgrad">Mitra Adopsi</h1>
+      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+        Kelola mitra (mis. Jejakin) yang memesan pohon untuk ditawarkan ke
+        pengadopsi jaringannya. Mitra dapat ditambah kapan saja.
+      </p>
+
+      {sp?.created && <SuccessPopup paramKey="created" title="Ditambahkan">Mitra ditambahkan.</SuccessPopup>}
+      {sp?.saved && <SuccessPopup paramKey="saved" title="Tersimpan">Perubahan mitra tersimpan.</SuccessPopup>}
+      {sp?.deleted && <SuccessPopup paramKey="deleted" title="Terhapus">Mitra dihapus.</SuccessPopup>}
+      {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
+
+      <details className="mt-6 rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">
+        <summary className="cursor-pointer font-semibold text-emerald-800">+ Tambah Mitra Baru</summary>
+        <form action={tambahMitra} className="mt-4 grid gap-3 sm:grid-cols-3">
+          <input name="nama" placeholder="Nama mitra (mis. Jejakin)" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <input name="slug" placeholder="slug (opsional, auto)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <select name="aktif" defaultValue="1" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
+            <option value="1">Aktif</option>
+            <option value="0">Nonaktif</option>
+          </select>
+          <button type="submit" className="sm:col-span-3 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Mitra</button>
+        </form>
+      </details>
+
+      {fetchError ? (
+        <p className="mt-8 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">Gagal memuat data mitra.</p>
+      ) : (
+        <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
+          <table className="w-full text-left text-sm">
+            <thead className="pa-thead border-b border-emerald-100 dark:border-night-700">
+              <tr>
+                <th className="px-4 py-3 font-semibold">ID</th>
+                <th className="px-4 py-3 font-semibold">Nama</th>
+                <th className="px-4 py-3 font-semibold">Slug</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 text-right font-semibold">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
+              {mitra.map((m) => (
+                <tr key={m.id} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
+                  <td className="px-4 py-3 font-mono text-xs">{m.id}</td>
+                  <td className="px-4 py-3 font-medium">{m.nama}</td>
+                  <td className="px-4 py-3 text-zinc-500">{m.slug}</td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${m.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
+                      {m.aktif ? "Aktif" : "Nonaktif"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <form action={editMitra} className="inline">
+                      <input type="hidden" name="id" value={m.id} />
+                      <input type="hidden" name="nama" value={m.nama} />
+                      <input type="hidden" name="slug" value={m.slug} />
+                      <input type="hidden" name="aktif" value={m.aktif ? "0" : "1"} />
+                      <button type="submit" className="mr-2 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300">
+                        {m.aktif ? "Nonaktifkan" : "Aktifkan"}
+                      </button>
+                    </form>
+                    <form action={hapusMitra} className="inline">
+                      <input type="hidden" name="id" value={m.id} />
+                      <ConfirmSubmit
+                        message={`Hapus mitra ${m.nama}? Tidak bisa jika masih ada pohon/adopsi terkait.`}
+                        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400"
+                      >
+                        Hapus
+                      </ConfirmSubmit>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+              {mitra.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-10 text-center text-zinc-500">Belum ada mitra. Tambahkan di atas.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </main>
+  );
+}
