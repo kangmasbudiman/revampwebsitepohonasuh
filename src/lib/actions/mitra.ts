@@ -267,3 +267,32 @@ export async function requestHoldMitra(formData: FormData) {
   revalidatePath("/mitra/pohon");
   redirect("/mitra/pohon?sukses=1");
 }
+
+export async function buatAkunMitra(formData: FormData) {
+  await requireAdminLevel();
+  const mitraId = Number(formData.get("mitra_id"));
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const hp = String(formData.get("hp") ?? "").trim();
+  const password = String(formData.get("password") ?? "").trim();
+  if (!mitraId) redirect("/admin/mitra?error=Pilih+mitra");
+  if (!name || !email || !password) redirect("/admin/mitra?error=Nama%2C+email%2C+password+wajib+diisi");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string; id?: number; email?: string }>(
+      "buatakunmitra",
+      { mitra_id: mitraId, name, emaile: email, hp, passe: password },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/mitra?error=${encodeURIComponent(res.pesan ?? "Gagal membuat akun.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/mitra?error=Gagal+membuat+akun");
+  }
+
+  revalidatePath("/admin/mitra");
+  redirect(
+    `/admin/mitra?akun=1&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(password)}`,
+  );
+}

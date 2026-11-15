@@ -1,7 +1,7 @@
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import { apiGet, mapMitra, type ApiMitra } from "@/lib/api";
-import { tambahMitra, editMitra, hapusMitra, uploadTaggingMitra, setMemberMitra } from "@/lib/actions/mitra";
+import { tambahMitra, editMitra, hapusMitra, uploadTaggingMitra, setMemberMitra, buatAkunMitra } from "@/lib/actions/mitra";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 
 export const metadata = { title: "Mitra Adopsi | Pohon Asuh" };
@@ -31,6 +31,7 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
       {sp?.saved && <SuccessPopup paramKey="saved" title="Tersimpan">Perubahan mitra tersimpan.</SuccessPopup>}
       {sp?.deleted && <SuccessPopup paramKey="deleted" title="Terhapus">Mitra dihapus.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
+      {sp?.akun === "1" && <SuccessPopup paramKey="akun" title="Akun Mitra Dibuat">Email: {String(sp.email)} — Password: {String(sp.pass)}. Bagikan ke mitra.</SuccessPopup>}
 
       <details className="mt-6 rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">
         <summary className="cursor-pointer font-semibold text-emerald-800">+ Tambah Mitra Baru</summary>
@@ -127,6 +128,23 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
         </form>
         <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">Akun member dengan role Mitra akan terikat ke mitra terpilih dan bisa login ke portal mitra.</p>
       </details>
-    </main>
+          <details className="mt-6 rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">
+        <summary className="cursor-pointer font-semibold text-emerald-800">Buat Akun Login Mitra</summary>
+        <form action={buatAkunMitra} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <select name="mitra_id" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
+            <option value="">Pilih mitra…</option>
+            {mitra.map((m) => (
+              <option key={m.id} value={m.id}>{m.nama}</option>
+            ))}
+          </select>
+          <input name="name" placeholder="Nama akun" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <input name="email" type="email" placeholder="Email login" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <input name="password" type="text" placeholder="Password (min 6)" required minLength={6} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <input name="hp" placeholder="No HP (opsional)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <button type="submit" className="sm:col-span-2 lg:col-span-5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Buat Akun</button>
+        </form>
+        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">Akun otomatis terhubung ke mitra & role Mitra. Bagikan email+password ke mitra.</p>
+      </details>
+</main>
   );
 }
