@@ -172,3 +172,71 @@ export async function uploadTaggingMitra(formData: FormData) {
   revalidatePath("/admin/mitra");
   redirect("/admin/mitra?saved=1");
 }
+
+export async function setMemberMitra(formData: FormData) {
+  await requireAdminLevel();
+  const idMember = Number(formData.get("idmember"));
+  const mitraId = Number(formData.get("mitra_id")) || 0;
+  if (!idMember) redirect("/admin/mitra?error=ID+member+wajib+diisi");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "setmembermitra",
+      { idmember: idMember, mitra_id: mitraId || null },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/mitra?error=${encodeURIComponent(res.pesan ?? "Gagal menautkan akun.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/mitra?error=Gagal+menautkan+akun");
+  }
+
+  revalidatePath("/admin/mitra");
+  redirect("/admin/mitra?saved=1");
+}
+
+export async function approveMitraHold(formData: FormData) {
+  await requireAdminLevel();
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/admin/mitra-requests?error=Request+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "mitraapprovehold",
+      { id, iduser: 1 },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/mitra-requests?error=${encodeURIComponent(res.pesan ?? "Gagal menyetujui.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/mitra-requests?error=Gagal+menyetujui");
+  }
+
+  revalidatePath("/admin/mitra-requests");
+  revalidatePath("/admin/pohon");
+  redirect("/admin/mitra-requests?approved=1");
+}
+
+export async function rejectMitraHold(formData: FormData) {
+  await requireAdminLevel();
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/admin/mitra-requests?error=Request+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "mitrarejecthold",
+      { id },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/mitra-requests?error=${encodeURIComponent(res.pesan ?? "Gagal menolak.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/mitra-requests?error=Gagal+menolak");
+  }
+
+  revalidatePath("/admin/mitra-requests");
+  redirect("/admin/mitra-requests?rejected=1");
+}

@@ -1,7 +1,7 @@
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import { apiGet, mapMitra, type ApiMitra } from "@/lib/api";
-import { tambahMitra, editMitra, hapusMitra, uploadTaggingMitra } from "@/lib/actions/mitra";
+import { tambahMitra, editMitra, hapusMitra, uploadTaggingMitra, setMemberMitra } from "@/lib/actions/mitra";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 
 export const metadata = { title: "Mitra Adopsi | Pohon Asuh" };
@@ -112,6 +112,21 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
           </table>
         </div>
       )}
+
+      <details className="mt-6 rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">
+        <summary className="cursor-pointer font-semibold text-emerald-800">Tautkan Akun Member ke Mitra</summary>
+        <form action={setMemberMitra} className="mt-4 grid gap-3 sm:grid-cols-3">
+          <input name="idmember" type="number" placeholder="ID akun member" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <select name="mitra_id" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
+            <option value="0">Lepas tautan (non-mitra)</option>
+            {mitra.map((m) => (
+              <option key={m.id} value={m.id}>{m.nama}</option>
+            ))}
+          </select>
+          <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Tautkan</button>
+        </form>
+        <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">Akun member dengan role Mitra akan terikat ke mitra terpilih dan bisa login ke portal mitra.</p>
+      </details>
     </main>
   );
 }
