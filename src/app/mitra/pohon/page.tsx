@@ -1,12 +1,12 @@
 import { requireUser } from "@/lib/guard";
-import { apiPost, mapTrees, type ApiTree } from "@/lib/api";
+import { mapTrees, type ApiTree } from "@/lib/api";
 import MitraRequestHoldForm from "@/components/mitra/request-hold-form";
 import SuccessPopup from "@/components/admin/success-popup";
 
 export const metadata = { title: "Request Hold Pohon | Pohon Asuh" };
 
 export default async function MitraPohonPage(props: PageProps<"/mitra/pohon">) {
-  const session = await requireUser();
+  await requireUser();
   const sp = await props.searchParams;
 
   let trees: ApiTree[] = [];
@@ -21,7 +21,7 @@ export default async function MitraPohonPage(props: PageProps<"/mitra/pohon">) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8 lg:px-8">
       <h1 className="text-2xl font-bold text-emerald-950">Request Hold Pohon</h1>
       <p className="mt-1 text-sm text-zinc-600">
         Pilih pohon yang ingin ditahan untuk mitra Anda. Request akan menunggu

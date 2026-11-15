@@ -12,7 +12,11 @@ export default async function MitraAdopsiPage(props: PageProps<"/mitra/adopsi">)
   let mitraId: number | null = null;
   let mitraName = "";
   try {
-    const res = await apiPost<any>("mitramyinfo", { idmember: session.userId });
+    const res = await apiPost<{
+      value?: number;
+      mitra: { id: number; nama: string; slug: string; logo: string | null; tagging_template: string | null };
+      member: { id: number; name: string; emaile: string };
+    }>("mitramyinfo", { idmember: session.userId });
     if (Number(res.value) === 200) {
       mitraId = Number(res.mitra.id);
       mitraName = String(res.mitra.nama);
@@ -26,7 +30,7 @@ export default async function MitraAdopsiPage(props: PageProps<"/mitra/adopsi">)
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8 lg:px-8">
       <h1 className="text-2xl font-bold text-emerald-950">Input Adopsi Mitra</h1>
       <p className="mt-1 text-sm text-zinc-600">
         Mitra: <strong>{mitraName}</strong>. Input data pengadopsi dari jaringan

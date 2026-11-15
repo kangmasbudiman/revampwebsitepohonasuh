@@ -2,7 +2,7 @@ import { requireUser } from "@/lib/guard";
 import { apiPost } from "@/lib/api";
 import Link from "next/link";
 import { certUrl } from "@/lib/api";
-import { namaDesa, rupiah } from "@/lib/format";
+import { namaDesa } from "@/lib/format";
 
 export const metadata = { title: "Sertifikat Mitra | Pohon Asuh" };
 
@@ -17,7 +17,7 @@ export default async function MitraSertifikatPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8 lg:px-8">
       <h1 className="text-2xl font-bold text-emerald-950">Sertifikat Mitra</h1>
       <p className="mt-1 text-sm text-zinc-600">
         Daftar adopsi mitra Anda beserta sertifikat yang sudah terbit.
