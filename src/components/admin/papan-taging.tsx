@@ -126,9 +126,11 @@ function fmtBerlaku(raw: string | null) {
 export default function PapanTaging({
   order,
   chrome = true,
+  backgroundUrl,
 }: {
   order: ApiOrderRow;
   chrome?: boolean;
+  backgroundUrl?: string | null;
 }) {
   // Label tampilan desa dari kelola lokasi — data_adopsi.desa menyimpan nama
   // internal satu kata (mis. "pondokparianlunang").
@@ -165,7 +167,7 @@ export default function PapanTaging({
           {/* Template papan — <img> polos agar cetak memakai berkas aslinya. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/papan-taging.png"
+            src={backgroundUrl || "/images/papan-taging.png"}
             alt="Template papan taging"
             className="absolute inset-0 h-full w-full object-cover"
           />

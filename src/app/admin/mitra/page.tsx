@@ -1,9 +1,8 @@
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import { apiGet, mapMitra, type ApiMitra } from "@/lib/api";
-import { tambahMitra, editMitra, hapusMitra } from "@/lib/actions/mitra";
+import { tambahMitra, editMitra, hapusMitra, uploadTaggingMitra } from "@/lib/actions/mitra";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
-import Link from "next/link";
 
 export const metadata = { title: "Mitra Adopsi | Pohon Asuh" };
 
@@ -24,7 +23,8 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
       <h1 className="text-2xl font-bold pa-hgrad">Mitra Adopsi</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Kelola mitra (mis. Jejakin) yang memesan pohon untuk ditawarkan ke
-        pengadopsi jaringannya. Mitra dapat ditambah kapan saja.
+        pengadopsi jaringannya. Mitra dapat ditambah kapan saja. Upload desain
+        papan taging khusus per mitra (opsional).
       </p>
 
       {sp?.created && <SuccessPopup paramKey="created" title="Ditambahkan">Mitra ditambahkan.</SuccessPopup>}
@@ -56,6 +56,7 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                 <th className="px-4 py-3 font-semibold">Nama</th>
                 <th className="px-4 py-3 font-semibold">Slug</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Desain Tagging</th>
                 <th className="px-4 py-3 text-right font-semibold">Aksi</th>
               </tr>
             </thead>
@@ -69,6 +70,18 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${m.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
                       {m.aktif ? "Aktif" : "Nonaktif"}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {m.taggingTemplate ? (
+                      <span className="text-xs text-teal-700 dark:text-teal-300">{m.taggingTemplate}</span>
+                    ) : (
+                      <span className="text-xs text-zinc-400">standar</span>
+                    )}
+                    <form action={uploadTaggingMitra} className="mt-1 flex items-center gap-1">
+                      <input type="hidden" name="id" value={m.id} />
+                      <input type="file" name="file" accept="image/*" className="text-xs" />
+                      <button type="submit" className="rounded-lg border border-teal-200 px-2 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-50 dark:border-teal-900 dark:text-teal-300">Upload</button>
+                    </form>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <form action={editMitra} className="inline">
@@ -93,7 +106,7 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                 </tr>
               ))}
               {mitra.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-10 text-center text-zinc-500">Belum ada mitra. Tambahkan di atas.</td></tr>
+                <tr><td colSpan={6} className="px-4 py-10 text-center text-zinc-500">Belum ada mitra. Tambahkan di atas.</td></tr>
               )}
             </tbody>
           </table>

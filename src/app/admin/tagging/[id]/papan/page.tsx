@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/guard";
-import { apiPost, mapOrderRows, type ApiOrderRow } from "@/lib/api";
+import { apiPost, apiGet, mapOrderRows, mapMitra, type ApiOrderRow } from "@/lib/api";
 import { namaDesa, sebutanDesa } from "@/lib/format";
 import PapanTaging from "@/components/admin/papan-taging";
 
@@ -30,6 +30,17 @@ export default async function PapanTagingPage({
   }
   const order = orders.find((o) => o.id === Number(id));
   if (!order) notFound();
+
+  let mitraTaggingTemplate: string | null = null;
+  if (order.mitraId) {
+    try {
+      const mitras = (await apiGet<Record<string, unknown>[]>("mitralist")).map(mapMitra);
+      const m = mitras.find((x) => x.id === order.mitraId);
+      mitraTaggingTemplate = m?.taggingTemplate ?? null;
+    } catch {
+      // fallback desain standar
+    }
+  }
 
   const lokasi = [
     order.desa && `${sebutanDesa(order.provinsi)} ${order.desaLabel || namaDesa(order.desa)}`,
@@ -82,7 +93,7 @@ export default async function PapanTagingPage({
       </div>
 
       <div className="mt-6 print:mt-0">
-        <PapanTaging order={order} />
+        <PapanTaging order={order} backgroundUrl={mitraTaggingTemplate} />
       </div>
     </main>
   );

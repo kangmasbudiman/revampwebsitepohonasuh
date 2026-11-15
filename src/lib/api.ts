@@ -579,6 +579,7 @@ export type ApiOrderRow = {
   nama: string;
   memo: string; // pesan & impresi (tampil di papan taging)
   pengasuh: number;
+  mitraId: number | null;
   desa: string;
   desaLabel: string; // label tampilan (kelola lokasi), bukan nama internal
   price: number; // subtotal pohon
@@ -616,6 +617,7 @@ export function mapOrderRow(r: Record<string, unknown>): ApiOrderRow {
     nama: String(r.nama ?? ""),
     memo: String(r.memo ?? ""),
     pengasuh: Number(r.pengasuh) || 0,
+    mitraId: r.mitra_id ? Number(r.mitra_id) : null,
     desa: String(r.desa ?? ""),
     desaLabel: String(r.desa_label ?? ""),
     price: Number(r.price) || 0,

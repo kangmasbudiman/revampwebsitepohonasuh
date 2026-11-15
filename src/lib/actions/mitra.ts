@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdminLevel } from "@/lib/guard";
-import { apiPost } from "@/lib/api";
+import { apiPost, apiPostForm } from "@/lib/api";
 
 export async function tambahMitra(formData: FormData) {
   await requireAdminLevel();
@@ -138,4 +138,37 @@ export async function inputAdopsiMitra(formData: FormData) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
     redirect("/admin/adopsi-mitra?error=Gagal+input+adopsi");
   }
+}
+
+export async function uploadTaggingMitra(formData: FormData) {
+  await requireAdminLevel();
+  const id = Number(formData.get("id"));
+  const file = formData.get("file");
+  if (!id) redirect("/admin/mitra?error=Mitra+tidak+ditemukan");
+  if (!(file instanceof File) || file.size === 0) {
+    redirect("/admin/mitra?error=File+gambar+wajib+diisi");
+  }
+
+  try {
+    const up = await apiPostForm<{ value?: string | number; cover?: string; pesan?: string }>(
+      "uploadcover",
+      formData,
+    );
+    if (Number(up.value) !== 200 || !up.cover) {
+      redirect(`/admin/mitra?error=${encodeURIComponent(up.pesan ?? "Gagal upload gambar.")}`);
+    }
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "editmitra",
+      { id, tagging_template: up.cover },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/mitra?error=${encodeURIComponent(res.pesan ?? "Gagal menyimpan desain.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/mitra?error=Gagal+upload+desain");
+  }
+
+  revalidatePath("/admin/mitra");
+  redirect("/admin/mitra?saved=1");
 }
