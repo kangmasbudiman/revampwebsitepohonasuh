@@ -106,19 +106,6 @@ export default function RegisterPage(props: PageProps<"/daftar">) {
           </button>
         </form>
         )}
-        {!state.success && (
-          <div className="mt-3">
-            <p className="text-center text-xs text-zinc-500">
-              Lembaga/organisasi yang ingin menjadi mitra?
-            </p>
-            <Link
-              href="/daftar-mitra"
-              className="mt-2 block w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-3 text-center text-sm font-semibold text-white shadow hover:from-emerald-500 hover:to-emerald-400 transition-colors"
-            >
-              Daftar sebagai Mitra
-            </Link>
-          </div>
-        )}
       </div>
     </main>
   );
