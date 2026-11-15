@@ -56,6 +56,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/tagging", label: "Order Tagging", icon: Tag },
       { href: "/admin/btor", label: "Laporan BTOR", icon: ClipboardCheck },
       { href: "/admin/laporan", label: "Laporan Kegiatan", icon: NotebookPen },
+      { href: "/admin/sumber-info", label: "Asal Tahu Pengguna", icon: MessageSquareQuote },
       { href: "/admin/adopsi", label: "Data Adopsi", icon: HeartHandshake },
       { href: "/admin/mitra", label: "Mitra Adopsi", icon: Handshake },
       { href: "/admin/adopsi-mitra", label: "Input Adopsi Mitra", icon: Upload },

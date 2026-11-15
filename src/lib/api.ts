@@ -1881,3 +1881,27 @@ export function mapMitraPesanan(r: Record<string, unknown>): ApiMitraPesanan {
     createdAt: r.created_at ? String(r.created_at) : null,
   };
 }
+
+export type ApiSumberInfo = {
+  id: number;
+  name: string;
+  emaile: string;
+  hp: string | null;
+  alamat: string | null;
+  sumberInfo: string;
+  tanggal: string | null;
+  createdAt: string | null;
+};
+
+export function mapSumberInfo(r: Record<string, unknown>): ApiSumberInfo {
+  return {
+    id: Number(r.id ?? 0),
+    name: String(r.name ?? ""),
+    emaile: String(r.emaile ?? ""),
+    hp: r.hp ? String(r.hp) : null,
+    alamat: r.alamat ? String(r.alamat) : null,
+    sumberInfo: String(r.sumber_info ?? ""),
+    tanggal: r.tanggal ? String(r.tanggal) : null,
+    createdAt: r.created_at ? String(r.created_at) : null,
+  };
+}

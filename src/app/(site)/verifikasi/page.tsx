@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CheckCircle2, XCircle } from "lucide-react";
+import SumberInfoForm from "@/components/sumber-info-form";
 import { apiGet } from "@/lib/api";
 import { getDict } from "@/lib/i18n";
 import KirimUlangVerifikasi from "@/components/kirim-ulang-verifikasi";
@@ -18,13 +19,15 @@ export default async function VerifikasiPage(props: PageProps<"/verifikasi">) {
 
   let sukses = false;
   let pesan = t.loadError;
+  let sumberToken = "";
   if (token) {
     try {
-      const res = await apiGet<{ value?: string | number; pesan?: string }>(
+      const res = await apiGet<{ value?: string | number; pesan?: string; sumber_token?: string }>(
         `verifikasiemail?token=${encodeURIComponent(token)}`,
       );
       sukses = String(res.value) === "1";
       pesan = res.pesan ?? pesan;
+      sumberToken = typeof res.sumber_token === "string" ? res.sumber_token : "";
     } catch {
       // pesan default loadError
     }
@@ -34,17 +37,21 @@ export default async function VerifikasiPage(props: PageProps<"/verifikasi">) {
     <main className="mx-auto flex w-full max-w-md flex-1 items-center px-4 py-16">
       <div className="w-full rounded-3xl border border-emerald-100 bg-white p-8 text-center shadow-sm">
         {sukses ? (
-          <>
-            <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600" aria-hidden />
-            <h1 className="mt-4 text-2xl font-bold text-emerald-950">{t.successTitle}</h1>
-            <p className="mt-2 text-sm leading-6 text-zinc-600">{t.successDesc}</p>
-            <Link
-              href="/masuk"
-              className="mt-6 inline-block rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              {t.toLogin}
-            </Link>
-          </>
+          sumberToken ? (
+            <SumberInfoForm token={sumberToken} />
+          ) : (
+            <>
+              <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600" aria-hidden />
+              <h1 className="mt-4 text-2xl font-bold text-emerald-950">{t.successTitle}</h1>
+              <p className="mt-2 text-sm leading-6 text-zinc-600">{t.successDesc}</p>
+              <Link
+                href="/masuk"
+                className="mt-6 inline-block rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                {t.toLogin}
+              </Link>
+            </>
+          )
         ) : (
           <>
             <XCircle className="mx-auto h-14 w-14 text-red-500" aria-hidden />
