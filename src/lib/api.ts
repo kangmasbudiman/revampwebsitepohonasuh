@@ -1093,6 +1093,7 @@ export type ApiAdopsi = {
   tglExp: string | null;
   invoice: string;
   proses: number;
+  mitraId: number | null;
 };
 
 export function mapAdopsis(rows: Record<string, unknown>[]): ApiAdopsi[] {
@@ -1114,6 +1115,7 @@ export function mapAdopsis(rows: Record<string, unknown>[]): ApiAdopsi[] {
     tglExp: r.tgl_exp ? String(r.tgl_exp) : null,
     invoice: String(r.invoice ?? ""),
     proses: Number(r.proses) || 0,
+    mitraId: r.mitra_id ? Number(r.mitra_id) : null,
   }));
 }
 

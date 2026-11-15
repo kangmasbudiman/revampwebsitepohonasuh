@@ -25,15 +25,18 @@ export default function AdopsiTable({
   rows,
   provinsiByDesa = {},
   initialQuery = "",
+  mitras = [],
 }: {
   rows: ApiAdopsi[];
   provinsiByDesa?: Record<string, string | null>;
   initialQuery?: string;
+  mitras?: { id: number; nama: string }[];
 }) {
   const [q, setQ] = useState(initialQuery);
   const [provinsi, setProvinsi] = useState("semua");
   const [desa, setDesa] = useState("semua");
   const [tahun, setTahun] = useState("semua");
+  const [mitra, setMitra] = useState("semua");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(50);
   const [showQr, setShowQr] = useState(false);
@@ -83,6 +86,7 @@ export default function AdopsiTable({
       if (provinsi !== "semua" && provinsiByDesa[r.desa] !== provinsi) return false;
       if (desa !== "semua" && r.desa !== desa) return false;
       if (tahun !== "semua" && (r.tglAdopt ?? "").slice(0, 4) !== tahun) return false;
+      if (mitra !== "semua" && String(r.mitraId ?? "") !== mitra) return false;
       if (!needle) return true;
       return (
         r.nama.toLowerCase().includes(needle) ||
@@ -92,7 +96,7 @@ export default function AdopsiTable({
         r.invoice.toLowerCase().includes(needle)
       );
     });
-  }, [rows, q, provinsi, desa, tahun, provinsiByDesa]);
+  }, [rows, q, provinsi, desa, tahun, mitra, provinsiByDesa]);
 
   const totalUsd = filtered.reduce((s, r) => s + (r.cur === "USD" ? r.price ?? 0 : 0), 0);
   const totalIdr = filtered.reduce((s, r) => s + (r.cur !== "USD" ? r.price ?? 0 : 0), 0);
@@ -122,6 +126,7 @@ export default function AdopsiTable({
       "Nama Lokal",
       "Nama Penerima",
       "Pengadopsi",
+      "Mitra",
       "Tagging",
       "Certnum",
       "Tahun",
@@ -140,6 +145,7 @@ export default function AdopsiTable({
         r.localName,
         r.nama,
         r.donatur,
+        mitras.find((m) => m.id === r.mitraId)?.nama ?? "",
         r.tagged ? "Sudah" : "Belum",
         r.certnum,
         r.dur ?? "",
@@ -243,6 +249,19 @@ export default function AdopsiTable({
             </option>
           ))}
         </select>
+        {mitras.length > 0 && (
+          <select
+            value={mitra}
+            onChange={(e) => { setMitra(e.target.value); setPage(1); }}
+            className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+            aria-label="Filter mitra"
+          >
+            <option value="semua">Semua mitra</option>
+            {mitras.map((m) => (
+              <option key={m.id} value={m.id}>{m.nama}</option>
+            ))}
+          </select>
+        )}
         <span className="text-xs text-zinc-500 dark:text-zinc-400">
           {filtered.length.toLocaleString("id-ID")} data
         </span>
@@ -277,6 +296,7 @@ export default function AdopsiTable({
               <th className="px-3 py-3">D</th>
               <th className="px-3 py-3">Nama Lokal</th>
               <th className="px-3 py-3">Diadopsi Oleh</th>
+              <th className="px-3 py-3">Mitra</th>
               <th className="px-3 py-3">Tagging</th>
               <th className="px-3 py-3">Certnum</th>
               <th className="px-3 py-3">Thn</th>
@@ -306,6 +326,9 @@ export default function AdopsiTable({
                   {r.donatur && r.donatur !== r.nama && (
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">{r.donatur}</p>
                   )}
+                </td>
+                <td className="px-3 py-3 text-xs text-teal-700 dark:text-teal-300">
+                  {r.mitraId ? (mitras.find((m) => m.id === r.mitraId)?.nama ?? `Mitra #${r.mitraId}`) : "—"}
                 </td>
                 <td className="px-3 py-3">
                   <Tag
@@ -362,7 +385,7 @@ export default function AdopsiTable({
             ))}
             {pageRows.length === 0 && (
               <tr>
-                <td colSpan={13} className="px-4 py-10 text-center text-zinc-500 dark:text-zinc-400">
+                <td colSpan={14} className="px-4 py-10 text-center text-zinc-500 dark:text-zinc-400">
                   Tidak ada data adopsi yang cocok.
                 </td>
               </tr>

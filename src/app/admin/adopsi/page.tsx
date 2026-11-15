@@ -1,6 +1,6 @@
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
-import { apiGet, mapAdopsis, mapDesa, type ApiAdopsi } from "@/lib/api";
+import { apiGet, mapAdopsis, mapDesa, mapMitra, type ApiAdopsi } from "@/lib/api";
 import AdopsiTable from "@/components/admin/adopsi-table";
 
 export const metadata = { title: "Data Adopsi | Pohon Asuh" };
@@ -13,6 +13,7 @@ export default async function DataAdopsiPage({
 
   let rows: ApiAdopsi[] = [];
   let provinsiByDesa: Record<string, string | null> = {};
+  let mitraList: { id: number; nama: string }[] = [];
   let fetchError = false;
   try {
     rows = mapAdopsis(await apiGet<Record<string, unknown>[]>("adopsilist"));
@@ -20,6 +21,8 @@ export default async function DataAdopsiPage({
     provinsiByDesa = Object.fromEntries(
       desaRows.map(mapDesa).map((d) => [d.name, d.provinsi]),
     );
+    const mrows = await apiGet<Record<string, unknown>[]>("mitralist");
+    mitraList = mrows.map(mapMitra).map((m) => ({ id: m.id, nama: m.nama }));
   } catch {
     fetchError = true;
   }
@@ -57,6 +60,7 @@ export default async function DataAdopsiPage({
           rows={rows}
           provinsiByDesa={provinsiByDesa}
           initialQuery={(Array.isArray(sp?.q) ? sp.q[0] : sp.q) ?? ""}
+          mitras={mitraList}
         />
       )}
     </main>
