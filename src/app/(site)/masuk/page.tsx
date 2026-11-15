@@ -24,8 +24,18 @@ export default function LoginPage(props: PageProps<"/masuk">) {
           >
             {t.registerNow}
           </Link>
+          {" · "}
+          <Link href="/daftar-mitra" className="font-semibold text-emerald-700 hover:text-emerald-800">
+            Daftar Mitra
+          </Link>
         </p>
 
+        {typeof searchParams.terdaftar === "string" && searchParams.terdaftar === "1" && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            ✅ Pendaftaran mitra berhasil. Akun Anda menunggu aktivasi dari admin
+            KKI Warsi — silakan masuk setelah diaktifkan.
+          </div>
+        )}
         <form action={action} className="mt-6 space-y-4">
           <input type="hidden" name="next" value={next} />
           <div>

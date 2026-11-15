@@ -10,14 +10,14 @@ export default async function MitraDashboardPage(props: PageProps<"/mitra">) {
   const session = await requireUser();
   const sp = await props.searchParams;
 
-  let info: { mitra: { id: number; nama: string; slug: string; logo: string | null; tagging_template: string | null }; member: { id: number; name: string; emaile: string } } | null = null;
+  let info: { mitra: { id: number; nama: string; slug: string; logo: string | null; tagging_template: string | null; aktif: number }; member: { id: number; name: string; emaile: string } } | null = null;
   let adopsi: Record<string, unknown>[] = [];
   let heldTrees: ApiTree[] = [];
   let pendingRequests = 0;
   try {
     const res = await apiPost<{
       value?: number;
-      mitra: { id: number; nama: string; slug: string; logo: string | null; tagging_template: string | null };
+      mitra: { id: number; nama: string; slug: string; logo: string | null; tagging_template: string | null; aktif: number };
       member: { id: number; name: string; emaile: string };
     }>("mitramyinfo", { idmember: session.userId });
     if (Number(res.value) === 200) info = res;
@@ -68,6 +68,19 @@ export default async function MitraDashboardPage(props: PageProps<"/mitra">) {
 
       {sp?.sukses && <SuccessPopup paramKey="sukses" title="Berhasil">Request hold terkirim, menunggu approval admin.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
+
+      {info!.mitra.aktif === 0 && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 dark:border-amber-800 dark:bg-amber-950/30">
+          <p className="font-semibold text-amber-900 dark:text-amber-200">
+            ⏳ Akun mitra menunggu aktivasi
+          </p>
+          <p className="mt-1 text-sm text-amber-800/80 dark:text-amber-300/80">
+            Permohonan Anda sudah diterima. Admin KKI Warsi sedang memeriksa identitas
+            lembaga Anda sebelum mengaktifkan akun. Anda dapat melihat portal tetapi
+            belum bisa melakukan pemesanan hingga diaktifkan.
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (

@@ -390,3 +390,34 @@ export async function tambahProgramMitraSelf(formData: FormData) {
   revalidatePath("/mitra/program");
   redirect("/mitra/program?created=1");
 }
+
+export async function daftarMitra(formData: FormData) {
+  const nama = String(formData.get("nama") ?? "").trim();
+  const alamat = String(formData.get("alamat") ?? "").trim();
+  const namaPj = String(formData.get("nama_pj") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const hp = String(formData.get("hp") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+
+  if (nama === "" || email === "" || password === "") {
+    redirect("/daftar-mitra?error=Nama+lembaga%2C+email%2C+dan+password+wajib+diisi");
+  }
+  if (password.length < 6) {
+    redirect("/daftar-mitra?error=Password+minimal+6+karakter");
+  }
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "daftarmitra",
+      { nama, alamat, nama_pj: namaPj, email, hp, passe: password },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/daftar-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal registrasi.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/daftar-mitra?error=Gagal+menghubungi+server");
+  }
+
+  redirect("/masuk?terdaftar=1");
+}

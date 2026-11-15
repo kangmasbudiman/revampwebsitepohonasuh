@@ -1,13 +1,19 @@
 import { requireUser } from "@/lib/guard";
-import { mapTrees, type ApiTree } from "@/lib/api";
+import { apiPost, mapTrees, type ApiTree } from "@/lib/api";
 import MitraRequestHoldForm from "@/components/mitra/request-hold-form";
 import SuccessPopup from "@/components/admin/success-popup";
 
 export const metadata = { title: "Request Hold Pohon | Pohon Asuh" };
 
 export default async function MitraPohonPage(props: PageProps<"/mitra/pohon">) {
-  await requireUser();
+  const session = await requireUser();
   const sp = await props.searchParams;
+
+  let aktif = 1;
+  try {
+    const info = await apiPost<{ value?: number; mitra?: { aktif: number } }>("mitramyinfo", { idmember: session.userId });
+    if (Number(info.value) === 200) aktif = Number(info.mitra?.aktif ?? 1);
+  } catch {}
 
   let trees: ApiTree[] = [];
   try {
@@ -31,7 +37,19 @@ export default async function MitraPohonPage(props: PageProps<"/mitra/pohon">) {
       {sp?.sukses && <SuccessPopup paramKey="sukses" title="Terkirim">Request hold terkirim, menunggu approval admin.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
-      <MitraRequestHoldForm trees={trees} />
+      {aktif === 0 ? (
+        <div className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-6 text-center dark:border-amber-800 dark:bg-amber-950/30">
+          <p className="font-semibold text-amber-900 dark:text-amber-200">
+            ⏳ Akun menunggu aktivasi
+          </p>
+          <p className="mt-2 text-sm text-amber-800/80 dark:text-amber-300/80">
+            Pengembalian pemesanan pohon baru tersedia setelah admin mengaktifkan
+            akun mitra Anda.
+          </p>
+        </div>
+      ) : (
+        <MitraRequestHoldForm trees={trees} />
+      )}
     </main>
   );
 }

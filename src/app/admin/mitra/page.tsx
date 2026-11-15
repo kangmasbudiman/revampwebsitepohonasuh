@@ -57,6 +57,7 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                 <th className="px-4 py-3 font-semibold">Nama</th>
                 <th className="px-4 py-3 font-semibold">Slug</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">PIC / Kontak</th>
                 <th className="px-4 py-3 font-semibold">Akun Login</th>
               <th className="px-4 py-3 font-semibold">Desain Tagging</th>
                 <th className="px-4 py-3 text-right font-semibold">Aksi</th>
@@ -69,9 +70,14 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                   <td className="px-4 py-3 font-medium">{m.nama}</td>
                   <td className="px-4 py-3 text-zinc-500">{m.slug}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${m.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
-                      {m.aktif ? "Aktif" : "Nonaktif"}
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${m.aktif ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                      {m.aktif ? "Aktif" : "Menunggu aktivasi"}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">
+                    {m.namaPj && <span className="block font-medium">{m.namaPj}</span>}
+                    {m.email && <span className="block">{m.email}</span>}
+                    {m.hp && <span className="block">{m.hp}</span>}
                   </td>
                   <td className="px-4 py-3">
                     {m.akun ? (
@@ -119,7 +125,7 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                 </tr>
               ))}
               {mitra.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-zinc-500">Belum ada mitra. Tambahkan di atas.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-10 text-center text-zinc-500">Belum ada mitra. Tambahkan di atas.</td></tr>
               )}
             </tbody>
           </table>
