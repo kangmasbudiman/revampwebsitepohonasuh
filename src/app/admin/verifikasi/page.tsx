@@ -77,7 +77,14 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
               className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-5 shadow-sm transition-shadow hover:shadow-md"
             >
               <div>
-                <p className="font-semibold text-emerald-950 dark:text-emerald-50">{o.nama}</p>
+                <p className="font-semibold text-emerald-950 dark:text-emerald-50">
+                  {o.nama}
+                  {o.rows.every((r) => r.methode === "Mitra") && (
+                    <span className="ml-2 inline-flex items-center rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-800">
+                      Mitra
+                    </span>
+                  )}
+                </p>
                 <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
                   {o.rows.length} pohon · {o.rows.map((r) => r.localName).join(", ")}
                 </p>
@@ -112,7 +119,14 @@ export default async function VerificationListPage(props: PageProps<"/admin/veri
               className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-100 bg-amber-50/40 p-5 shadow-sm dark:border-night-700 dark:bg-night-800/40"
             >
               <div className="min-w-0">
-                <p className="font-semibold text-emerald-950 dark:text-emerald-50">{o.nama}</p>
+                <p className="font-semibold text-emerald-950 dark:text-emerald-50">
+                  {o.nama}
+                  {o.rows.every((r) => r.methode === "Mitra") && (
+                    <span className="ml-2 inline-flex items-center rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-800">
+                      Mitra
+                    </span>
+                  )}
+                </p>
                 <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
                   {o.rows.length} pohon · {o.rows.map((r) => r.localName).join(", ")}
                 </p>
