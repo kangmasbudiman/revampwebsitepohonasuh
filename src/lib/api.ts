@@ -1829,6 +1829,7 @@ export type ApiProgramMitra = {
   taggingTemplate: string | null;
   tglMulai: string | null;
   tglSelesai: string | null;
+  durasi: string | null;
   aktif: boolean;
 };
 
@@ -1842,6 +1843,7 @@ export function mapProgramMitra(r: Record<string, unknown>): ApiProgramMitra {
     taggingTemplate: r.tagging_template ? String(r.tagging_template) : null,
     tglMulai: r.tgl_mulai ? String(r.tgl_mulai) : null,
     tglSelesai: r.tgl_selesai ? String(r.tgl_selesai) : null,
+    durasi: r.durasi ? String(r.durasi) : null,
     aktif: Number(r.aktif ?? 1) === 1,
   };
 }

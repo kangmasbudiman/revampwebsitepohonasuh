@@ -2,7 +2,6 @@ import { requireUser } from "@/lib/guard";
 import { apiPost, apiGet, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
 import { tambahProgramMitraSelf } from "@/lib/actions/mitra";
 import SuccessPopup from "@/components/admin/success-popup";
-import ConfirmSubmit from "@/components/admin/confirm-submit";
 
 export const metadata = { title: "Program Saya | Pohon Asuh" };
 
@@ -41,13 +40,18 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
         <summary className="cursor-pointer font-semibold text-emerald-800">+ Buat Program Baru</summary>
         <form action={tambahProgramMitraSelf} className="mt-4 grid gap-3 sm:grid-cols-2">
           <input name="nama" placeholder="Nama program" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <input name="durasi" placeholder="Durasi kegiatan (mis. 3 bulan)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <input name="tgl_mulai" type="date" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <input name="tgl_selesai" type="date" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <div className="sm:col-span-1">
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400">Logo Program (opsional)</label>
+            <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700" />
+          </div>
           <select name="aktif" defaultValue="1" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
             <option value="1">Aktif</option>
             <option value="0">Nonaktif</option>
           </select>
-          <textarea name="deskripsi" placeholder="Deskripsi (opsional)" className="sm:col-span-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" rows={3} />
+          <textarea name="deskripsi" placeholder="Deskripsi program (opsional)" className="sm:col-span-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" rows={3} />
           <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>
         </form>
       </details>
@@ -58,7 +62,8 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
             <tr>
               <th className="px-4 py-3 font-semibold">ID</th>
               <th className="px-4 py-3 font-semibold">Nama Program</th>
-              <th className="px-4 py-3 font-semibold">Periode</th>
+              <th className="px-4 py-3 font-semibold">Periode / Durasi</th>
+              <th className="px-4 py-3 font-semibold">Logo</th>
               <th className="px-4 py-3 font-semibold">Status</th>
             </tr>
           </thead>
@@ -67,7 +72,11 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
               <tr key={p.id}>
                 <td className="px-4 py-3 font-mono text-xs">{p.id}</td>
                 <td className="px-4 py-3 font-medium">{p.nama}</td>
-                <td className="px-4 py-3 text-xs text-zinc-500">{p.tglMulai ?? "—"} → {p.tglSelesai ?? "—"}</td>
+                <td className="px-4 py-3 text-xs text-zinc-500">
+                  {p.tglMulai ?? "—"} → {p.tglSelesai ?? "—"}
+                  {p.durasi && <span className="block text-zinc-400">{p.durasi}</span>}
+                </td>
+                <td className="px-4 py-3 text-xs text-zinc-500">{p.logo ? "✓" : "—"}</td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${p.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
                     {p.aktif ? "Aktif" : "Nonaktif"}
@@ -76,7 +85,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
               </tr>
             ))}
             {programs.length === 0 && (
-              <tr><td colSpan={4} className="px-4 py-10 text-center text-zinc-500">Belum ada program. Buat di atas.</td></tr>
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-zinc-500">Belum ada program. Buat di atas.</td></tr>
             )}
           </tbody>
         </table>

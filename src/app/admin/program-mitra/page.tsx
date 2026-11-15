@@ -41,13 +41,15 @@ export default async function AdminProgramMitraPage(props: PageProps<"/admin/pro
             {mitras.map((m) => <option key={m.id} value={m.id}>{m.nama}</option>)}
           </select>
           <input name="nama" placeholder="Nama program" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <input name="durasi" placeholder="Durasi (mis. 3 bulan)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <input name="tgl_mulai" type="date" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <input name="tgl_selesai" type="date" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
-          <input name="deskripsi" placeholder="Deskripsi (opsional)" className="sm:col-span-2 lg:col-span-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <select name="aktif" defaultValue="1" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
             <option value="1">Aktif</option>
             <option value="0">Nonaktif</option>
           </select>
+          <textarea name="deskripsi" placeholder="Deskripsi (opsional)" className="sm:col-span-2 lg:col-span-4 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" rows={2} />
+          <input name="logo" placeholder="Logo (opsional) — upload lewat admin berikutnya" className="sm:col-span-2 lg:col-span-4 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <button type="submit" className="sm:col-span-2 lg:col-span-4 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>
         </form>
       </details>
@@ -62,7 +64,7 @@ export default async function AdminProgramMitraPage(props: PageProps<"/admin/pro
                 <th className="px-4 py-3 font-semibold">ID</th>
                 <th className="px-4 py-3 font-semibold">Mitra</th>
                 <th className="px-4 py-3 font-semibold">Nama Program</th>
-                <th className="px-4 py-3 font-semibold">Periode</th>
+                <th className="px-4 py-3 font-semibold">Periode / Durasi</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 text-right font-semibold">Aksi</th>
               </tr>
@@ -75,6 +77,7 @@ export default async function AdminProgramMitraPage(props: PageProps<"/admin/pro
                   <td className="px-4 py-3 font-medium">{p.nama}</td>
                   <td className="px-4 py-3 text-xs text-zinc-500">
                     {p.tglMulai ?? "—"} → {p.tglSelesai ?? "—"}
+                    {p.durasi && <span className="block text-zinc-400">{p.durasi}</span>}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${p.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>

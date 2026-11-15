@@ -313,6 +313,7 @@ export async function tambahProgramMitra(formData: FormData) {
         deskripsi: String(formData.get("deskripsi") ?? "").trim(),
         tgl_mulai: String(formData.get("tgl_mulai") ?? "").trim(),
         tgl_selesai: String(formData.get("tgl_selesai") ?? "").trim(),
+        durasi: String(formData.get("durasi") ?? "").trim(),
         aktif: String(formData.get("aktif") ?? "1"),
       },
     );
@@ -367,6 +368,20 @@ export async function tambahProgramMitraSelf(formData: FormData) {
   const nama = String(formData.get("nama") ?? "").trim();
   if (!nama) redirect("/mitra/program?error=Nama+program+wajib");
 
+  // Upload logo program (opsional)
+  let logo: string | null = null;
+  const file = formData.get("logo");
+  if (file instanceof File && file.size > 0) {
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const up = await apiPostForm<{ value?: string | number; cover?: string; pesan?: string }>("uploadcover", fd);
+      if (Number(up.value) === 200 && up.cover) logo = up.cover;
+    } catch {
+      // logo gagal di-upload — tetap lanjut tanpa logo
+    }
+  }
+
   try {
     const res = await apiPost<{ value?: string | number; pesan?: string }>(
       "tambahprogrammitra",
@@ -374,8 +389,10 @@ export async function tambahProgramMitraSelf(formData: FormData) {
         mitra_id: mitraId,
         nama,
         deskripsi: String(formData.get("deskripsi") ?? "").trim(),
+        logo,
         tgl_mulai: String(formData.get("tgl_mulai") ?? "").trim(),
         tgl_selesai: String(formData.get("tgl_selesai") ?? "").trim(),
+        durasi: String(formData.get("durasi") ?? "").trim(),
         aktif: String(formData.get("aktif") ?? "1"),
       },
     );
