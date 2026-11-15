@@ -104,7 +104,19 @@ const PETUGAS_HREFS = new Set([
   "/admin/peta",
   "/admin/pohon/beku",
 ]);
-const ALL_ITEMS: Item[] = GROUPS.flatMap((g) => g.items);
+const MITRA_HREFS = new Set([
+  "/mitra",
+  "/mitra/pohon",
+  "/mitra/adopsi",
+  "/mitra/sertifikat",
+]);
+const MITRA_ITEMS: Item[] = [
+  { href: "/mitra", label: "Portal Mitra", icon: LayoutDashboard },
+  { href: "/mitra/pohon", label: "Request Hold Pohon", icon: TreePine },
+  { href: "/mitra/adopsi", label: "Input Adopsi Mitra", icon: Upload },
+  { href: "/mitra/sertifikat", label: "Sertifikat Mitra", icon: Award },
+];
+const ALL_ITEMS: Item[] = [...GROUPS.flatMap((g) => g.items), ...MITRA_ITEMS];
 
 // Item aktif = pencocokan pathname TERPANJANG di antara semua menu, agar
 // /admin/pohon/beku tidak ikut menyalakan /admin/pohon (dan sebaliknya
@@ -171,10 +183,12 @@ function NavBadge({
 
 export default function AdminNav({
   level,
+  mitra,
   btorTerkirim,
   taggingMenunggu,
 }: {
   level?: number;
+  mitra?: boolean;
   btorTerkirim?: number;
   taggingMenunggu?: number;
 }) {
@@ -187,10 +201,11 @@ export default function AdminNav({
     ),
   );
 
-  if (level === 2) {
+  if (level === 2 || mitra) {
+    const hrefs = mitra ? MITRA_HREFS : PETUGAS_HREFS;
     return (
       <nav className="space-y-1">
-        {ALL_ITEMS.filter((i) => PETUGAS_HREFS.has(i.href)).map((item) => (
+        {ALL_ITEMS.filter((i) => hrefs.has(i.href)).map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -281,17 +296,23 @@ export function AdminSidebarFooter({ name, level }: { name: string; level?: numb
 // Versi chip horizontal untuk layar kecil (tanpa judul grup).
 export function AdminNavMobile({
   level,
+  mitra,
   btorTerkirim,
   taggingMenunggu,
 }: {
   level?: number;
+  mitra?: boolean;
   btorTerkirim?: number;
   taggingMenunggu?: number;
 }) {
   const pathname = usePathname();
   const aktifMobile = hrefAktif(pathname);
 
-  const items = level === 2 ? ALL_ITEMS.filter((i) => PETUGAS_HREFS.has(i.href)) : ALL_ITEMS;
+  const items = mitra
+    ? MITRA_ITEMS
+    : level === 2
+      ? ALL_ITEMS.filter((i) => PETUGAS_HREFS.has(i.href))
+      : ALL_ITEMS;
 
   return (
     <>

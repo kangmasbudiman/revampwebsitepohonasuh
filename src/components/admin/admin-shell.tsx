@@ -53,6 +53,7 @@ export default function AdminShell({
   photo,
   btorTerkirim,
   taggingMenunggu,
+  mitra,
   children,
 }: {
   name: string;
@@ -61,6 +62,7 @@ export default function AdminShell({
   photo?: string | null;
   btorTerkirim?: number;
   taggingMenunggu?: number;
+  mitra?: boolean;
   children: ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -136,7 +138,7 @@ export default function AdminShell({
       </div>
       <div className="flex min-h-0 flex-1 flex-col p-4">
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <AdminNav level={level} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
+          <AdminNav level={level} mitra={mitra} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
         </div>
         <AdminSidebarFooter name={name} level={level} />
       </div>
@@ -186,7 +188,7 @@ export default function AdminShell({
               </div>
               <div className="flex min-h-0 flex-1 flex-col p-4">
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                  <AdminNav level={level} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
+                  <AdminNav level={level} mitra={mitra} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
                 </div>
                 <AdminSidebarFooter name={name} level={level} />
               </div>
@@ -329,7 +331,7 @@ export default function AdminShell({
           agar tertutup scrim drawer (z-40) dan sheet notifikasi (z-70). */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-emerald-100 bg-white/90 backdrop-blur-md md:hidden print:hidden dark:border-night-700 dark:bg-night-900/90">
         <div className="flex items-center gap-1 overflow-x-auto px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-          <AdminNavMobile level={level} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
+          <AdminNavMobile level={level} mitra={mitra} btorTerkirim={btorTerkirim} taggingMenunggu={taggingMenunggu} />
         </div>
       </nav>
 
