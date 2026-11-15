@@ -518,3 +518,48 @@ export async function rejectPesananMitra(formData: FormData) {
   revalidatePath("/admin/pesanan-mitra");
   redirect("/admin/pesanan-mitra?rejected=1");
 }
+
+export async function setTaggingProgramMitra(formData: FormData) {
+  const session = await requireUser();
+  let mitraId = session.mitraId;
+  if (!mitraId) {
+    try {
+      const info = await apiPost<{ value?: number; mitra?: { id: number } }>("mitramyinfo", { idmember: session.userId });
+      if (Number(info.value) === 200) mitraId = Number(info.mitra?.id);
+    } catch {}
+  }
+  if (!mitraId) redirect("/mitra/program?error=Bukan+akun+mitra");
+
+  const programId = Number(formData.get("program_id"));
+  const file = formData.get("file");
+  let taggingTemplate: string | null = null;
+  if (file instanceof File && file.size > 0) {
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const up = await apiPostForm<{ value?: string | number; cover?: string; pesan?: string }>("uploadcover", fd);
+      if (Number(up.value) === 200 && up.cover) taggingTemplate = up.cover;
+    } catch {
+      // ignore
+    }
+  }
+  if (!taggingTemplate) {
+    redirect(`/mitra/desain-tagging?error=Gagal+upload+gambar`);
+  }
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "settaggingprogrammitra",
+      { idmember: session.userId, program_id: programId, tagging_template: taggingTemplate },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/desain-tagging?error=${encodeURIComponent(res.pesan ?? "Gagal menyimpan desain.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/desain-tagging?error=Gagal+menyimpan");
+  }
+
+  revalidatePath("/mitra/desain-tagging");
+  redirect("/mitra/desain-tagging?saved=1");
+}

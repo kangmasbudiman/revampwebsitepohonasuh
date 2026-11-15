@@ -580,6 +580,7 @@ export type ApiOrderRow = {
   memo: string; // pesan & impresi (tampil di papan taging)
   pengasuh: number;
   mitraId: number | null;
+  programId: number | null;
   desa: string;
   desaLabel: string; // label tampilan (kelola lokasi), bukan nama internal
   price: number; // subtotal pohon
@@ -618,6 +619,7 @@ export function mapOrderRow(r: Record<string, unknown>): ApiOrderRow {
     memo: String(r.memo ?? ""),
     pengasuh: Number(r.pengasuh) || 0,
     mitraId: r.mitra_id ? Number(r.mitra_id) : null,
+    programId: r.program_id ? Number(r.program_id) : null,
     desa: String(r.desa ?? ""),
     desaLabel: String(r.desa_label ?? ""),
     price: Number(r.price) || 0,
@@ -1118,6 +1120,7 @@ export function mapAdopsis(rows: Record<string, unknown>[]): ApiAdopsi[] {
     invoice: String(r.invoice ?? ""),
     proses: Number(r.proses) || 0,
     mitraId: r.mitra_id ? Number(r.mitra_id) : null,
+    programId: r.program_id ? Number(r.program_id) : null,
   }));
 }
 

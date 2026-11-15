@@ -110,16 +110,18 @@ const MITRA_HREFS = new Set([
   "/mitra",
   "/mitra/program",
   "/mitra/pesanan",
-  "/mitra/pohon",
+  "/mitra/desain-tagging",
   "/mitra/adopsi",
+  "/mitra/laporan",
   "/mitra/sertifikat",
 ]);
 const MITRA_ITEMS: Item[] = [
   { href: "/mitra", label: "Dashboard", icon: LayoutDashboard },
   { href: "/mitra/program", label: "Program Saya", icon: BookHeart },
   { href: "/mitra/pesanan", label: "Pemesanan Pohon", icon: TreePine },
-  { href: "/mitra/pohon", label: "Tahan Pohon (Manual)", icon: TreePine },
+  { href: "/mitra/desain-tagging", label: "Desain Tagging", icon: Share2 },
   { href: "/mitra/adopsi", label: "Data Pengadopsi", icon: HeartHandshake },
+  { href: "/mitra/laporan", label: "Laporan", icon: ClipboardCheck },
   { href: "/mitra/sertifikat", label: "Sertifikat", icon: Award },
 ];
 const ALL_ITEMS: Item[] = [...GROUPS.flatMap((g) => g.items), ...MITRA_ITEMS];

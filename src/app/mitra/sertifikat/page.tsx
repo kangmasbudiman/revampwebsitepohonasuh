@@ -17,7 +17,7 @@ export default async function MitraSertifikatPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8 lg:px-8">
+    <main className="mx-auto w-full px-6 py-8 lg:px-8">
       <h1 className="text-2xl font-bold text-emerald-950">Sertifikat Mitra</h1>
       <p className="mt-1 text-sm text-zinc-600">
         Daftar adopsi mitra Anda beserta sertifikat yang sudah terbit.

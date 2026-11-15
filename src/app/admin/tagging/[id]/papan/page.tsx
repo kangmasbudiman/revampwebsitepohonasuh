@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/guard";
-import { apiPost, apiGet, mapOrderRows, mapMitra, type ApiOrderRow } from "@/lib/api";
+import { apiPost, apiGet, mapOrderRows, mapMitra, mapProgramMitra, type ApiOrderRow } from "@/lib/api";
 import { namaDesa, sebutanDesa } from "@/lib/format";
 import PapanTaging from "@/components/admin/papan-taging";
 
@@ -39,6 +39,16 @@ export default async function PapanTagingPage({
       mitraTaggingTemplate = m?.taggingTemplate ?? null;
     } catch {
       // fallback desain standar
+    }
+  }
+  let templateToUse = mitraTaggingTemplate;
+  if (order.programId) {
+    try {
+      const programs = (await apiGet<Record<string, unknown>[]>(`programmitralist?mitra_id=${order.mitraId}`)).map(mapProgramMitra);
+      const p = programs.find((x) => x.id === order.programId);
+      if (p?.taggingTemplate) templateToUse = p.taggingTemplate;
+    } catch {
+      // fallback ke template mitra
     }
   }
 
@@ -93,7 +103,7 @@ export default async function PapanTagingPage({
       </div>
 
       <div className="mt-6 print:mt-0">
-        <PapanTaging order={order} backgroundUrl={mitraTaggingTemplate} />
+        <PapanTaging order={order} backgroundUrl={templateToUse} />
       </div>
     </main>
   );
