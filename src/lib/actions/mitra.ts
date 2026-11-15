@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { requireAdminLevel } from "@/lib/guard";
+import { requireAdminLevel, requireUser } from "@/lib/guard";
 import { apiPost, apiPostForm } from "@/lib/api";
 
 export async function tambahMitra(formData: FormData) {
@@ -239,4 +239,31 @@ export async function rejectMitraHold(formData: FormData) {
 
   revalidatePath("/admin/mitra-requests");
   redirect("/admin/mitra-requests?rejected=1");
+}
+
+export async function requestHoldMitra(formData: FormData) {
+  const session = await requireUser();
+  const codes = [
+    ...formData.getAll("idpohon").map((v) => String(v).trim()),
+    ...String(formData.get("idpohonStr") ?? "").split(","),
+  ]
+    .map((c) => c.trim())
+    .filter(Boolean);
+  if (codes.length === 0) redirect("/mitra/pohon?error=Pilih+minimal+satu+pohon");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string; jumlah?: number }>(
+      "mitrarequesthold",
+      { idmember: session.userId, idpohon: codes.join(",") },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/pohon?error=${encodeURIComponent(res.pesan ?? "Gagal request hold.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/pohon?error=Gagal+request+hold");
+  }
+
+  revalidatePath("/mitra/pohon");
+  redirect("/mitra/pohon?sukses=1");
 }
