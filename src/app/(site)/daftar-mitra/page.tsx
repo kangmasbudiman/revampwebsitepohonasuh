@@ -32,7 +32,7 @@ export default async function DaftarMitraPage(props: PageProps<"/daftar-mitra">)
             </Link>
           </div>
           <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl shadow-2xl">
-            <Image src="/images/hero-1.jpg" alt="Hutan dengan pohon yang diadopsi" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+            <Image src="/images/hero-mitra.jpg" alt="Hutan dengan pohon yang diadopsi" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
           </div>
         </div>
       </section>
