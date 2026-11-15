@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/guard";
-import { apiPost } from "@/lib/api";
+import { apiPost, apiGet, mapProgramMitra } from "@/lib/api";
 import MitraAdopsiForm from "@/components/admin/mitra-adopsi-form";
 import SuccessPopup from "@/components/admin/success-popup";
 
@@ -11,6 +11,7 @@ export default async function MitraAdopsiPage(props: PageProps<"/mitra/adopsi">)
 
   let mitraId: number | null = null;
   let mitraName = "";
+  let programs: { id: number; nama: string; mitraId: number }[] = [];
   try {
     const res = await apiPost<{
       value?: number;
@@ -20,6 +21,8 @@ export default async function MitraAdopsiPage(props: PageProps<"/mitra/adopsi">)
     if (Number(res.value) === 200) {
       mitraId = Number(res.mitra.id);
       mitraName = String(res.mitra.nama);
+      const prows = await apiGet<Record<string, unknown>[]>(`programmitralist?mitra_id=${mitraId}`);
+      programs = prows.map(mapProgramMitra).map((p) => ({ id: p.id, nama: p.nama, mitraId: p.mitraId }));
     }
   } catch {
     // bukan mitra
@@ -41,7 +44,7 @@ export default async function MitraAdopsiPage(props: PageProps<"/mitra/adopsi">)
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
       <div className="mt-6">
-        <MitraAdopsiForm mitras={[{ id: mitraId!, nama: mitraName }]} />
+        <MitraAdopsiForm mitras={[{ id: mitraId!, nama: mitraName }]} programs={programs} />
       </div>
     </main>
   );

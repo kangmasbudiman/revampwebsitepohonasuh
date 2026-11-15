@@ -1,6 +1,6 @@
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
-import { apiGet, mapMitra, type ApiMitra } from "@/lib/api";
+import { apiGet, mapMitra, mapProgramMitra, type ApiMitra, type ApiProgramMitra } from "@/lib/api";
 import MitraAdopsiForm from "@/components/admin/mitra-adopsi-form";
 
 export const metadata = { title: "Input Adopsi Mitra | Pohon Asuh" };
@@ -10,9 +10,12 @@ export default async function AdminAdopsiMitraPage(props: PageProps<"/admin/adop
   const sp = await props.searchParams;
 
   let mitras: ApiMitra[] = [];
+  let programs: ApiProgramMitra[] = [];
   let fetchError = false;
   try {
     mitras = (await apiGet<Record<string, unknown>[]>("mitralist")).map(mapMitra);
+    const prows = await apiGet<Record<string, unknown>[]>("programmitralist");
+    programs = prows.map(mapProgramMitra);
   } catch {
     fetchError = true;
   }
@@ -46,7 +49,7 @@ export default async function AdminAdopsiMitraPage(props: PageProps<"/admin/adop
           Belum ada mitra. Tambahkan di <a href="/admin/mitra" className="underline">/admin/mitra</a> terlebih dahulu.
         </p>
       ) : (
-        <MitraAdopsiForm mitras={mitras} />
+        <MitraAdopsiForm mitras={mitras} programs={programs} />
       )}
     </main>
   );

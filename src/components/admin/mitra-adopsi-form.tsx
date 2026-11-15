@@ -47,10 +47,13 @@ function parseCsv(text: string): Item[] {
 
 export default function MitraAdopsiForm({
   mitras,
+  programs = [],
 }: {
   mitras: { id: number; nama: string }[];
+  programs?: { id: number; nama: string; mitraId: number }[];
 }) {
   const [mitraId, setMitraId] = useState(mitras[0]?.id ?? 0);
+  const [programId, setProgramId] = useState(0);
   const [items, setItems] = useState<Item[]>([]);
   const [csv, setCsv] = useState("");
   const [manual, setManual] = useState<Item>({ idpohon: "", nama: "", dur: 1, tgl_adopt: "", memo: "" });
@@ -77,6 +80,7 @@ export default function MitraAdopsiForm({
   return (
     <form action={inputAdopsiMitra} className="space-y-6">
       <input type="hidden" name="mitra_id" value={mitraId} />
+      <input type="hidden" name="program_id" value={programId} />
       <input type="hidden" name="items" value={itemsJson} />
 
       <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
@@ -90,6 +94,13 @@ export default function MitraAdopsiForm({
             <option key={m.id} value={m.id}>{m.nama}</option>
           ))}
         </select>
+          <label className="mt-3 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Program (opsional)</label>
+          <select value={programId} onChange={(e) => setProgramId(Number(e.target.value))} className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
+            <option value={0}>— Tanpa program —</option>
+            {programs.filter((p) => p.mitraId === mitraId).map((p) => (
+              <option key={p.id} value={p.id}>{p.nama}</option>
+            ))}
+          </select>
       </div>
 
       <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
