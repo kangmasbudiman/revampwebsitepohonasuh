@@ -57,7 +57,8 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                 <th className="px-4 py-3 font-semibold">Nama</th>
                 <th className="px-4 py-3 font-semibold">Slug</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Desain Tagging</th>
+                <th className="px-4 py-3 font-semibold">Akun Login</th>
+              <th className="px-4 py-3 font-semibold">Desain Tagging</th>
                 <th className="px-4 py-3 text-right font-semibold">Aksi</th>
               </tr>
             </thead>
@@ -71,6 +72,17 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${m.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
                       {m.aktif ? "Aktif" : "Nonaktif"}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {m.akun ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300" title={m.akun.emaile}>
+                        ✓ {m.akun.name}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-500 dark:bg-night-700 dark:text-zinc-400">
+                        ✗ Belum ada
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     {m.taggingTemplate ? (
@@ -107,7 +119,7 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
                 </tr>
               ))}
               {mitra.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-zinc-500">Belum ada mitra. Tambahkan di atas.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-zinc-500">Belum ada mitra. Tambahkan di atas.</td></tr>
               )}
             </tbody>
           </table>
@@ -139,7 +151,7 @@ export default async function AdminMitraPage(props: PageProps<"/admin/mitra">) {
           </select>
           <input name="name" placeholder="Nama akun" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <input name="email" type="email" placeholder="Email login" required className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
-          <input name="password" type="text" placeholder="Password (min 6)" required minLength={6} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          <input name="password" type="password" placeholder="Password (min 6)" required minLength={6} pattern=".{6,}" title="Minimal 6 karakter" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <input name="hp" placeholder="No HP (opsional)" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
           <button type="submit" className="sm:col-span-2 lg:col-span-5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Buat Akun</button>
         </form>

@@ -1787,9 +1787,11 @@ export type ApiMitra = {
   taggingTemplate: string | null;
   certTemplateId: number | null;
   aktif: boolean;
+  akun: { id: number; name: string; emaile: string; aktif: number } | null;
 };
 
 export function mapMitra(r: Record<string, unknown>): ApiMitra {
+  const akunRaw = r.akun as Record<string, unknown> | null;
   return {
     id: Number(r.id),
     nama: String(r.nama ?? ""),
@@ -1798,5 +1800,13 @@ export function mapMitra(r: Record<string, unknown>): ApiMitra {
     taggingTemplate: r.tagging_template ? String(r.tagging_template) : null,
     certTemplateId: r.cert_template_id ? Number(r.cert_template_id) : null,
     aktif: Number(r.aktif ?? 1) === 1,
+    akun: akunRaw
+      ? {
+          id: Number(akunRaw.id),
+          name: String(akunRaw.name ?? ""),
+          emaile: String(akunRaw.emaile ?? ""),
+          aktif: Number(akunRaw.aktif ?? 1),
+        }
+      : null,
   };
 }
