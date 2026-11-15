@@ -114,6 +114,7 @@ const MITRA_HREFS = new Set([
   "/mitra/adopsi",
   "/mitra/laporan",
   "/mitra/sertifikat",
+  "/mitra/pengaturan",
 ]);
 const MITRA_ITEMS: Item[] = [
   { href: "/mitra", label: "Dashboard", icon: LayoutDashboard },
@@ -123,6 +124,7 @@ const MITRA_ITEMS: Item[] = [
   { href: "/mitra/adopsi", label: "Data Pengadopsi", icon: HeartHandshake },
   { href: "/mitra/laporan", label: "Laporan", icon: ClipboardCheck },
   { href: "/mitra/sertifikat", label: "Sertifikat", icon: Award },
+  { href: "/mitra/pengaturan", label: "Pengaturan", icon: Settings },
 ];
 const ALL_ITEMS: Item[] = [...GROUPS.flatMap((g) => g.items), ...MITRA_ITEMS];
 

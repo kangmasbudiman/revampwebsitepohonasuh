@@ -1,6 +1,6 @@
 import { requireUser } from "@/lib/guard";
 import { apiPost, apiGet, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
-import { setTaggingProgramMitra } from "@/lib/actions/mitra";
+import { setTaggingProgramMitra, setTemplateTaggingMitra } from "@/lib/actions/mitra";
 import SuccessPopup from "@/components/admin/success-popup";
 import Link from "next/link";
 
@@ -35,6 +35,7 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
       </p>
 
       {sp?.saved && <SuccessPopup paramKey="saved" title="Tersimpan">Desain tagging berhasil diunggah.</SuccessPopup>}
+      {sp?.template && <SuccessPopup paramKey="template" title="Template Dipilih">Template tagging tersimpan.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -43,10 +44,24 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
             <h2 className="font-semibold text-emerald-900">{p.nama}</h2>
             <p className="mt-1 text-xs text-zinc-500">{p.tglMulai ?? "—"} → {p.tglSelesai ?? "—"}</p>
             <p className="mt-1 text-xs text-zinc-500">Tagging saat ini: {p.taggingTemplate ?? "desain standar"}</p>
-            <form action={setTaggingProgramMitra} className="mt-3 space-y-2">
+
+            {/* Template */}
+            <form action={setTemplateTaggingMitra} className="mt-3 flex flex-wrap items-center gap-2">
+              <input type="hidden" name="program_id" value={p.id} />
+              <select name="template" defaultValue="/images/papan-taging.png" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
+                <option value="/images/papan-taging.png">Template Standar</option>
+              </select>
+              <button type="submit" className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+                Gunakan Template
+              </button>
+            </form>
+
+            {/* Custom Desain */}
+            <form action={setTaggingProgramMitra} className="mt-3 space-y-2 border-t border-emerald-50 pt-3">
+              <p className="text-xs font-medium text-zinc-700">Custom Desain</p>
               <input type="hidden" name="program_id" value={p.id} />
               <input type="file" name="file" accept="image/*" required className="w-full text-sm" />
-              <button type="submit" className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+              <button type="submit" className="rounded-lg bg-teal-700 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-800">
                 Upload Desain
               </button>
             </form>

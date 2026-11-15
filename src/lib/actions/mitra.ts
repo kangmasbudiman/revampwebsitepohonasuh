@@ -563,3 +563,97 @@ export async function setTaggingProgramMitra(formData: FormData) {
   revalidatePath("/mitra/desain-tagging");
   redirect("/mitra/desain-tagging?saved=1");
 }
+
+export async function editMitraProfil(formData: FormData) {
+  const session = await requireUser();
+  const alamat = String(formData.get("alamat") ?? "").trim();
+  const namaPj = String(formData.get("nama_pj") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const hp = String(formData.get("hp") ?? "").trim();
+  const file = formData.get("logo");
+  let logo: string | null = null;
+  if (file instanceof File && file.size > 0) {
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const up = await apiPostForm<{ value?: string | number; cover?: string }>("uploadcover", fd);
+      if (Number(up.value) === 200 && up.cover) logo = up.cover;
+    } catch {
+      // logo gagal diupload — lanjut tanpa logo
+    }
+  }
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "editmitraprofil",
+      { idmember: session.userId, alamat, nama_pj: namaPj, email, hp, ...(logo ? { logo } : {}) },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/pengaturan?error=${encodeURIComponent(res.pesan ?? "Gagal menyimpan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/pengaturan?error=Gagal+menyimpan");
+  }
+
+  revalidatePath("/mitra/pengaturan");
+  redirect("/mitra/pengaturan?saved=1");
+}
+
+export async function gantiPasswordMitra(formData: FormData) {
+  const session = await requireUser();
+  const lama = String(formData.get("password_lama") ?? "");
+  const baru = String(formData.get("password_baru") ?? "");
+  const ulang = String(formData.get("password_ulang") ?? "");
+
+  if (lama === "" || baru === "") redirect("/mitra/pengaturan?error=Password+lama+dan+baru+wajib");
+  if (baru !== ulang) redirect("/mitra/pengaturan?error=Konfirmasi+password+tidak+cocok");
+  if (baru.length < 6) redirect("/mitra/pengaturan?error=Password+baru+minimal+6+karakter");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "gantipasswordmitra",
+      { idmember: session.userId, password_lama: lama, password_baru: baru },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/pengaturan?error=${encodeURIComponent(res.pesan ?? "Gagal mengganti password.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/pengaturan?error=Gagal+mengganti+password");
+  }
+
+  redirect("/mitra/pengaturan?password=1");
+}
+
+export async function setTemplateTaggingMitra(formData: FormData) {
+  const session = await requireUser();
+  let mitraId = session.mitraId;
+  if (!mitraId) {
+    try {
+      const info = await apiPost<{ value?: number; mitra?: { id: number } }>("mitramyinfo", { idmember: session.userId });
+      if (Number(info.value) === 200) mitraId = Number(info.mitra?.id);
+    } catch {}
+  }
+  if (!mitraId) redirect("/mitra/program?error=Bukan+akun+mitra");
+
+  const programId = Number(formData.get("program_id"));
+  const template = String(formData.get("template") ?? "");
+  if (!programId || !template) redirect("/mitra/desain-tagging?error=Pilih+template");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "settaggingprogrammitra",
+      { idmember: session.userId, program_id: programId, tagging_template: template },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/desain-tagging?error=${encodeURIComponent(res.pesan ?? "Gagal menyimpan template.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/desain-tagging?error=Gagal+menyimpan+template");
+  }
+
+  revalidatePath("/mitra/desain-tagging");
+  redirect("/mitra/desain-tagging?template=1");
+}
