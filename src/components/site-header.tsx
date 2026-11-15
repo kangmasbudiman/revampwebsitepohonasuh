@@ -104,6 +104,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
     { href: "/cerita-dampak", label: dict.nav.impact },
     { href: "/keuangan", label: dict.nav.finance },
     { href: "/kontak", label: dict.nav.contact },
+    { href: "/kerjasama-mitra", label: "Kemitraan" },
   ];
 
   useEffect(() => {
