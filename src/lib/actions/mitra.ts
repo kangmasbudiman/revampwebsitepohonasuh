@@ -104,3 +104,38 @@ export async function tahanPohonMitra(formData: FormData) {
   revalidatePath("/pohon");
   redirect("/admin/pohon?mitra=1");
 }
+
+export async function inputAdopsiMitra(formData: FormData) {
+  await requireAdminLevel();
+  const mitraId = Number(formData.get("mitra_id"));
+  const items = String(formData.get("items") ?? "[]");
+  if (!mitraId) redirect("/admin/adopsi-mitra?error=Pilih+mitra");
+
+  try {
+    const res = await apiPost<{
+      value?: string | number;
+      pesan?: string;
+      invoice?: string;
+      id?: number;
+      jumlah?: number;
+      dilewati?: number;
+      errors?: { idpohon: string; pesan: string }[];
+    }>("inputadopsimitra", { mitra_id: mitraId, items, iduser: 1 });
+    if (Number(res.value) !== 200) {
+      redirect(
+        `/admin/adopsi-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal input adopsi.")}` +
+          (res.errors ? `&detail=${encodeURIComponent(JSON.stringify(res.errors))}` : ""),
+      );
+    }
+    revalidatePath("/admin/adopsi");
+    revalidatePath("/admin/adopsi-mitra");
+    revalidatePath("/pohon");
+    redirect(
+      `/admin/adopsi-mitra?sukses=1&jumlah=${Number(res.jumlah) || 0}&dilewati=${Number(res.dilewati) || 0}` +
+        (res.invoice ? `&invoice=${encodeURIComponent(res.invoice)}` : ""),
+    );
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/adopsi-mitra?error=Gagal+input+adopsi");
+  }
+}
