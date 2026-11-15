@@ -21,6 +21,7 @@ type LoginResponse = {
   id?: string | number;
   admin?: string | number;
   hak?: string[];
+  mitra_id?: string | number;
   foto?: string;
 };
 
@@ -85,15 +86,18 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
   }
 
   const admin = Number(res.admin) || 0;
+  const mitraId = res.mitra_id ? Number(res.mitra_id) : undefined;
   await createSession({
     userId: Number(res.id),
     name: String(res.name ?? ""),
     role: admin >= 1 ? "ADMIN" : "DONOR",
     level: admin >= 1 ? admin : undefined,
-    hak: admin >= 1 && Array.isArray(res.hak) ? res.hak : undefined,
+    hak: admin >= 1 && Array.isArray(res.hak) ? res.hak : Array.isArray(res.hak) ? res.hak : undefined,
+    mitraId,
     photo: res.foto || null,
   });
   if (next.startsWith("/") && !next.startsWith("//")) redirect(next);
+  if (mitraId) redirect("/mitra");
   redirect(admin === 2 ? "/admin/tagging" : admin >= 1 ? "/admin" : "/dashboard");
 }
 

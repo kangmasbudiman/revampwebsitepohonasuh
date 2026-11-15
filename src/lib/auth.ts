@@ -13,6 +13,8 @@ export type Session = {
   level?: number;
   /** Izin dari role member (mis. ["memo"]); level 1 selalu boleh semua. */
   hak?: string[];
+  /** ID mitra jika akun ini adalah akun mitra (self-service portal). */
+  mitraId?: number;
   /** URL foto profil member (upload/profil di server API); kosong = avatar inisial. */
   photo?: string | null;
 };
@@ -54,6 +56,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
       role: payload.role,
       level: typeof payload.level === "number" ? payload.level : undefined,
       hak: Array.isArray(payload.hak) ? payload.hak.filter((h): h is string => typeof h === "string") : undefined,
+      mitraId: typeof payload.mitraId === "number" ? payload.mitraId : undefined,
       photo: typeof payload.photo === "string" && payload.photo !== "" ? payload.photo : null,
     };
   } catch {
