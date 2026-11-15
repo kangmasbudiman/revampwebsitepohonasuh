@@ -1847,3 +1847,32 @@ export function mapProgramMitra(r: Record<string, unknown>): ApiProgramMitra {
     aktif: Number(r.aktif ?? 1) === 1,
   };
 }
+
+// Baris mitra_pesanan (permintaan pemesanan pohon mitra).
+export type ApiMitraPesanan = {
+  id: number;
+  mitraId: number;
+  idmember: number;
+  programId: number | null;
+  programNama: string | null;
+  desa: string | null;
+  jumlah: number;
+  catatan: string | null;
+  status: string; // pending/approved/rejected
+  createdAt: string | null;
+};
+
+export function mapMitraPesanan(r: Record<string, unknown>): ApiMitraPesanan {
+  return {
+    id: Number(r.id),
+    mitraId: Number(r.mitra_id),
+    idmember: Number(r.idmember),
+    programId: r.program_id ? Number(r.program_id) : null,
+    programNama: r.program_nama ? String(r.program_nama) : null,
+    desa: r.desa ? String(r.desa) : null,
+    jumlah: Number(r.jumlah) || 0,
+    catatan: r.catatan ? String(r.catatan) : null,
+    status: String(r.status ?? "pending"),
+    createdAt: r.created_at ? String(r.created_at) : null,
+  };
+}

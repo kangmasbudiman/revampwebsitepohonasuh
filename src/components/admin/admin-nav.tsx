@@ -9,6 +9,7 @@ import {
   BookHeart,
   ChevronDown,
   Clock,
+  ShoppingCart,
   ClipboardCheck,
   CircleHelp,
   Coins,
@@ -59,6 +60,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/mitra", label: "Mitra Adopsi", icon: Handshake },
       { href: "/admin/adopsi-mitra", label: "Input Adopsi Mitra", icon: Upload },
       { href: "/admin/mitra-requests", label: "Request Hold Mitra", icon: Clock },
+      { href: "/admin/pesanan-mitra", label: "Pesanan Pohon Mitra", icon: ShoppingCart },
       { href: "/admin/penugasan", label: "Penugasan Petugas", icon: UserCog },
       { href: "/admin/posisi", label: "Posisi Petugas", icon: MapPin },
       { href: "/admin/peta", label: "Kelola Peta Desa", icon: Map },
@@ -107,6 +109,7 @@ const PETUGAS_HREFS = new Set([
 const MITRA_HREFS = new Set([
   "/mitra",
   "/mitra/program",
+  "/mitra/pesanan",
   "/mitra/pohon",
   "/mitra/adopsi",
   "/mitra/sertifikat",
@@ -114,7 +117,8 @@ const MITRA_HREFS = new Set([
 const MITRA_ITEMS: Item[] = [
   { href: "/mitra", label: "Dashboard", icon: LayoutDashboard },
   { href: "/mitra/program", label: "Program Saya", icon: BookHeart },
-  { href: "/mitra/pohon", label: "Pemesanan Pohon", icon: TreePine },
+  { href: "/mitra/pesanan", label: "Pemesanan Pohon", icon: TreePine },
+  { href: "/mitra/pohon", label: "Tahan Pohon (Manual)", icon: TreePine },
   { href: "/mitra/adopsi", label: "Data Pengadopsi", icon: HeartHandshake },
   { href: "/mitra/sertifikat", label: "Sertifikat", icon: Award },
 ];

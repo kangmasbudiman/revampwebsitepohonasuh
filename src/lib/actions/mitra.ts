@@ -438,3 +438,83 @@ export async function daftarMitra(formData: FormData) {
 
   redirect("/masuk?terdaftar=1");
 }
+
+export async function requestPesananMitra(formData: FormData) {
+  const session = await requireUser();
+  let mitraId = session.mitraId;
+  if (!mitraId) {
+    try {
+      const info = await apiPost<{ value?: number; mitra?: { id: number } }>("mitramyinfo", { idmember: session.userId });
+      if (Number(info.value) === 200) mitraId = Number(info.mitra?.id);
+    } catch {}
+  }
+  if (!mitraId) redirect("/mitra/pesanan?error=Bukan+akun+mitra");
+
+  const desa = String(formData.get("desa") ?? "").trim();
+  const jumlah = Number(formData.get("jumlah") ?? 0);
+  const programId = Number(formData.get("program_id") ?? 0);
+  const catatan = String(formData.get("catatan") ?? "").trim();
+
+  if (!jumlah || jumlah < 1) redirect("/mitra/pesanan?error=Jumlah+wajib+diisi");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "mitrarequesorder",
+      { idmember: session.userId, desa, jumlah, program_id: programId || undefined, catatan },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/pesanan?error=${encodeURIComponent(res.pesan ?? "Gagal mengirim pesanan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/pesanan?error=Gagal+menghubungi+server");
+  }
+
+  revalidatePath("/mitra/pesanan");
+  redirect("/mitra/pesanan?sukses=1");
+}
+
+export async function approvePesananMitra(formData: FormData) {
+  await requireAdminLevel();
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/admin/pesanan-mitra?error=Pesanan+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "mitraapprovepesanan",
+      { id, iduser: 1 },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/pesanan-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal menyetujui.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pesanan-mitra?error=Gagal+menyetujui");
+  }
+
+  revalidatePath("/admin/pesanan-mitra");
+  revalidatePath("/admin/pohon");
+  redirect("/admin/pesanan-mitra?approved=1");
+}
+
+export async function rejectPesananMitra(formData: FormData) {
+  await requireAdminLevel();
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/admin/pesanan-mitra?error=Pesanan+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "mitrarejectpesanan",
+      { id },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/pesanan-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal menolak.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pesanan-mitra?error=Gagal+menolak");
+  }
+
+  revalidatePath("/admin/pesanan-mitra");
+  redirect("/admin/pesanan-mitra?rejected=1");
+}
