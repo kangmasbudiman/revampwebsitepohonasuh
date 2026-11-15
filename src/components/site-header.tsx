@@ -104,7 +104,6 @@ export default function SiteHeader({ session }: { session: Session | null }) {
     { href: "/cerita-dampak", label: dict.nav.impact },
     { href: "/keuangan", label: dict.nav.finance },
     { href: "/kontak", label: dict.nav.contact },
-    { href: "/daftar-mitra", label: "Daftar Mitra" },
   ];
 
   useEffect(() => {
@@ -167,12 +166,6 @@ export default function SiteHeader({ session }: { session: Session | null }) {
         </Link>
 
         <nav className="hidden items-center gap-3 xl:flex">
-          <Link
-            href="/daftar-mitra"
-            className={`${linkCls} ${isActive("/daftar-mitra") ? linkActive : ""} whitespace-nowrap font-semibold text-emerald-800`}
-          >
-            Daftar Mitra
-          </Link>
           {NAV.map((item) =>
             item.href === "/pohon" ? (
               <NavPohonMenu
@@ -444,8 +437,7 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                   </form>
                 </div>
               ) : (
-                <>
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                     <Link
                       href="/masuk"
                       onClick={() => setOpen(false)}
@@ -461,15 +453,6 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                       {dict.nav.register}
                     </Link>
                   </div>
-                  <Link
-                    href="/daftar-mitra"
-                    onClick={() => setOpen(false)}
-                    className="mt-2 flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm font-semibold text-emerald-800"
-                  >
-                    <Leaf className="h-4 w-4" />
-                    Daftar Mitra
-                  </Link>
-                </>
               )}
             </div>
           </div>
