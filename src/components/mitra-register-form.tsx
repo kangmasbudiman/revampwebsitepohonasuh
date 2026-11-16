@@ -148,7 +148,7 @@ export default function MitraRegisterForm() {
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-700">Nomor WhatsApp <span className="text-red-500">*</span></label>
-              <input name="hp_pj" type="tel" required placeholder="+6281…" pattern="[0-9+\\-\s]{9,20}" className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm" />
+              <input name="hp_pj" type="tel" required placeholder="+6281…" pattern="[0-9]{9,15}" className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm" />
             </div>
           </div>
           <div className="flex justify-between">
@@ -202,7 +202,7 @@ export default function MitraRegisterForm() {
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-700">Nama Pengguna <span className="text-red-500">*</span></label>
-              <input name="username" type="text" required minLength={3} maxLength={30} pattern="[a-z0-9_.-]+" placeholder="hanya huruf kecil, angka, _, -, ." className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm" />
+              <input name="username" type="text" required minLength={3} maxLength={30} pattern="[a-z0-9_.]{3,30}" placeholder="hanya huruf kecil, angka, _ dan ." className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-700">Kata Sandi <span className="text-red-500">*</span></label>
