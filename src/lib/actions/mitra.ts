@@ -684,14 +684,15 @@ export async function registrasiOrganisasiMitra(formData: FormData) {
         fd.set(key, String(value));
       }
     }
-    const res = await apiPostForm<{ value?: string | number; pesan?: string; id?: number; email?: string }>(
+    const res = await apiPostForm<{ value?: string | number; pesan?: string; id?: number; email?: string; sumber_token?: string }>(
       "daftarmgregistration",
       fd,
     );
     if (Number(res.value) !== 201) {
       redirect(`/daftar-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal mendaftar.")}`);
     }
-    redirect(`/pendaftaran-berhasil?id=${Number(res.id) || 0}`);
+    const sumber = res.sumber_token ? `&sumber=${encodeURIComponent(res.sumber_token)}` : "";
+    redirect(`/pendaftaran-berhasil?id=${Number(res.id) || 0}${sumber}`);
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
     redirect(`/daftar-mitra?error=${encodeURIComponent("Gagal menghubungi server — periksa koneksi dan coba lagi.")}`);
