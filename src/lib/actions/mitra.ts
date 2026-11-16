@@ -698,6 +698,62 @@ export async function registrasiOrganisasiMitra(formData: FormData) {
   }
 }
 
+export async function mintaDokumenUlangAction(formData: FormData) {
+  await requireAdminLevel();
+  const idorga = Number(formData.get("idorga")) || 0;
+  if (!idorga) redirect("/admin/pendaftaran-organisasi?error=ID+tidak+ditemukan");
+
+  const key = process.env.ADMIN_API_KEY ?? "";
+  if (!key) redirect(`/admin/pendaftaran-organisasi/${idorga}?error=${encodeURIComponent("ADMIN_API_KEY tidak diset")}`);
+
+  try {
+    const res = await fetch(`${process.env.API_BASE_URL}/requestdokumentok`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Admin-Key": key },
+      body: new URLSearchParams({ idorga: String(idorga) }),
+    });
+    const json = await res.json();
+    if (Number(json.value) !== 200) {
+      redirect(`/admin/pendaftaran-organisasi/${idorga}?error=${encodeURIComponent(json.pesan ?? "Gagal mengirim email.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect(`/admin/pendaftaran-organisasi/${idorga}?error=${encodeURIComponent("Gagal menghubungi server.")}`);
+  }
+
+  revalidatePath(`/admin/pendaftaran-organisasi/${idorga}`);
+  redirect(`/admin/pendaftaran-organisasi/${idorga}?dokreq=1`);
+}
+
+export async function uploadDokumenMitra(formData: FormData) {
+  const token = String(formData.get("token") ?? "").trim();
+  if (!token) redirect("/upload-dokumen?error=Link+tidak+valid");
+
+  const fd = new FormData();
+  fd.set("token", token);
+  for (const [key, value] of formData.entries()) {
+    if (key === "token") continue;
+    if (value instanceof File) {
+      if (value.size > 0) fd.set(key, value);
+    }
+  }
+
+  try {
+    const res = await apiPostForm<{ value?: string | number; pesan?: string }>(
+      "simpandokumentok",
+      fd,
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/upload-dokumen?token=${encodeURIComponent(token)}&error=${encodeURIComponent(res.pesan ?? "Gagal mengunggah.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect(`/upload-dokumen?token=${encodeURIComponent(token)}&error=${encodeURIComponent("Gagal menghubungi server.")}`);
+  }
+
+  redirect("/upload-dokumen?selesai=1");
+}
+
 export async function organisasiSetAction(formData: FormData) {
   await requireAdminLevel();
   const idorga = Number(formData.get("idorga")) || 0;

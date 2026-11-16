@@ -15,7 +15,7 @@ import {
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
-import { organisasiSetAction } from "@/lib/actions/mitra";
+import { organisasiSetAction, mintaDokumenUlangAction } from "@/lib/actions/mitra";
 
 export const metadata = { title: "Detail Pendaftaran Organisasi | Pohon Asuh" };
 
@@ -115,6 +115,7 @@ export default async function DetailOrganisasiPage(props: PageProps<"/admin/pend
       </Link>
 
       {sp?.saved && <SuccessPopup paramKey="saved" title="Tersimpan">Status pendaftaran diperbarui.</SuccessPopup>}
+      {sp?.dokreq && <SuccessPopup paramKey="dokreq" title="Email Terkirim">Permintaan upload dokumen dikirim ke penanggung jawab.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
       {fetchError ? (
@@ -208,6 +209,18 @@ export default async function DetailOrganisasiPage(props: PageProps<"/admin/pend
                     </div>
                   ),
                 )}
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-emerald-50 pt-4">
+                <div className="max-w-md text-xs text-zinc-500">
+                  <p className="font-semibold text-zinc-700">Butuh dokumen dari penanggung jawab?</p>
+                  <p className="mt-0.5">Kirim tautan sekali pakai (berlaku 24 jam) ke email PJ untuk mengunggah dokumen di atas tanpa perlu mendaftar ulang.</p>
+                </div>
+                <form action={mintaDokumenUlangAction}>
+                  <input type="hidden" name="idorga" value={String(org.id)} />
+                  <ConfirmSubmit message={`Kirim tautan upload dokumen ke ${org.email_pj}?`} className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100">
+                    Minta Upload Ulang Dokumen
+                  </ConfirmSubmit>
+                </form>
               </div>
             </section>
 
