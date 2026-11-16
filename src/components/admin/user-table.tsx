@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ApiMember } from "@/lib/api";
-import { updateStatusMember, ubahPeranMember } from "@/lib/actions/member";
+import { updateStatusMember, ubahPeranMember, hapusMember } from "@/lib/actions/member";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import RowsPerPage from "@/components/admin/rows-per-page";
 
@@ -186,6 +186,21 @@ export default function UserTable({
                           className="rounded-lg border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
                         >
                           Simpan
+                        </ConfirmSubmit>
+                      </form>
+                    )}
+                    {!sendiri && (
+                      <form action={hapusMember} className="mt-2">
+                        <input type="hidden" name="idmember" value={m.id} />
+                        <input type="hidden" name="nama" value={m.name} />
+                        <ConfirmSubmit
+                          message={`Hapus permanen akun ${m.name} (${m.emaile || "tanpa email"})? Tindakan ini TIDAK bisa dibatalkan — akun tidak bisa login lagi dan data keranjang & notifikasi ikut dihapus. Riwayat adopsi tetap tersimpan.`}
+                          disabled={m.admin >= 1}
+                          title={m.admin >= 1 ? "Akun admin/petugas tidak bisa dihapus — ubah perannya dulu" : undefined}
+                          confirmLabel="Ya, Hapus Permanen"
+                          className="flex w-full items-center justify-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40"
+                        >
+                          Hapus
                         </ConfirmSubmit>
                       </form>
                     )}

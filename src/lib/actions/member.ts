@@ -144,3 +144,30 @@ export async function kirimPesan(formData: FormData): Promise<void> {
     )}`,
   );
 }
+
+export async function hapusMember(formData: FormData): Promise<void> {
+  const session = await requireAdminLevel();
+
+  const idmember = Number(formData.get("idmember")) || 0;
+  const nama = String(formData.get("nama") ?? "").trim();
+  if (!idmember) redirect("/admin/user?error=ID+tidak+valid");
+
+  let error: string | null = null;
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "hapusmember",
+      { idmember, iduser: session.userId },
+    );
+    if (Number(res.value) !== 200) {
+      error = res.pesan ?? "Gagal menghapus akun.";
+    }
+  } catch {
+    error = "Tidak dapat menghubungi server.";
+  }
+
+  if (error) redirect(`/admin/user?error=${encodeURIComponent(error)}`);
+  revalidatePath("/admin/user");
+  redirect(`/admin/user?updated=${encodeURIComponent(
+    `Akun ${nama || idmember} berhasil dihapus.`,
+  )}`);
+}
