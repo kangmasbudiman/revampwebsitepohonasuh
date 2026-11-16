@@ -102,7 +102,7 @@ export default async function DaftarMitraPage(props: PageProps<"/daftar-mitra">)
           </div>
 
           <div className="lg:col-span-3">
-            <MitraRegisterForm />
+            <MitraRegisterForm initialError={typeof sp?.error === "string" ? sp.error : ""} />
           </div>
         </div>
       </section>

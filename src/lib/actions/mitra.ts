@@ -433,7 +433,7 @@ export async function daftarMitra(formData: FormData) {
     }
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect("/daftar-mitra?error=Gagal+menghubungi+server");
+    redirect(`/daftar-mitra?error=${encodeURIComponent("Gagal menghubungi server — periksa koneksi dan coba lagi.")}`);
   }
 
   redirect("/masuk?terdaftar=1");
@@ -666,13 +666,13 @@ export async function registrasiOrganisasiMitra(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const password2 = String(formData.get("password2") ?? "");
 
-  if (!nama || !namaPj || !email || !hp || !password) redirect("/daftar-mitra?error=Lengkapi+semua+field+wajib");
-  if (password !== password2) redirect("/daftar-mitra?error=Konfirmasi+password+tidak+cocok");
-  if (password.length < 8) redirect("/daftar-mitra?error=Password+minimal+8+karakter");
+  if (!nama || !namaPj || !email || !hp || !password) redirect(`/daftar-mitra?error=${encodeURIComponent("Lengkapi semua field wajib.")}`);
+  if (password !== password2) redirect(`/daftar-mitra?error=${encodeURIComponent("Konfirmasi kata sandi tidak cocok.")}`);
+  if (password.length < 8) redirect(`/daftar-mitra?error=${encodeURIComponent("Kata sandi minimal 8 karakter.")}`);
 
   // logo wajib
   const logo = formData.get("logo");
-  if (!(logo instanceof File) || logo.size === 0) redirect("/daftar-mitra?error=Logo+organisasi+wajib");
+  if (!(logo instanceof File) || logo.size === 0) redirect(`/daftar-mitra?error=${encodeURIComponent("Logo organisasi wajib diunggah (PNG/JPG/WebP, maks 5 MB).")}`);
 
   try {
     // Build a new FormData for the API with all fields from current formData
@@ -694,7 +694,7 @@ export async function registrasiOrganisasiMitra(formData: FormData) {
     redirect(`/pendaftaran-berhasil?id=${Number(res.id) || 0}`);
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect("/daftar-mitra?error=Gagal+menghubungi+server");
+    redirect(`/daftar-mitra?error=${encodeURIComponent("Gagal menghubungi server — periksa koneksi dan coba lagi.")}`);
   }
 }
 
