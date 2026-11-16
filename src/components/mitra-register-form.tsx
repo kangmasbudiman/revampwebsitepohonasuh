@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { registrasiOrganisasiMitra } from "@/lib/actions/mitra";
+import SubmitButton from "@/components/admin/submit-button";
 
 const BIDANG = [
   "Lingkungan dan Konservasi",
@@ -247,9 +248,9 @@ export default function MitraRegisterForm() {
             <button type="button" onClick={() => setStep(4)} className="rounded-xl border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50">
               ← Kembali
             </button>
-            <button type="submit" className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-700">
+            <SubmitButton pendingLabel="Memproses pendaftaran…" className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-700">
               Kirim Pendaftaran Mitra
-            </button>
+            </SubmitButton>
           </div>
         </div>
     </form>
