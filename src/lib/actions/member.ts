@@ -152,16 +152,22 @@ export async function hapusMember(formData: FormData): Promise<void> {
   const nama = String(formData.get("nama") ?? "").trim();
   if (!idmember) redirect("/admin/user?error=ID+tidak+valid");
 
+  const key = process.env.ADMIN_API_KEY ?? "";
+  if (!key) redirect(`/admin/user?error=${encodeURIComponent("ADMIN_API_KEY tidak diset")}`);
+
   let error: string | null = null;
   try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>(
-      "hapusmember",
-      { idmember, iduser: session.userId },
-    );
-    if (Number(res.value) !== 200) {
-      error = res.pesan ?? "Gagal menghapus akun.";
+    const res = await fetch(`${process.env.API_BASE_URL}/hapusmember`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Admin-Key": key },
+      body: new URLSearchParams({ idmember: String(idmember), iduser: String(session.userId) }),
+    });
+    const json = await res.json();
+    if (Number(json.value) !== 200) {
+      error = json.pesan ?? "Gagal menghapus akun.";
     }
-  } catch {
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
     error = "Tidak dapat menghubungi server.";
   }
 
