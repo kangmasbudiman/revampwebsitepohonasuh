@@ -25,7 +25,7 @@ export default function KerjasamaMitraPage() {
             <Link href="#cara">Cara Kerja</Link>
             <Link href="#faq">FAQ</Link>
           </nav>
-          <Link href="/daftar-mitra" className="rounded-full bg-green-500 px-6 py-2.5 text-xs font-bold text-white shadow hover:bg-green-600 transition-colors">
+          <Link href="/daftar-mitra" className="rounded-full bg-emerald-500 px-6 py-2.5 text-xs font-bold text-white shadow-emerald-900/40 hover:bg-emerald-400 transition-all hover:scale-[1.03]">
             Daftar Menjadi Mitra →
           </Link>
         </div>
@@ -58,7 +58,7 @@ export default function KerjasamaMitraPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/daftar-mitra" className="inline-flex items-center justify-center rounded-full bg-green-500 px-8 py-4 text-base font-bold text-white shadow-lg transition-colors hover:bg-green-600">
+              <Link href="/daftar-mitra" className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-10 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-900/40 hover:scale-[1.03] hover:bg-emerald-400">
                 Daftar Menjadi Mitra <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <a href="#cara" className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 transition">
@@ -88,7 +88,7 @@ export default function KerjasamaMitraPage() {
       </section>
 
       {/* ── MENGAPA MITRA ── */}
-      <section id="mengapa" className="bg-lime-50 border-t border-emerald-100">
+      <section id="mengapa" className="bg-emerald-50 border-t border-emerald-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h2 className="text-3xl font-extrabold text-emerald-950">Mengapa Menjadi Mitra?</h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -165,7 +165,7 @@ export default function KerjasamaMitraPage() {
       </section>
 
       {/* ── CARA KERJA ── */}
-      <section id="cara" className="bg-lime-50">
+      <section id="cara" className="bg-emerald-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
           <h2 className="text-center text-3xl font-extrabold text-emerald-950">Bagaimana Cara Kerja Kemitraan?</h2>
           <div className="mt-10 flex flex-wrap justify-center gap-4 lg:flex-nowrap lg:gap-0 lg:justify-between">
@@ -178,7 +178,7 @@ export default function KerjasamaMitraPage() {
               { n: "6", label: "Pantau Dampak Program" },
             ].map((step, i) => (
               <div key={i} className="flex flex-col items-center gap-2 w-36 text-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-lime-500 text-lg font-extrabold text-emerald-950">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-lg font-extrabold text-white">
                   {step.n}
                 </span>
                 <span className="text-[11px] font-semibold text-emerald-900 leading-tight">{step.label}</span>
@@ -190,7 +190,7 @@ export default function KerjasamaMitraPage() {
               { icon: <TreePine className="h-6 w-6" />, title: "Program Adopsi Pohon oleh Mitra", desc: "Kegiatan Kolaborasi", href: "#" },
               { icon: <Users className="h-6 w-6" />, title: "Kolaborasi untuk Hutan Lestari", desc: "Kegiatan Kolaborasi", href: "#" }].map((g, i) => (
               <a key={i} href={g.href} className="group rounded-2xl border border-emerald-100 bg-white p-4 flex items-center gap-3 hover:shadow-md transition">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-lime-100 text-lime-700 group-hover:bg-lime-200 transition">{g.icon}</span>
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200 transition">{g.icon}</span>
                 <span>
                   <p className="text-sm font-bold text-emerald-900">{g.title}</p>
                   <p className="text-[11px] text-zinc-500">{g.desc}</p>
@@ -233,7 +233,7 @@ export default function KerjasamaMitraPage() {
             <h2 className="text-3xl font-extrabold sm:text-4xl">Mari Jadikan Komitmen Lingkungan<br />sebagai Aksi Nyata.</h2>
             <p className="mt-2 max-w-lg text-sm text-emerald-100">Bergabunglah menjadi Mitra Pohon Asuh dan mulai bangun kolaborasi untuk menjaga hutan, mendukung masyarakat, serta melestarikan keanekaragaman hayati.</p>
           </div>
-          <Link href="/daftar-mitra" className="inline-flex items-center justify-center rounded-full bg-green-500 px-8 py-4 text-base font-bold text-white shadow-lg transition-colors hover:bg-green-600">
+          <Link href="/daftar-mitra" className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-10 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-900/40 hover:scale-[1.03] hover:bg-emerald-400">
             Daftar Menjadi Mitra <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </div>
