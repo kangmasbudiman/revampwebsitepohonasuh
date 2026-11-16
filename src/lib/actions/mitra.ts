@@ -691,32 +691,11 @@ export async function registrasiOrganisasiMitra(formData: FormData) {
     if (Number(res.value) !== 201) {
       redirect(`/daftar-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal mendaftar.")}`);
     }
-    redirect(`/verifikasi-organisasi?id=${Number(res.id)}&email=${encodeURIComponent(String(res.email ?? ""))}`);
+    redirect(`/pendaftaran-berhasil?id=${Number(res.id) || 0}`);
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
     redirect("/daftar-mitra?error=Gagal+menghubungi+server");
   }
-}
-
-export async function verifikasiOtpOrg(formData: FormData) {
-  const idorga = Number(formData.get("idorga")) || 0;
-  const code = String(formData.get("code") ?? "").replace(/\s/g, "");
-  if (!idorga || !code) redirect("/verifikasi-organisasi?id=0&error=Lengkapi+OTP");
-
-  try {
-    const res = await apiPost<{ value?: string | number; pesan?: string }>(
-      "verifikasiotporg",
-      { idorga, code },
-    );
-    if (Number(res.value) !== 200) {
-      redirect(`/verifikasi-organisasi?id=${idorga}&error=${encodeURIComponent(res.pesan ?? "Kode salah.")}`);
-    }
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
-    redirect(`/verifikasi-organisasi?id=${idorga}&error=Gagal+menghubungi+server`);
-  }
-
-  redirect("/masuk?terdaftar=1");
 }
 
 export async function organisasiSetAction(formData: FormData) {
