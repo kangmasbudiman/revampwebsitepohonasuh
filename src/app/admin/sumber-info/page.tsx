@@ -82,7 +82,6 @@ export default async function AdminSumberInfoPage(props: PageProps<"/admin/sumbe
               <tr>
                 <th className="px-4 py-3 font-semibold">Nama</th>
                 <th className="px-4 py-3 font-semibold">Email / HP</th>
-                <th className="px-4 py-3 font-semibold">Alamat</th>
                 <th className="px-4 py-3 font-semibold">Sumber Info</th>
                 <th className="px-4 py-3 font-semibold">Tgl Daftar</th>
               </tr>
@@ -92,13 +91,12 @@ export default async function AdminSumberInfoPage(props: PageProps<"/admin/sumbe
                 <tr key={r.id} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                   <td className="px-4 py-3 font-medium">{r.name}</td>
                   <td className="px-4 py-3 text-xs text-zinc-500">{r.emaile}{r.hp ? <span className="block">{r.hp}</span> : null}</td>
-                  <td className="max-w-[220px] truncate px-4 py-3 text-xs text-zinc-500">{r.alamat ?? "—"}</td>
                   <td className="px-4 py-3 text-xs font-semibold text-emerald-800">{tl(r.sumberInfo)}</td>
                   <td className="px-4 py-3 text-xs text-zinc-400">{r.tanggal ?? "—"}</td>
                 </tr>
               ))}
               {rows.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-10 text-center text-zinc-500">{q ? "Tidak ada hasil" : "Belum ada data"}</td></tr>
+                <tr><td colSpan={4} className="px-4 py-10 text-center text-zinc-500">{q ? "Tidak ada hasil" : "Belum ada data"}</td></tr>
               )}
             </tbody>
           </table>
