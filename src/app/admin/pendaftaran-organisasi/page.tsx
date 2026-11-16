@@ -108,7 +108,14 @@ export default async function AdminPendaftaranOrganisasiPage(props: PageProps<"/
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <form action={organisasiSetAction} className="inline">
+                    <div className="inline-flex flex-wrap items-center justify-end gap-2">
+                      <Link
+                        href={`/admin/pendaftaran-organisasi/${encodeURIComponent(String(r.id))}`}
+                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
+                      >
+                        Detail
+                      </Link>
+                      <form action={organisasiSetAction} className="inline">
                       <input type="hidden" name="idorga" value={String(r.id)} />
                       <select name="aksi" className="rounded-xl border border-zinc-200 px-2 py-1 text-xs">
                         <option value="setujui">Setujui</option>
@@ -120,6 +127,7 @@ export default async function AdminPendaftaranOrganisasiPage(props: PageProps<"/
                         Simpan
                       </ConfirmSubmit>
                     </form>
+                    </div>
                   </td>
                 </tr>
               ))}
