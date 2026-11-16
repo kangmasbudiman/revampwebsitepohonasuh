@@ -94,11 +94,11 @@ export default function SumberInfoForm({ token }: { token: string }) {
         <p className="text-xs font-medium text-zinc-500">1 dari 2</p>
       </div>
       <div className="mt-2 h-1.5 w-full rounded-full bg-zinc-100">
-        <div className="h-full w-1/2 rounded-full bg-lime-500" />
+        <div className="h-full w-1/2 rounded-full bg-green-500" />
       </div>
 
       <h2 className="mt-5 text-center text-xl font-bold text-emerald-950">
-        Bagaimana Anda<br />mengetahui tentang <span className="text-lime-600">Pohon Asuh?</span>
+        Bagaimana Anda<br />mengetahui tentang <span className="text-green-600">Pohon Asuh?</span>
       </h2>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
@@ -112,7 +112,7 @@ export default function SumberInfoForm({ token }: { token: string }) {
               disabled={saving}
               className={`flex min-h-[52px] items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${
                 active
-                  ? "border-lime-500 bg-lime-100 text-emerald-900 shadow-sm"
+                  ? "border-green-500 bg-green-100 text-emerald-900 shadow-sm"
                   : "border-zinc-200 bg-white text-zinc-800 hover:border-emerald-200 hover:bg-emerald-50"
               } ${saving ? "opacity-60" : ""}`}
             >
