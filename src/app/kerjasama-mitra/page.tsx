@@ -58,7 +58,7 @@ export default function KerjasamaMitraPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/daftar-mitra" className="inline-flex items-center justify-center rounded-full bg-green-500 px-8 py-4 text-base font-bold text-white shadow-lg transition-colors hover:bg-green-600">
+              <Link href="/daftar-mitra" className="inline-flex items-center justify-center rounded-full bg-lime-400 px-8 py-4 text-base font-bold text-emerald-950 shadow-lg hover:bg-lime-300">
                 Daftar Menjadi Mitra <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <a href="#cara" className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 transition">
@@ -233,7 +233,7 @@ export default function KerjasamaMitraPage() {
             <h2 className="text-3xl font-extrabold sm:text-4xl">Mari Jadikan Komitmen Lingkungan<br />sebagai Aksi Nyata.</h2>
             <p className="mt-2 max-w-lg text-sm text-emerald-100">Bergabunglah menjadi Mitra Pohon Asuh dan mulai bangun kolaborasi untuk menjaga hutan, mendukung masyarakat, serta melestarikan keanekaragaman hayati.</p>
           </div>
-          <Link href="/daftar-mitra" className="inline-flex items-center justify-center rounded-full bg-green-500 px-8 py-4 text-base font-bold text-white shadow-lg transition-colors hover:bg-green-600">
+          <Link href="/daftar-mitra" className="inline-flex items-center justify-center rounded-full bg-lime-400 px-8 py-4 text-base font-bold text-emerald-950 shadow-lg hover:bg-lime-300">
             Daftar Menjadi Mitra <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </div>
