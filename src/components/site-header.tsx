@@ -75,6 +75,23 @@ function NavPohonMenu({
               >
                 Adopted
               </Link>
+              <div className="my-1 h-px bg-emerald-50" />
+              <Link
+                href="/spesies"
+                onClick={() => setOpen(false)}
+                data-testid="nav-spesies"
+                className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+              >
+                Spesies
+              </Link>
+              <Link
+                href="/lokasi"
+                onClick={() => setOpen(false)}
+                data-testid="nav-lokasi"
+                className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+              >
+                Lokasi
+              </Link>
             </div>
           </div>
         </>
@@ -92,11 +109,10 @@ export default function SiteHeader({ session }: { session: Session | null }) {
   const NAV = [
     { href: "/", label: dict.nav.home },
     { href: "/pohon", label: dict.nav.trees },
-    { href: "/spesies", label: dict.nav.species },
     { href: "/kalkulator-karbon", label: dict.nav.carbonCalc },
-    { href: "/lokasi", label: dict.nav.locations },
     { href: "/blog", label: dict.nav.blog },
     { href: "/tentang", label: dict.nav.tentang },
+    { href: "/kerjasama-mitra", label: "Mitra" },
   ];
   // Menu sekunder — dropdown "Informasi" agar bar utama tidak dempet.
   const INFO_NAV = [
@@ -104,7 +120,6 @@ export default function SiteHeader({ session }: { session: Session | null }) {
     { href: "/cerita-dampak", label: dict.nav.impact },
     { href: "/keuangan", label: dict.nav.finance },
     { href: "/kontak", label: dict.nav.contact },
-    { href: "/kerjasama-mitra", label: "Kemitraan" },
   ];
 
   useEffect(() => {
@@ -376,6 +391,22 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                       className="rounded-xl px-4 py-2 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
                     >
                       Adopted
+                    </Link>
+                    <Link
+                      href="/spesies"
+                      onClick={() => setOpen(false)}
+                      data-testid="nav-spesies"
+                      className="rounded-xl px-4 py-2 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
+                    >
+                      Spesies
+                    </Link>
+                    <Link
+                      href="/lokasi"
+                      onClick={() => setOpen(false)}
+                      data-testid="nav-lokasi"
+                      className="rounded-xl px-4 py-2 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
+                    >
+                      Lokasi
                     </Link>
                   </div>
                 )}
