@@ -666,8 +666,7 @@ export async function registrasiOrganisasiMitra(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const password2 = String(formData.get("password2") ?? "");
 
-  const missing = [!nama && "nama", !namaPj && "namaPj", !email && "email", !hp && "hp", !password && "password"].filter(Boolean).join(",");
-  if (missing) redirect("/daftar-mitra?error=Missing:" + encodeURIComponent(missing));
+  if (!nama || !namaPj || !email || !hp || !password) redirect("/daftar-mitra?error=Lengkapi+semua+field+wajib");
   if (password !== password2) redirect("/daftar-mitra?error=Konfirmasi+password+tidak+cocok");
   if (password.length < 8) redirect("/daftar-mitra?error=Password+minimal+8+karakter");
 
