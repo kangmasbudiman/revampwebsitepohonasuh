@@ -1,5 +1,6 @@
 import { requireAdminLevel } from "@/lib/guard";
 import { mapSumberInfo, type ApiSumberInfo } from "@/lib/api";
+import SumberInfoChart from "@/components/admin/sumber-info-chart";
 
 export const metadata = { title: "Sumber Info Pengguna | Pohon Asuh" };
 
@@ -50,6 +51,7 @@ export default async function AdminSumberInfoPage(props: PageProps<"/admin/sumbe
       <h1 className="text-2xl font-bold pa-hgrad">Sumber Info Pengguna</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Dari mana pengguna tahu tentang Pohon Asuh — jawaban pilihan tunggal.
+        {total > 0 && <span className="ml-1 font-semibold text-emerald-800 dark:text-emerald-300">· {total.toLocaleString("id-ID")} pengguna sudah menjawab{q ? ` (terfilter)` : ""}</span>}
       </p>
 
       {/* Summary */}
@@ -62,6 +64,8 @@ export default async function AdminSumberInfoPage(props: PageProps<"/admin/sumbe
         ))}
         {sorted.length === 0 && <p className="col-span-6 text-sm text-zinc-500">Belum ada data.</p>}
       </div>
+
+      {!fetchError && <SumberInfoChart summary={summary} />}
 
       {/* Search & Table */}
       <form method="get" className="mt-6 flex items-center gap-2">
