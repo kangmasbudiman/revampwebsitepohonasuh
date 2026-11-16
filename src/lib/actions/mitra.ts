@@ -657,3 +657,92 @@ export async function setTemplateTaggingMitra(formData: FormData) {
   revalidatePath("/mitra/desain-tagging");
   redirect("/mitra/desain-tagging?template=1");
 }
+
+export async function registrasiOrganisasiMitra(formData: FormData) {
+  const nama = String(formData.get("nama") ?? "").trim();
+  const namaPj = String(formData.get("nama_pj") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const hp = String(formData.get("hp_pj") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const password2 = String(formData.get("password2") ?? "");
+
+  if (!nama || !namaPj || !email || !hp || !password) redirect("/daftar-mitra?error=Lengkapi+semua+field+wajib");
+  if (password !== password2) redirect("/daftar-mitra?error=Konfirmasi+password+tidak+cocok");
+  if (password.length < 8) redirect("/daftar-mitra?error=Password+minimal+8+karakter");
+
+  // logo wajib
+  const logo = formData.get("logo");
+  if (!(logo instanceof File) || logo.size === 0) redirect("/daftar-mitra?error=Logo+organisasi+wajib");
+
+  try {
+    // Build a new FormData for the API with all fields from current formData
+    const fd = new FormData();
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        if (value.size > 0) fd.set(key, value);
+      } else {
+        fd.set(key, String(value));
+      }
+    }
+    const res = await apiPostForm<{ value?: string | number; pesan?: string; id?: number; email?: string }>(
+      "daftarmgregistration",
+      fd,
+    );
+    if (Number(res.value) !== 201) {
+      redirect(`/daftar-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal mendaftar.")}`);
+    }
+    redirect(`/verifikasi-organisasi?id=${Number(res.id)}&email=${encodeURIComponent(String(res.email ?? ""))}`);
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/daftar-mitra?error=Gagal+menghubungi+server");
+  }
+}
+
+export async function verifikasiOtpOrg(formData: FormData) {
+  const idorga = Number(formData.get("idorga")) || 0;
+  const code = String(formData.get("code") ?? "").replace(/\s/g, "");
+  if (!idorga || !code) redirect("/verifikasi-organisasi?id=0&error=Lengkapi+OTP");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "verifikasiotporg",
+      { idorga, code },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/verifikasi-organisasi?id=${idorga}&error=${encodeURIComponent(res.pesan ?? "Kode salah.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect(`/verifikasi-organisasi?id=${idorga}&error=Gagal+menghubungi+server`);
+  }
+
+  redirect("/masuk?terdaftar=1");
+}
+
+export async function organisasiSetAction(formData: FormData) {
+  await requireAdminLevel();
+  const idorga = Number(formData.get("idorga")) || 0;
+  const aksi = String(formData.get("aksi") ?? "");
+  const note = String(formData.get("note") ?? "").trim();
+  if (!idorga) redirect("/admin/pendaftaran-organisasi?error=ID+tidak+ditemukan");
+
+  const key = process.env.ADMIN_API_KEY ?? "";
+  if (!key) redirect("/admin/pendaftaran-organisasi?error=ADMIN_API_KEY+tidak+diset");
+
+  try {
+    const res = await fetch(`${process.env.API_BASE_URL}/organisasiSetAdmin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Admin-Key": key },
+      body: new URLSearchParams({ idorga: String(idorga), aksi, note }),
+    });
+    const json = await res.json();
+    if (Number(json.value) !== 200) {
+      redirect(`/admin/pendaftaran-organisasi?error=${encodeURIComponent(json.pesan ?? "Gagal.")}`);
+    }
+  } catch {
+    redirect("/admin/pendaftaran-organisasi?error=Gagal+menghubungi+server");
+  }
+
+  revalidatePath("/admin/pendaftaran-organisasi");
+  redirect("/admin/pendaftaran-organisasi?saved=1");
+}

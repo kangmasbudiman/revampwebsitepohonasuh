@@ -1,11 +1,8 @@
 import Link from "next/link";
-import { daftarMitra } from "@/lib/actions/mitra";
 import Image from "next/image";
+import MitraRegisterForm from "@/components/mitra-register-form";
 
 export const metadata = { title: "Daftar Mitra | Pohon Asuh" };
-
-const inputClass =
-  "mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
 
 export default async function DaftarMitraPage(props: PageProps<"/daftar-mitra">) {
   const sp = await props.searchParams;
@@ -105,69 +102,7 @@ export default async function DaftarMitraPage(props: PageProps<"/daftar-mitra">)
           </div>
 
           <div className="lg:col-span-3">
-            <form action={daftarMitra} className="rounded-3xl border border-emerald-100 bg-white p-7 shadow-lg dark:border-night-700 dark:bg-night-900">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Nama Lembaga <span className="text-red-500">*</span>
-                  </label>
-                  <input name="nama" required placeholder="mis. Jejakin Indonesia" className={inputClass} />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Nama Penanggung Jawab (PIC)
-                  </label>
-                  <input name="nama_pj" placeholder="mis. Budi Santoso" className={inputClass} />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Alamat</label>
-                  <textarea name="alamat" rows={2} placeholder="Alamat lengkap lembaga" className={inputClass} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <input name="email" type="email" required placeholder="lembaga@contoh.org" className={inputClass} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Nomor Kontak / HP
-                  </label>
-                  <input name="hp" type="tel" placeholder="08xxxxxxxxxx" className={inputClass} />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Password <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    name="password"
-                    type="password"
-                    required
-                    minLength={6}
-                    pattern=".{6,}"
-                    title="Minimal 6 karakter"
-                    placeholder="Minimal 6 karakter"
-                    className={inputClass}
-                  />
-                  <p className="mt-1 text-[11px] text-zinc-400">Minimal 6 karakter. Jangan bagikan ke siapapun.</p>
-                </div>
-              </div>
-
-              {sp?.error && (
-                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {String(sp.error)}
-                </div>
-              )}
-
-              <button type="submit" className="mt-5 w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700">
-                Kirim Pendaftaran
-              </button>
-            </form>
+            <MitraRegisterForm />
           </div>
         </div>
       </section>
