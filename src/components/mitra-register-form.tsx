@@ -48,8 +48,7 @@ export default function MitraRegisterForm() {
       </div>
 
       {/* Tahap 1 — Informasi Organisasi */}
-      {step === 1 && (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
+      <div className={step !== 1 ? "hidden" : "rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5"}>
           <h3 className="text-sm font-bold text-emerald-900">1. Informasi Organisasi</h3>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
@@ -124,11 +123,9 @@ export default function MitraRegisterForm() {
             </button>
           </div>
         </div>
-      )}
 
-      {/* Tahap 2 — Penanggung Jawab */}
-      {step === 2 && (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
+      {/* Tahap — Penanggung Jawab */}
+      <div className={step !== 2 ? "hidden" : "rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5"}>
           <h3 className="text-sm font-bold text-emerald-900">2. Informasi Penanggung Jawab</h3>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
@@ -162,11 +159,9 @@ export default function MitraRegisterForm() {
             </button>
           </div>
         </div>
-      )}
 
-      {/* Tahap 3 — Dokumen Pendukung */}
-      {step === 3 && (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
+      {/* Tahap — Dokumen Pendukung */}
+      <div className={step !== 3 ? "hidden" : "rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5"}>
           <h3 className="text-sm font-bold text-emerald-900">3. Dokumen Pendukung</h3>
           <div className="mt-4 space-y-4">
             <div>
@@ -194,11 +189,9 @@ export default function MitraRegisterForm() {
             </button>
           </div>
         </div>
-      )}
 
-      {/* Tahap 4 — Buat Akun */}
-      {step === 4 && (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
+      {/* Tahap — Buat Akun */}
+      <div className={step !== 4 ? "hidden" : "rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5"}>
           <h3 className="text-sm font-bold text-emerald-900">4. Buat Akun Login</h3>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
@@ -230,11 +223,9 @@ export default function MitraRegisterForm() {
             </button>
           </div>
         </div>
-      )}
 
-      {/* Tahap 5 — Konfirmasi */}
-      {step === 5 && (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
+      {/* Tahap — Konfirmasi */}
+      <div className={step !== 5 ? "hidden" : "rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5"}>
           <h3 className="text-sm font-bold text-emerald-900">5. Konfirmasi</h3>
           <p className="mt-1 text-sm text-zinc-600">Periksa sekali lagi — setelah dikirim, akun akan menunggu verifikasi admin.</p>
           <div className="mt-4 space-y-3">
@@ -261,7 +252,6 @@ export default function MitraRegisterForm() {
             </button>
           </div>
         </div>
-      )}
     </form>
   );
 }
