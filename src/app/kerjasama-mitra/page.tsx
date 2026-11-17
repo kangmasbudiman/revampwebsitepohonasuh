@@ -45,7 +45,7 @@ export default function KerjasamaMitraPage() {
               </span>
             </div>
 
-            <h1 className="mt-5 sm:mt-6 text-4xl sm:text-6xl font-extrabold leading-[1.1] sm:leading-[1.08]">
+            <h1 className="mt-5 sm:mt-6 text-3xl sm:text-6xl font-extrabold leading-[1.1] sm:leading-[1.08]">
               Bersama Menjaga
               <br />
               Pohon, Hutan,

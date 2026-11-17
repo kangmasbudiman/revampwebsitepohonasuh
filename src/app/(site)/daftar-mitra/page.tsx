@@ -17,7 +17,7 @@ export default async function DaftarMitraPage(props: PageProps<"/daftar-mitra">)
               <span className="h-2 w-2 rounded-full bg-emerald-300" />
               Program KKI Warsi & Mitra
             </p>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.08] sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-extrabold leading-[1.15] sm:text-5xl">
               Bergabung sebagai<br />Mitra Pohon Asuh
             </h1>
             <p className="mt-4 max-w-md text-base text-emerald-200">
