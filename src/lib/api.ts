@@ -1854,6 +1854,16 @@ export function mapProgramMitra(r: Record<string, unknown>): ApiProgramMitra {
 }
 
 // Baris mitra_pesanan (permintaan pemesanan pohon mitra).
+export type OrderTreeMini = {
+  code: string;
+  localName: string;
+  species: string | null;
+  desa: string | null;
+  diameterCm: number | null;
+  heightM: number | null;
+  photoUrl: string | null;
+};
+
 export type ApiMitraPesanan = {
   id: number;
   mitraId: number;
@@ -1865,9 +1875,20 @@ export type ApiMitraPesanan = {
   catatan: string | null;
   status: string; // pending/approved/rejected
   createdAt: string | null;
+  trees: OrderTreeMini[];
 };
 
 export function mapMitraPesanan(r: Record<string, unknown>): ApiMitraPesanan {
+  const rawTrees = Array.isArray(r.trees) ? (r.trees as Record<string, unknown>[]) : [];
+  const trees: OrderTreeMini[] = rawTrees.map((t) => ({
+    code: String(t.code ?? ""),
+    localName: String(t.localName ?? t.code ?? ""),
+    species: t.species ? String(t.species) : null,
+    desa: t.desa ? String(t.desa) : null,
+    diameterCm: t.diameterCm === null || t.diameterCm === undefined ? null : Number(t.diameterCm),
+    heightM: t.heightM === null || t.heightM === undefined ? null : Number(t.heightM),
+    photoUrl: t.photoUrl ? treePhotoUrl(String(t.photoUrl)) : null,
+  }));
   return {
     id: Number(r.id),
     mitraId: Number(r.mitra_id),
@@ -1879,6 +1900,7 @@ export function mapMitraPesanan(r: Record<string, unknown>): ApiMitraPesanan {
     catatan: r.catatan ? String(r.catatan) : null,
     status: String(r.status ?? "pending"),
     createdAt: r.created_at ? String(r.created_at) : null,
+    trees,
   };
 }
 

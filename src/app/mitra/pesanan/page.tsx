@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/guard";
 import { apiPost, apiGet, mapDesa, mapProgramMitra, mapTrees, mapMitraPesanan, type ApiDesa, type ApiProgramMitra, type ApiMitraPesanan } from "@/lib/api";
 import SuccessPopup from "@/components/admin/success-popup";
 import MitraPohonOrderForm from "@/components/mitra/mitra-pohon-order-form";
+import OrderTreesModal from "@/components/mitra/order-trees-modal";
 
 export const metadata = { title: "Pemesanan Pohon | Pohon Asuh" };
 
@@ -103,13 +104,14 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
         <h2 className="border-b border-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:text-emerald-200">
           Riwayat Pemesanan
         </h2>
-        <table className="w-full min-w-[680px] text-left text-sm">
+        <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
             <tr>
               <th className="px-4 py-3">ID</th>
               <th className="px-4 py-3">Desa</th>
               <th className="px-4 py-3">Program</th>
               <th className="px-4 py-3">Jumlah</th>
+              <th className="px-4 py-3">Pohon</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Waktu</th>
             </tr>
@@ -122,6 +124,9 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
                 <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{p.programNama ?? "—"}</td>
                 <td className="px-4 py-3 font-semibold">{p.jumlah}</td>
                 <td className="px-4 py-3">
+                  <OrderTreesModal trees={p.trees ?? []} statusLabel={statusLabel(p.status)} />
+                </td>
+                <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge(p.status)}`}>
                     {statusLabel(p.status)}
                   </span>
@@ -130,7 +135,7 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
               </tr>
             ))}
             {pesanan.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-zinc-500">Belum ada pemesanan.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-zinc-500">Belum ada pemesanan.</td></tr>
             )}
           </tbody>
         </table>
