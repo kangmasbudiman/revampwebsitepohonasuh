@@ -27,6 +27,25 @@ export default async function KerjasamaMitraPage() {
   ];
   const sosmedList = sosmed.length > 0 ? sosmed : fallbackSosmed;
 
+  // Daftar lembaga mitra (disetujui) untuk section "Mitra Kami" — logo bisa diklik
+  type MitraTampil = { id: number; nama: string; slug: string; logo: string | null };
+  let daftarMitra: MitraTampil[] = [];
+  const assetOrigin = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
+  try {
+    const res = await fetch(`${process.env.API_BASE_URL}/organisasitampil`, { cache: "no-store" });
+    if (res.ok) {
+      const json = await res.json();
+      daftarMitra = (Array.isArray(json.data) ? json.data : []).map((r: Record<string, unknown>) => ({
+        id: Number(r.id),
+        nama: String(r.nama ?? ""),
+        slug: String(r.slug ?? ""),
+        logo: r.logo ? String(r.logo) : null,
+      }));
+    }
+  } catch {
+    daftarMitra = [];
+  }
+
   return (
     <main className="w-full overflow-hidden bg-white">
       {/* ── TOP NAV MINI ── */}
@@ -215,6 +234,62 @@ export default async function KerjasamaMitraPage() {
               </a>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── MITRA KAMI ── */}
+      <section className="bg-white border-t border-emerald-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-2xl">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Mitra Kami</p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-emerald-950">Lembaga yang Sudah Bergabung</h2>
+              <p className="mt-2 text-sm leading-6 text-zinc-600">
+                Organisasi, komunitas, dan institusi yang bersama-sama menjaga hutan. <span className="font-semibold text-emerald-800">Klik logo untuk melihat profil lembaga.</span>
+              </p>
+            </div>
+            <Link href="/daftar-mitra" className="inline-flex items-center gap-2 rounded-full border border-emerald-200 px-5 py-2.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">
+              Gabung Sekarang <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+
+          {daftarMitra.length > 0 ? (
+            <div className="mt-8 sm:mt-10 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              {daftarMitra.map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/mitra-lembaga/${encodeURIComponent(m.slug)}`}
+                  className="group flex aspect-square flex-col items-center justify-center gap-2 sm:gap-3 rounded-2xl sm:rounded-3xl border border-emerald-100 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl"
+                  aria-label={`Profil ${m.nama}`}
+                >
+                  {m.logo ? (
+                    <Image
+                      src={`${assetOrigin}/assets/${m.logo}`}
+                      alt={`Logo ${m.nama}`}
+                      width={88}
+                      height={88}
+                      className="h-16 w-16 sm:h-20 sm:w-20 object-contain"
+                    />
+                  ) : (
+                    <span className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
+                      <Building2 className="h-8 w-8" aria-hidden />
+                    </span>
+                  )}
+                  <span className="text-center text-[11px] sm:text-xs font-semibold leading-tight text-zinc-800 line-clamp-2">{m.nama}</span>
+                  <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-emerald-700 opacity-0 transition group-hover:opacity-100">Lihat Profil →</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-10 rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/50 p-10 sm:p-14 text-center">
+              <Building2 className="mx-auto h-12 w-12 sm:h-14 sm:w-14 text-emerald-300" aria-hidden />
+              <h3 className="mt-4 text-lg sm:text-xl font-extrabold text-emerald-900">Jadilah Yang Pertama</h3>
+              <p className="mt-2 max-w-md mx-auto text-sm text-emerald-800/80">Belum ada lembaga mitra yang tampil di sini. Bergabunglah dan jadilah inspirasi bagi lembaga lainnya.</p>
+              <Link href="/daftar-mitra" className="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-700">
+                Daftar Menjadi Mitra <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
