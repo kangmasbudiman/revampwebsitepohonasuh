@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   Award,
+  Ban,
   BadgeCheck,
   BookHeart,
   ChevronDown,
@@ -112,6 +113,7 @@ const MITRA_HREFS = new Set([
   "/mitra",
   "/mitra/program",
   "/mitra/pesanan",
+  "/mitra/pembatalan",
   "/mitra/desain-tagging",
   "/mitra/adopsi",
   "/mitra/laporan",
@@ -122,6 +124,7 @@ const MITRA_ITEMS: Item[] = [
   { href: "/mitra", label: "Dashboard", icon: LayoutDashboard },
   { href: "/mitra/program", label: "Program Saya", icon: BookHeart },
   { href: "/mitra/pesanan", label: "Pemesanan Pohon", icon: TreePine },
+  { href: "/mitra/pembatalan", label: "Pembatalan Program", icon: Ban },
   { href: "/mitra/desain-tagging", label: "Desain Tagging", icon: Share2 },
   { href: "/mitra/adopsi", label: "Data Pengadopsi", icon: HeartHandshake },
   { href: "/mitra/laporan", label: "Laporan", icon: ClipboardCheck },

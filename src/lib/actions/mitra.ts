@@ -782,3 +782,28 @@ export async function organisasiSetAction(formData: FormData) {
   revalidatePath("/admin/pendaftaran-organisasi");
   redirect("/admin/pendaftaran-organisasi?saved=1");
 }
+
+export async function batalkanPesananMitra(formData: FormData) {
+  const session = await requireUser();
+  const id = Number(formData.get("id")) || 0;
+  const alasan = String(formData.get("alasan") ?? "").trim();
+
+  if (!id) redirect("/mitra/pembatalan?error=Pilih+pesanan+yang+ingin+dibatalkan");
+  if (alasan.length < 10) redirect(`/mitra/pembatalan?error=${encodeURIComponent("Alasan pembatalan minimal 10 karakter")}`);
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>(
+      "mitrabatalkanpesanan",
+      { idmember: session.userId, id, alasan },
+    );
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/pembatalan?error=${encodeURIComponent(res.pesan ?? "Gagal membatalkan pesanan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/pembatalan?error=Gagal+menghubungi+server");
+  }
+
+  revalidatePath("/mitra/pembatalan");
+  redirect("/mitra/pembatalan?ok=1");
+}
