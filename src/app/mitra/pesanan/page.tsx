@@ -77,6 +77,8 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
     priceIdr: t.priceIdr,
     photoUrl: t.photoUrl,
     diameterCm: t.diameterCm,
+    heightM: t.heightM,
+    co2Kg: null,
   }));
 
   return (

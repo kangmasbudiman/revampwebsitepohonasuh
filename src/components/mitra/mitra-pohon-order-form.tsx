@@ -4,9 +4,10 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { requestPesananMitra } from "@/lib/actions/mitra";
 import SubmitButton from "@/components/admin/submit-button";
-import { CheckCircle2, MapPin, Search, TreePine, X } from "lucide-react";
+import { CheckCircle2, MapPin, Search, TreePine, X, Leaf } from "lucide-react";
 import Image from "next/image";
-import { namaDesa } from "@/lib/format";
+import { namaDesa, rupiah } from "@/lib/format";
+import { co2TotalKg, formatCo2 } from "@/lib/karbon";
 
 export type PickableTree = {
   id: number;
@@ -17,6 +18,8 @@ export type PickableTree = {
   priceIdr: number;
   photoUrl: string;
   diameterCm: number | null;
+  heightM: number | null;
+  co2Kg: number | null;
 };
 
 export default function MitraPohonOrderForm({
@@ -123,47 +126,40 @@ export default function MitraPohonOrderForm({
           </div>
         )}
 
-        <div className="max-h-96 overflow-y-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="pa-thead sticky top-0 z-10 border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
-              <tr>
-                <th className="w-10 px-3 py-3"></th>
-                <th className="px-3 py-3 font-semibold">Kode</th>
-                <th className="px-3 py-3 font-semibold">Pohon</th>
-                <th className="px-3 py-3 font-semibold">Lokasi</th>
-                <th className="px-3 py-3 text-right font-semibold">Ø (cm)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
+        <div className="max-h-[560px] overflow-y-auto">
+          {shown.length === 0 ? (
+            <p className="px-4 py-10 text-center text-sm text-zinc-500">Tidak ada pohon tersedia cocok dengan filter.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 sm:gap-4 sm:p-4 xl:grid-cols-5">
               {shown.map((t) => {
                 const checked = selectedSet.has(t.code);
+                const co2 = t.co2Kg ?? co2TotalKg(t.diameterCm);
                 return (
-                  <tr key={t.code} className={checked ? "bg-emerald-50/60 dark:bg-emerald-950/20" : ""}>
-                    <td className="px-3 py-2.5">
-                      <input type="checkbox" checked={checked} onChange={() => toggle(t.code)} className="h-4 w-4 accent-emerald-700" aria-label={`Pilih ${t.code}`} />
-                    </td>
-                    <td className="px-3 py-2.5 font-mono text-xs">{t.code}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="relative block h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-emerald-50 dark:bg-night-800">
-                          <Image src={t.photoUrl} alt={t.localName} fill sizes="36px" className="object-cover" />
+                  <label key={t.code} className={`group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-night-700 dark:bg-night-900 ${checked ? "border-emerald-500 ring-2 ring-emerald-300" : "border-emerald-100"}`}>
+                    <input type="checkbox" checked={checked} onChange={() => toggle(t.code)} className="absolute right-2 top-2 z-10 h-5 w-5 rounded accent-emerald-600" aria-label={`Pilih ${t.code}`} />
+                    <span className="relative block h-28 bg-emerald-50 sm:h-36">
+                      <Image src={t.photoUrl} alt={t.localName} fill sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 16vw" className="object-cover object-center" />
+                      {co2 != null && co2 > 0 && (
+                        <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 shadow-sm backdrop-blur">
+                          <Leaf className="h-3 w-3" aria-hidden />~{formatCo2(co2, "id")} CO₂
                         </span>
-                        <span>
-                          <p className="font-medium text-zinc-800 dark:text-zinc-100">{t.localName}</p>
-                          <p className="text-[11px] italic text-zinc-500">{t.species ?? ""}</p>
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-xs text-zinc-600 dark:text-zinc-300">{namaDesa(t.desa)}</td>
-                    <td className="px-3 py-2.5 text-right text-xs">{t.diameterCm ?? "—"}</td>
-                  </tr>
+                      )}
+                    </span>
+                    <span className="flex flex-1 flex-col gap-0.5 p-2 sm:p-2.5">
+                      <span className="flex items-start justify-between gap-1">
+                        <span className="line-clamp-1 text-xs font-bold text-emerald-950 sm:text-sm dark:text-emerald-100">{t.localName}</span>
+                        <span className="shrink-0 whitespace-nowrap rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-mono font-semibold text-emerald-700 dark:bg-night-800 dark:text-emerald-300">{t.code}</span>
+                      </span>
+                      <span className="line-clamp-1 text-[10px] italic text-zinc-500">{t.species ?? "—"}</span>
+                      <span className="mt-0.5 text-[10px] text-zinc-500">📍 {namaDesa(t.desa)}</span>
+                      <span className="text-[10px] text-zinc-500">📏 {t.heightM ? `T ${t.heightM} m · ` : ""}Ø {t.diameterCm ?? "—"} cm</span>
+                      <span className="mt-auto pt-1 text-xs font-bold text-emerald-700 sm:text-sm">{rupiah(t.priceIdr)}</span>
+                    </span>
+                  </label>
                 );
               })}
-              {shown.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-zinc-500">Tidak ada pohon tersedia cocok dengan filter.</td></tr>
-              )}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
         {filtered.length > shown.length && (
           <p className="border-t border-emerald-50 px-5 py-2 text-[11px] text-zinc-500 dark:border-night-800">
