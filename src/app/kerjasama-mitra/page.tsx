@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Leaf, Handshake, Building2, Users, TreePine, BadgeCheck, LineChart, FileText, LayoutDashboard, Tag, BarChart3 } from "lucide-react";
-import { apiGet, mapSosmedList, type ApiSosmed } from "@/lib/api";
-import SosmedIcon from "@/components/sosmed-icon";
+import MitraNav from "@/components/mitra-nav";
+import MitraFooter from "@/components/mitra-footer";
 
 export const metadata = {
   title: "Kerjasama Mitra | Pohon Asuh",
@@ -11,22 +11,6 @@ export const metadata = {
 };
 
 export default async function KerjasamaMitraPage() {
-  // Daftar akun sosmed dari database — sama dengan footer situs utama
-  // (sumber sama & sama pula dengan tampilan di sana).
-  let sosmed: ApiSosmed[] = [];
-  try {
-    sosmed = mapSosmedList(await apiGet<Record<string, unknown>[]>("getsosmed"));
-  } catch {
-    // fallback di bawah bila API tidak bisa dijangkau
-  }
-  const fallbackSosmed: ApiSosmed[] = [
-    { id: -1, label: "YouTube", url: "https://www.youtube.com/user/kkiwarsi", ikon: "youtube" },
-    { id: -2, label: "Instagram", url: "https://www.instagram.com/pohonasuh/", ikon: "instagram" },
-    { id: -3, label: "WhatsApp", url: "https://wa.me/628117453700", ikon: "whatsapp" },
-    { id: -4, label: "Facebook", url: "https://www.facebook.com/pohonasuh/", ikon: "facebook" },
-  ];
-  const sosmedList = sosmed.length > 0 ? sosmed : fallbackSosmed;
-
   // Daftar lembaga mitra (disetujui) untuk section "Mitra Kami" — logo bisa diklik
   type MitraTampil = { id: number; nama: string; slug: string; logo: string | null };
   let daftarMitra: MitraTampil[] = [];
@@ -48,24 +32,7 @@ export default async function KerjasamaMitraPage() {
 
   return (
     <main className="w-full overflow-hidden bg-white">
-      {/* ── TOP NAV MINI ── */}
-      <header className="sticky top-0 z-50 backdrop-blur bg-white/80 border-b border-emerald-100">
-        <div className="mx-auto max-w-7xl px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <Image src="/images/logo_icon.png" alt="Pohon Asuh" width={36} height={36} className="rounded-full" />
-            <span className="text-lg font-extrabold text-emerald-900">Pohon Asuh</span>
-          </Link>
-          <nav className="hidden md:flex gap-6 text-sm font-medium text-zinc-600">
-            <Link href="#mengapa">Mengapa Mitra</Link>
-            <Link href="#siapa">Siapa yang Bisa</Link>
-            <Link href="#cara">Cara Kerja</Link>
-            <Link href="#faq">FAQ</Link>
-          </nav>
-          <Link href="/daftar-mitra" className="shrink-0 rounded-full bg-emerald-500 px-3 py-2 text-[10px] sm:px-6 sm:py-2.5 sm:text-xs font-bold text-white shadow-emerald-900/40 hover:bg-emerald-400 transition-all hover:scale-[1.03]">
-            Daftar →
-          </Link>
-        </div>
-      </header>
+      <MitraNav />
 
       {/* ── HERO ── */}
       <section className="relative isolate bg-emerald-950 text-white">
@@ -330,32 +297,7 @@ export default async function KerjasamaMitraPage() {
           </Link>
         </div>
       </section>
-      {/* ── FOOTER MINI STRIP ── */}
-      <div className="bg-emerald-950 text-emerald-100 border-t border-emerald-800">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-5 text-xs">
-          <div className="shrink-0">
-            <Image src="/images/logo_putih.png" alt="Pohon Asuh — Save The Tree and Donate Now" width={220} height={62} className="h-14 sm:h-16 w-auto object-contain" priority />
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
-            <Link href="/">Beranda</Link>
-            <Link href="/tentang">Tentang Kami</Link>
-            <Link href="/lokasi">Lokasi Pohon</Link>
-            <Link href="/cerita-dampak">Cerita Dampak</Link>
-            <Link href="/kerjasama-mitra">Kemitraan</Link>
-            <span className="hidden sm:inline text-emerald-700">|</span>
-            <span className="hidden sm:inline">pohonasuh.org</span>
-          </div>
-          {/* Ikuti Kami — sama dengan footer situs utama (sumber: getsosmed) */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:border-l sm:border-emerald-800 sm:pl-6">
-            {sosmedList.map((sm) => (
-              <a key={sm.id} href={sm.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-emerald-200 transition-colors hover:text-white" aria-label={sm.label}>
-                <SosmedIcon ikon={sm.ikon} className="h-4 w-4" />
-                <span className="hidden min-[420px]:inline">{sm.label}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
+      <MitraFooter />
     </main>
   );
 }
