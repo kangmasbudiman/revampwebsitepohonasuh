@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { inputAdopsiMitra } from "@/lib/actions/mitra";
+import { inputAdopsiMitra, inputAdopsiMitraSelf } from "@/lib/actions/mitra";
 import SubmitButton from "@/components/admin/submit-button";
 
 type Item = {
@@ -48,10 +48,13 @@ function parseCsv(text: string): Item[] {
 export default function MitraAdopsiForm({
   mitras,
   programs = [],
+  selfMode = false,
 }: {
   mitras: { id: number; nama: string }[];
   programs?: { id: number; nama: string; mitraId: number }[];
+  selfMode?: boolean;
 }) {
+  const formAction = selfMode ? inputAdopsiMitraSelf : inputAdopsiMitra;
   const [mitraId, setMitraId] = useState(mitras[0]?.id ?? 0);
   const [programId, setProgramId] = useState(0);
   const [items, setItems] = useState<Item[]>([]);
@@ -78,22 +81,26 @@ export default function MitraAdopsiForm({
   const itemsJson = useMemo(() => JSON.stringify(items), [items]);
 
   return (
-    <form action={inputAdopsiMitra} className="space-y-6">
+    <form action={formAction} className="space-y-6">
       <input type="hidden" name="mitra_id" value={mitraId} />
       <input type="hidden" name="program_id" value={programId} />
       <input type="hidden" name="items" value={itemsJson} />
 
       <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Mitra</label>
-        <select
-          value={mitraId}
-          onChange={(e) => setMitraId(Number(e.target.value))}
-          className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
-        >
-          {mitras.map((m) => (
-            <option key={m.id} value={m.id}>{m.nama}</option>
-          ))}
-        </select>
+        {selfMode ? (
+          <p className="mt-1 rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-2 text-sm font-semibold text-emerald-900 dark:border-night-700 dark:bg-night-800">{mitras[0]?.nama}</p>
+        ) : (
+          <select
+            value={mitraId}
+            onChange={(e) => setMitraId(Number(e.target.value))}
+            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+          >
+            {mitras.map((m) => (
+              <option key={m.id} value={m.id}>{m.nama}</option>
+            ))}
+          </select>
+        )}
           <label className="mt-3 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Program (opsional)</label>
           <select value={programId} onChange={(e) => setProgramId(Number(e.target.value))} className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
             <option value={0}>— Tanpa program —</option>

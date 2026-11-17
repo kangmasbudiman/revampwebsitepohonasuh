@@ -36,15 +36,14 @@ export default async function MitraAdopsiPage(props: PageProps<"/mitra/adopsi">)
     <main className="mx-auto w-full px-6 py-8 lg:px-8">
       <h1 className="text-2xl font-bold text-emerald-950">Input Adopsi Mitra</h1>
       <p className="mt-1 text-sm text-zinc-600">
-        Mitra: <strong>{mitraName}</strong>. Input data pengadopsi dari jaringan
-        Anda. Pohon harus sudah ditahan (status Dipesan Mitra) terlebih dahulu.
+        Mitra: <strong>{mitraName}</strong>. Input data pengadopsi dari jaringan Anda. Pohon harus sudah ditahan (status Dipesan Mitra) terlebih dahulu. <strong>Data pengadopsi diverifikasi admin terlebih dahulu — sertifikat terbit setelah diverifikasi.</strong>
       </p>
 
-      {sp?.sukses && <SuccessPopup paramKey="sukses" title="Tercatat">{Number(sp.jumlah) || 0} adopsi dicatat{sp.invoice ? ` — invoice ${String(sp.invoice)}` : ""}.</SuccessPopup>}
+      {sp?.sukses && <SuccessPopup paramKey="sukses" title="Tercatat Menunggu Verifikasi">{Number(sp.jumlah) || 0} adopsi dicatat — menunggu verifikasi admin, sertifikat terbit setelah diverifikasi.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
       <div className="mt-6">
-        <MitraAdopsiForm mitras={[{ id: mitraId!, nama: mitraName }]} programs={programs} />
+        <MitraAdopsiForm mitras={[{ id: mitraId!, nama: mitraName }]} programs={programs} selfMode />
       </div>
     </main>
   );

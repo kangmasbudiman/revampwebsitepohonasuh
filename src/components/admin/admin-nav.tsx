@@ -62,6 +62,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/adopsi", label: "Data Adopsi", icon: HeartHandshake },
       { href: "/admin/mitra", label: "Mitra Adopsi", icon: Handshake },
       { href: "/admin/adopsi-mitra", label: "Input Adopsi Mitra", icon: Upload },
+      { href: "/admin/verifikasi-adopsi-mitra", label: "Verifikasi Adopsi Mitra", icon: BadgeCheck },
       { href: "/admin/mitra-requests", label: "Request Hold Mitra", icon: Clock },
       { href: "/admin/pesanan-mitra", label: "Pesanan Pohon Mitra", icon: ShoppingCart },
       { href: "/admin/penugasan", label: "Penugasan Petugas", icon: UserCog },

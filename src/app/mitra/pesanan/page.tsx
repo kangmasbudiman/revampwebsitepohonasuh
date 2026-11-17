@@ -1,7 +1,7 @@
 import { requireUser } from "@/lib/guard";
-import { apiPost, apiGet, mapDesa, mapProgramMitra, mapMitraPesanan, type ApiDesa, type ApiProgramMitra, type ApiMitraPesanan } from "@/lib/api";
-import { requestPesananMitra } from "@/lib/actions/mitra";
+import { apiPost, apiGet, mapDesa, mapProgramMitra, mapTrees, mapMitraPesanan, type ApiDesa, type ApiProgramMitra, type ApiMitraPesanan } from "@/lib/api";
 import SuccessPopup from "@/components/admin/success-popup";
+import MitraPohonOrderForm from "@/components/mitra/mitra-pohon-order-form";
 
 export const metadata = { title: "Pemesanan Pohon | Pohon Asuh" };
 
@@ -15,6 +15,7 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
   let programs: ApiProgramMitra[] = [];
   let desas: ApiDesa[] = [];
   let pesanan: ApiMitraPesanan[] = [];
+  let trees: ReturnType<typeof mapTrees> = [];
 
   try {
     const info = await apiPost<{
@@ -37,6 +38,15 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
   }
 
   try {
+    const res = await apiGet<{ data?: Record<string, unknown>[] }>(
+      "pohonmapall?page=1&per_page=200&status=AVAILABLE",
+    );
+    trees = mapTrees(res.data ?? []);
+  } catch {
+    trees = [];
+  }
+
+  try {
     pesanan = (await apiPost<Record<string, unknown>[]>("mitramypesanan", { idmember: session.userId })).map(mapMitraPesanan);
   } catch {
     pesanan = [];
@@ -50,20 +60,31 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
   const statusBadge = (s: string) => {
     if (s === "approved") return "bg-emerald-100 text-emerald-800";
     if (s === "rejected") return "bg-red-100 text-red-800";
+    if (s === "cancelled") return "bg-zinc-100 text-zinc-600";
     return "bg-amber-100 text-amber-800";
   };
   const statusLabel = (s: string) =>
-    s === "approved" ? "Disetujui" : s === "rejected" ? "Ditolak" : "Menunggu Persetujuan";
+    s === "approved" ? "Disetujui" : s === "rejected" ? "Ditolak" : s === "cancelled" ? "Dibatalkan" : "Menunggu Persetujuan";
+
+  const pickerTrees = trees.map((t) => ({
+    id: t.id,
+    code: t.code,
+    localName: t.localName,
+    species: t.species,
+    desa: t.desa,
+    priceIdr: t.priceIdr,
+    photoUrl: t.photoUrl,
+    diameterCm: t.diameterCm,
+  }));
 
   return (
     <main className="mx-auto w-full px-6 py-8 lg:px-8">
       <h1 className="text-2xl font-bold text-emerald-950">Pemesanan Pohon</h1>
       <p className="mt-1 text-sm text-zinc-600">
-        Mitra: <strong>{mitraName}</strong>. Pilih lokasi/kelompok pohon, tentukan jumlah, lalu kirim
-        permintaan — menunggu pemeriksaan & persetujuan admin KKI Warsi.
+        Mitra: <strong>{mitraName}</strong>. Pilih lokasi &amp; pohon tersedia, kirim permintaan — menunggu pemeriksaan &amp; persetujuan admin KKI Warsi. Pohon yang disetujui tidak bisa diadopsi publik.
       </p>
 
-      {sp?.sukses && <SuccessPopup paramKey="sukses" title="Pesanan Terkirim">Permintaan pemesanan terkirim. Admin akan memeriksa ketersediaan & menyetujui.</SuccessPopup>}
+      {sp?.sukses && <SuccessPopup paramKey="sukses" title="Pesanan Terkirim">Permintaan pemesanan terkirim. Admin akan memeriksa & menyetujui.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
       {aktif === 0 ? (
@@ -71,44 +92,14 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
           Akun Anda menunggu aktivasi admin — belum bisa mengajukan pesanan.
         </div>
       ) : (
-        <form action={requestPesananMitra} className="mt-6 grid gap-3 rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Lokasi / Desa (opsional)</span>
-            <select name="desa" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
-              <option value="">Semua lokasi / dipilih admin</option>
-              {desas.map((d) => (
-                <option key={d.id} value={d.name}>{d.name}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Jumlah pohon <span className="text-red-500">*</span></span>
-            <input name="jumlah" type="number" min={1} max={500} required defaultValue={10} className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Program (opsional)</span>
-            <select name="program_id" defaultValue="0" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
-              <option value="0">— Tanpa program —</option>
-              {programs.map((p) => (
-                <option key={p.id} value={p.id}>{p.nama}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Catatan (opsional)</span>
-            <input name="catatan" placeholder="mis. minimal diameter 30cm, prioritaskan desa X" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
-          </label>
-          <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
-            Kirim Permintaan Pemesanan
-          </button>
-        </form>
+        <MitraPohonOrderForm trees={pickerTrees} desas={desas} programs={programs.map((p) => ({ id: p.id, nama: p.nama }))} />
       )}
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
         <h2 className="border-b border-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:text-emerald-200">
           Riwayat Pemesanan
         </h2>
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[680px] text-left text-sm">
           <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
             <tr>
               <th className="px-4 py-3">ID</th>

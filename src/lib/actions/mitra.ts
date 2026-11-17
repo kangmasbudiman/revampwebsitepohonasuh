@@ -454,13 +454,16 @@ export async function requestPesananMitra(formData: FormData) {
   const jumlah = Number(formData.get("jumlah") ?? 0);
   const programId = Number(formData.get("program_id") ?? 0);
   const catatan = String(formData.get("catatan") ?? "").trim();
+  const pohonPilihan = String(formData.get("pohon_pilihan") ?? "").trim();
 
-  if (!jumlah || jumlah < 1) redirect("/mitra/pesanan?error=Jumlah+wajib+diisi");
+  // jika ada pohon dipilih → jumlah otomatis dari pilihan (di-validasi backend)
+  const hasPilihan = pohonPilihan.split(",").filter((c) => c.trim()).length > 0;
+  if (!hasPilihan && (!jumlah || jumlah < 1)) redirect("/mitra/pesanan?error=Jumlah+wajib+diisi");
 
   try {
     const res = await apiPost<{ value?: string | number; pesan?: string }>(
       "mitrarequesorder",
-      { idmember: session.userId, desa, jumlah, program_id: programId || undefined, catatan },
+      { idmember: session.userId, desa, jumlah: hasPilihan ? undefined : jumlah, program_id: programId || undefined, catatan, pohon_pilihan: pohonPilihan || undefined },
     );
     if (Number(res.value) !== 200) {
       redirect(`/mitra/pesanan?error=${encodeURIComponent(res.pesan ?? "Gagal mengirim pesanan.")}`);
@@ -806,4 +809,56 @@ export async function batalkanPesananMitra(formData: FormData) {
 
   revalidatePath("/mitra/pembatalan");
   redirect("/mitra/pembatalan?ok=1");
+}
+
+export async function inputAdopsiMitraSelf(formData: FormData) {
+  const session = await requireUser();
+  const programId = Number(formData.get("program_id")) || 0;
+  const items = String(formData.get("items") ?? "[]");
+  if (!items || items === "[]") redirect("/mitra/adopsi?error=Tambahkan+minimal+1+pengadopsi");
+
+  try {
+    const res = await apiPost<{
+      value?: string | number;
+      pesan?: string;
+      jumlah?: number;
+      dilewati?: number;
+    }>("inputadopsimitraself", { idmember: session.userId, program_id: programId || undefined, items });
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/adopsi?error=${encodeURIComponent(res.pesan ?? "Gagal input adopsi.")}`);
+    }
+    revalidatePath("/mitra/adopsi");
+    revalidatePath("/mitra/laporan");
+    redirect(`/mitra/adopsi?sukses=1&jumlah=${Number(res.jumlah) || 0}`);
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/adopsi?error=Gagal+input+adopsi");
+  }
+}
+
+export async function verifikasiAdopsiMitraAction(formData: FormData) {
+  const session = await requireAdminLevel();
+  const invoice = String(formData.get("invoice") ?? "").trim();
+  if (!invoice) redirect("/admin/verifikasi-adopsi-mitra?error=Invoice+tidak+ditemukan");
+
+  const key = process.env.ADMIN_API_KEY ?? "";
+  if (!key) redirect("/admin/verifikasi-adopsi-mitra?error=ADMIN_API_KEY+tidak+diset");
+
+  try {
+    const res = await fetch(`${process.env.API_BASE_URL}/verifikasiadopsimitra`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Admin-Key": key },
+      body: new URLSearchParams({ invoice, iduser: String(session.userId) }),
+    });
+    const json = await res.json();
+    if (Number(json.value) !== 200) {
+      redirect(`/admin/verifikasi-adopsi-mitra?error=${encodeURIComponent(json.pesan ?? "Gagal memverifikasi.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/verifikasi-adopsi-mitra?error=Gagal+menghubungi+server");
+  }
+
+  revalidatePath("/admin/verifikasi-adopsi-mitra");
+  redirect("/admin/verifikasi-adopsi-mitra?verified=1");
 }

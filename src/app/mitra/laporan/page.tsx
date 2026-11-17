@@ -86,11 +86,12 @@ export default async function MitraLaporanPage() {
         </a>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div className="rounded-2xl border border-emerald-100 pa-card p-4"><p className="text-xs text-zinc-500">Program Aktif</p><p className="mt-1 text-2xl font-bold text-emerald-700">{programs.length}</p></div>
         <div className="rounded-2xl border border-emerald-100 pa-card p-4"><p className="text-xs text-zinc-500">Pohon Ditahan</p><p className="mt-1 text-2xl font-bold text-emerald-700">{heldTrees.length}</p></div>
         <div className="rounded-2xl border border-emerald-100 pa-card p-4"><p className="text-xs text-zinc-500">Pesanan Disetujui</p><p className="mt-1 text-2xl font-bold text-emerald-700">{approvedPesanan}</p></div>
         <div className="rounded-2xl border border-emerald-100 pa-card p-4"><p className="text-xs text-zinc-500">Adopsi Tercatat</p><p className="mt-1 text-2xl font-bold text-emerald-700">{adopsi.length}</p></div>
+        <div className="rounded-2xl border border-emerald-100 pa-card p-4"><p className="text-xs text-zinc-500">Sisa Pohon</p><p className="mt-1 text-2xl font-bold text-emerald-700">{Math.max(0, heldTrees.length - adopsi.length)}</p></div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -117,6 +118,48 @@ export default async function MitraLaporanPage() {
             {programs.length === 0 && <tr><td colSpan={3} className="px-3 py-8 text-center text-zinc-500">Belum ada program.</td></tr>}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
+        <h2 className="border-b border-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:text-emerald-200">
+          Data Pengadopsi
+        </h2>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
+              <tr>
+                <th className="px-4 py-3">Pengadopsi</th>
+                <th className="px-4 py-3">ID Pohon</th>
+                <th className="px-4 py-3">Program</th>
+                <th className="px-4 py-3">Durasi</th>
+                <th className="px-4 py-3">Tgl Adopt</th>
+                <th className="px-4 py-3">Sertifikat</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
+              {adopsi.map((a, i) => {
+                const cert = String((a as { certnum?: string }).certnum ?? "");
+                const verified = cert !== "";
+                const progNama = programMap.get(Number((a as { program_id?: number | string | null }).program_id ?? 0))?.nama ?? "—";
+                return (
+                  <tr key={i} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
+                    <td className="px-4 py-2.5 font-medium text-zinc-800 dark:text-zinc-100">{String((a as { nama?: string }).nama ?? "")}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs">{String((a as { idpohon?: string }).idpohon ?? "")}</td>
+                    <td className="px-4 py-2.5 text-xs text-zinc-500">{progNama}</td>
+                    <td className="px-4 py-2.5 text-xs">{String((a as { dur?: number | string }).dur ?? "1")} th</td>
+                    <td className="px-4 py-2.5 text-xs text-zinc-500">{String((a as { tgl_adopt?: string }).tgl_adopt ?? "—")}</td>
+                    <td className="px-4 py-2.5 text-xs">{verified ? cert : "—"}</td>
+                    <td className="px-4 py-2.5"><span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${verified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>{verified ? "Terverifikasi" : "Pending Veri"}</span></td>
+                  </tr>
+                );
+              })}
+              {adopsi.length === 0 && (
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-zinc-500">Belum ada data pengadopsi.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   );

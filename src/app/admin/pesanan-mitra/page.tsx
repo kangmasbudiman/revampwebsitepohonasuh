@@ -12,6 +12,7 @@ type PendingRow = ApiMitraPesanan & {
   mitra_nama: string;
   member_nama: string;
   program_nama: string | null;
+  pohon_pilihan?: string | null;
 };
 type Summary = { pending: number; approved: number; rejected: number; all: number };
 type ListResponse = { data: PendingRow[]; total: number; page: number; per_page: number; summary?: Summary };
@@ -138,7 +139,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
       ) : (
         <>
           <div className="mt-5 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-            <table className="w-full min-w-[880px] text-left text-sm">
+            <table className="w-full min-w-[1080px] text-left text-sm">
               <thead className="pa-thead border-b border-emerald-100 dark:border-night-700">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Mitra</th>
@@ -146,6 +147,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                   <th className="px-4 py-3 font-semibold">Desa</th>
                   <th className="px-4 py-3 font-semibold">Program</th>
                   <th className="px-4 py-3 font-semibold">Jumlah</th>
+                  <th className="px-4 py-3 font-semibold">Pohon Dipilih</th>
                   <th className="px-4 py-3 font-semibold">Catatan</th>
                   <th className="px-4 py-3 font-semibold">Waktu</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
@@ -160,6 +162,24 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.desa ?? "Semua desa"}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.program_nama ?? "—"}</td>
                     <td className="px-4 py-3 font-semibold">{r.jumlah}</td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        try {
+                          const codes = r.pohon_pilihan ? (JSON.parse(r.pohon_pilihan) as string[]) : [];
+                          if (!Array.isArray(codes) || codes.length === 0) {
+                            return <span className="text-[11px] text-zinc-400">otomatis</span>;
+                          }
+                          return (
+                            <div>
+                              <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">{codes.length} pohon dipilih</span>
+                              <p className="mt-1 max-w-[220px] truncate font-mono text-[10px] text-zinc-500" title={codes.join(", ")}>{codes.slice(0, 4).join(", ")}{codes.length > 4 ? " …" : ""}</p>
+                            </div>
+                          );
+                        } catch {
+                          return <span className="text-[11px] text-zinc-400">—</span>;
+                        }
+                      })()}
+                    </td>
                     <td className="max-w-[220px] truncate px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400" title={r.catatan ?? ""}>{r.catatan ?? "—"}</td>
                     <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.createdAt ?? "—"}</td>
                     <td className="px-4 py-3">
