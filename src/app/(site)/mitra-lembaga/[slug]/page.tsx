@@ -55,9 +55,9 @@ export default async function MitraLembagaPage(props: PageProps<"/mitra-lembaga/
 
         {/* Hero lembaga */}
         <div className="mt-4 overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-xl">
-          <div className="h-24 sm:h-32 w-full bg-gradient-to-r from-emerald-700 via-emerald-600 to-lime-500 relative" />
-          <div className="px-5 sm:px-8 pb-6 sm:pb-8 -mt-12 sm:-mt-16 flex flex-col sm:flex-row sm:items-end gap-5">
-            <div className="shrink-0 inline-flex h-28 w-28 sm:h-40 sm:w-40 items-center justify-center rounded-3xl border-4 border-white bg-white p-4 shadow-lg">
+          <div className="h-3 w-full bg-gradient-to-r from-emerald-700 via-emerald-600 to-lime-500" />
+          <div className="px-5 sm:px-8 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="shrink-0 inline-flex h-28 w-28 sm:h-36 sm:w-36 items-center justify-center rounded-3xl bg-emerald-50/60 ring-1 ring-emerald-100 p-4">
               {d.logo ? (
                 <Image src={`${assetOrigin}/assets/${d.logo}`} alt={`Logo ${d.nama}`} width={160} height={160} priority className="h-full w-full object-contain" />
               ) : (
