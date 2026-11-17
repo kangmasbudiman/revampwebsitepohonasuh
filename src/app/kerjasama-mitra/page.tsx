@@ -242,11 +242,7 @@ export default function KerjasamaMitraPage() {
       <div className="bg-emerald-950 text-emerald-100 border-t border-emerald-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-3">
-            <Image src="/images/logo_putih.png" alt="Pohon Asuh" width={32} height={32} className="rounded-full" />
-            <div>
-              <p className="font-bold text-white">Pohon Asuh</p>
-              <p className="text-[10px] text-emerald-300">Save The Tree and Donate Now</p>
-            </div>
+            <Image src="/images/logo_putih.png" alt="Pohon Asuh" width={64} height={64} className="rounded-full" priority />
           </div>
           <div className="flex items-center gap-4">
             <Link href="/">Beranda</Link>
