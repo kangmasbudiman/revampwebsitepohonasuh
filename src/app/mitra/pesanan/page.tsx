@@ -38,9 +38,11 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
   }
 
   try {
-    const res = await apiGet<{ data?: Record<string, unknown>[] }>(
-      "pohonmapall?page=1&per_page=200&status=AVAILABLE",
-    );
+    const desaFilter = typeof sp?.desa === "string" ? sp.desa.trim() : "";
+    const qs = desaFilter
+      ? `pohonmapall?page=1&per_page=150&status=AVAILABLE&desa=${encodeURIComponent(desaFilter)}`
+      : "pohonmapall?page=1&per_page=200&status=AVAILABLE";
+    const res = await apiGet<{ data?: Record<string, unknown>[] }>(qs);
     trees = mapTrees(res.data ?? []);
   } catch {
     trees = [];
@@ -92,7 +94,7 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
           Akun Anda menunggu aktivasi admin — belum bisa mengajukan pesanan.
         </div>
       ) : (
-        <MitraPohonOrderForm trees={pickerTrees} desas={desas} programs={programs.map((p) => ({ id: p.id, nama: p.nama }))} />
+        <MitraPohonOrderForm trees={pickerTrees} desas={desas} programs={programs.map((p) => ({ id: p.id, nama: p.nama }))} desaActive={typeof sp?.desa === "string" ? sp.desa.trim() : ""} />
       )}
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">

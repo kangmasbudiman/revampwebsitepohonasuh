@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { requestPesananMitra } from "@/lib/actions/mitra";
 import SubmitButton from "@/components/admin/submit-button";
 import { CheckCircle2, MapPin, Search, TreePine, X } from "lucide-react";
@@ -22,27 +23,29 @@ export default function MitraPohonOrderForm({
   trees,
   desas,
   programs,
+  desaActive = "",
 }: {
   trees: PickableTree[];
   desas: { id: number; name: string }[];
   programs: { id: number; nama: string }[];
+  desaActive?: string;
 }) {
-  const [desa, setDesa] = useState("");
+  const router = useRouter();
+  const desa = desaActive; // derived from URL — navigasi memicu re-fetch server-side
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
+    if (!needle) return trees;
     return trees.filter((t) => {
-      if (desa && t.desa !== desa) return false;
-      if (!needle) return true;
       return (
         t.code.toLowerCase().includes(needle) ||
         t.localName.toLowerCase().includes(needle) ||
         (t.species ?? "").toLowerCase().includes(needle)
       );
     });
-  }, [trees, desa, q]);
+  }, [trees, q]);
 
   const shown = filtered.slice(0, 120);
   const selectedSet = useMemo(() => new Set(selected), [selected]);
@@ -63,7 +66,7 @@ export default function MitraPohonOrderForm({
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="flex items-center gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300"><MapPin className="h-4 w-4" />Lokasi / Desa (opsional)</span>
-            <select name="desa" value={desa} onChange={(e) => setDesa(e.target.value)} className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
+            <select name="desa" value={desa} onChange={(e) => { const v = e.target.value; router.push(`/mitra/pesanan?desa=${encodeURIComponent(v)}#pilih-pohon`); }} className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100">
               <option value="">Semua lokasi / dipilih admin</option>
               {desas.map((d) => (
                 <option key={d.id} value={d.name}>{namaDesa(d.name)}</option>
@@ -87,11 +90,11 @@ export default function MitraPohonOrderForm({
       </div>
 
       {/* Tree picker */}
-      <div className="rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
+      <div id="pilih-pohon" className="rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100 px-5 py-4 dark:border-night-700">
           <div>
             <p className="flex items-center gap-2 text-sm font-bold text-emerald-900 dark:text-emerald-200"><TreePine className="h-4 w-4" />Pilih Pohon Tersedia <span className="font-normal text-zinc-400">(opsional — jika kosong, admin yang pilihkan otomatis)</span></p>
-            <p className="mt-0.5 text-[11px] text-zinc-500">Tersedia di produksi: {trees.length.toLocaleString("id-ID")} pohon</p>
+            <p className="mt-0.5 text-[11px] text-zinc-500">Tersedia di produksi: {trees.length.toLocaleString("id-ID")} pohon{desaActive ? ` (filter desa: ${namaDesa(desaActive)})` : ""}</p>
           </div>
           <div className="flex items-center gap-2">
             {selected.length > 0 && (
