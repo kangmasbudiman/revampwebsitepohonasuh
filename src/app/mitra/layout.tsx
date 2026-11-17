@@ -4,7 +4,6 @@ import AdminShell from "@/components/admin/admin-shell";
 
 export default async function MitraLayout({ children }: { children: React.ReactNode }) {
   const session = await requireUser();
-  console.log("MITRA LAYOUT session.mitraId =", session.mitraId, "userId=", session.userId);
   if (!session.mitraId) redirect("/dashboard");
 
   return (

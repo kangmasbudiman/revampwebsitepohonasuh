@@ -1,7 +1,10 @@
+import Image from "next/image";
 import { requireUser } from "@/lib/guard";
 import { apiPost, apiGet, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
 import { tambahProgramMitraSelf } from "@/lib/actions/mitra";
 import SuccessPopup from "@/components/admin/success-popup";
+
+const ASSET_ORIGIN = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
 
 export const metadata = { title: "Program Saya | Pohon Asuh" };
 
@@ -56,8 +59,8 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
         </form>
       </details>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-        <table className="w-full text-left text-sm">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
+        <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="pa-thead border-b border-emerald-100 dark:border-night-700">
             <tr>
               <th className="px-4 py-3 font-semibold">ID</th>
@@ -76,7 +79,19 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
                   {p.tglMulai ?? "—"} → {p.tglSelesai ?? "—"}
                   {p.durasi && <span className="block text-zinc-400">{p.durasi}</span>}
                 </td>
-                <td className="px-4 py-3 text-xs text-zinc-500">{p.logo ? "✓" : "—"}</td>
+                <td className="px-4 py-3">
+                  {p.logo ? (
+                    <Image
+                      src={`${ASSET_ORIGIN}/assets/${p.logo}`}
+                      alt={`Logo ${p.nama}`}
+                      width={56}
+                      height={56}
+                      className="h-14 w-14 rounded-xl border border-emerald-100 bg-white object-contain p-1"
+                    />
+                  ) : (
+                    <span className="text-xs text-zinc-400">—</span>
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${p.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
                     {p.aktif ? "Aktif" : "Nonaktif"}
