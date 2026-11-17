@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Leaf, Handshake, Building2, Users, TreePine, BadgeCheck, LineChart, FileText, LayoutDashboard, Tag, BarChart3 } from "lucide-react";
+import { apiGet, mapSosmedList, type ApiSosmed } from "@/lib/api";
+import SosmedIcon from "@/components/sosmed-icon";
 
 export const metadata = {
   title: "Kerjasama Mitra | Pohon Asuh",
@@ -8,8 +10,23 @@ export const metadata = {
     "Menjadi mitra Pohon Asuh: buat program adopsi pohon, bagikan ke pengadopsi, pantau dampaknya. Semua terkelola dalam satu platform.",
 };
 
+export default async function KerjasamaMitraPage() {
+  // Daftar akun sosmed dari database — sama dengan footer situs utama
+  // (sumber sama & sama pula dengan tampilan di sana).
+  let sosmed: ApiSosmed[] = [];
+  try {
+    sosmed = mapSosmedList(await apiGet<Record<string, unknown>[]>("getsosmed"));
+  } catch {
+    // fallback di bawah bila API tidak bisa dijangkau
+  }
+  const fallbackSosmed: ApiSosmed[] = [
+    { id: -1, label: "YouTube", url: "https://www.youtube.com/user/kkiwarsi", ikon: "youtube" },
+    { id: -2, label: "Instagram", url: "https://www.instagram.com/pohonasuh/", ikon: "instagram" },
+    { id: -3, label: "WhatsApp", url: "https://wa.me/628117453700", ikon: "whatsapp" },
+    { id: -4, label: "Facebook", url: "https://www.facebook.com/pohonasuh/", ikon: "facebook" },
+  ];
+  const sosmedList = sosmed.length > 0 ? sosmed : fallbackSosmed;
 
-export default function KerjasamaMitraPage() {
   return (
     <main className="w-full overflow-hidden bg-white">
       {/* ── TOP NAV MINI ── */}
@@ -240,24 +257,27 @@ export default function KerjasamaMitraPage() {
       </section>
       {/* ── FOOTER MINI STRIP ── */}
       <div className="bg-emerald-950 text-emerald-100 border-t border-emerald-800">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap items-center justify-between gap-4 text-xs">
-          <div className="flex items-center gap-3">
-            <Image src="/images/logo_icon.png" alt="Pohon Asuh" width={55} height={55} className="rounded-full" priority />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-5 text-xs">
+          <div className="shrink-0">
+            <Image src="/images/logo_putih.png" alt="Pohon Asuh — Save The Tree and Donate Now" width={220} height={62} className="h-14 sm:h-16 w-auto object-contain" priority />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
             <Link href="/">Beranda</Link>
             <Link href="/tentang">Tentang Kami</Link>
             <Link href="/lokasi">Lokasi Pohon</Link>
             <Link href="/cerita-dampak">Cerita Dampak</Link>
-            <Link href="#">Kemitraan</Link>
+            <Link href="/kerjasama-mitra">Kemitraan</Link>
             <span className="hidden sm:inline text-emerald-700">|</span>
             <span className="hidden sm:inline">pohonasuh.org</span>
           </div>
-          <div className="flex items-center gap-3">
-            <a href="https://www.youtube.com/user/kkiwarsi" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-white">▶</a>
-            <a href="https://www.instagram.com/pohonasuh/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-white">📸</a>
-            <a href="https://wa.me/628117453700" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-white">📱</a>
-            <a href="https://www.facebook.com/pohonasuh/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-white">f</a>
+          {/* Ikuti Kami — sama dengan footer situs utama (sumber: getsosmed) */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:border-l sm:border-emerald-800 sm:pl-6">
+            {sosmedList.map((sm) => (
+              <a key={sm.id} href={sm.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-emerald-200 transition-colors hover:text-white" aria-label={sm.label}>
+                <SosmedIcon ikon={sm.ikon} className="h-4 w-4" />
+                <span className="hidden min-[420px]:inline">{sm.label}</span>
+              </a>
+            ))}
           </div>
         </div>
       </div>
