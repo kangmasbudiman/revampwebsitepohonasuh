@@ -3,6 +3,8 @@ import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import { type ApiMitraPesanan } from "@/lib/api";
 import { approvePesananMitra, rejectPesananMitra } from "@/lib/actions/mitra";
+import OrderTreesModal from "@/components/mitra/order-trees-modal";
+import type { OrderTreeMini } from "@/lib/api";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 
@@ -13,6 +15,7 @@ type PendingRow = ApiMitraPesanan & {
   member_nama: string;
   program_nama: string | null;
   pohon_pilihan?: string | null;
+  tree_count?: number;
 };
 type Summary = { pending: number; approved: number; rejected: number; all: number };
 type ListResponse = { data: PendingRow[]; total: number; page: number; per_page: number; summary?: Summary };
@@ -164,20 +167,19 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                     <td className="px-4 py-3 font-semibold">{r.jumlah}</td>
                     <td className="px-4 py-3">
                       {(() => {
-                        try {
-                          const codes = r.pohon_pilihan ? (JSON.parse(r.pohon_pilihan) as string[]) : [];
-                          if (!Array.isArray(codes) || codes.length === 0) {
-                            return <span className="text-[11px] text-zinc-400">otomatis</span>;
-                          }
-                          return (
-                            <div>
-                              <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">{codes.length} pohon dipilih</span>
-                              <p className="mt-1 max-w-[220px] truncate font-mono text-[10px] text-zinc-500" title={codes.join(", ")}>{codes.slice(0, 4).join(", ")}{codes.length > 4 ? " …" : ""}</p>
-                            </div>
-                          );
-                        } catch {
-                          return <span className="text-[11px] text-zinc-400">—</span>;
+                        const raw = (r as unknown as { trees?: OrderTreeMini[] }).trees ?? [];
+                        if (Array.isArray(raw) && raw.length > 0) {
+                          return <OrderTreesModal trees={raw} statusLabel={r.status === "approved" ? "Disetujui" : r.status === "rejected" ? "Ditolak" : "Menunggu Persetujuan"} />;
                         }
+                        if (r.pohon_pilihan) {
+                          try {
+                            const codes = JSON.parse(r.pohon_pilihan) as string[];
+                            if (Array.isArray(codes) && codes.length > 0) {
+                              return <span className="inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-800">{codes.length} pohon dipilih</span>;
+                            }
+                          } catch {}
+                        }
+                        return <span className="text-[11px] text-zinc-400">otomatis</span>;
                       })()}
                     </td>
                     <td className="max-w-[220px] truncate px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400" title={r.catatan ?? ""}>{r.catatan ?? "—"}</td>
@@ -188,6 +190,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <Link href={`/admin/pesanan-mitra/${r.id}`} className="mr-2 inline-flex rounded-lg border border-emerald-200 px-2 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300">Detail</Link>
                       {r.status === "pending" ? (
                         <>
                           <form action={approvePesananMitra} className="inline">

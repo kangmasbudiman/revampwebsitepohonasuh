@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { X, TreePine } from "lucide-react";
 import { namaDesa } from "@/lib/format";
+import { treePhotoUrl } from "@/lib/api";
 import type { OrderTreeMini } from "@/lib/api";
 
 export default function OrderTreesModal({
@@ -50,7 +51,7 @@ export default function OrderTreesModal({
                 <div key={t.code} className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-2.5 dark:border-night-700 dark:bg-night-800/50">
                   <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-emerald-100 dark:bg-night-900">
                     {t.photoUrl ? (
-                      <Image src={t.photoUrl} alt={t.localName} fill sizes="64px" className="object-cover" />
+                      <Image src={treePhotoUrl(t.photoUrl)} alt={t.localName} fill sizes="64px" className="object-cover" />
                     ) : (
                       <TreePine className="absolute inset-0 m-auto h-7 w-7 text-emerald-400" aria-hidden />
                     )}
