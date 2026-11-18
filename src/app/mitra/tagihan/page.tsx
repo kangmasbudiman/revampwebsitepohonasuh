@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/guard";
 import { apiPost } from "@/lib/api";
-import { ArrowLeft, Receipt, CheckCircle2, Clock3, TreePine, BadgeCheck, Wallet, BadgeDollarSign } from "lucide-react";
+import { ArrowLeft, Receipt, CheckCircle2, Clock3, TreePine, BadgeCheck, Wallet, BadgeDollarSign, XCircle } from "lucide-react";
 
 export const metadata = { title: "Tagihan Adopsi | Pohon Asuh" };
 
@@ -11,7 +11,9 @@ type InvoiceItem = {
   tgl: string;
   jml_pohon: number;
   price: number;
-  paid: boolean;
+  status?: string; // yes | no | cancel
+  paid?: boolean;
+  expired?: boolean;
   created_at: string | null;
 };
 
@@ -21,7 +23,7 @@ export default async function MitraTagihanPage() {
   let mitraId: number | null = null;
   let mitraName = "";
   let items: InvoiceItem[] = [];
-  let summary = { total_invoice: 0, total_pohon: 0, total: 0, lunas: 0, belum: 0 };
+  let summary = { total_invoice: 0, total_pohon: 0, total: 0, lunas: 0, belum: 0, expired: 0 };
   let fetchError = false;
 
   try {
@@ -70,7 +72,7 @@ export default async function MitraTagihanPage() {
       </header>
 
       {/* Statistik */}
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700">
           <p className="flex items-center gap-1.5 text-[11px] text-zinc-500"><TreePine className="h-4 w-4 text-emerald-600" aria-hidden />Pohon Dipesan</p>
           <p className="mt-0.5 text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">{summary.total_pohon.toLocaleString("id-ID")}</p>
@@ -87,6 +89,10 @@ export default async function MitraTagihanPage() {
           <p className="flex items-center gap-1.5 text-[11px] text-zinc-500"><Clock3 className="h-4 w-4 text-amber-600" aria-hidden />Belum Dilunasi</p>
           <p className="mt-0.5 text-2xl font-extrabold text-amber-700 dark:text-amber-400">{fmtRp(summary.belum)}</p>
         </div>
+        <div className="rounded-2xl border border-red-200 pa-card p-4 dark:border-red-900/60">
+          <p className="flex items-center gap-1.5 text-[11px] text-zinc-500"><XCircle className="h-4 w-4 text-red-600" aria-hidden />Kadaluarsa</p>
+          <p className="mt-0.5 text-2xl font-extrabold text-red-700 dark:text-red-400">{fmtRp(summary.expired)}</p>
+        </div>
       </div>
 
       {fetchError ? (
@@ -100,6 +106,13 @@ export default async function MitraTagihanPage() {
         </div>
       ) : (
         <>
+          {items.some((it) => it.expired) && (
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50/70 px-4 py-3 text-xs text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300" role="alert">
+              <p className="font-bold">⚠️ Ada tagihan kedaluwarsa — pohon yang dipesan sudah dikembalikan ke pool adopsi umum.</p>
+              <p className="mt-1">Tidak dapat dipulihkan. Buat order baru lewat menu <strong>Pemesanan Pohon</strong> jika masih ingin mengadopsi.</p>
+            </div>
+          )}
+
           {/* Mobile cards */}
           <div className="mt-6 grid gap-3 md:hidden">
             {items.map((it) => (
@@ -111,8 +124,10 @@ export default async function MitraTagihanPage() {
                   </div>
                   {it.paid ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-bold uppercase text-emerald-800"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden />Lunas</span>
+                  ) : it.expired ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-[10px] font-bold uppercase text-red-800">Kadaluarsa</span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase text-amber-800"><Clock3 className="h-3.5 w-3.5" aria-hidden />Belum</span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase text-amber-800"><Clock3 className="h-3.5 w-3.5" aria-hidden />Belum Bayar</span>
                   )}
                 </div>
                 <div className="mt-3 flex items-center justify-between border-t border-emerald-50 pt-3 dark:border-night-800">
@@ -147,8 +162,10 @@ export default async function MitraTagihanPage() {
                     <td className="px-4 py-3">
                       {it.paid ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold uppercase text-emerald-800"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden />Lunas</span>
+                      ) : it.expired ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-[11px] font-bold uppercase text-red-800">Kadaluarsa</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold uppercase text-amber-800"><Clock3 className="h-3.5 w-3.5" aria-hidden />Belum</span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold uppercase text-amber-800"><Clock3 className="h-3.5 w-3.5" aria-hidden />Belum Bayar</span>
                       )}
                     </td>
                   </tr>
@@ -157,8 +174,9 @@ export default async function MitraTagihanPage() {
             </table>
           </div>
 
-          <p className="mt-4 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-            <BadgeDollarSign className="h-4 w-4" aria-hidden />Tagihan dibayarkan oleh mitra ke Pohon Asuh sesuai nominal di atas. Sertifikat terbit setelah admin memverifikasi data adopsi Anda.
+          <p className="mt-4 flex items-start gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+            <BadgeDollarSign className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>Tagihan dibayarkan oleh mitra ke Pohon Asuh sesuai nominal di atas. <span className="font-semibold text-red-700 dark:text-red-400">Tagihan yang belum dibayar 1×24 jam sejak diterbitkan otomatis dibatalkan</span> dan pohon yang dipesan dikembalikan ke pool adopsi umum.</span>
           </p>
         </>
       )}
