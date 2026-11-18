@@ -374,9 +374,9 @@ const get = (name: string) => {
             <p className={hint}>Minimal 8 karakter.</p>
           </div>
           <div>
-            <label className={labelClass}>Konfirmasi Kata Sandi {star}</label>
+            <label className={labelClass}>Ulangi Kata Sandi {star}</label>
             <input name="password2" type="password" minLength={8} className={inputClass("password2")} aria-invalid={fieldErrors.has("password2")} autoComplete="new-password" />
-            <p className={hint}>Harus sama dengan di atas.</p>
+            <p className={hint}>Ketik ulang kata sandi yang sama.</p>
           </div>
         </div>
         <div className="mt-2 flex justify-between">

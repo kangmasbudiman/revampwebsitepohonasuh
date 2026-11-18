@@ -2,6 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Leaf, Handshake, Building2, Users, TreePine, BadgeCheck, LineChart, FileText, LayoutDashboard, Tag, BarChart3 } from "lucide-react";
 import MitraNav from "@/components/mitra-nav";
+import { getSession } from "@/lib/auth";
+import { I18nProvider } from "@/components/i18n-provider";
+import { getDict, getLocale } from "@/lib/i18n";
 import MitraFooter from "@/components/mitra-footer";
 
 export const metadata = {
@@ -15,6 +18,8 @@ export default async function KerjasamaMitraPage() {
   type MitraTampil = { id: number; nama: string; slug: string; logo: string | null };
   let daftarMitra: MitraTampil[] = [];
   const assetOrigin = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
+  const session = await getSession();
+  const [locale, dict] = await Promise.all([getLocale(), getDict()]);
   try {
     const res = await fetch(`${process.env.API_BASE_URL}/organisasitampil`, { cache: "no-store" });
     if (res.ok) {
@@ -31,8 +36,9 @@ export default async function KerjasamaMitraPage() {
   }
 
   return (
-    <main className="w-full overflow-hidden bg-white">
-      <MitraNav />
+    <I18nProvider locale={locale} dict={dict}>
+      <main className="w-full overflow-hidden bg-white">
+      <MitraNav session={session} />
 
       {/* ── HERO ── */}
       <section className="relative isolate bg-emerald-950 text-white">
@@ -298,6 +304,7 @@ export default async function KerjasamaMitraPage() {
         </div>
       </section>
       <MitraFooter />
-    </main>
+      </main>
+    </I18nProvider>
   );
 }
