@@ -70,6 +70,14 @@ export default function MitraAdopsiKonsepForm({
     if (nama.length < 3 || !emailOk(email)) return;
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     setAdopters((prev) => [...prev, { id, nama, email, dur: Math.max(1, draft.dur || 1), tgl_adopt: draft.tgl_adopt || today, memo: draft.memo.trim() }]);
+    // Auto-assign pohon yang sudah dicentang tapi belum ditugaskan ke pengadopsi pertama yang ada
+    setChosen((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(next)) {
+        if (!next[key]) next[key] = id;
+      }
+      return next;
+    });
     setDraft({ nama: "", email: "", dur: 1, tgl_adopt: "", memo: "" });
   };
 
