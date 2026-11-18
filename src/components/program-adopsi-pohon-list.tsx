@@ -14,6 +14,7 @@ export type ProgramTreeMini = {
   heightM: number | null;
   photoUrl: string | null;
   status: "reserved" | "adopted" | string;
+  harga: number | null;
 };
 
 const ASSET_ORIGIN = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
