@@ -176,8 +176,8 @@ export default function MitraAdopsiKonsepForm({
                 <span className="mt-1 block text-[10px] text-zinc-400">Tanggal pohon resmi diadopsi</span>
               </label>
               <label className="block sm:col-span-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Memo <span className="font-normal normal-case text-zinc-400">(opsional)</span></span>
-                <input value={draft.memo} onChange={(e) => setDraft({ ...draft, memo: e.target.value })} placeholder="mis. hadiah ultah, untuk kampung" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Pesan / Memo <span className="font-normal normal-case text-zinc-400">(opsional)</span></span>
+                <input value={draft.memo} onChange={(e) => setDraft({ ...draft, memo: e.target.value })} placeholder="mis. hadiah ultah untuk kampung, memo untuk pengadopsi" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
               </label>
             </div>
             <button type="button" onClick={addAdopter} disabled={!draft.nama.trim() || !emailOk(draft.email)} className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-night-700 dark:text-emerald-300">
