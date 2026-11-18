@@ -15,9 +15,8 @@ type InvoiceItem = {
   created_at: string | null;
 };
 
-export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan">) {
+export default async function MitraTagihanPage() {
   const session = await requireUser();
-  const sp = await props.searchParams;
 
   let mitraId: number | null = null;
   let mitraName = "";
