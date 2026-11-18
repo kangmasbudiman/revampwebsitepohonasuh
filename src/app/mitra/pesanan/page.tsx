@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/guard";
 import { apiPost, apiGet, mapDesa, mapProgramMitra, mapTrees, mapMitraPesanan, type ApiDesa, type ApiProgramMitra, type ApiMitraPesanan } from "@/lib/api";
 import SuccessPopup from "@/components/admin/success-popup";
@@ -101,9 +102,12 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
       )}
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-        <h2 className="border-b border-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:text-emerald-200">
-          Riwayat Pemesanan
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 px-4 py-3 dark:border-night-700">
+          <h2 className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+            Riwayat Pemesanan
+          </h2>
+          <Link href="/mitra/riwayat-pesanan" className="text-xs font-semibold text-emerald-800 hover:underline">Lihat selengkapnya →</Link>
+        </div>
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
             <tr>
