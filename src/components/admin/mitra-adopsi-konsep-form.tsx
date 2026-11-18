@@ -81,14 +81,13 @@ export default function MitraAdopsiKonsepForm({
 
   const togglePohon = (code: string) => {
     setChosen((prev) => {
-      if (prev[code]) {
+      if (Object.prototype.hasOwnProperty.call(prev, code)) {
         const next = { ...prev };
         delete next[code];
         return next;
       }
-      // default assigned ke pengadopsi pertama, kalau ada
-      const first = adopters[0]?.id;
-      return first ? { ...prev, [code]: first } : prev;
+      // jika kosong → tetap tercentang, mengikat ke pengadopsi pertama bila ada
+      return { ...prev, [code]: adopters[0]?.id ?? "" };
     });
   };
 
@@ -219,9 +218,14 @@ export default function MitraAdopsiKonsepForm({
           ) : (
             <>
               <p className="mt-2 text-[11px] text-zinc-500">Centang pohon → pilih pengadopsinya dari dropdown. Satu pengadopsi bisa mengadopsi banyak pohon.</p>
+              {adopters.length === 0 && (
+                <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                  ⚠️ Tambahkan data pengadopsi dulu — setelah itu baru bisa memcentang pohon.
+                </p>
+              )}
               <ul className="mt-3 max-h-[560px] space-y-2 overflow-y-auto pr-1">
                 {treeList.map((t) => {
-                  const picked = !!chosen[t.idpohon];
+                  const picked = Object.prototype.hasOwnProperty.call(chosen, t.idpohon);
                   const adopterId = chosen[t.idpohon] ?? "";
                   return (
                     <li key={t.idpohon} className={`flex items-center gap-2 sm:gap-3 rounded-xl border p-2 transition ${picked ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-200" : "border-emerald-100 bg-white hover:border-emerald-200 dark:bg-night-900 dark:hover:border-night-600"}`}>
@@ -251,7 +255,7 @@ export default function MitraAdopsiKonsepForm({
                           {adopters.map((a) => <option key={a.id} value={a.id}>{a.nama}</option>)}
                         </select>
                       ) : adopters.length > 0 ? (
-                        <span className="shrink-0 hidden text-[10px] text-zinc-400 sm:inline">Centang dulu</span>
+                        <span className="shrink-0 hidden text-[10px] text-zinc-400 sm:inline">Centang untuk memilih pohon</span>
                       ) : null}
                     </li>
                   );
@@ -267,6 +271,9 @@ export default function MitraAdopsiKonsepForm({
         <div className="text-xs text-zinc-600 dark:text-zinc-300">
           <p className="font-semibold text-emerald-900 dark:text-emerald-200">{pilihanPohonCount} pohon · {adopters.length} pengadopsi</p>
           <p className="mt-0.5 text-[10px] text-zinc-400">{assignedCount} pohon sudah ditugaskan ke pengadopsi</p>
+          {pilihanPohonCount > assignedCount && (
+            <p className="mt-0.5 text-[10px] font-semibold text-amber-700">{pilihanPohonCount - assignedCount} pohon belum ditugaskan — pilih pengadopsinya dulu</p>
+          )}
         </div>
         <SubmitButton pendingLabel="Memproses…" disabled={assignedCount === 0} className="rounded-xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white shadow hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">
           Simpan {assignedCount} Adopsi
