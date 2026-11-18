@@ -116,25 +116,27 @@ export default function MitraAdopsiForm({
           <ProgramAdopsiPohonList programId={programId} mitraId={mitraId} />
       </div>
 
-      <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
-        <h3 className="font-semibold text-emerald-800 dark:text-emerald-200">Import CSV</h3>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          Kolom: <code>idpohon, nama, email, dur, tgl_adopt, memo</code> (header opsional). Contoh:{" "}
-          <code>B092, Bapak Andi, andi@example.com, 2, 2026-11-15, Hadiah</code>
-        </p>
-        <textarea
-          value={csv}
-          onChange={(e) => setCsv(e.target.value)}
-          rows={6}
-          placeholder="B092, Bapak Andi, andi@example.com, 2, 2026-11-15, Hadiah"
-          className="mt-3 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 font-mono text-xs dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
-        />
-        <button type="button" onClick={handleCsv} className="mt-2 rounded-xl border border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300">
-          Tambahkan dari CSV
-        </button>
-      </div>
+      {!selfMode && (
+        <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
+          <h3 className="font-semibold text-emerald-800 dark:text-emerald-200">Import CSV</h3>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Kolom: <code>idpohon, nama, email, dur, tgl_adopt, memo</code> (header opsional). Contoh:{" "}
+            <code>B092, Bapak Andi, andi@example.com, 2, 2026-11-15, Hadiah</code>
+          </p>
+          <textarea
+            value={csv}
+            onChange={(e) => setCsv(e.target.value)}
+            rows={6}
+            placeholder="B092, Bapak Andi, andi@example.com, 2, 2026-11-15, Hadiah"
+            className="mt-3 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 font-mono text-xs dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+          />
+          <button type="button" onClick={handleCsv} className="mt-2 rounded-xl border border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300">
+            Tambahkan dari CSV
+          </button>
+        </div>
+      )}
 
-      <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
+            <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
         <h3 className="font-semibold text-emerald-800 dark:text-emerald-200">Input Manual</h3>
         <p className="mt-1 text-[11px] text-zinc-500">Satu pengadopsi bisa mengadopsi banyak pohon — isi nama &amp; email yang sama untuk beberapa kode pohon.</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-6">
