@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { requireUser } from "@/lib/guard";
-import { apiPost, apiGet, mapDesa, mapProgramMitra, mapTrees, mapMitraPesanan, type ApiDesa, type ApiProgramMitra, type ApiMitraPesanan } from "@/lib/api";
+import { apiPost, apiGet, mapDesa, mapProgramMitra, mapTrees, type ApiDesa, type ApiProgramMitra } from "@/lib/api";
 import SuccessPopup from "@/components/admin/success-popup";
 import MitraPohonOrderForm from "@/components/mitra/mitra-pohon-order-form";
-import OrderTreesModal from "@/components/mitra/order-trees-modal";
 
 export const metadata = { title: "Pemesanan Pohon | Pohon Asuh" };
 
@@ -16,7 +14,6 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
   let aktif = 1;
   let programs: ApiProgramMitra[] = [];
   let desas: ApiDesa[] = [];
-  let pesanan: ApiMitraPesanan[] = [];
   let trees: ReturnType<typeof mapTrees> = [];
 
   try {
@@ -50,25 +47,12 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
     trees = [];
   }
 
-  try {
-    pesanan = (await apiPost<Record<string, unknown>[]>("mitramypesanan", { idmember: session.userId })).map(mapMitraPesanan);
-  } catch {
-    pesanan = [];
-  }
 
   if (!mitraId) {
     const { redirect } = await import("next/navigation");
     redirect("/dashboard");
   }
 
-  const statusBadge = (s: string) => {
-    if (s === "approved") return "bg-emerald-100 text-emerald-800";
-    if (s === "rejected") return "bg-red-100 text-red-800";
-    if (s === "cancelled") return "bg-zinc-100 text-zinc-600";
-    return "bg-amber-100 text-amber-800";
-  };
-  const statusLabel = (s: string) =>
-    s === "approved" ? "Disetujui" : s === "rejected" ? "Ditolak" : s === "cancelled" ? "Dibatalkan" : "Menunggu Persetujuan";
 
   const pickerTrees = trees.map((t) => ({
     id: t.id,
@@ -101,49 +85,7 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
         <MitraPohonOrderForm trees={pickerTrees} desas={desas} programs={programs.map((p) => ({ id: p.id, nama: p.nama }))} desaActive={typeof sp?.desa === "string" ? sp.desa.trim() : ""} />
       )}
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 px-4 py-3 dark:border-night-700">
-          <h2 className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
-            Riwayat Pemesanan
-          </h2>
-          <Link href="/mitra/riwayat-pesanan" className="text-xs font-semibold text-emerald-800 hover:underline">Lihat selengkapnya →</Link>
-        </div>
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
-            <tr>
-              <th className="px-4 py-3">ID</th>
-              <th className="px-4 py-3">Desa</th>
-              <th className="px-4 py-3">Program</th>
-              <th className="px-4 py-3">Jumlah</th>
-              <th className="px-4 py-3">Pohon</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Waktu</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-            {pesanan.map((p) => (
-              <tr key={p.id}>
-                <td className="px-4 py-3 font-mono text-xs">{p.id}</td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{p.desa ?? "Semua desa"}</td>
-                <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{p.programNama ?? "—"}</td>
-                <td className="px-4 py-3 font-semibold">{p.jumlah}</td>
-                <td className="px-4 py-3">
-                  <OrderTreesModal trees={p.trees ?? []} statusLabel={statusLabel(p.status)} />
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge(p.status)}`}>
-                    {statusLabel(p.status)}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-xs text-zinc-500">{p.createdAt ?? "—"}</td>
-              </tr>
-            ))}
-            {pesanan.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-zinc-500">Belum ada pemesanan.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <p className="mt-6 text-center text-xs text-zinc-400">Pantau semua permintaan pohon Anda di menu <a href="/mitra/riwayat-pesanan" className="font-semibold text-emerald-700 hover:underline">Riwayat Pemesanan</a>.</p>
     </main>
   );
 }
