@@ -1,7 +1,7 @@
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import { apiGet, mapMitra, mapProgramMitra, type ApiMitra, type ApiProgramMitra } from "@/lib/api";
-import MitraAdopsiForm from "@/components/admin/mitra-adopsi-form";
+import MitraAdopsiKonsepForm from "@/components/admin/mitra-adopsi-konsep-form";
 
 export const metadata = { title: "Input Adopsi Mitra | Pohon Asuh" };
 
@@ -50,7 +50,7 @@ export default async function AdminAdopsiMitraPage(props: PageProps<"/admin/adop
           Belum ada mitra. Tambahkan di <a href="/admin/mitra" className="underline">/admin/mitra</a> terlebih dahulu.
         </p>
       ) : (
-        <MitraAdopsiForm mitras={mitras} programs={programs} />
+        <MitraAdopsiKonsepForm mitras={mitras} programs={programs} />
       )}
     </main>
   );

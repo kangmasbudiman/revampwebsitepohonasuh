@@ -1,6 +1,6 @@
 import { requireUser } from "@/lib/guard";
 import { apiPost, apiGet, mapProgramMitra } from "@/lib/api";
-import MitraAdopsiForm from "@/components/admin/mitra-adopsi-form";
+import MitraAdopsiKonsepForm from "@/components/admin/mitra-adopsi-konsep-form";
 import SuccessPopup from "@/components/admin/success-popup";
 
 export const metadata = { title: "Input Adopsi Mitra | Pohon Asuh" };
@@ -43,7 +43,7 @@ export default async function MitraAdopsiPage(props: PageProps<"/mitra/adopsi">)
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
       <div className="mt-6">
-        <MitraAdopsiForm mitras={[{ id: mitraId!, nama: mitraName }]} programs={programs} selfMode />
+        <MitraAdopsiKonsepForm mitras={[{ id: mitraId!, nama: mitraName }]} programs={programs} selfMode />
       </div>
     </main>
   );
