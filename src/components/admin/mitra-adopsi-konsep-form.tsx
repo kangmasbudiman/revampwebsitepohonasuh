@@ -149,12 +149,29 @@ export default function MitraAdopsiKonsepForm({
       {/* Langkah 1 — Data Pengadopsi */}
       <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
         <h3 className="flex items-center gap-2 font-semibold text-emerald-800 dark:text-emerald-200"><span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white">1</span>Data Pengadopsi</h3>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <input value={draft.nama} onChange={(e) => setDraft({ ...draft, nama: e.target.value })} placeholder="Nama pengadopsi" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
-          <input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} placeholder="Email pengadopsi" className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
-          <input type="number" min={1} max={10} value={draft.dur} onChange={(e) => setDraft({ ...draft, dur: Number(e.target.value) || 1 })} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" aria-label="Durasi (tahun)" />
-          <input type="date" value={draft.tgl_adopt} onChange={(e) => setDraft({ ...draft, tgl_adopt: e.target.value })} className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" aria-label="Tanggal adopt" />
-          <input value={draft.memo} onChange={(e) => setDraft({ ...draft, memo: e.target.value })} placeholder="Memo (opsional)" className="sm:col-span-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Nama Pengadopsi</span>
+            <input value={draft.nama} onChange={(e) => setDraft({ ...draft, nama: e.target.value })} placeholder="mis. Budi Santoso" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          </label>
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Email Pengadopsi</span>
+            <input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} placeholder="mis. budi@email.com" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          </label>
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Durasi Adopsi (tahun)</span>
+            <input type="number" min={1} max={10} value={draft.dur} onChange={(e) => setDraft({ ...draft, dur: Number(e.target.value) || 1 })} placeholder="mis. 1" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+            <span className="mt-1 block text-[10px] text-zinc-400">Berapa lama pohon diadopsi — berlaku sampai tanggal berakhir</span>
+          </label>
+          <label className="block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Tanggal Adopsi</span>
+            <input type="date" value={draft.tgl_adopt} onChange={(e) => setDraft({ ...draft, tgl_adopt: e.target.value })} className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+            <span className="mt-1 block text-[10px] text-zinc-400">Tanggal pohon resmi diadopsi pengadopsi</span>
+          </label>
+          <label className="block sm:col-span-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Memo <span className="font-normal normal-case text-zinc-400">(opsional)</span></span>
+            <input value={draft.memo} onChange={(e) => setDraft({ ...draft, memo: e.target.value })} placeholder="mis. hadiah ultah, untuk kampung" className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+          </label>
         </div>
         <button type="button" onClick={addAdopter} disabled={!draft.nama.trim() || !emailOk(draft.email)} className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-night-700 dark:text-emerald-300">
           <Plus className="h-4 w-4" aria-hidden />Tambah Pengadopsi
