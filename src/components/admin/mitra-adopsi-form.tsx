@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { inputAdopsiMitra, inputAdopsiMitraSelf } from "@/lib/actions/mitra";
 import SubmitButton from "@/components/admin/submit-button";
+import ProgramAdopsiPohonList from "@/components/program-adopsi-pohon-list";
 
 type Item = {
   idpohon: string;
@@ -112,6 +113,7 @@ export default function MitraAdopsiForm({
               <option key={p.id} value={p.id}>{p.nama}</option>
             ))}
           </select>
+          <ProgramAdopsiPohonList programId={programId} mitraId={mitraId} />
       </div>
 
       <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
