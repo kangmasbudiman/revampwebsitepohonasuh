@@ -63,7 +63,7 @@ export default async function MitraLaporanPage() {
         </div>
         <a
           href={`data:text/csv;charset=utf-8,${[
-            "Program,Nama Pengadopsi,ID Pohon,Certnum,Tgl Adopt",
+            "Program,Nama Pengadopsi,Email,ID Pohon,Certnum,Tgl Adopt",
             ...adopsi.map((a) => {
               const csvEscape = (v: string | null | undefined) => {
                 const s = String(v ?? "");
@@ -73,6 +73,7 @@ export default async function MitraLaporanPage() {
               return [
                 csvEscape(programName),
                 csvEscape(String((a as { nama?: string }).nama ?? "")),
+                csvEscape(String((a as { email?: string }).email ?? "")),
                 csvEscape(String((a as { idpohon?: string }).idpohon ?? "")),
                 csvEscape(String((a as { certnum?: string }).certnum ?? "")),
                 csvEscape(String((a as { tgl_adopt?: string }).tgl_adopt ?? "")),
@@ -125,10 +126,11 @@ export default async function MitraLaporanPage() {
           Data Pengadopsi
         </h2>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="w-full min-w-[880px] text-left text-sm">
             <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
               <tr>
                 <th className="px-4 py-3">Pengadopsi</th>
+                <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">ID Pohon</th>
                 <th className="px-4 py-3">Program</th>
                 <th className="px-4 py-3">Durasi</th>
@@ -145,6 +147,7 @@ export default async function MitraLaporanPage() {
                 return (
                   <tr key={i} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                     <td className="px-4 py-2.5 font-medium text-zinc-800 dark:text-zinc-100">{String((a as { nama?: string }).nama ?? "")}</td>
+                    <td className="px-4 py-2.5 text-xs text-zinc-500">{String((a as { email?: string }).email ?? "—")}</td>
                     <td className="px-4 py-2.5 font-mono text-xs">{String((a as { idpohon?: string }).idpohon ?? "")}</td>
                     <td className="px-4 py-2.5 text-xs text-zinc-500">{progNama}</td>
                     <td className="px-4 py-2.5 text-xs">{String((a as { dur?: number | string }).dur ?? "1")} th</td>
@@ -155,7 +158,7 @@ export default async function MitraLaporanPage() {
                 );
               })}
               {adopsi.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-zinc-500">Belum ada data pengadopsi.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-zinc-500">Belum ada data pengadopsi.</td></tr>
               )}
             </tbody>
           </table>

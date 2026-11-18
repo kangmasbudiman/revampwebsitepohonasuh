@@ -7,7 +7,7 @@ import { BadgeCheck, SearchX, Leaf } from "lucide-react";
 
 export const metadata = { title: "Verifikasi Adopsi Mitra | Pohon Asuh" };
 
-type PendingAdopsi = { id: number; nama: string; idpohon: string; desa: string | null; dur: number; tgl_adopt: string | null; memo: string | null; program_id: number | null };
+type PendingAdopsi = { id: number; nama: string; email: string | null; idpohon: string; desa: string | null; dur: number; tgl_adopt: string | null; memo: string | null; program_id: number | null };
 type PendingInvoice = {
   confirmasi_id: number;
   invoice: string;
@@ -89,10 +89,11 @@ export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin
                 </form>
               </header>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] text-left text-sm">
+                <table className="w-full min-w-[860px] text-left text-sm">
                   <thead className="border-b border-emerald-50 text-xs uppercase tracking-wide text-zinc-500 dark:border-night-700 dark:text-zinc-400">
                     <tr>
                       <th className="px-4 py-2.5 font-semibold">Pengadopsi</th>
+                      <th className="px-4 py-2.5 font-semibold">Email</th>
                       <th className="px-4 py-2.5 font-semibold">ID Pohon</th>
                       <th className="px-4 py-2.5 font-semibold">Desa</th>
                       <th className="px-4 py-2.5 font-semibold">Durasi</th>
@@ -104,6 +105,7 @@ export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin
                     {inv.adopsi.map((a) => (
                       <tr key={a.id} className="hover:bg-emerald-50/40 dark:hover:bg-night-800/40">
                         <td className="px-4 py-2.5 font-medium text-zinc-800 dark:text-zinc-100">{a.nama}</td>
+                        <td className="px-4 py-2.5 text-xs text-zinc-500">{a.email}</td>
                         <td className="px-4 py-2.5 font-mono text-xs">{a.idpohon}</td>
                         <td className="px-4 py-2.5 text-xs text-zinc-500">{a.desa ?? "—"}</td>
                         <td className="px-4 py-2.5 text-xs">{a.dur} th</td>

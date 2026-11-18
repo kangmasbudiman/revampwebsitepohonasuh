@@ -25,8 +25,9 @@ export default async function AdminAdopsiMitraPage(props: PageProps<"/admin/adop
       <h1 className="text-2xl font-bold pa-hgrad">Input Adopsi Mitra</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Input data pengadopsi dari mitra (mis. Jejakin). Pohon harus sudah
-        ditahan untuk mitra terlebih dahulu. Adopsi langsung tercatat dan
-        sertifikat diterbitkan (pre-paid, tanpa verifikasi pembayaran).
+        ditahan untuk mitra terlebih dahulu. <strong>Email pengadopsi wajib diisi</strong> —
+        satu pengadopsi bisa mengadopsi lebih dari satu pohon (isi nama &amp; email
+        yang sama untuk beberapa kode pohon).
       </p>
 
       {sp?.sukses && (
