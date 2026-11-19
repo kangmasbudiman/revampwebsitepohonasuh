@@ -36,6 +36,7 @@ export default function MitraRegisterForm({ initialError = "" }: { initialError?
     initialError ? initialError.split("\n").map((m) => m.trim()).filter(Boolean) : [],
   );
   const [popupOpen, setPopupOpen] = useState(() => initialError.trim().length > 0);
+  const [bidangKe, setBidangKe] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
   const showPopup = (errs: FieldError[]) => {
@@ -97,6 +98,11 @@ const get = (name: string) => {
 
       if (!BIDANG.includes(valueOf("bidang_kegiatan")))
         add("bidang_kegiatan", 1, "Bidang kegiatan wajib dipilih.");
+      if (valueOf("bidang_kegiatan") === "Lainnya") {
+        const bidangLain = valueOf("bidang_kegiatan_lain");
+        if (!bidangLain) add("bidang_kegiatan_lain", 1, "Bidang Kegiatan dipilih “Lainnya” — silakan isi detail kegiatan wajib diisi.");
+        else if (bidangLain.length > 150) add("bidang_kegiatan_lain", 1, "Detail bidang kegiatan maksimal 150 karakter.");
+      }
 
       const deskripsi = valueOf("deskripsi");
       if (deskripsi.length < 10)
@@ -269,12 +275,19 @@ const get = (name: string) => {
           </div>
           <div className="sm:col-span-2">
             <label className={labelClass}>Bidang Kegiatan {star}</label>
-            <select name="bidang_kegiatan" className={inputClass("bidang_kegiatan")} aria-invalid={fieldErrors.has("bidang_kegiatan")} defaultValue="">
+            <select name="bidang_kegiatan" value={bidangKe} onChange={(e) => setBidangKe(e.target.value)} className={inputClass("bidang_kegiatan")} aria-invalid={fieldErrors.has("bidang_kegiatan")}>
               <option value="">Pilih…</option>
               {BIDANG.map((b) => (
                 <option key={b} value={b}>{b}</option>
               ))}
             </select>
+            {bidangKe === "Lainnya" && (
+              <div className="mt-2">
+                <label className={labelClass}>Detail Bidang Kegiatan {star}</label>
+                <input name="bidang_kegiatan_lain" maxLength={150} placeholder="mis. Konservasi hutan mangrove di pesisir" className={inputClass("bidang_kegiatan_lain")} aria-invalid={fieldErrors.has("bidang_kegiatan_lain")} />
+                <p className={hint}>Wajib diisi karena memilih opsi “Lainnya”.</p>
+              </div>
+            )}
           </div>
           <div className="sm:col-span-2">
             <label className={labelClass}>Deskripsi Singkat Organisasi {star}</label>
