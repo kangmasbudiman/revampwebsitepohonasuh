@@ -63,6 +63,14 @@ export default async function MitraBayarPage(props: PageProps<"/mitra/bayar/[inv
 
   const batas = conf.createdAt ? new Date(new Date(conf.createdAt).getTime() + 24 * 60 * 60 * 1000) : null;
   const batasStr = batas ? batas.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) + " " + batas.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "";
+
+  const uniqueTrees = new Map<string, { tree: ApiAdopsiPohon; adopters: string[]; totalPrice: number }>();
+  for (const t of trees) {
+    const existing = uniqueTrees.get(t.idpohon);
+    if (existing) { existing.adopters.push(t.nama ?? "—"); existing.totalPrice += t.price ?? 0; }
+    else uniqueTrees.set(t.idpohon, { tree: t, adopters: [t.nama ?? "—"], totalPrice: t.price ?? 0 });
+  }
+  const grouped = [...uniqueTrees.values()];
   
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
@@ -91,29 +99,27 @@ export default async function MitraBayarPage(props: PageProps<"/mitra/bayar/[inv
 
         <dl className="mt-5 grid grid-cols-2 gap-3 rounded-2xl border border-emerald-50 bg-emerald-50/30 p-4 text-sm sm:grid-cols-4 dark:border-night-800">
           <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Tanggal</dt><dd className="mt-0.5 font-semibold text-zinc-800 dark:text-zinc-100">{tanggal(conf.tanggal)}</dd></div>
-          <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Jumlah Pohon</dt><dd className="mt-0.5 font-semibold text-zinc-800 dark:text-zinc-100">{trees.length} pohon</dd></div>
-          
+          <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Pohon</dt><dd className="mt-0.5 font-semibold text-zinc-800 dark:text-zinc-100">{grouped.length} pohon</dd></div>
+          <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Pengadopsi</dt><dd className="mt-0.5 font-semibold text-zinc-800 dark:text-zinc-100">{trees.length} orang</dd></div>
           <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Total</dt><dd className="mt-0.5 font-extrabold text-emerald-800 dark:text-emerald-300">{rupiah(conf.price)}</dd></div>
         </dl>
 
-        {trees.length > 0 && (
+        {grouped.length > 0 && (
           <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[500px] text-left text-sm">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead className="text-[11px] font-semibold uppercase text-zinc-500">
                 <tr>
                   <th className="py-2 pr-3">Kode Pohon</th>
-                  <th className="py-2 pr-3">Nama Pengadopsi</th>
-                  <th className="py-2 pr-3">Jumlah Pohon</th>
+                  <th className="py-2 pr-3">Pengadopsi</th>
                   <th className="py-2 text-right">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-night-800">
-                {trees.map((t, i) => (
-                  <tr key={i}>
+                {grouped.map(({ tree: t, adopters, totalPrice }) => (
+                  <tr key={t.idpohon}>
                     <td className="py-2 pr-3 font-mono text-xs">{t.idpohon}</td>
-                    <td className="py-2 pr-3 text-zinc-700 dark:text-zinc-200">{t.nama}</td>
-                    <td className="py-2 pr-3">1</td>
-                    <td className="py-2 text-right font-semibold">{rupiah(t.price)}</td>
+                    <td className="py-2 pr-3 text-xs">{adopters.join(", ")}</td>
+                    <td className="py-2 text-right font-semibold">{rupiah(totalPrice)}</td>
                   </tr>
                 ))}
               </tbody>
