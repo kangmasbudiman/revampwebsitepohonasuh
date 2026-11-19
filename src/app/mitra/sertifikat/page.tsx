@@ -1,9 +1,9 @@
 import { requireUser } from "@/lib/guard";
 import { apiPost } from "@/lib/api";
 import Link from "next/link";
-import { certUrl, shareUrl } from "@/lib/api";
+import { certUrl } from "@/lib/api";
 import { namaDesa } from "@/lib/format";
-import { Share2, Download } from "lucide-react";
+import { Download } from "lucide-react";
 
 export const metadata = { title: "Sertifikat Mitra | Pohon Asuh" };
 
@@ -50,15 +50,6 @@ export default async function MitraSertifikatPage() {
                       <Link href={certUrl(String(r.certnum))} target="_blank" className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
                         Lihat Sertifikat
                       </Link>
-                      <a
-                        href={`${shareUrl(String(r.certnum))}?pohon=${encodeURIComponent(String(r.idpohon ?? ""))}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-                        title="Bagikan sertifikat (seperti user biasa)"
-                      >
-                        <Share2 className="h-3.5 w-3.5" aria-hidden /> Bagikan
-                      </a>
                       <a
                         href={`${certUrl(String(r.certnum))}?autoprint=1`}
                         target="_blank"
