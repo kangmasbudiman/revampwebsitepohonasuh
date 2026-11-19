@@ -817,23 +817,33 @@ export async function inputAdopsiMitraSelf(formData: FormData) {
   const items = String(formData.get("items") ?? "[]");
   if (!items || items === "[]") redirect("/mitra/adopsi?error=Tambahkan+minimal+1+pengadopsi");
 
+  let invoiceSlug = "";
   try {
     const res = await apiPost<{
       value?: string | number;
       pesan?: string;
       jumlah?: number;
       dilewati?: number;
+      invoice?: string | null;
     }>("inputadopsimitraself", { idmember: session.userId, program_id: programId || undefined, items });
     if (Number(res.value) !== 200) {
       redirect(`/mitra/adopsi?error=${encodeURIComponent(res.pesan ?? "Gagal input adopsi.")}`);
     }
-    revalidatePath("/mitra/adopsi");
-    revalidatePath("/mitra/laporan");
-    redirect(`/mitra/adopsi?sukses=1&jumlah=${Number(res.jumlah) || 0}`);
+    if (typeof res.invoice === "string" && res.invoice) {
+      invoiceSlug = res.invoice.replace(/^#/, "").trim();
+    }
   } catch (e) {
     if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
     redirect("/mitra/adopsi?error=Gagal+input+adopsi");
   }
+
+  revalidatePath("/mitra/adopsi");
+  revalidatePath("/mitra/laporan");
+  revalidatePath("/mitra/tagihan");
+  if (invoiceSlug) {
+    redirect(`/mitra/bayar/${encodeURIComponent(invoiceSlug)}`);
+  }
+  redirect("/mitra/tagihan");
 }
 
 export async function verifikasiAdopsiMitraAction(formData: FormData) {

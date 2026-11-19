@@ -130,10 +130,13 @@ export default async function MitraTagihanPage() {
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[10px] font-bold uppercase text-amber-800"><Clock3 className="h-3.5 w-3.5" aria-hidden />Belum Bayar</span>
                   )}
                 </div>
-                <div className="mt-3 flex items-center justify-between border-t border-emerald-50 pt-3 dark:border-night-800">
+                <div className="mt-3 flex items-center justify-between border-t border-emerald-50 pt-3 gap-2 dark:border-night-800">
                   <span className="text-xs text-zinc-600 dark:text-zinc-300">{it.jml_pohon.toLocaleString("id-ID")} pohon × harga × durasi</span>
                   <span className="text-base font-extrabold text-emerald-900 dark:text-emerald-200">{fmtRp(it.price)}</span>
                 </div>
+                {!it.paid && !it.expired && (
+                  <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
+                )}
               </div>
             ))}
           </div>
@@ -149,6 +152,7 @@ export default async function MitraTagihanPage() {
                   <th className="px-4 py-3 font-semibold">Rincian</th>
                   <th className="px-4 py-3 font-semibold">Total</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
@@ -166,6 +170,13 @@ export default async function MitraTagihanPage() {
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-[11px] font-bold uppercase text-red-800">Kadaluarsa</span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold uppercase text-amber-800"><Clock3 className="h-3.5 w-3.5" aria-hidden />Belum Bayar</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {it.paid || it.expired ? (
+                        <span className="text-[11px] text-zinc-400">—</span>
+                      ) : (
+                        <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
                       )}
                     </td>
                   </tr>
