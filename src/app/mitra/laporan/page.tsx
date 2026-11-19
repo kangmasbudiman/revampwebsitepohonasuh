@@ -1,5 +1,7 @@
 import { requireUser } from "@/lib/guard";
 import { apiPost, apiGet, mapTrees, mapProgramMitra, type ApiTree, type ApiProgramMitra } from "@/lib/api";
+import LaporanGrafik from "@/components/mitra/laporan-grafik";
+import PengadopsiTable from "@/components/mitra/pengadopsi-table";
 
 export const metadata = { title: "Laporan Mitra | Pohon Asuh" };
 
@@ -44,7 +46,6 @@ export default async function MitraLaporanPage() {
   const approvedPesanan = pesananRows.filter((p) => p.status === "approved").length;
   const pendingPesanan = pesananRows.filter((p) => p.status === "pending").length;
 
-  const programMap = new Map(programs.map((p) => [p.id, p]));
   const perProgram = programs.map((p) => {
     const kp = adopsi.filter((a) => Number(a.program_id ?? 0) === p.id);
     return {
@@ -53,6 +54,7 @@ export default async function MitraLaporanPage() {
     };
   });
   const adGanjil = adopsi.filter((a) => !Number(a.program_id ?? 0)).length;
+  const programMap = new Map(programs.map((p) => [p.id, p]));
 
   return (
     <main className="w-full px-6 py-8 lg:px-8">
@@ -101,6 +103,8 @@ export default async function MitraLaporanPage() {
         <div className="rounded-2xl border border-emerald-100 pa-card p-4"><p className="text-xs text-zinc-500">Adopsi Terverifikasi</p><p className="mt-1 text-2xl font-bold text-green-600">{verified}</p></div>
       </div>
 
+      <LaporanGrafik adopsi={adopsi} programs={programs} />
+
       <div className="mt-6 rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
         <h2 className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Rekap per Program</h2>
         <table className="mt-3 w-full text-left text-sm">
@@ -121,48 +125,8 @@ export default async function MitraLaporanPage() {
         </table>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-        <h2 className="border-b border-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:text-emerald-200">
-          Data Pengadopsi
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[880px] text-left text-sm">
-            <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
-              <tr>
-                <th className="px-4 py-3">Pengadopsi</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">ID Pohon</th>
-                <th className="px-4 py-3">Program</th>
-                <th className="px-4 py-3">Durasi</th>
-                <th className="px-4 py-3">Tgl Adopt</th>
-                <th className="px-4 py-3">Sertifikat</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-              {adopsi.map((a, i) => {
-                const cert = String((a as { certnum?: string }).certnum ?? "");
-                const verified = cert !== "";
-                const progNama = programMap.get(Number((a as { program_id?: number | string | null }).program_id ?? 0))?.nama ?? "—";
-                return (
-                  <tr key={i} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
-                    <td className="px-4 py-2.5 font-medium text-zinc-800 dark:text-zinc-100">{String((a as { nama?: string }).nama ?? "")}</td>
-                    <td className="px-4 py-2.5 text-xs text-zinc-500">{String((a as { email?: string }).email ?? "—")}</td>
-                    <td className="px-4 py-2.5 font-mono text-xs">{String((a as { idpohon?: string }).idpohon ?? "")}</td>
-                    <td className="px-4 py-2.5 text-xs text-zinc-500">{progNama}</td>
-                    <td className="px-4 py-2.5 text-xs">{String((a as { dur?: number | string }).dur ?? "1")} th</td>
-                    <td className="px-4 py-2.5 text-xs text-zinc-500">{String((a as { tgl_adopt?: string }).tgl_adopt ?? "—")}</td>
-                    <td className="px-4 py-2.5 text-xs">{verified ? cert : "—"}</td>
-                    <td className="px-4 py-2.5"><span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${verified ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>{verified ? "Terverifikasi" : "Pending Veri"}</span></td>
-                  </tr>
-                );
-              })}
-              {adopsi.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-zinc-500">Belum ada data pengadopsi.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="mt-6">
+        <PengadopsiTable adopsi={adopsi} programs={programs} />
       </div>
     </main>
   );

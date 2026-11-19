@@ -14,6 +14,7 @@ import PrintButton from "@/components/sertifikat/print-button";
 import CertNameForm from "@/components/cert-name-form";
 import SertifikatMemoForm from "@/components/sertifikat-memo-form";
 import TemplateShare from "@/components/sertifikat/template-share";
+import AutoPrint from "@/components/sertifikat/auto-print";
 
 // Font menyamai PDF template: body Plus Jakarta Sans, pesan Nunito ExtraLight,
 // nama & label Barlow SemiCondensed (pengganti Tw Cen MT Condensed).
@@ -81,6 +82,7 @@ const titleCase = (s: string) =>
 export default async function CertificatePage(props: PageProps<"/sertifikat/[...code]">) {
   const { code } = await props.params;
   const sp = await props.searchParams;
+  const autoprint = (Array.isArray(sp?.autoprint) ? sp?.autoprint[0] : sp?.autoprint) === "1";
   const certnum = code.map(decodeURIComponent).join("/");
   // Teks lembar sertifikat mengikuti ?lang=id|en. Default en agar tautan lama
   // tidak berubah tampilan; pilihan bahasa ikut saat sertifikat dibagikan.
@@ -273,6 +275,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 print:max-w-none print:p-0">
+      {autoprint && <AutoPrint />}
       <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="flex items-center gap-2 text-sm font-medium text-emerald-700">
           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-xs text-emerald-700">✓</span>
