@@ -872,6 +872,9 @@ export type ApiSertifikatPublik = {
   jml_pohon?: number | string | null;
   invoice?: string | null;
   idpohon?: string | null;
+  // Kepemilikan halaman share (diisi sertifikatpublik): mitra = pembayar.
+  invoice_methode?: string | null;
+  invoice_idpengasuh?: number | string | null;
   desa?: string | null;
   kecamatan?: string | null;
   kabupaten?: string | null;

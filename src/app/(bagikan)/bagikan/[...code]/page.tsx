@@ -95,7 +95,12 @@ export default async function BagikanPage(props: PageProps<"/bagikan/[...code]">
   };
 
   const session = await getSession();
-  const pemilik = !!session && Number(s.pengasuh) === session.userId;
+  // Pemilik = user yang adopsi sendiri (pengasuh) ATAU mitra yang membayar
+  // invoice mitra (methode Mitra + confirmation.idpengasuh = member mitra).
+  const pemilik =
+    !!session &&
+    (Number(s.pengasuh) === session.userId ||
+      (String(s.invoice_methode) === "Mitra" && Number(s.invoice_idpengasuh) === session.userId));
   const certPath = certnum.split("/").map(encodeURIComponent).join("/");
 
   return (
