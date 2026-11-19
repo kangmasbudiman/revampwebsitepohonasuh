@@ -42,9 +42,9 @@ export default async function MitraBayarPage(props: PageProps<"/mitra/bayar/[inv
       (/^\d+$/.test(slug) ? (confs.find((c) => c.id === Number(slug)) ?? null) : null);
     if (conf && conf.methode !== "Mitra") conf = null; // hanya tagihan mitra
     if (conf) {
-      trees = mapAdopsiPohons(
-        await apiPost<Record<string, unknown>[]>("mytrees", { iduser: session.userId }),
-      ).filter((t) => t.invoice === conf!.invoice);
+      // Ambil adopsi mitra yang sama & filter per invoice (myAdp count=jumlah baris, bukan unik pohon)
+      const adopts = (await apiPost<Record<string, unknown>[]>("mitramyadopsi", { idmember: session.userId })) ?? [];
+      trees = mapAdopsiPohons(adopts).filter((t) => t.invoice === conf!.invoice);
       banks = (await apiGet<Record<string, unknown>[]>("getrekening")).map(mapBank);
     }
   } catch {
