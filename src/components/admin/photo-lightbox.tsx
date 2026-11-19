@@ -35,7 +35,6 @@ export default function PhotoLightbox({
         type="button"
         onClick={() => setOpen(true)}
         className={triggerClassName}
-        aria-label={alt}
         title={alt}
       >
         {children}
