@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdminLevel } from "@/lib/guard";
 import { Paperclip, SearchX, ArrowRight } from "lucide-react";
 import { rupiah } from "@/lib/format";
+import PhotoLightbox from "@/components/admin/photo-lightbox";
 
 export const metadata = { title: "Bukti Transfer Mitra | Pohon Asuh" };
 
@@ -94,12 +95,10 @@ export default async function BuktiTransferMitraPage(props: PageProps<"/admin/bu
                 </div>
               </header>
               {inv.bukti ? (
-                <a
-                  href={inv.bukti}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block bg-zinc-100 dark:bg-night-800"
-                  title="Buka bukti transfer ukuran penuh"
+                <PhotoLightbox
+                  src={inv.bukti}
+                  alt={`Bukti transfer ${inv.invoice}`}
+                  triggerClassName="block bg-zinc-100 transition-opacity hover:opacity-90 dark:bg-night-800"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -107,7 +106,7 @@ export default async function BuktiTransferMitraPage(props: PageProps<"/admin/bu
                     alt={`Bukti transfer ${inv.invoice}`}
                     className="h-56 w-full object-contain sm:h-64"
                   />
-                </a>
+                </PhotoLightbox>
               ) : (
                 <div className="flex h-56 items-center justify-center text-xs text-zinc-400">—</div>
               )}

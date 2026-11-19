@@ -4,6 +4,7 @@ import SuccessPopup from "@/components/admin/success-popup";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { verifikasiAdopsiMitraAction } from "@/lib/actions/mitra";
 import { BadgeCheck, SearchX, Leaf } from "lucide-react";
+import PhotoLightbox from "@/components/admin/photo-lightbox";
 
 export const metadata = { title: "Verifikasi Adopsi Mitra | Pohon Asuh" };
 
@@ -81,10 +82,14 @@ export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin
               <header className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100 bg-emerald-50/60 px-4 py-3 dark:border-night-700 dark:bg-emerald-950/20 sm:px-5">
                 <div className="flex items-center gap-3">
                   {inv.bukti ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <a href={inv.bukti} target="_blank" rel="noreferrer" className="block h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-emerald-200 bg-white" title="Lihat bukti transfer">
+                    <PhotoLightbox
+                      src={inv.bukti}
+                      alt={`Bukti transfer ${inv.invoice}`}
+                      triggerClassName="block h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-emerald-200 bg-white transition-opacity hover:opacity-80"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={inv.bukti} alt={`Bukti transfer ${inv.invoice}`} className="h-full w-full object-contain" />
-                    </a>
+                    </PhotoLightbox>
                   ) : (
                     <span className="grid h-14 w-20 shrink-0 place-items-center rounded-lg border border-dashed border-amber-300 bg-amber-50 text-[9px] font-semibold uppercase text-amber-700">Tanpa bukti</span>
                   )}
@@ -92,7 +97,7 @@ export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin
                     <p className="text-sm font-bold text-emerald-950 dark:text-emerald-100">{inv.mitra}</p>
                     <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Invoice <span className="font-mono">{inv.invoice}</span> · {inv.tgl ?? "—"} · {inv.jumlah} pohon</p>
                     {inv.bukti
-                      ? <a href={inv.bukti} target="_blank" rel="noreferrer" className="text-[11px] font-semibold text-emerald-700 underline decoration-emerald-300 hover:text-emerald-800">Lihat bukti transfer</a>
+                      ? <PhotoLightbox src={inv.bukti} alt={`Bukti transfer ${inv.invoice}`} triggerClassName="text-[11px] font-semibold text-emerald-700 underline decoration-emerald-300 hover:text-emerald-800">Lihat bukti transfer</PhotoLightbox>
                       : <span className="text-[11px] text-amber-700">Belum ada bukti (kemungkinan QRIS/Mayar)</span>}
                   </div>
                 </div>
