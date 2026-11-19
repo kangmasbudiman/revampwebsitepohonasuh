@@ -33,7 +33,7 @@ export default function MitraAdopsiKonsepForm({
   const [adopters, setAdopters] = useState<Adopter[]>([]);
   const [draft, setDraft] = useState({ nama: "", email: "", dur: 1, tgl_adopt: "", memo: "" });
   const [treeList, setTreeList] = useState<ProgramTreeMini[]>([]);
-  const [chosen, setChosen] = useState<Record<string, string>>({}); // idpohon -> adopterId
+  const [chosen, setChosen] = useState<Record<string, string[]>>({}); // idpohon -> adopterIds
   const formRef = useRef<HTMLFormElement>(null);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -72,9 +72,9 @@ export default function MitraAdopsiKonsepForm({
     setAdopters((prev) => [...prev, { id, nama, email, dur: Math.max(1, draft.dur || 1), tgl_adopt: draft.tgl_adopt || today, memo: draft.memo.trim() }]);
     // Auto-assign pohon yang sudah dicentang tapi belum ditugaskan ke pengadopsi pertama yang ada
     setChosen((prev) => {
-      const next = { ...prev };
-      for (const key of Object.keys(next)) {
-        if (!next[key]) next[key] = id;
+      const next: Record<string, string[]> = {};
+      for (const [k, v] of Object.entries(prev)) {
+        next[k] = (v ?? []).length > 0 ? (v as string[]) : [id];
       }
       return next;
     });
@@ -84,7 +84,13 @@ export default function MitraAdopsiKonsepForm({
   const removeAdopter = (id: string) => {
     setAdopters((prev) => prev.filter((a) => a.id !== id));
     // lepas penugasan pohon yang terhubung dengan pengadopsi itu
-    setChosen((prev) => Object.fromEntries(Object.entries(prev).filter(([, v]) => v !== id)));
+    setChosen((prev) => {
+      const next: Record<string, string[]> = {};
+      for (const [k, v] of Object.entries(prev)) {
+        next[k] = (v ?? []).filter((x) => x !== id);
+      }
+      return next;
+    });
   };
 
   const togglePohon = (code: string) => {
@@ -95,27 +101,39 @@ export default function MitraAdopsiKonsepForm({
         return next;
       }
       // jika kosong → tetap tercentang, mengikat ke pengadopsi pertama bila ada
-      return { ...prev, [code]: adopters[0]?.id ?? "" };
+      return { ...prev, [code]: adopters[0]?.id ? [adopters[0].id] : [] };
     });
   };
 
-  const assignPohon = (code: string, adopterId: string) => {
-    setChosen((prev) => ({ ...prev, [code]: adopterId }));
+  const toggleAdopterForPohon = (code: string, adopterId: string) => {
+    setChosen((prev) => {
+      const cur = prev[code] ?? [];
+      const has = cur.includes(adopterId);
+      const nextIds = has ? cur.filter((x) => x !== adopterId) : [...cur, adopterId];
+      const next = { ...prev };
+      if (nextIds.length === 0) {
+        delete next[code];
+      } else {
+        next[code] = nextIds;
+      }
+      return next;
+    });
   };
 
   const itemsJson = useMemo(() => {
-    const list = Object.entries(chosen)
-      .map(([idpohon, adopterId]) => {
+    const list: { idpohon: string; nama: string; email: string; dur: number; tgl_adopt: string; memo: string }[] = [];
+    for (const [idpohon, adopterIds] of Object.entries(chosen)) {
+      for (const adopterId of adopterIds) {
         const a = adopters.find((x) => x.id === adopterId);
-        if (!a) return null;
-        return { idpohon, nama: a.nama, email: a.email, dur: a.dur, tgl_adopt: a.tgl_adopt, memo: a.memo };
-      })
-      .filter(Boolean);
+        if (!a) continue;
+        list.push({ idpohon, nama: a.nama, email: a.email, dur: a.dur, tgl_adopt: a.tgl_adopt, memo: a.memo });
+      }
+    }
     return JSON.stringify(list);
   }, [chosen, adopters]);
 
-  const pilihanPohonCount = Object.keys(chosen as Record<string, string>).length;
-  const assignedCount = Object.values(chosen).filter(Boolean).length;
+  const pilihanPohonCount = Object.values(chosen).filter((v) => (v ?? []).length > 0).length;
+  const assignedCount = Object.values(chosen).reduce((sum, ids) => sum + (ids?.length ?? 0), 0);
 
   const selectedProgram = programs.find((p) => p.id === programId);
 
@@ -225,7 +243,7 @@ export default function MitraAdopsiKonsepForm({
             <p className="mt-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/30 px-4 py-6 text-center text-xs text-zinc-500">Belum ada pohon tersedia (belum diadopsi) di program ini.</p>
           ) : (
             <>
-              <p className="mt-2 text-[11px] text-zinc-500">Centang pohon → pilih pengadopsinya dari dropdown. Satu pengadopsi bisa mengadopsi banyak pohon.</p>
+              <p className="mt-2 text-[11px] text-zinc-500">Centang pohon, lalu centang pengadopsinya — bisa lebih dari satu <strong>(1 pohon diadopsi banyak pengadopsi)</strong>. Satu pengadopsi bisa mengadopsi banyak pohon.</p>
               {adopters.length === 0 && (
                 <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                   ⚠️ Tambahkan data pengadopsi dulu — setelah itu baru bisa memcentang pohon.
@@ -233,38 +251,59 @@ export default function MitraAdopsiKonsepForm({
               )}
               <ul className="mt-3 max-h-[560px] space-y-2 overflow-y-auto pr-1">
                 {treeList.map((t) => {
-                  const picked = Object.prototype.hasOwnProperty.call(chosen, t.idpohon);
-                  const adopterId = chosen[t.idpohon] ?? "";
+                  const pickedIds = chosen[t.idpohon] ?? [];
+                  const picked = pickedIds.length > 0;
                   return (
-                    <li key={t.idpohon} className={`flex items-center gap-2 sm:gap-3 rounded-xl border p-2 transition ${picked ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-200" : "border-emerald-100 bg-white hover:border-emerald-200 dark:bg-night-900 dark:hover:border-night-600"}`}>
-                      <label className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center">
-                        <input type="checkbox" checked={picked} onChange={() => togglePohon(t.idpohon)} className="h-5 w-5 accent-emerald-600" aria-label={`Pilih ${t.idpohon}`} />
-                      </label>
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-emerald-50 sm:h-16 sm:w-16">
-                        {t.photoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={t.photoUrl.startsWith("http") ? t.photoUrl : `${ASSET_ORIGIN}/${t.photoUrl.replace(/^\//, "")}`} alt={t.localName} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-                        ) : (
-                          <span className="absolute inset-0 flex items-center justify-center text-xl">🌳</span>
+                    <li key={t.idpohon} className={`overflow-hidden rounded-xl border transition ${picked ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-200" : "border-emerald-100 bg-white hover:border-emerald-200 dark:bg-night-900 dark:hover:border-night-600"}`}>
+                      <div className="flex items-center gap-2 sm:gap-3 p-2">
+                        <label className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center">
+                          <input type="checkbox" checked={picked} onChange={() => togglePohon(t.idpohon)} className="h-5 w-5 accent-emerald-600" aria-label={`Pilih ${t.idpohon}`} />
+                        </label>
+                        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-emerald-50 sm:h-16 sm:w-16">
+                          {t.photoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={t.photoUrl.startsWith("http") ? t.photoUrl : `${ASSET_ORIGIN}/${t.photoUrl.replace(/^\//, "")}`} alt={t.localName} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                          ) : (
+                            <span className="absolute inset-0 flex items-center justify-center text-xl">🌳</span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="flex flex-wrap items-center gap-1.5">
+                            <span className="truncate text-xs font-bold text-emerald-950 dark:text-emerald-100">{t.localName}</span>
+                            <span className="rounded bg-emerald-50 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-emerald-800 dark:bg-night-800 dark:text-emerald-300">{t.idpohon}</span>
+                            <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8px] font-bold text-amber-900">Dipesan</span>
+                          </p>
+                          <p className="mt-0.5 text-[10px] text-zinc-500">{namaDesa(t.desa)}{t.diameterCm ? ` · Ø ${t.diameterCm} cm` : ""}{t.heightM ? ` · T ${t.heightM} m` : ""}</p>
+                          <p className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">{rupiah(t.harga ?? 0)}</p>
+                        </div>
+                        {picked && (
+                          <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white">{pickedIds.length} orang</span>
                         )}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="flex flex-wrap items-center gap-1.5">
-                          <span className="truncate text-xs font-bold text-emerald-950 dark:text-emerald-100">{t.localName}</span>
-                          <span className="rounded bg-emerald-50 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-emerald-800 dark:bg-night-800 dark:text-emerald-300">{t.idpohon}</span>
-                          <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8px] font-bold text-amber-900">Dipesan</span>
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-zinc-500">{namaDesa(t.desa)}{t.diameterCm ? ` · Ø ${t.diameterCm} cm` : ""}{t.heightM ? ` · T ${t.heightM} m` : ""}</p>
-                        <p className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">{rupiah(t.harga ?? 0)}</p>
-                      </div>
-                      {picked ? (
-                        <select value={adopterId} onChange={(e) => assignPohon(t.idpohon, e.target.value)} className="shrink-0 rounded-lg border border-emerald-200 bg-white px-2 py-2 text-[10px] font-semibold text-emerald-900 dark:border-night-700 dark:bg-night-950 dark:text-emerald-300 sm:max-w-[150px]">
-                          <option value="">—Pilih pengadopsi—</option>
-                          {adopters.map((a) => <option key={a.id} value={a.id}>{a.nama}</option>)}
-                        </select>
-                      ) : adopters.length > 0 ? (
-                        <span className="shrink-0 hidden text-[10px] text-zinc-400 sm:inline">Centang untuk memilih pohon</span>
-                      ) : null}
+                      {picked && adopters.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 border-t border-emerald-100 bg-emerald-50/50 px-3 py-2 dark:border-night-700 dark:bg-night-800/40">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Diadopsi oleh:</span>
+                          {adopters.map((a) => {
+                            const on = (chosen[t.idpohon] ?? []).includes(a.id);
+                            return (
+                              <button
+                                key={a.id}
+                                type="button"
+                                onClick={() => toggleAdopterForPohon(t.idpohon, a.id)}
+                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition ${
+                                  on
+                                    ? "border-emerald-600 bg-emerald-600 text-white"
+                                    : "border-emerald-200 bg-white text-emerald-800 hover:border-emerald-400 hover:bg-emerald-50 dark:border-night-700 dark:bg-night-900 dark:text-emerald-300 dark:hover:bg-night-800"
+                                }`}
+                                aria-pressed={on}
+                              >
+                                {on && <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6l3 3 5-5" /></svg>}
+                                {a.nama}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </li>
                   );
                 })}
@@ -277,10 +316,10 @@ export default function MitraAdopsiKonsepForm({
       {/* Submit — lebar penuh */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-night-700">
         <div className="text-xs text-zinc-600 dark:text-zinc-300">
-          <p className="font-semibold text-emerald-900 dark:text-emerald-200">{pilihanPohonCount} pohon · {adopters.length} pengadopsi</p>
-          <p className="mt-0.5 text-[10px] text-zinc-400">{assignedCount} pohon sudah ditugaskan ke pengadopsi</p>
-          {pilihanPohonCount > assignedCount && (
-            <p className="mt-0.5 text-[10px] font-semibold text-amber-700">{pilihanPohonCount - assignedCount} pohon belum ditugaskan — pilih pengadopsinya dulu</p>
+          <p className="font-semibold text-emerald-900 dark:text-emerald-200">{pilihanPohonCount} pohon · {adopters.length} pengadopsi · {assignedCount} penugasan</p>
+          <p className="mt-0.5 text-[10px] text-zinc-400">Total penugasan (pohon × pengadopsi)</p>
+          {pilihanPohonCount > 0 && assignedCount === 0 && (
+            <p className="mt-0.5 text-[10px] font-semibold text-amber-700">Pohon belum ditugaskan — klik nama pengadopsi di baris pohon</p>
           )}
         </div>
         <SubmitButton pendingLabel="Memproses…" disabled={assignedCount === 0} className="rounded-xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white shadow hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">
