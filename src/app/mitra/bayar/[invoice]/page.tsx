@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/guard";
-import { apiPost, apiGet, mapBank, mapConfirmations, adopsiSlug, type ApiConfirmation, type ApiAdopsiPohon, type ApiBank } from "@/lib/api";
-import { mapAdopsiPohons } from "@/lib/api";
+import { apiPost, apiGet, mapBank, mapAdopsiPohons, type ApiAdopsiPohon, type ApiBank } from "@/lib/api";
 import { rupiah, tanggal } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
 import OnlinePayment from "@/components/online-payment";
@@ -29,20 +28,34 @@ export default async function MitraBayarPage(props: PageProps<"/mitra/bayar/[inv
     redirect("/dashboard");
   }
 
-  let conf: ApiConfirmation | null = null;
+  type MitraInvoice = {
+    id: number;
+    invoice: string;
+    tgl: string;
+    jml_pohon: number;
+    price: number;
+    status: string;
+    paid: boolean;
+    expired: boolean;
+    link_invoice?: string;
+    bukti?: string;
+    created_at?: string | null;
+  };
+
+  let conf: MitraInvoice | null = null;
   let trees: ApiAdopsiPohon[] = [];
   let banks: ApiBank[] = [];
   try {
-    const confs = mapConfirmations(
-      await apiPost<Record<string, unknown>[]>("getconfirmasi", { idmember: session.userId }),
-    );
     const slug = invoice.trim().replace(/^#/, "").toUpperCase();
+    const res = await apiPost<{ value?: string; data?: MitraInvoice[] }>(
+      "mitramyinvoice",
+      { idmember: session.userId },
+    );
+    const list = Array.isArray(res?.data) ? res.data : [];
     conf =
-      confs.find((c) => adopsiSlug(c) === slug) ??
-      (/^\d+$/.test(slug) ? (confs.find((c) => c.id === Number(slug)) ?? null) : null);
-    if (conf && conf.methode !== "Mitra") conf = null; // hanya tagihan mitra
+      list.find((c) => c.invoice.replace(/^#/, "").toUpperCase() === slug) ??
+      (/^\d+$/.test(slug) ? (list.find((c) => String(c.id) === slug) ?? null) : null);
     if (conf) {
-      // Ambil adopsi mitra yang sama & filter per invoice (myAdp count=jumlah baris, bukan unik pohon)
       const adopts = (await apiPost<Record<string, unknown>[]>("mitramyadopsi", { idmember: session.userId })) ?? [];
       trees = mapAdopsiPohons(adopts).filter((t) => t.invoice === conf!.invoice);
       banks = (await apiGet<Record<string, unknown>[]>("getrekening")).map(mapBank);
@@ -52,16 +65,9 @@ export default async function MitraBayarPage(props: PageProps<"/mitra/bayar/[inv
   }
   if (!conf) notFound();
 
-  const status = (s: string | null | undefined, fotoUrl: string | null) => {
-    const isPaid = s === "yes";
-    if (isPaid) return "ACTIVE" as const;
-    if (fotoUrl) return "PENDING_VERIFICATION" as const;
-    if (s === "cancel") return "CANCELLED" as const;
-    return "PENDING_PAYMENT" as const;
-  };
-  const s = status(conf.confirmation, conf.fotoUrl);
+  const s = conf.paid ? ("ACTIVE" as const) : conf.bukti ? ("PENDING_VERIFICATION" as const) : conf.expired ? ("CANCELLED" as const) : ("PENDING_PAYMENT" as const);
 
-  const batas = conf.createdAt ? new Date(new Date(conf.createdAt).getTime() + 24 * 60 * 60 * 1000) : null;
+  const batas = conf.created_at ? new Date(new Date(conf.created_at).getTime() + 24 * 60 * 60 * 1000) : null;
   const batasStr = batas ? batas.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) + " " + batas.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "";
 
   const uniqueTrees = new Map<string, { tree: ApiAdopsiPohon; adopters: string[]; totalPrice: number }>();
@@ -82,7 +88,7 @@ export default async function MitraBayarPage(props: PageProps<"/mitra/bayar/[inv
       <div className="mt-4 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-night-700 dark:bg-night-900 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">Invoice #{conf.invoice}</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">Invoice {conf.invoice}</p>
             <h1 className="mt-1 text-2xl font-extrabold text-emerald-950 dark:text-emerald-100">Pembayaran Order Adopsi</h1>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Mitra: <strong>{mitraName}</strong></p>
           </div>
@@ -98,7 +104,7 @@ export default async function MitraBayarPage(props: PageProps<"/mitra/bayar/[inv
         </div>
 
         <dl className="mt-5 grid grid-cols-2 gap-3 rounded-2xl border border-emerald-50 bg-emerald-50/30 p-4 text-sm sm:grid-cols-4 dark:border-night-800">
-          <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Tanggal</dt><dd className="mt-0.5 font-semibold text-zinc-800 dark:text-zinc-100">{tanggal(conf.tanggal)}</dd></div>
+          <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Tanggal</dt><dd className="mt-0.5 font-semibold text-zinc-800 dark:text-zinc-100">{tanggal(conf.tgl)}</dd></div>
           <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Pohon</dt><dd className="mt-0.5 font-semibold text-zinc-800 dark:text-zinc-100">{grouped.length} pohon</dd></div>
           <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Pengadopsi</dt><dd className="mt-0.5 font-semibold text-zinc-800 dark:text-zinc-100">{trees.length} orang</dd></div>
           <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Total</dt><dd className="mt-0.5 font-extrabold text-emerald-800 dark:text-emerald-300">{rupiah(conf.price)}</dd></div>
@@ -144,7 +150,7 @@ export default async function MitraBayarPage(props: PageProps<"/mitra/bayar/[inv
               <h2 className="font-bold text-emerald-900 dark:text-emerald-200">Bayar Online (QRIS)</h2>
               <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">Scan QRIS / pilih VA — terverifikasi otomatis.</p>
               <div className="mt-3">
-                <OnlinePayment confirmationId={conf.id} linkInvoice={conf.linkInvoice} />
+                <OnlinePayment confirmationId={conf.id} linkInvoice={conf.link_invoice ? conf.link_invoice : null} />
               </div>
             </div>
             {/* Transfer Bank */}
