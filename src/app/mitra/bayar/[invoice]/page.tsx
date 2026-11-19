@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/guard";
 import { apiPost, apiGet, mapBank, mapConfirmations, adopsiSlug, type ApiConfirmation, type ApiAdopsiPohon, type ApiBank } from "@/lib/api";
 import { mapAdopsiPohons } from "@/lib/api";
 import { rupiah, tanggal } from "@/lib/format";
-import { ArrowLeft, Receipt } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import OnlinePayment from "@/components/online-payment";
 import PaymentForm from "@/components/payment-form";
 import CancelAdoptionButton from "@/components/cancel-adoption-button";
