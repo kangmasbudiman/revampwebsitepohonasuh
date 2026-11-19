@@ -15,7 +15,18 @@ type PendingInvoice = {
   adopsi: unknown[];
   bukti?: string;
   price?: number;
+  status?: string;
 };
+
+function StatusBadge({ status }: { status?: string }) {
+  if (status === "yes") {
+    return <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-800">Lunas</span>;
+  }
+  if (status === "cancel") {
+    return <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase text-red-800">Kadaluarsa</span>;
+  }
+  return <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-800">Menunggu Verifikasi</span>;
+}
 
 export default async function BuktiTransferMitraPage(props: PageProps<"/admin/bukti-transfer-mitra">) {
   await requireAdminLevel();
@@ -46,8 +57,9 @@ export default async function BuktiTransferMitraPage(props: PageProps<"/admin/bu
         Bukti Transfer Mitra
       </h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Bukti pembayaran yang diunggah mitra untuk pembayaran manual (transfer bank). Klik gambar untuk
-        membuka dalam ukuran penuh, lalu langsung verifikasi dari halaman Verifikasi Adopsi Mitra.
+        Bukti pembayaran yang diunggah mitra untuk pembayaran manual (transfer bank), termasuk yang sudah
+        diverifikasi maupun kadaluarsa. Klik gambar untuk membuka dalam ukuran penuh, lalu langsung verifikasi
+        dari halaman Verifikasi Adopsi Mitra.
       </p>
 
       <form method="get" className="mt-4 flex flex-wrap items-center gap-2">
@@ -72,7 +84,7 @@ export default async function BuktiTransferMitraPage(props: PageProps<"/admin/bu
             {q ? `Tidak ada hasil untuk “${q}”` : "Belum ada bukti transfer masuk"}
           </p>
           <p className="max-w-md text-xs text-zinc-500">
-            Mitra mengunggah bukti dari menu tagihan / halaman pembayaran. Bukti muncul di sini selama invoice belum diverifikasi.
+            Mitra mengunggah bukti dari halaman pembayaran. Setiap bukti yang masuk (termasuk yang sudah diverifikasi atau kadaluarsa) muncul di sini.
           </p>
         </div>
       ) : (
@@ -92,6 +104,7 @@ export default async function BuktiTransferMitraPage(props: PageProps<"/admin/bu
                 <div className="text-right">
                   <p className="text-sm font-extrabold text-emerald-800 dark:text-emerald-300">{rupiah(inv.price ?? 0)}</p>
                   <p className="text-[11px] text-zinc-500">{inv.jumlah} pohon</p>
+                  <div className="mt-1"><StatusBadge status={inv.status} /></div>
                 </div>
               </header>
               {inv.bukti ? (
@@ -112,13 +125,19 @@ export default async function BuktiTransferMitraPage(props: PageProps<"/admin/bu
               )}
               <footer className="mt-auto flex items-center justify-between gap-2 p-4">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">Transfer Manual</span>
-                <Link
-                  href="/admin/verifikasi-adopsi-mitra"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700"
-                >
-                  Periksa &amp; Verifikasi
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-                </Link>
+                {inv.status === "yes" ? (
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">✓ Sudah diverifikasi &amp; sertifikat terbit</span>
+                ) : inv.status === "cancel" ? (
+                  <span className="text-[11px] font-semibold text-red-700">Invoice dibatalkan / kadaluarsa</span>
+                ) : (
+                  <Link
+                    href="/admin/verifikasi-adopsi-mitra"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700"
+                  >
+                    Periksa &amp; Verifikasi
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                  </Link>
+                )}
               </footer>
             </article>
           ))}
