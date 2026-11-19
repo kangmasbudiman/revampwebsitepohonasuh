@@ -15,6 +15,8 @@ type PendingInvoice = {
   tgl: string | null;
   jumlah: number;
   adopsi: PendingAdopsi[];
+  bukti?: string | null;
+  price?: number;
 };
 
 export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin/verifikasi-adopsi-mitra">) {
@@ -77,9 +79,22 @@ export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin
           {data.map((inv) => (
             <section key={inv.confirmasi_id} className="overflow-hidden rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
               <header className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-100 bg-emerald-50/60 px-4 py-3 dark:border-night-700 dark:bg-emerald-950/20 sm:px-5">
-                <div>
-                  <p className="text-sm font-bold text-emerald-950 dark:text-emerald-100">{inv.mitra}</p>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Invoice <span className="font-mono">{inv.invoice}</span> · {inv.tgl ?? "—"} · {inv.jumlah} pohon</p>
+                <div className="flex items-center gap-3">
+                  {inv.bukti ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <a href={inv.bukti} target="_blank" rel="noreferrer" className="block h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-emerald-200 bg-white" title="Lihat bukti transfer">
+                      <img src={inv.bukti} alt={`Bukti transfer ${inv.invoice}`} className="h-full w-full object-contain" />
+                    </a>
+                  ) : (
+                    <span className="grid h-14 w-20 shrink-0 place-items-center rounded-lg border border-dashed border-amber-300 bg-amber-50 text-[9px] font-semibold uppercase text-amber-700">Tanpa bukti</span>
+                  )}
+                  <div>
+                    <p className="text-sm font-bold text-emerald-950 dark:text-emerald-100">{inv.mitra}</p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Invoice <span className="font-mono">{inv.invoice}</span> · {inv.tgl ?? "—"} · {inv.jumlah} pohon</p>
+                    {inv.bukti
+                      ? <a href={inv.bukti} target="_blank" rel="noreferrer" className="text-[11px] font-semibold text-emerald-700 underline decoration-emerald-300 hover:text-emerald-800">Lihat bukti transfer</a>
+                      : <span className="text-[11px] text-amber-700">Belum ada bukti (kemungkinan QRIS/Mayar)</span>}
+                  </div>
                 </div>
                 <form action={verifikasiAdopsiMitraAction}>
                   <input type="hidden" name="invoice" value={inv.invoice} />
