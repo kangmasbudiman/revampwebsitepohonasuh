@@ -287,7 +287,13 @@ export default function AdminNav({
               onClick={() => setOpen((o) => ({ ...o, [group.title]: !o[group.title] }))}
               className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-300/50 transition-colors hover:bg-white/5 hover:text-emerald-200"
             >
-              {group.title}
+              <span className="flex items-center gap-2">
+                {group.items[0]?.icon && (() => {
+              const GroupIcon = group.items[0].icon;
+              return <GroupIcon className="h-3.5 w-3.5 text-emerald-300/70" aria-hidden />;
+            })()}
+                {group.title}
+              </span>
               <ChevronDown
                 className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
               />
