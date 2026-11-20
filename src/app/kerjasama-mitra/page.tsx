@@ -37,7 +37,7 @@ export default async function KerjasamaMitraPage() {
 
   return (
     <I18nProvider locale={locale} dict={dict}>
-      <main className="w-full overflow-hidden bg-white">
+      <main className="w-full bg-white">
       <MitraNav session={session} />
 
       {/* ── HERO ── */}
