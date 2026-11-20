@@ -110,6 +110,9 @@ export default function MitraNav({ session = null }: { session?: Session | null 
               </Link>
             ))}
             <div className="mt-2 space-y-2 border-t border-emerald-100 pt-3">
+              <div className="flex items-center gap-2 px-1">
+                <LangToggle />
+              </div>
               {session ? (
                 <div className="flex items-center gap-2">
                   <Link
@@ -131,13 +134,22 @@ export default function MitraNav({ session = null }: { session?: Session | null 
                   </form>
                 </div>
               ) : (
-                <Link
-                  href="/masuk"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center rounded-xl px-4 py-2.5 text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-50"
-                >
-                  Masuk
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/masuk"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex-1 rounded-xl border border-emerald-200 px-3 py-2.5 text-center text-sm font-medium text-emerald-800"
+                  >
+                    Masuk
+                  </Link>
+                  <Link
+                    href="/daftar-mitra"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
+                  >
+                    Daftar
+                  </Link>
+                </div>
               )}
             </div>
           </div>
