@@ -285,7 +285,7 @@ export default function AdminNav({
               type="button"
               aria-expanded={isOpen}
               onClick={() => setOpen((o) => ({ ...o, [group.title]: !o[group.title] }))}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-200/80 transition-colors hover:bg-white/5 hover:text-emerald-200"
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-100 transition-colors hover:bg-white/5 hover:text-emerald-200"
             >
               <span className="flex items-center gap-2">
                 {group.items[0]?.icon && (() => {
