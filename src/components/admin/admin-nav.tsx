@@ -188,15 +188,15 @@ const hrefAktif = (pathname: string) => {
 };
 
 // Chip ikon menu: kotak kecil rounded agar tiap baris menu punya jangkar
-// visual sendiri — sidebar selalu gelap jadi warnanya fixed.
+// visual sendiri — sidebar gelap, jadi warnanya fixed.
 function NavIcon({ item, active }: { item: Item; active: boolean }) {
   const Icon = item.icon;
   return (
     <span
-      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 transition-colors ${
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 transition-all ${
         active
-          ? "bg-white/25 text-white ring-white/30"
-          : "bg-emerald-800/60 text-emerald-200 ring-emerald-600/40"
+          ? "bg-gradient-to-br from-emerald-500 to-teal-400 text-white shadow-lg shadow-emerald-900/40 ring-emerald-400/60"
+          : "bg-emerald-800/60 text-emerald-200 ring-emerald-600/40 hover:bg-emerald-800/80"
       }`}
     >
       <Icon className="h-4 w-4" />
