@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronDown, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ChevronDown, Leaf, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
 import { useState } from "react";
 import LangToggle from "@/components/lang-toggle";
 import type { Session } from "@/lib/auth";
@@ -18,10 +19,12 @@ const NAV_LINKS = [
 export default function MitraNav({ session = null }: { session?: Session | null }) {
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const isMitraActive = pathname === "/kerjasama-mitra";
 
   return (
     <header className="sticky top-0 z-50 border-b border-emerald-100 bg-white/80 backdrop-blur">
-      <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-2.5 sm:py-3">
+      <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 xl:max-w-7xl">
         <Link href="/kerjasama-mitra" className="flex shrink-0 items-center gap-2" aria-label="Pohon Asuh — Kerjasama Mitra">
           <Image src="/images/logo_icon.png" alt="Pohon Asuh" width={36} height={36} className="rounded-full" />
           <span className="text-lg font-extrabold text-emerald-900">Pohon Asuh</span>
@@ -71,8 +74,9 @@ export default function MitraNav({ session = null }: { session?: Session | null 
               Masuk
             </Link>
           )}
-          <Link href="/daftar-mitra" className="rounded-full bg-emerald-500 px-3 py-2 text-[10px] font-bold text-white shadow-emerald-900/40 transition-all hover:scale-[1.03] hover:bg-emerald-400 sm:px-6 sm:py-2.5 sm:text-xs">
-            Daftar →
+          <Link href="/daftar-mitra" className="group flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105">
+            <Leaf className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" aria-hidden />
+            Daftar
           </Link>
           <button
             type="button"
@@ -87,42 +91,63 @@ export default function MitraNav({ session = null }: { session?: Session | null 
       </div>
 
       {mobileOpen && (
-        <nav className="animate-menu absolute inset-x-0 top-full z-40 border-b border-emerald-100 bg-white shadow-lg md:hidden">
+        <nav className="animate-menu absolute inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-emerald-100 bg-white shadow-lg md:hidden">
           <div className="flex flex-col gap-1 px-4 py-4">
             {NAV_LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setMobileOpen(false)}
-                className="rounded-xl px-4 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+                className={`block rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                  isMitraActive
+                    ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow"
+                    : "text-emerald-900 hover:bg-emerald-50"
+                }`}
               >
                 {l.label}
               </Link>
             ))}
-            <div className="mt-2 border-t border-emerald-100 pt-2">
+            <div className="mt-2 space-y-2 border-t border-emerald-100 pt-3">
+              <div className="flex items-center gap-2 px-1">
+                <LangToggle />
+              </div>
               {session ? (
-                <>
+                <div className="flex items-center gap-2">
                   <Link
                     href="/mitra"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-50"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
                   >
-                    <LayoutDashboard className="h-4 w-4" aria-hidden /> Dashboard Mitra
+                    <LayoutDashboard className="h-4 w-4" aria-hidden />
+                    Dashboard Mitra
                   </Link>
-                  <form action={logout}>
-                    <button type="submit" className="flex w-full items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50">
-                      <LogOut className="h-4 w-4" aria-hidden /> Keluar
+                  <form action={logout} className="flex-1">
+                    <button
+                      type="submit"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-3 py-2.5 text-center text-sm font-medium text-red-600"
+                    >
+                      <LogOut className="h-4 w-4" aria-hidden />
+                      Keluar
                     </button>
                   </form>
-                </>
+                </div>
               ) : (
-                <Link
-                  href="/masuk"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center rounded-xl px-4 py-2.5 text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-50"
-                >
-                  Masuk
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/masuk"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex-1 rounded-xl border border-emerald-200 px-3 py-2.5 text-center text-sm font-medium text-emerald-800"
+                  >
+                    Masuk
+                  </Link>
+                  <Link
+                    href="/daftar-mitra"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
+                  >
+                    Daftar
+                  </Link>
+                </div>
               )}
             </div>
           </div>
