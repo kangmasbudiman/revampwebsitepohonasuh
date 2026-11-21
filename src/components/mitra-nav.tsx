@@ -76,10 +76,12 @@ export default function MitraNav({ session = null }: { session?: Session | null 
               Masuk
             </Link>
           )}
+          {!session && (
           <Link href="/daftar-mitra" className="group hidden md:flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105">
             <Leaf className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" aria-hidden />
             Daftar
           </Link>
+          )}
           <button
             type="button"
             aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
