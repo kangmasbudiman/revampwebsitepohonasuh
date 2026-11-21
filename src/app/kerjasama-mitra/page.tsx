@@ -50,30 +50,25 @@ export default async function KerjasamaMitraPage() {
           <div className="max-w-2xl">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-2 rounded-full bg-emerald-700/70 px-3 sm:px-4 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-emerald-200 ring-1 ring-emerald-600">
-                <Leaf className="h-3.5 w-3.5" /> Menjadi Mitra Pohon Asuh
+                <Leaf className="h-3.5 w-3.5" /> {dict.mitra.hero.badge}
               </span>
             </div>
 
             <h1 className="mt-5 sm:mt-6 text-3xl sm:text-6xl font-extrabold leading-[1.1] sm:leading-[1.08]">
-              Bersama Menjaga
-              <br />
-              Pohon, Hutan,
-              <br />
-              dan Kehidupan
+              {dict.mitra.hero.title}
             </h1>
             <p className="mt-5 sm:mt-6 max-w-lg text-sm sm:text-base leading-6 sm:leading-7 text-emerald-100">
-              Kolaborasi untuk mendukung masyarakat yang menjaga hutan dan melestarikan
-              keanekaragaman hayati.
+              {dict.mitra.hero.desc}
             </p>
 
             <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
               {!session && (
               <Link href="/daftar-mitra" className="hidden sm:inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 sm:px-10 py-3.5 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-900/40 hover:scale-[1.03] hover:bg-emerald-400">
-                Daftar Menjadi Mitra <ArrowRight className="ml-2 h-4 w-4" />
+                {dict.mitra.hero.cta} <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               )}
               <a href="#cara" className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 transition">
-                Pelajari Cara Kerja <ArrowRight className="ml-2 h-4 w-4" />
+                {dict.mitra.hero.learn} <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </div>
           </div>
@@ -87,12 +82,9 @@ export default async function KerjasamaMitraPage() {
             <Image src="/images/pohon1.jpg" alt="Tim Pohon Asuh di lapangan" fill sizes="(max-width:1024px) 100vw, 50vw" className="object-cover" />
           </figure>
           <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-emerald-950">Apa Itu Mitra Pohon Asuh?</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.apa.title}</h2>
             <p className="mt-4 text-base leading-7 text-zinc-700">
-              Mitra Pohon Asuh merupakan skema kolaborasi antara KKI Warsi dengan
-              perusahaan, organisasi, komunitas, lembaga pendidikan, maupun institusi
-              lainnya untuk mendukung perlindungan dan pemeliharaan hutan melalui
-              program adopsi pohon.
+              {dict.mitra.apa.desc}
             </p>
           </div>
         </div>
@@ -101,13 +93,13 @@ export default async function KerjasamaMitraPage() {
       {/* ── MENGAPA MITRA ── */}
       <section id="mengapa" className="bg-emerald-50 border-t border-emerald-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-emerald-950">Mengapa Menjadi Mitra?</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.mengapa.title}</h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { title: "Aksi Nyata untuk Lingkungan", desc: "Berkontribusi langsung dalam menjaga hutan.", icon: <TreePine className="h-7 w-7" /> },
-              { title: "Program Kolaborasi", desc: "Berkarya bersama masyarakat dan KKI Warsi.", icon: <Handshake className="h-7 w-7" /> },
-              { title: "Identitas Organisasi", desc: "Tampilkan komitmen lingkungan organisasi Anda.", icon: <Building2 className="h-7 w-7" /> },
-              { title: "Transparansi Dampak", desc: "Pantau perkembangan dan dampak program secara berkala.", icon: <LineChart className="h-7 w-7" /> },
+              { title: dict.mitra.mengapa.item1Title, desc: dict.mitra.mengapa.item1Desc, icon: <TreePine className="h-7 w-7" /> },
+              { title: dict.mitra.mengapa.item2Title, desc: dict.mitra.mengapa.item2Desc, icon: <Handshake className="h-7 w-7" /> },
+              { title: dict.mitra.mengapa.item3Title, desc: dict.mitra.mengapa.item3Desc, icon: <Building2 className="h-7 w-7" /> },
+              { title: dict.mitra.mengapa.item4Title, desc: dict.mitra.mengapa.item4Desc, icon: <LineChart className="h-7 w-7" /> },
             ].map((c, i) => (
               <div key={i} className="flex flex-col items-center gap-3 rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
@@ -124,7 +116,7 @@ export default async function KerjasamaMitraPage() {
       {/* ── SIAPA ── */}
       <section id="siapa" className="bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-emerald-950">Siapa yang Bisa Menjadi Mitra?</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.siapa.title}</h2>
           <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {[
               { label: "Perusahaan", icon: <Building2 className="h-12 w-12 text-zinc-700" /> },
@@ -146,16 +138,15 @@ export default async function KerjasamaMitraPage() {
       <section className="bg-emerald-950 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 grid gap-10 lg:grid-cols-2 lg:items-center">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold">Kelola Program Adopsi dalam Satu Platform</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold">{dict.mitra.platform.title}</h2>
             <p className="mt-4 text-sm leading-6 text-emerald-100">
-              Dengan akun Mitra, Anda dapat membuat program adopsi pohon sesuai kebutuhan
-              organisasi, dengan berbagai fitur unggulan.
+              {dict.mitra.platform.desc}
             </p>
             <ul className="mt-6 space-y-4">
               {[
-                { icon: <LayoutDashboard className="h-5 w-5" />, title: "Buat Program Sendiri", desc: "Rancang program adopsi dengan nama dan periode kegiatan." },
-                { icon: <Tag className="h-5 w-5" />, title: "Personalisasi Tagging Pohon", desc: "Gunakan logo dan identitas visual organisasi pada tagging pohon, termasuk informasi program." },
-                { icon: <BarChart3 className="h-5 w-5" />, title: "Pantau Dampak Program", desc: "Lihat dokumentasi, perkembangan, dan laporan dampak kegiatan." },
+                { icon: <LayoutDashboard className="h-5 w-5" />, title: dict.mitra.platform.item1Title, desc: dict.mitra.platform.item1Desc },
+                { icon: <Tag className="h-5 w-5" />, title: dict.mitra.platform.item2Title, desc: dict.mitra.platform.item2Desc },
+                { icon: <BarChart3 className="h-5 w-5" />, title: dict.mitra.platform.item3Title, desc: dict.mitra.platform.item3Desc },
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-800 text-emerald-300">
@@ -178,7 +169,7 @@ export default async function KerjasamaMitraPage() {
       {/* ── CARA KERJA ── */}
       <section id="cara" className="bg-emerald-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-emerald-950">Bagaimana Cara Kerja Kemitraan?</h2>
+          <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.cara.title}</h2>
           <div className="mt-10 flex flex-wrap justify-center gap-4 lg:flex-nowrap lg:gap-0 lg:justify-between">
             {[
               { n: "1", label: "Daftar Menjadi Mitra" },
@@ -217,10 +208,10 @@ export default async function KerjasamaMitraPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Mitra Kami</p>
-              <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-emerald-950">Lembaga yang Sudah Bergabung</h2>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-700">{dict.mitra.mitraKami.eyebrow}</p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.mitraKami.title}</h2>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                Organisasi, komunitas, dan institusi yang bersama-sama menjaga hutan. <span className="font-semibold text-emerald-800">Klik logo untuk melihat profil lembaga.</span>
+                {dict.mitra.mitraKami.desc} <span className="font-semibold text-emerald-800">Klik logo untuk melihat profil lembaga.</span>
               </p>
             </div>
             {!session && (
@@ -275,13 +266,13 @@ export default async function KerjasamaMitraPage() {
       {/* ── FAQ ── */}
       <section id="faq" className="bg-white border-t border-emerald-100">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-emerald-950">Pertanyaan yang Sering Diajukan (FAQ)</h2>
+          <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.faq.title}</h2>
           <div className="mt-8 divide-y divide-zinc-100 rounded-2xl border border-zinc-100">
             {[
-              { q: "Siapa yang dapat menjadi Mitra Pohon Asuh?", a: "Siapa saja: perusahaan, organisasi, komunitas, lembaga pendidikan, institusi pemerintah, dan lembaga desa." },
-              { q: "Apakah Mitra dapat membuat lebih dari satu program?", a: "Ya. Satu akun mitra dapat mengelola beberapa program, masing-masing dengan periode, pengadopsi, dan desain tagging sendiri." },
-              { q: "Bisakah desain tagging pohon disesuaikan dengan identitas organisasi?", a: "Tentu. Anda dapat mengunggah desain tagging sendiri atau memilih template standar dari platform." },
-              { q: "Bagaimana Mitra memantau dampak program?", a: "Melalui halaman Laporan di portal mitra Anda — menampilan total pohon ditahan, adopsi tercatat, sertifikat terbit, rekap per program, dan ekspor CSV." },
+              { q: dict.mitra.faq.q1, a: dict.mitra.faq.a1 },
+              { q: dict.mitra.faq.q2, a: dict.mitra.faq.a2 },
+              { q: dict.mitra.faq.q3, a: dict.mitra.faq.a3 },
+              { q: dict.mitra.faq.q4, a: dict.mitra.faq.a4 },
             ].map((f, i) => (
               <details key={i} className="px-5 py-4 group">
                 <summary className="cursor-pointer font-semibold text-emerald-900 flex items-center justify-between gap-4">
@@ -301,12 +292,12 @@ export default async function KerjasamaMitraPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-950/65 to-emerald-950/20" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-14 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-6">
           <div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold leading-snug">Mari Jadikan Komitmen Lingkungan<br />sebagai Aksi Nyata.</h2>
-            <p className="mt-2 max-w-lg text-sm text-emerald-100">Bergabunglah menjadi Mitra Pohon Asuh dan mulai bangun kolaborasi untuk menjaga hutan, mendukung masyarakat, serta melestarikan keanekaragaman hayati.</p>
+            <h2 className="text-2xl sm:text-4xl font-extrabold leading-snug">{dict.mitra.funnelCta.title}</h2>
+            <p className="mt-2 max-w-lg text-sm text-emerald-100">{dict.mitra.funnelCta.desc}</p>
           </div>
           {!session && (
           <Link href="/daftar-mitra" className="hidden sm:inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-emerald-500 px-8 sm:px-10 py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-900/40 hover:scale-[1.03] hover:bg-emerald-400">
-            Daftar Menjadi Mitra <ArrowRight className="ml-2 h-4 w-4" />
+            {dict.mitra.funnelCta.cta} <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
           )}
         </div>
