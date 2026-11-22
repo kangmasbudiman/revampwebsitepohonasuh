@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/guard";
-import { apiPost, type OrderTreeMini } from "@/lib/api";
+import { apiGet, apiPost, mapProgramMitra, type ApiProgramMitra, type OrderTreeMini } from "@/lib/api";
 import OrderTreesModal from "@/components/mitra/order-trees-modal";
-import { namaDesa } from "@/lib/format";
+import { namaDesa, rupiah, tanggal } from "@/lib/format";
 import { ChevronLeft, ChevronRight, History, SearchX } from "lucide-react";
 
 export const metadata = { title: "Riwayat Pemesanan | Pohon Asuh" };
@@ -29,6 +29,7 @@ const STATUS_LABEL: Record<string, [string, string]> = {
   approved: ["Disetujui", "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"],
   rejected: ["Ditolak", "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300"],
   cancelled: ["Dibatalkan", "bg-zinc-100 text-zinc-600 dark:bg-night-800 dark:text-zinc-400"],
+  selesai: ["Selesai", "bg-emerald-600 text-white"],
 };
 
 export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/riwayat-pesanan">) {
@@ -48,6 +49,15 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
     const { redirect } = await import("next/navigation");
     redirect("/dashboard");
   }
+
+  // Program mitra → data program (budget / masa berlaku) untuk kolom tabel.
+  let programs: ApiProgramMitra[] = [];
+  try {
+    programs = (await apiGet<Record<string, unknown>[]>(`programmitralist?mitra_id=${mitraId}`)).map(mapProgramMitra);
+  } catch {
+    programs = [];
+  }
+  const progMap = new Map(programs.map((p) => [p.id, p]));
 
   const status = (typeof sp?.status === "string" ? sp.status : "semua").toLowerCase();
   const activeStatus = ["semua", "pending", "approved", "rejected", "cancelled"].includes(status) ? status : "semua";
@@ -137,29 +147,42 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
       ) : (
         <>
           <div className="mt-5 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[700px] text-left text-sm">
               <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
                 <tr>
+                  <th className="px-4 py-3">No</th>
                   <th className="px-4 py-3">ID</th>
-                  <th className="px-4 py-3">Desa</th>
+                  <th className="px-4 py-3">Lokasi</th>
                   <th className="px-4 py-3">Program</th>
                   <th className="px-4 py-3">Jumlah</th>
-                  <th className="px-4 py-3">Pohon</th>
+                  <th className="px-4 py-3">Budget</th>
+                  <th className="px-4 py-3">Tgl Mulai</th>
+                  <th className="px-4 py-3">Tgl Selesai</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Waktu</th>
+                  <th className="px-4 py-3">Pohon</th>
+                  <th className="px-4 py-3 text-right">Waktu</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-                {rows.map((r) => {
-                  const lbl = STATUS_LABEL[r.status] ?? [r.status, "bg-zinc-100 text-zinc-600"];
+                {rows.map((r, i) => {
+                  const prog = progMap.get(r.program_id ?? 0);
+                  const progEnd = prog?.tglSelesai ? new Date(`${prog.tglSelesai}T00:00:00`) : null;
+                  const ended = progEnd && !Number.isNaN(progEnd.getTime()) && progEnd <= new Date();
+                  const effStatus = r.status === "approved" && ended ? "selesai" : r.status;
+                  const lbl = STATUS_LABEL[effStatus] ?? STATUS_LABEL[r.status] ?? [r.status, "bg-zinc-100 text-zinc-600"];
+                  const lokasi = r.desa ?? (r.trees && r.trees.length > 0 ? r.trees[0].desa : null);
                   return (
                     <tr key={r.id} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
+                      <td className="px-4 py-3 font-mono text-xs">{i + 1}</td>
                       <td className="px-4 py-3 font-mono text-xs">{r.id}</td>
-                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.desa ? namaDesa(r.desa) : "Semua desa"}</td>
+                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{lokasi ? namaDesa(lokasi) : "Semua desa"}</td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.program_nama ?? "—"}</td>
                       <td className="px-4 py-3 font-semibold">{r.jumlah}</td>
-                      <td className="px-4 py-3"><OrderTreesModal trees={r.trees ?? []} statusLabel={lbl[0]} /></td>
+                      <td className="px-4 py-3 font-semibold">{prog?.budget ? rupiah(prog.budget) : "—"}</td>
+                      <td className="px-4 py-3 text-xs">{prog?.tglMulai ? tanggal(prog.tglMulai) : "—"}</td>
+                      <td className="px-4 py-3 text-xs">{prog?.tglSelesai ? tanggal(prog.tglSelesai) : "—"}</td>
                       <td className="px-4 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${lbl[1]}`}>{lbl[0]}</span></td>
+                      <td className="px-4 py-3"><OrderTreesModal trees={r.trees ?? []} statusLabel={lbl[0]} /></td>
                       <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.created_at ?? "—"}</td>
                     </tr>
                   );
