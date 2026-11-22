@@ -46,6 +46,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
 
   const created = Boolean(sp?.created);
   const updated = Boolean(sp?.updated);
+  const deleted = Boolean(sp?.deleted);
   const error = sp?.error ? String(sp.error) : null;
 
   const inputCls =
@@ -58,6 +59,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
 
       {created && <SuccessPopup paramKey="created" title="Ditambahkan">Program ditambahkan.</SuccessPopup>}
       {updated && <SuccessPopup paramKey="updated" title="Diperbarui">Program diperbarui.</SuccessPopup>}
+      {deleted && <SuccessPopup paramKey="deleted" title="Terhapus">Program dihapus.</SuccessPopup>}
       {error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{error}</SuccessPopup>}
 
       {/* Buat Program Baru — form server */}

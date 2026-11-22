@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatBudget, formatProvinsi } from "@/lib/format";
 import type { ApiProgramMitra } from "@/lib/api";
+import ConfirmSubmit from "@/components/admin/confirm-submit";
+import { hapusProgramMitraSelf } from "@/lib/actions/mitra";
 import ProgramEditModal from "@/components/mitra/program-edit-modal";
 
 // Tabel program mitra — klik tombol "Edit" di baris ini membuka popup
@@ -88,6 +90,15 @@ export default function MitraProgramTable({
                     >
                       Edit
                     </button>
+                    <form action={hapusProgramMitraSelf} className="ml-1 inline">
+                      <input type="hidden" name="id" value={p.id} />
+                      <ConfirmSubmit
+                        message={`Hapus program "${p.nama}"? Program akan dihapus dari daftar Program Saya.`}
+                        className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40"
+                      >
+                        Hapus
+                      </ConfirmSubmit>
+                    </form>
                   </div>
                 </td>
               </tr>

@@ -478,6 +478,26 @@ export async function editProgramMitraSelf(_prev: AdminState, formData: FormData
   redirect("/mitra/program?updated=1");
 }
 
+export async function hapusProgramMitraSelf(formData: FormData) {
+  await requireUser();
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/mitra/program");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("hapusprogrammitra", { id });
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/program?error=${encodeURIComponent(res.pesan ?? "Gagal menghapus program.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/program?error=Gagal+menghapus+program");
+  }
+
+  revalidatePath("/mitra/program");
+  revalidatePath("/dashboard");
+  redirect("/mitra/program?deleted=1");
+}
+
 export async function daftarMitra(formData: FormData) {
   const nama = String(formData.get("nama") ?? "").trim();
   const alamat = String(formData.get("alamat") ?? "").trim();
