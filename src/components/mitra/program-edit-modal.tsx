@@ -39,7 +39,7 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
         aria-label="Tutup popup"
       />
 
-      <div className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-night-900">
+      <div className="relative max-h-[85vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-night-900">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-emerald-100 px-5 py-4 dark:border-night-700">
           <div className="min-w-0">
@@ -61,7 +61,7 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
         </div>
 
         {/* Form */}
-        <form action={action} className="grid gap-4 px-6 py-5 sm:grid-cols-2">
+        <form action={action} className="grid gap-4 px-6 py-5 lg:grid-cols-2">
           <input type="hidden" name="id" value={program.id} />
 
           {/* Kolom 1 — Program */}
