@@ -1,36 +1,13 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/guard";
-import { apiGet, apiPost, mapProgramMitra, type ApiProgramMitra, type OrderTreeMini } from "@/lib/api";
-import OrderTreesModal from "@/components/mitra/order-trees-modal";
-import { namaDesa, rupiah, tanggal } from "@/lib/format";
+import { apiGet, apiPost, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
+import MitraRiwayatTable, { type RiwayatRow } from "@/components/mitra/riwayat-table";
 import { ChevronLeft, ChevronRight, History, SearchX } from "lucide-react";
 
 export const metadata = { title: "Riwayat Pemesanan | Pohon Asuh" };
 
-type Row = {
-  id: number;
-  mitra_id: number;
-  program_id: number | null;
-  program_nama: string | null;
-  desa: string | null;
-  jumlah: number;
-  catatan: string | null;
-  status: string;
-  created_at: string | null;
-  trees?: OrderTreeMini[];
-  tree_count?: number;
-};
-
 type Summary = { pending: number; approved: number; rejected: number; cancelled: number; all: number };
-type ListResponse = { data: Row[]; total: number; summary?: Summary; page?: number; per_page?: number };
-
-const STATUS_LABEL: Record<string, [string, string]> = {
-  pending: ["Menunggu Persetujuan", "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"],
-  approved: ["Disetujui", "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"],
-  rejected: ["Ditolak", "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300"],
-  cancelled: ["Dibatalkan", "bg-zinc-100 text-zinc-600 dark:bg-night-800 dark:text-zinc-400"],
-  selesai: ["Selesai", "bg-emerald-600 text-white"],
-};
+type ListResponse = { data: RiwayatRow[]; total: number; summary?: Summary; page?: number; per_page?: number };
 
 export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/riwayat-pesanan">) {
   const session = await requireUser();
@@ -57,14 +34,13 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
   } catch {
     programs = [];
   }
-  const progMap = new Map(programs.map((p) => [p.id, p]));
 
   const status = (typeof sp?.status === "string" ? sp.status : "semua").toLowerCase();
   const activeStatus = ["semua", "pending", "approved", "rejected", "cancelled"].includes(status) ? status : "semua";
   const q = typeof sp?.q === "string" ? sp.q.trim() : "";
   const page = Number(sp?.page ?? 1) || 1;
 
-  let rows: Row[] = [];
+  let rows: RiwayatRow[] = [];
   let total = 0;
   let currentPage = 1;
   let summary: Summary = { pending: 0, approved: 0, rejected: 0, cancelled: 0, all: 0 };
@@ -146,50 +122,7 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
         </div>
       ) : (
         <>
-          <div className="mt-5 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-            <table className="w-full min-w-[700px] text-left text-sm">
-              <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
-                <tr>
-                  <th className="px-4 py-3">No</th>
-                  <th className="px-4 py-3">ID</th>
-                  <th className="px-4 py-3">Lokasi</th>
-                  <th className="px-4 py-3">Program</th>
-                  <th className="px-4 py-3">Jumlah</th>
-                  <th className="px-4 py-3">Budget</th>
-                  <th className="px-4 py-3">Tgl Mulai</th>
-                  <th className="px-4 py-3">Tgl Selesai</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Pohon</th>
-                  <th className="px-4 py-3 text-right">Waktu</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-                {rows.map((r, i) => {
-                  const prog = progMap.get(r.program_id ?? 0);
-                  const progEnd = prog?.tglSelesai ? new Date(`${prog.tglSelesai}T00:00:00`) : null;
-                  const ended = progEnd && !Number.isNaN(progEnd.getTime()) && progEnd <= new Date();
-                  const effStatus = r.status === "approved" && ended ? "selesai" : r.status;
-                  const lbl = STATUS_LABEL[effStatus] ?? STATUS_LABEL[r.status] ?? [r.status, "bg-zinc-100 text-zinc-600"];
-                  const lokasi = r.desa ?? (r.trees && r.trees.length > 0 ? r.trees[0].desa : null);
-                  return (
-                    <tr key={r.id} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
-                      <td className="px-4 py-3 font-mono text-xs">{i + 1}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{r.id}</td>
-                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{lokasi ? namaDesa(lokasi) : "Semua desa"}</td>
-                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.program_nama ?? "—"}</td>
-                      <td className="px-4 py-3 font-semibold">{r.jumlah}</td>
-                      <td className="px-4 py-3 font-semibold">{prog?.budget ? rupiah(prog.budget) : "—"}</td>
-                      <td className="px-4 py-3 text-xs">{prog?.tglMulai ? tanggal(prog.tglMulai) : "—"}</td>
-                      <td className="px-4 py-3 text-xs">{prog?.tglSelesai ? tanggal(prog.tglSelesai) : "—"}</td>
-                      <td className="px-4 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${lbl[1]}`}>{lbl[0]}</span></td>
-                      <td className="px-4 py-3"><OrderTreesModal trees={r.trees ?? []} statusLabel={lbl[0]} /></td>
-                      <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.created_at ?? "—"}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <MitraRiwayatTable rows={rows} programs={programs} />
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-500 dark:text-zinc-400">
             <p>Menampilkan <span className="font-semibold text-zinc-700 dark:text-zinc-200">{shownFrom.toLocaleString("id-ID")}–{shownTo.toLocaleString("id-ID")}</span> dari {total.toLocaleString("id-ID")} pesanan</p>
