@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdminLevel, requireUser } from "@/lib/guard";
 import { apiPost, apiPostForm } from "@/lib/api";
+import type { AdminState } from "@/lib/actions/admin";
 
 export async function tambahMitra(formData: FormData) {
   await requireAdminLevel();
@@ -416,7 +417,7 @@ export async function tambahProgramMitraSelf(formData: FormData) {
   redirect("/mitra/program?created=1");
 }
 
-export async function editProgramMitraSelf(formData: FormData) {
+export async function editProgramMitraSelf(_prev: AdminState, formData: FormData): Promise<AdminState> {
   const session = await requireUser();
   // resolve mitra_id from session
   let mitraId = session.mitraId;

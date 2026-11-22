@@ -3,13 +3,19 @@
 import { useEffect } from "react";
 
 // Auto-populate durasi kegiatan dari rentang tanggal (tgl_mulai → tgl_selesai)
-// saat user memilih tanggal pada form program mitra.
-export default function AutoDurasi() {
+// saat user memilih tanggal pada form program mitra. ID default "tgl_mulai"/
+// "tgl_selesai"/"durasi" — pakai `*Id` saat form berada di popup/modal
+// (ID ganda di DOM ditangani oleh id unik).
+export default function AutoDurasi({
+  mulaiId = "tgl_mulai",
+  selesaiId = "tgl_selesai",
+  durasiId = "durasi",
+}: { mulaiId?: string; selesaiId?: string; durasiId?: string } = {}) {
   useEffect(() => {
     const compute = () => {
-      const elMulai = document.getElementById("tgl_mulai") as HTMLInputElement | null;
-      const elSelesai = document.getElementById("tgl_selesai") as HTMLInputElement | null;
-      const elDurasi = document.getElementById("durasi") as HTMLInputElement | null;
+      const elMulai = document.getElementById(mulaiId) as HTMLInputElement | null;
+      const elSelesai = document.getElementById(selesaiId) as HTMLInputElement | null;
+      const elDurasi = document.getElementById(durasiId) as HTMLInputElement | null;
       if (!elMulai || !elSelesai || !elDurasi) return;
       const s = elMulai.value;
       const e = elSelesai.value;
@@ -31,15 +37,15 @@ export default function AutoDurasi() {
       elDurasi.value = val;
     };
     compute();
-    const elMulai = document.getElementById("tgl_mulai");
-    const elSelesai = document.getElementById("tgl_selesai");
+    const elMulai = document.getElementById(mulaiId);
+    const elSelesai = document.getElementById(selesaiId);
     elMulai?.addEventListener("change", compute);
     elSelesai?.addEventListener("change", compute);
     return () => {
       elMulai?.removeEventListener("change", compute);
       elSelesai?.removeEventListener("change", compute);
     };
-  }, []);
+  }, [mulaiId, selesaiId, durasiId]);
 
   return null;
 }

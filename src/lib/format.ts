@@ -31,6 +31,22 @@ export function rupiah(value: number): string {
   }).format(value);
 }
 
+// Budget program yang di-null/0 → "—" (kolom tabel Program Mitra).
+export function formatBudget(v: number | null | undefined): string {
+  const n = v ? Number(v) : 0;
+  if (!n || n <= 0) return "—";
+  return `Rp ${n.toLocaleString("id-ID")}`;
+}
+
+// Provinsi program (dipisah koma) → "Banten, Jambi" (—" kosong).
+export function formatProvinsi(v: string | null | undefined): string {
+  const list = String(v ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return list.length ? list.join(", ") : "—";
+}
+
 export function tanggal(value: Date | string): string {
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
