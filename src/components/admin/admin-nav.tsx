@@ -342,15 +342,6 @@ export function AdminSidebarFooter({ name, level }: { name: string; level?: numb
         </span>
         <ThemeToggle onDark className="h-8 w-8 shrink-0" />
       </div>
-      <form action={logout}>
-        <button
-          type="submit"
-          className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200"
-        >
-          <LogOut className="h-4 w-4" />
-          Keluar
-        </button>
-      </form>
     </div>
   );
 }
