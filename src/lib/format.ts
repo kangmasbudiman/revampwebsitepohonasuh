@@ -38,6 +38,25 @@ export function formatBudget(v: number | null | undefined): string {
   return `Rp ${n.toLocaleString("id-ID")}`;
 }
 
+// Durasi program ("N bulan N hari" / "N bulan" / "N hari") dari rentang
+// tanggal (tgl_mulai → tgl_selesai) — format sama seperti auto-durasi form.
+export function durasiDariTanggal(s?: string | null, e?: string | null): string {
+  if (!s || !e) return "";
+  const a = new Date(`${s}T00:00:00`);
+  const b = new Date(`${e}T00:00:00`);
+  let months = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+  let days = b.getDate() - a.getDate();
+  if (days < 0) {
+    months -= 1;
+    days += new Date(a.getFullYear(), a.getMonth() + 1, 0).getDate();
+  }
+  const mm = Math.max(0, months);
+  const dd = Math.max(0, days);
+  if (mm > 0 && dd > 0) return `${mm} bulan ${dd} hari`;
+  if (mm > 0) return `${mm} bulan`;
+  return `${dd} hari`;
+}
+
 // Provinsi program (dipisah koma) → "Banten, Jambi" (—" kosong).
 export function formatProvinsi(v: string | null | undefined): string {
   const list = String(v ?? "")

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdminLevel, requireUser } from "@/lib/guard";
 import { apiPost, apiPostForm } from "@/lib/api";
+import { durasiDariTanggal } from "@/lib/format";
 import type { AdminState } from "@/lib/actions/admin";
 
 export async function tambahMitra(formData: FormData) {
@@ -399,7 +400,7 @@ export async function tambahProgramMitraSelf(formData: FormData) {
         logo,
         tgl_mulai: String(formData.get("tgl_mulai") ?? "").trim(),
         tgl_selesai: String(formData.get("tgl_selesai") ?? "").trim(),
-        durasi: String(formData.get("durasi") ?? "").trim(),
+        durasi: durasiDariTanggal(formData.get("tgl_mulai") as string | null, formData.get("tgl_selesai") as string | null),
         aktif: String(formData.get("aktif") ?? "1"),
         budget: normalizeBudget(String(formData.get("budget") ?? "")),
         provinsi: formData.getAll("provinsi").map((s) => String(s).trim()).filter(Boolean).join(","),
@@ -457,7 +458,7 @@ export async function editProgramMitraSelf(_prev: AdminState, formData: FormData
     deskripsi: String(formData.get("deskripsi") ?? "").trim(),
     tgl_mulai: String(formData.get("tgl_mulai") ?? "").trim(),
     tgl_selesai: String(formData.get("tgl_selesai") ?? "").trim(),
-    durasi: String(formData.get("durasi") ?? "").trim(),
+    durasi: durasiDariTanggal(formData.get("tgl_mulai") as string | null, formData.get("tgl_selesai") as string | null),
     aktif: String(formData.get("aktif") ?? "1"),
     budget: normalizeBudget(String(formData.get("budget") ?? "")),
     provinsi: formData.getAll("provinsi").map((s) => String(s).trim()).filter(Boolean).join(","),

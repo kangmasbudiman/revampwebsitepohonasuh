@@ -1,12 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
-import { X } from "lucide-react";
+import { History, X } from "lucide-react";
 import { editProgramMitraSelf } from "@/lib/actions/mitra";
 import type { ApiProgramMitra } from "@/lib/api";
 import AutoDurasi from "@/components/mitra/auto-durasi";
+import AnggaranInput from "@/components/mitra/anggaran-input";
+import { durasiDariTanggal } from "@/lib/format";
 import ProvinsiDropdown from "@/components/mitra/provinsi-dropdown";
-import RupiahInput from "@/components/mitra/rupiah-input";
 
 const inputCls =
   "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
@@ -77,11 +78,14 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
           </div>
           <div>
             <label className={labelCls}>Durasi</label>
-            <input name="durasi" id="edit_durasi" defaultValue={program.durasi ?? ""} placeholder="Otomatis dari tanggal" className={inputCls} />
+            <div className="mt-1 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:bg-night-950/40 dark:text-emerald-200">
+              <History className="h-4 w-4 text-emerald-600" aria-hidden />
+              <span id="edit_durasi" aria-live="polite">{program.durasi || durasiDariTanggal(program.tglMulai, program.tglSelesai)}</span>
+            </div>
           </div>
-          <div>
-            <label className={labelCls}>Budget Program</label>
-            <RupiahInput name="budget" defaultValue={program.budget} className={inputCls} placeholder="Rp 0" />
+          <div className="sm:col-span-2">
+            <label className={labelCls}>Rincian Anggaran Pohon</label>
+            <AnggaranInput name="budget" />
           </div>
           <div>
             <label className={labelCls}>Provinsi</label>
@@ -117,7 +121,7 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
             <textarea name="deskripsi" defaultValue={program.deskripsi ?? ""} placeholder="Deskripsi program" className={inputCls} rows={3} />
           </div>
 
-          <AutoDurasi mulaiId="edit_tgl_mulai" selesaiId="edit_tgl_selesai" durasiId="edit_durasi" />
+          <AutoDurasi mulaiId="edit_tgl_mulai" selesaiId="edit_tgl_selesai" targetId="edit_durasi" />
 
           <button
             type="submit"
