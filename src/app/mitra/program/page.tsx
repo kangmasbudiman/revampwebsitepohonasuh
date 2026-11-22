@@ -6,6 +6,7 @@ import { tambahProgramMitraSelf, editProgramMitraSelf } from "@/lib/actions/mitr
 import SuccessPopup from "@/components/admin/success-popup";
 import AutoDurasi from "@/components/mitra/auto-durasi";
 import ProvinsiDropdown from "@/components/mitra/provinsi-dropdown";
+import RupiahInput from "@/components/mitra/rupiah-input";
 
 const ASSET_ORIGIN = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
 
@@ -61,7 +62,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
   const error = sp?.error ? String(sp.error) : null;
 
   const inputCls =
-    "rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
+    "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
 
   return (
     <main className="mx-auto w-full px-6 py-8 lg:px-8">
@@ -76,9 +77,9 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
         <details className="mt-6 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
           <summary className="cursor-pointer font-semibold text-emerald-800">+ Edit Program</summary>
           <AutoDurasi />
-          <form action={editProgramMitraSelf} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <form action={editProgramMitraSelf} className="mt-4 grid gap-4 sm:grid-cols-2">
             <input type="hidden" name="id" value={editProg.id} />
-            <div className="sm:col-span-2 lg:col-span-3">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
               <input name="nama" defaultValue={editProg.nama} required className={inputCls} />
             </div>
@@ -96,7 +97,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Budget Program</label>
-              <input name="budget" type="number" min="0" step="0.01" defaultValue={editProg.budget ?? undefined} placeholder="0" className={inputCls} />
+              <RupiahInput name="budget" defaultValue={editProg.budget} className={inputCls} placeholder="Rp 0" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Provinsi</label>
@@ -113,23 +114,23 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
                 <option value="0">Nonaktif</option>
               </select>
             </div>
-            <div className="sm:col-span-2 lg:col-span-3">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Logo Program (opsional)</label>
               <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700" />
             </div>
-            <div className="sm:col-span-2 lg:col-span-3">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Deskripsi Program (opsional)</label>
               <textarea name="deskripsi" defaultValue={editProg.deskripsi ?? ""} placeholder="Deskripsi program" className={inputCls} rows={3} />
             </div>
-            <button type="submit" className="sm:col-span-2 lg:col-span-3 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Perubahan</button>
+            <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Perubahan</button>
           </form>
         </details>
       ) : (
         <details className="mt-6 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
           <summary className="cursor-pointer font-semibold text-emerald-800">+ Buat Program Baru</summary>
           <AutoDurasi />
-          <form action={tambahProgramMitraSelf} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="sm:col-span-2 lg:col-span-3">
+          <form action={tambahProgramMitraSelf} className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
               <input name="nama" placeholder="Nama program" required className={inputCls} />
             </div>
@@ -147,7 +148,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Budget Program</label>
-              <input name="budget" type="number" min="0" step="0.01" placeholder="0" className={inputCls} />
+              <RupiahInput name="budget" className={inputCls} placeholder="Rp 0" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Provinsi</label>
@@ -160,15 +161,15 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
                 <option value="0">Nonaktif</option>
               </select>
             </div>
-            <div className="sm:col-span-2 lg:col-span-3">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Logo Program (opsional)</label>
               <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700" />
             </div>
-            <div className="sm:col-span-2 lg:col-span-3">
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Deskripsi Program (opsional)</label>
               <textarea name="deskripsi" placeholder="Deskripsi program" className={inputCls} rows={3} />
             </div>
-            <button type="submit" className="sm:col-span-2 lg:col-span-3 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>
+            <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>
           </form>
         </details>
       )}

@@ -351,6 +351,12 @@ export async function hapusProgramMitra(formData: FormData) {
   redirect("/admin/program-mitra?deleted=1");
 }
 
+// Normalisasi budget: buang "Rp", pemisah ribuan, spasi → angka murni.
+function normalizeBudget(raw: string): string {
+  const digits = raw.replace(/[^\d]/g, "");
+  return digits ? String(Number(digits)) : "";
+}
+
 export async function tambahProgramMitraSelf(formData: FormData) {
   const session = await requireUser();
   // resolve mitra_id from session
@@ -394,7 +400,7 @@ export async function tambahProgramMitraSelf(formData: FormData) {
         tgl_selesai: String(formData.get("tgl_selesai") ?? "").trim(),
         durasi: String(formData.get("durasi") ?? "").trim(),
         aktif: String(formData.get("aktif") ?? "1"),
-        budget: String(formData.get("budget") ?? "").trim(),
+        budget: normalizeBudget(String(formData.get("budget") ?? "")),
         provinsi: formData.getAll("provinsi").map((s) => String(s).trim()).filter(Boolean).join(","),
       },
     );
@@ -452,7 +458,7 @@ export async function editProgramMitraSelf(formData: FormData) {
     tgl_selesai: String(formData.get("tgl_selesai") ?? "").trim(),
     durasi: String(formData.get("durasi") ?? "").trim(),
     aktif: String(formData.get("aktif") ?? "1"),
-    budget: String(formData.get("budget") ?? "").trim(),
+    budget: normalizeBudget(String(formData.get("budget") ?? "")),
     provinsi: formData.getAll("provinsi").map((s) => String(s).trim()).filter(Boolean).join(","),
   };
   if (logo) data.logo = logo;
