@@ -334,12 +334,6 @@ export function AdminSidebarFooter({ name, level }: { name: string; level?: numb
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-xs font-bold text-white shadow-md shadow-black/20">
           {initials || "?"}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-white">{name}</span>
-          <span className="block text-[11px] text-emerald-200/60">
-            {level === 2 ? "Petugas" : "Admin"}
-          </span>
-        </span>
         <ThemeToggle onDark className="h-8 w-8 shrink-0" />
       </div>
     </div>
