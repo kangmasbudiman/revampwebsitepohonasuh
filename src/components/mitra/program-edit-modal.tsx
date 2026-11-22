@@ -76,7 +76,7 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
             <label className={labelCls}>Tanggal Selesai</label>
             <input name="tgl_selesai" id="edit_tgl_selesai" type="date" defaultValue={program.tglSelesai ?? ""} className={inputCls} />
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label className={labelCls}>Durasi</label>
             <div className="mt-1 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:bg-night-950/40 dark:text-emerald-200">
               <History className="h-4 w-4 text-emerald-600" aria-hidden />
