@@ -7,7 +7,7 @@ import AnggaranInput from "@/components/mitra/anggaran-input";
 import ProvinsiDropdown from "@/components/mitra/provinsi-dropdown";
 import ProgramDetailModal from "@/components/mitra/program-detail-modal";
 import MitraProgramTable from "@/components/mitra/program-table";
-import { History } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
 const ASSET_ORIGIN = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
 
@@ -51,7 +51,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
   const error = sp?.error ? String(sp.error) : null;
 
   const inputCls =
-    "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
+    "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-[15px] text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:ring-emerald-900/40";
 
   return (
     <main className="mx-auto w-full px-6 py-8 lg:px-8">
@@ -71,43 +71,43 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
           {/* Kolom 1 — Program */}
           <div className="min-w-0 space-y-4">
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
+              <label className="mb-1 block text-sm font-semibold text-zinc-700 dark:text-zinc-200">Nama Program</label>
               <input name="nama" placeholder="Nama program" required className={inputCls} />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tanggal Mulai</label>
+                <label className="mb-1 block text-sm font-semibold text-zinc-700 dark:text-zinc-200">Tanggal Mulai</label>
                 <input name="tgl_mulai" id="tgl_mulai" type="date" className={inputCls} />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tanggal Selesai</label>
+                <label className="mb-1 block text-sm font-semibold text-zinc-700 dark:text-zinc-200">Tanggal Selesai</label>
                 <input name="tgl_selesai" id="tgl_selesai" type="date" className={inputCls} />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Durasi</label>
-              <div className="mt-1 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:bg-night-950/40 dark:text-emerald-200">
-                <History className="h-4 w-4 text-emerald-600" aria-hidden />
+              <label className="mb-1.5 block text-sm font-semibold text-zinc-700 dark:text-zinc-200">Durasi Program</label>
+              <div className="flex items-center gap-2 rounded-xl bg-emerald-100 px-3 py-2.5 text-sm font-bold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">
+                <CalendarDays className="h-4 w-4 shrink-0" aria-hidden />
                 <span id="durasi" aria-live="polite"></span>
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Provinsi</label>
+              <label className="mb-1 block text-sm font-semibold text-zinc-700 dark:text-zinc-200">Provinsi</label>
               <ProvinsiDropdown name="provinsi" options={provinsiList} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Status</label>
+              <label className="mb-1 block text-sm font-semibold text-zinc-700 dark:text-zinc-200">Status</label>
               <select name="aktif" defaultValue="1" className={inputCls}>
                 <option value="1">Aktif</option>
                 <option value="0">Nonaktif</option>
               </select>
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Logo Program (opsional)</label>
-              <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700" />
+              <label className="mb-1 block text-sm font-semibold text-zinc-700 dark:text-zinc-200">Logo Program (opsional)</label>
+              <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-[15px] file:mr-3 file:rounded-xl file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Deskripsi Program (opsional)</label>
+              <label className="mb-1 block text-sm font-semibold text-zinc-700 dark:text-zinc-200">Deskripsi Program (opsional)</label>
               <textarea name="deskripsi" placeholder="Deskripsi program" className={inputCls} rows={3} />
             </div>
           </div>

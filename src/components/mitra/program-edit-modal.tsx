@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { History, X } from "lucide-react";
+import { CalendarDays, X } from "lucide-react";
 import { editProgramMitraSelf } from "@/lib/actions/mitra";
 import type { ApiProgramMitra } from "@/lib/api";
 import AutoDurasi from "@/components/mitra/auto-durasi";
@@ -10,8 +10,8 @@ import { durasiDariTanggal } from "@/lib/format";
 import ProvinsiDropdown from "@/components/mitra/provinsi-dropdown";
 
 const inputCls =
-  "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100";
-const labelCls = "mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400";
+  "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-[15px] text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:ring-emerald-900/40";
+const labelCls = "mb-1.5 block text-sm font-semibold text-zinc-700 dark:text-zinc-200";
 
 type Props = {
   program: ApiProgramMitra;
@@ -81,9 +81,9 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
               </div>
             </div>
             <div>
-              <label className={labelCls}>Durasi</label>
-              <div className="mt-1 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:bg-night-950/40 dark:text-emerald-200">
-                <History className="h-4 w-4 text-emerald-600" aria-hidden />
+              <label className={labelCls}>Durasi Program</label>
+              <div className="flex items-center gap-2 rounded-xl bg-emerald-100 px-3 py-2.5 text-sm font-bold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">
+                <CalendarDays className="h-4 w-4 shrink-0" aria-hidden />
                 <span id="edit_durasi" aria-live="polite">{program.durasi || durasiDariTanggal(program.tglMulai, program.tglSelesai)}</span>
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
                 name="logo"
                 type="file"
                 accept="image/*"
-                className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700"
+                className="mt-1 w-full text-[15px] file:mr-3 file:rounded-xl file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100"
               />
               {logoSrc && (
                 <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">

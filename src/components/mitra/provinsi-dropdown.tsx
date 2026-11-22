@@ -27,7 +27,7 @@ export default function ProvinsiDropdown({ name, options, defaultValues = [] }: 
     setSelected((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
   };
 
-  const label = selected.length ? `${selected.length} provinsi dipilih` : "Pilih provinsi…";
+  const label = selected.length ? `${selected.length} provinsi dipilih` : "Pilih provinsi...";
 
   return (
     <div ref={wrapRef} className="relative">
