@@ -61,16 +61,16 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
         </div>
 
         {/* Form */}
-        <form action={action} className="grid gap-3 px-5 py-4 sm:grid-cols-2">
+        <form action={action} className="grid gap-4 px-6 py-5 sm:grid-cols-2">
           <input type="hidden" name="id" value={program.id} />
 
           {/* Kolom 1 — Program */}
-          <div className="min-w-0 space-y-3">
+          <div className="min-w-0 space-y-4">
             <div>
               <label className={labelCls}>Nama Program</label>
               <input name="nama" defaultValue={program.nama} required className={inputCls} />
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3.5 sm:grid-cols-2">
               <div>
                 <label className={labelCls}>Tanggal Mulai</label>
                 <input name="tgl_mulai" id="edit_tgl_mulai" type="date" defaultValue={program.tglMulai ?? ""} className={inputCls} />

@@ -67,9 +67,9 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
       <details className="mt-6 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
         <summary className="cursor-pointer font-semibold text-emerald-800">+ Buat Program Baru</summary>
         <AutoDurasi />
-        <form action={tambahProgramMitraSelf} className="mt-4 grid gap-4 sm:grid-cols-2">
+        <form action={tambahProgramMitraSelf} className="mt-6 grid gap-5 sm:grid-cols-2">
           {/* Kolom 1 — Program */}
-          <div className="min-w-0 space-y-3">
+          <div className="min-w-0 space-y-4">
             <div className="sm:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
               <input name="nama" placeholder="Nama program" required className={inputCls} />
@@ -117,8 +117,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
             <AnggaranInput name="budget" />
           </div>
 
-          <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>
-        </form>
+          <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>        </form>
       </details>
 
       {detailProg && (
