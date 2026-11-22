@@ -69,7 +69,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
         <AutoDurasi />
         <form action={tambahProgramMitraSelf} className="mt-4 grid gap-4 sm:grid-cols-2">
           {/* Kolom 1 — Program */}
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div className="sm:col-span-2">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
               <input name="nama" placeholder="Nama program" required className={inputCls} />
@@ -113,7 +113,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
           </div>
 
           {/* Kolom 2 — Anggaran */}
-          <div>
+          <div className="min-w-0">
             <AnggaranInput name="budget" />
           </div>
 

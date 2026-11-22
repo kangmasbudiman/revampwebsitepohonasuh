@@ -65,7 +65,7 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
           <input type="hidden" name="id" value={program.id} />
 
           {/* Kolom 1 — Program */}
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div>
               <label className={labelCls}>Nama Program</label>
               <input name="nama" defaultValue={program.nama} required className={inputCls} />
@@ -123,7 +123,7 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
           </div>
 
           {/* Kolom 2 — Anggaran */}
-          <div>
+          <div className="min-w-0">
             <AnggaranInput name="budget" />
           </div>
 
