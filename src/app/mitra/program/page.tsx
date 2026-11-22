@@ -7,6 +7,7 @@ import SuccessPopup from "@/components/admin/success-popup";
 import AutoDurasi from "@/components/mitra/auto-durasi";
 import ProvinsiDropdown from "@/components/mitra/provinsi-dropdown";
 import RupiahInput from "@/components/mitra/rupiah-input";
+import ProgramDetailModal from "@/components/mitra/program-detail-modal";
 
 const ASSET_ORIGIN = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
 
@@ -175,25 +176,10 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
       )}
 
       {detailProg && (
-        <div className="mt-6 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Program #{detailProg.id}</p>
-              <h2 className="mt-1 text-xl font-extrabold text-emerald-950">{detailProg.nama}</h2>
-              <p className="mt-1 text-sm text-zinc-600">Status: {detailProg.aktif ? "Aktif" : "Nonaktif"}</p>
-            </div>
-            <div className="flex gap-2">
-              <Link href={`/mitra/program?edit=${detailProg.id}`} className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Edit</Link>
-              <Link href="/mitra/program" className="rounded-full border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50">Tutup</Link>
-            </div>
-          </div>
-          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-            <div><span className="text-zinc-500">Periode:</span> {detailProg.tglMulai ?? "—"} → {detailProg.tglSelesai ?? "—"} {detailProg.durasi && <span className="block text-zinc-400">{detailProg.durasi}</span>}</div>
-            <div><span className="text-zinc-500">Budget:</span> {formatBudget(detailProg.budget)}</div>
-            <div><span className="text-zinc-500">Provinsi:</span> {formatProvinsi(detailProg.provinsi)}</div>
-            <div><span className="text-zinc-500">Deskripsi:</span> {detailProg.deskripsi ?? "—"}</div>
-          </div>
-        </div>
+        <ProgramDetailModal
+          program={detailProg}
+          logoUrl={detailProg.logo ? `${ASSET_ORIGIN}/assets/${detailProg.logo}` : null}
+        />
       )}
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
