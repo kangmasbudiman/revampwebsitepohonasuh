@@ -329,14 +329,7 @@ export function AdminSidebarFooter({ name, level }: { name: string; level?: numb
     .join("");
 
   return (
-    <div className="mt-2 shrink-0 border-t border-white/10 pt-3">
-      <div className="flex items-center gap-2.5 rounded-xl bg-white/5 px-3 py-2 ring-1 ring-white/10 backdrop-blur">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-xs font-bold text-white shadow-md shadow-black/20">
-          {initials || "?"}
-        </span>
-        <ThemeToggle onDark className="h-8 w-8 shrink-0" />
-      </div>
-    </div>
+    <div className="mt-2 shrink-0 border-t border-white/10 pt-3" />
   );
 }
 
