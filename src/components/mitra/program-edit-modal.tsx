@@ -13,6 +13,27 @@ const inputCls =
   "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-[15px] text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:focus:ring-emerald-900/40";
 const labelCls = "mb-1.5 block text-sm font-semibold text-zinc-700 dark:text-zinc-200";
 
+// Program lama belum punya budget_detail — pecah total budget lama ke
+// kategori harga terbesar agar list & total tetap tampil saat diedit.
+function budgetToEntries(budget: number | null): { harga: number; qty: number }[] {
+  if (!budget || budget <= 0) return [];
+  let sisa = Math.round(budget);
+  const out: { harga: number; qty: number }[] = [];
+  for (const harga of [200000, 150000, 100000]) {
+    const n = Math.floor(sisa / harga);
+    if (n > 0) {
+      out.push({ harga, qty: n });
+      sisa -= n * harga;
+    }
+  }
+  if (sisa > 0) {
+    const small = out.find((e) => e.harga === 100000);
+    if (small) small.qty += 1;
+    else out.push({ harga: 100000, qty: 1 });
+  }
+  return out;
+}
+
 type Props = {
   program: ApiProgramMitra;
   logoSrc: string | null;
@@ -24,6 +45,8 @@ type Props = {
 // Program Mitra. Terapkan via server action editProgramMitraSelf.
 export default function ProgramEditModal({ program, logoSrc, provinsiList, onClose }: Props) {
   const [, action, pending] = useActionState(editProgramMitraSelf, {});
+  const initialEntries =
+    program.budgetDetail.length > 0 ? program.budgetDetail : budgetToEntries(program.budget);
 
   return (
     <div
@@ -124,7 +147,7 @@ export default function ProgramEditModal({ program, logoSrc, provinsiList, onClo
 
           {/* Kolom 2 — Anggaran */}
           <div className="min-w-0">
-            <AnggaranInput name="budget" />
+            <AnggaranInput name="budget" initialEntries={initialEntries} />
           </div>
 
           <AutoDurasi mulaiId="edit_tgl_mulai" selesaiId="edit_tgl_selesai" targetId="edit_durasi" />

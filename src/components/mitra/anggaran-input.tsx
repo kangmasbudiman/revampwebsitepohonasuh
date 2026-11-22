@@ -18,12 +18,20 @@ const PRICE_BADGE: Record<number, string> = {
   200000: "bg-blue-100 text-blue-800",
 };
 
-type Props = { name: string };
+type Props = {
+  name: string;
+  initialEntries?: { harga: number; qty: number }[]; // rincian yang sudah disimpan (mode edit)
+};
 
 // Panel Rincian Anggaran Pohon — layout flex yang ikut menyusut agar tidak
 // bertumpukan di kolom sempit (mis. popup edit program).
-export default function AnggaranInput({ name }: Props) {
-  const [rows, setRows] = useState<Tier[]>(() => DEFAULT_TIERS.map((t) => ({ ...t })));
+export default function AnggaranInput({ name, initialEntries = [] }: Props) {
+  const [rows, setRows] = useState<Tier[]>(() =>
+    DEFAULT_TIERS.map((t) => {
+      const saved = initialEntries.find((e) => e.harga === t.price);
+      return { ...t, qty: saved?.qty ?? 0 };
+    }),
+  );
 
   const setQty = (i: number, v: number) =>
     setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, qty: v } : r)));
