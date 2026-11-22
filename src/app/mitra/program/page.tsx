@@ -68,48 +68,55 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
         <summary className="cursor-pointer font-semibold text-emerald-800">+ Buat Program Baru</summary>
         <AutoDurasi />
         <form action={tambahProgramMitraSelf} className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
-            <input name="nama" placeholder="Nama program" required className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tanggal Mulai</label>
-            <input name="tgl_mulai" id="tgl_mulai" type="date" className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tanggal Selesai</label>
-            <input name="tgl_selesai" id="tgl_selesai" type="date" className={inputCls} />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Durasi</label>
-            <div className="mt-1 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:bg-night-950/40 dark:text-emerald-200">
-              <History className="h-4 w-4 text-emerald-600" aria-hidden />
-              <span id="durasi" aria-live="polite"></span>
+          {/* Kolom 1 — Program */}
+          <div className="space-y-3">
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
+              <input name="nama" placeholder="Nama program" required className={inputCls} />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tanggal Mulai</label>
+                <input name="tgl_mulai" id="tgl_mulai" type="date" className={inputCls} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tanggal Selesai</label>
+                <input name="tgl_selesai" id="tgl_selesai" type="date" className={inputCls} />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Durasi</label>
+              <div className="mt-1 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:border-night-700 dark:bg-night-950/40 dark:text-emerald-200">
+                <History className="h-4 w-4 text-emerald-600" aria-hidden />
+                <span id="durasi" aria-live="polite"></span>
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Provinsi</label>
+              <ProvinsiDropdown name="provinsi" options={provinsiList} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Status</label>
+              <select name="aktif" defaultValue="1" className={inputCls}>
+                <option value="1">Aktif</option>
+                <option value="0">Nonaktif</option>
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Logo Program (opsional)</label>
+              <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Deskripsi Program (opsional)</label>
+              <textarea name="deskripsi" placeholder="Deskripsi program" className={inputCls} rows={3} />
             </div>
           </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Rincian Anggaran Pohon</label>
+
+          {/* Kolom 2 — Anggaran */}
+          <div>
             <AnggaranInput name="budget" />
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Provinsi</label>
-            <ProvinsiDropdown name="provinsi" options={provinsiList} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Status</label>
-            <select name="aktif" defaultValue="1" className={inputCls}>
-              <option value="1">Aktif</option>
-              <option value="0">Nonaktif</option>
-            </select>
-          </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Logo Program (opsional)</label>
-            <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700" />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Deskripsi Program (opsional)</label>
-            <textarea name="deskripsi" placeholder="Deskripsi program" className={inputCls} rows={3} />
-          </div>
+
           <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>
         </form>
       </details>
