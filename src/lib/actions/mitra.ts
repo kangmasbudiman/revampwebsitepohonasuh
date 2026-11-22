@@ -394,6 +394,8 @@ export async function tambahProgramMitraSelf(formData: FormData) {
         tgl_selesai: String(formData.get("tgl_selesai") ?? "").trim(),
         durasi: String(formData.get("durasi") ?? "").trim(),
         aktif: String(formData.get("aktif") ?? "1"),
+        budget: String(formData.get("budget") ?? "").trim(),
+        provinsi: formData.getAll("provinsi").map((s) => String(s).trim()).filter(Boolean).join(","),
       },
     );
     if (Number(res.value) !== 200) {
@@ -406,6 +408,67 @@ export async function tambahProgramMitraSelf(formData: FormData) {
 
   revalidatePath("/mitra/program");
   redirect("/mitra/program?created=1");
+}
+
+export async function editProgramMitraSelf(formData: FormData) {
+  const session = await requireUser();
+  // resolve mitra_id from session
+  let mitraId = session.mitraId;
+  if (!mitraId) {
+    try {
+      const info = await apiPost<{ value?: number; mitra?: { id: number } }>("mitramyinfo", { idmember: session.userId });
+      if (Number(info.value) === 200) mitraId = Number(info.mitra?.id);
+    } catch {
+      // ignore
+    }
+  }
+  if (!mitraId) redirect("/mitra?error=Bukan+akun+mitra");
+
+  const id = Number(formData.get("id"));
+  const nama = String(formData.get("nama") ?? "").trim();
+  if (!id) redirect("/mitra/program?error=Program+tidak+ditemukan");
+  if (!nama) redirect("/mitra/program?error=Nama+program+wajib");
+
+  // Upload logo program (opsional)
+  let logo: string | null = null;
+  const file = formData.get("logo");
+  if (file instanceof File && file.size > 0) {
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const up = await apiPostForm<{ value?: string | number; cover?: string; pesan?: string }>("uploadcover", fd);
+      if (Number(up.value) === 200 && up.cover) logo = up.cover;
+    } catch {
+      // logo gagal di-upload — tetap lanjut tanpa logo
+    }
+  }
+
+  const data: Record<string, string | number | null | undefined> = {
+    id,
+    mitra_id: mitraId,
+    nama,
+    deskripsi: String(formData.get("deskripsi") ?? "").trim(),
+    tgl_mulai: String(formData.get("tgl_mulai") ?? "").trim(),
+    tgl_selesai: String(formData.get("tgl_selesai") ?? "").trim(),
+    durasi: String(formData.get("durasi") ?? "").trim(),
+    aktif: String(formData.get("aktif") ?? "1"),
+    budget: String(formData.get("budget") ?? "").trim(),
+    provinsi: formData.getAll("provinsi").map((s) => String(s).trim()).filter(Boolean).join(","),
+  };
+  if (logo) data.logo = logo;
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("editprogrammitra", data);
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/program?error=${encodeURIComponent(res.pesan ?? "Gagal memperbarui program.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/program?error=Gagal+memperbarui+program");
+  }
+
+  revalidatePath("/mitra/program");
+  redirect("/mitra/program?updated=1");
 }
 
 export async function daftarMitra(formData: FormData) {

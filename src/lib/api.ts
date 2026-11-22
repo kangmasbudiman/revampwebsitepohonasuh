@@ -1839,6 +1839,8 @@ export type ApiProgramMitra = {
   tglSelesai: string | null;
   durasi: string | null;
   aktif: boolean;
+  budget: number | null;
+  provinsi: string | null;
 };
 
 export function mapProgramMitra(r: Record<string, unknown>): ApiProgramMitra {
@@ -1853,6 +1855,8 @@ export function mapProgramMitra(r: Record<string, unknown>): ApiProgramMitra {
     tglSelesai: r.tgl_selesai ? String(r.tgl_selesai) : null,
     durasi: r.durasi ? String(r.durasi) : null,
     aktif: Number(r.aktif ?? 1) === 1,
+    budget: r.budget ? Number(r.budget) : null,
+    provinsi: r.provinsi ? String(r.provinsi) : null,
   };
 }
 
