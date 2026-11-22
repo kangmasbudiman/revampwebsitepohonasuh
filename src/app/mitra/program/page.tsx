@@ -5,6 +5,7 @@ import { apiPost, apiGet, mapProgramMitra, type ApiProgramMitra } from "@/lib/ap
 import { tambahProgramMitraSelf, editProgramMitraSelf } from "@/lib/actions/mitra";
 import SuccessPopup from "@/components/admin/success-popup";
 import AutoDurasi from "@/components/mitra/auto-durasi";
+import ProvinsiDropdown from "@/components/mitra/provinsi-dropdown";
 
 const ASSET_ORIGIN = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
 
@@ -75,22 +76,11 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
         <details className="mt-6 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
           <summary className="cursor-pointer font-semibold text-emerald-800">+ Edit Program</summary>
           <AutoDurasi />
-          <form action={editProgramMitraSelf} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <form action={editProgramMitraSelf} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <input type="hidden" name="id" value={editProg.id} />
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 lg:col-span-3">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
               <input name="nama" defaultValue={editProg.nama} required className={inputCls} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Durasi</label>
-              <input name="durasi" id="durasi" defaultValue={editProg.durasi ?? ""} placeholder="Durasi kegiatan (mis. 3 bulan / 20 hari)" className={inputCls} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Status</label>
-              <select name="aktif" defaultValue={editProg.aktif ? "1" : "0"} className={inputCls}>
-                <option value="1">Aktif</option>
-                <option value="0">Nonaktif</option>
-              </select>
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tanggal Mulai</label>
@@ -101,52 +91,47 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
               <input name="tgl_selesai" id="tgl_selesai" type="date" defaultValue={editProg.tglSelesai ?? ""} className={inputCls} />
             </div>
             <div>
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Durasi</label>
+              <input name="durasi" id="durasi" defaultValue={editProg.durasi ?? ""} placeholder="Otomatis dari tanggal" className={inputCls} />
+            </div>
+            <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Budget Program</label>
               <input name="budget" type="number" min="0" step="0.01" defaultValue={editProg.budget ?? undefined} placeholder="0" className={inputCls} />
             </div>
-            <div className="sm:col-span-1">
+            <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Provinsi</label>
-              <select
+              <ProvinsiDropdown
                 name="provinsi"
-                multiple
-                defaultValue={editProg.provinsi ? String(editProg.provinsi).split(",").map((s) => s.trim()).filter(Boolean) : []}
-                className={inputCls}
-              >
-                {provinsiList.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
+                options={provinsiList}
+                defaultValues={editProg.provinsi ? String(editProg.provinsi).split(",").map((s) => s.trim()).filter(Boolean) : []}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Status</label>
+              <select name="aktif" defaultValue={editProg.aktif ? "1" : "0"} className={inputCls}>
+                <option value="1">Aktif</option>
+                <option value="0">Nonaktif</option>
               </select>
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 lg:col-span-3">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Logo Program (opsional)</label>
               <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 lg:col-span-3">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Deskripsi Program (opsional)</label>
               <textarea name="deskripsi" defaultValue={editProg.deskripsi ?? ""} placeholder="Deskripsi program" className={inputCls} rows={3} />
             </div>
-            <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Perubahan</button>
+            <button type="submit" className="sm:col-span-2 lg:col-span-3 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Perubahan</button>
           </form>
         </details>
       ) : (
         <details className="mt-6 rounded-2xl border border-emerald-100 pa-card p-6 shadow-sm dark:border-night-700">
           <summary className="cursor-pointer font-semibold text-emerald-800">+ Buat Program Baru</summary>
           <AutoDurasi />
-          <form action={tambahProgramMitraSelf} className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
+          <form action={tambahProgramMitraSelf} className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="sm:col-span-2 lg:col-span-3">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Nama Program</label>
               <input name="nama" placeholder="Nama program" required className={inputCls} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Durasi</label>
-              <input name="durasi" id="durasi" placeholder="Durasi kegiatan (mis. 3 bulan / 20 hari)" className={inputCls} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Status</label>
-              <select name="aktif" defaultValue="1" className={inputCls}>
-                <option value="1">Aktif</option>
-                <option value="0">Nonaktif</option>
-              </select>
             </div>
             <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Tanggal Mulai</label>
@@ -157,26 +142,33 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
               <input name="tgl_selesai" id="tgl_selesai" type="date" className={inputCls} />
             </div>
             <div>
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Durasi</label>
+              <input name="durasi" id="durasi" placeholder="Otomatis dari tanggal" className={inputCls} />
+            </div>
+            <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Budget Program</label>
               <input name="budget" type="number" min="0" step="0.01" placeholder="0" className={inputCls} />
             </div>
-            <div className="sm:col-span-1">
+            <div>
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Provinsi</label>
-              <select name="provinsi" multiple className={inputCls} aria-label="Provinsi program">
-                {provinsiList.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
+              <ProvinsiDropdown name="provinsi" options={provinsiList} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Status</label>
+              <select name="aktif" defaultValue="1" className={inputCls}>
+                <option value="1">Aktif</option>
+                <option value="0">Nonaktif</option>
               </select>
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 lg:col-span-3">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Logo Program (opsional)</label>
               <input name="logo" type="file" accept="image/*" className="mt-1 w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-emerald-700" />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 lg:col-span-3">
               <label className="mb-1 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">Deskripsi Program (opsional)</label>
               <textarea name="deskripsi" placeholder="Deskripsi program" className={inputCls} rows={3} />
             </div>
-            <button type="submit" className="sm:col-span-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>
+            <button type="submit" className="sm:col-span-2 lg:col-span-3 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">Simpan Program</button>
           </form>
         </details>
       )}
