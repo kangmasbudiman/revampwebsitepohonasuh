@@ -24,6 +24,12 @@ function formatProvinsi(v: string | null | undefined): string {
   return list.length ? list.join(", ") : "—";
 }
 
+function priceBadge(harga: number): string {
+  if (harga === 150000) return "bg-amber-100 text-amber-800";
+  if (harga === 200000) return "bg-blue-100 text-blue-800";
+  return "bg-emerald-100 text-emerald-800";
+}
+
 // Popup (modal) detail program — dibuka lewat ?detail=<id>, ditutup dengan
 // kembali ke /mitra/program (tanpa query detail).
 export default function ProgramDetailModal({ program, logoUrl }: Props) {
@@ -123,6 +129,56 @@ export default function ProgramDetailModal({ program, logoUrl }: Props) {
               </p>
             </div>
           </div>
+
+          {program.budgetDetail.length > 0 && (
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-night-700 dark:bg-emerald-950/20">
+              <p className="mb-3 text-sm font-bold text-emerald-900 dark:text-emerald-100">
+                Rincian Anggaran Pohon
+              </p>
+              <div className="overflow-hidden rounded-xl border border-emerald-100 bg-white dark:border-night-700 dark:bg-night-900">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-emerald-100 bg-emerald-50/60 text-[11px] uppercase tracking-wide text-zinc-500 dark:border-night-700 dark:bg-night-800">
+                    <tr>
+                      <th className="px-3 py-2">Harga Pohon</th>
+                      <th className="px-3 py-2 text-center">Jumlah</th>
+                      <th className="px-3 py-2 text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
+                    {program.budgetDetail.map((row, i) => (
+                      <tr key={`${row.harga}-${i}`}>
+                        <td className="px-3 py-2">
+                          <span className={`inline-flex rounded-xl px-2.5 py-1 text-xs font-bold ${priceBadge(row.harga)}`}>
+                            {formatBudget(row.harga)} / pohon
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-center font-semibold text-zinc-700 dark:text-zinc-200">
+                          {row.qty}
+                        </td>
+                        <td className="px-3 py-2 text-right font-bold text-emerald-700 dark:text-emerald-300">
+                          {formatBudget(row.harga * row.qty)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-emerald-100/80 px-4 py-3 dark:bg-emerald-900/30">
+                <span className="flex items-center gap-2 text-xs font-semibold text-emerald-900 dark:text-emerald-100">
+                  Total Pohon:
+                  <span className="rounded-lg bg-emerald-200/80 px-2 py-0.5 font-bold text-emerald-800 dark:bg-emerald-800 dark:text-emerald-100">
+                    {program.budgetDetail.reduce((s, r) => s + r.qty, 0)}
+                  </span>
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-100">Total Budget Program</span>
+                  <span className="rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-2 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/20">
+                    {formatBudget(program.budget)}
+                  </span>
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

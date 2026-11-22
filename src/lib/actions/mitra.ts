@@ -403,6 +403,7 @@ export async function tambahProgramMitraSelf(formData: FormData) {
         durasi: durasiDariTanggal(formData.get("tgl_mulai") as string | null, formData.get("tgl_selesai") as string | null),
         aktif: String(formData.get("aktif") ?? "1"),
         budget: normalizeBudget(String(formData.get("budget") ?? "")),
+        budget_detail: String(formData.get("budget_detail") ?? ""),
         provinsi: formData.getAll("provinsi").map((s) => String(s).trim()).filter(Boolean).join(","),
       },
     );
@@ -461,6 +462,7 @@ export async function editProgramMitraSelf(_prev: AdminState, formData: FormData
     durasi: durasiDariTanggal(formData.get("tgl_mulai") as string | null, formData.get("tgl_selesai") as string | null),
     aktif: String(formData.get("aktif") ?? "1"),
     budget: normalizeBudget(String(formData.get("budget") ?? "")),
+    budget_detail: String(formData.get("budget_detail") ?? ""),
     provinsi: formData.getAll("provinsi").map((s) => String(s).trim()).filter(Boolean).join(","),
   };
   if (logo) data.logo = logo;

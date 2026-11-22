@@ -1840,6 +1840,7 @@ export type ApiProgramMitra = {
   durasi: string | null;
   aktif: boolean;
   budget: number | null;
+  budgetDetail: { harga: number; qty: number }[];
   provinsi: string | null;
 };
 
@@ -1856,6 +1857,22 @@ export function mapProgramMitra(r: Record<string, unknown>): ApiProgramMitra {
     durasi: r.durasi ? String(r.durasi) : null,
     aktif: Number(r.aktif ?? 1) === 1,
     budget: r.budget ? Number(r.budget) : null,
+    budgetDetail: (() => {
+      const raw = r.budget_detail;
+      if (!raw) return [];
+      try {
+        const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+          .map((x: { harga?: unknown; qty?: unknown }) => ({
+            harga: Number(x.harga ?? 0),
+            qty: Number(x.qty ?? 0),
+          }))
+          .filter((x) => x.harga > 0 && x.qty > 0);
+      } catch {
+        return [];
+      }
+    })(),
     provinsi: r.provinsi ? String(r.provinsi) : null,
   };
 }

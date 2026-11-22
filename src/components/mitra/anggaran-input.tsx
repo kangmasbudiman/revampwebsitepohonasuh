@@ -149,6 +149,11 @@ export default function AnggaranInput({ name }: Props) {
       </div>
 
       <input type="hidden" name={name} value={totalBudget} />
+      <input
+        type="hidden"
+        name="budget_detail"
+        value={JSON.stringify(active.filter((r) => r.qty > 0).map((r) => ({ harga: r.price, qty: r.qty })))}
+      />
     </div>
   );
 }
