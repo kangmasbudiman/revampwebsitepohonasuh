@@ -87,7 +87,7 @@ export default function AlokasiPohonButton({
   const toggle = (code: string) => {
     setPicked((prev) => {
       if (prev.includes(code)) return prev.filter((c) => c !== code);
-      if (!isGanti && prev.length >= jumlah) return prev;
+      if (prev.length >= jumlah) return prev; // kuota penuh — tidak bisa menambah
       return [...prev, code];
     });
   };
@@ -111,7 +111,8 @@ export default function AlokasiPohonButton({
                 {isGanti ? "Atur Pohon" : "Pilih Pohon"} — Pesanan #{id}
               </h3>
               <p className="mt-1 text-xs text-zinc-500">
-                Pilih {jumlah} pohon{provinsi.length > 0 ? ` di provinsi ${provinsi.join(", ")}` : " yang tersedia"}. Terpilih: <strong>{picked.length}{isGanti ? "" : `/${jumlah}`}</strong>
+                Pilih {jumlah} pohon{provinsi.length > 0 ? ` di provinsi ${provinsi.join(", ")}` : " yang tersedia"}. Terpilih: <strong>{picked.length}/{jumlah}</strong>
+                {picked.length >= jumlah && <span className="ml-1 font-semibold text-amber-600">— kuota penuh, lepas pilihan untuk mengganti</span>}
               </p>
               <label className="relative mt-3 block">
                 <Search className="pointer-events-none absolute top-2.5 left-3 h-4 w-4 text-zinc-400" aria-hidden />
@@ -147,15 +148,20 @@ export default function AlokasiPohonButton({
                     return (
                       <label
                         key={t.idpohon}
-                        className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-2 text-xs transition ${
-                          on ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200 dark:bg-emerald-950/30" : "border-zinc-200 hover:border-emerald-300 dark:border-night-700"
+                        className={`flex items-center gap-2.5 rounded-xl border p-2 text-xs transition ${
+                          on
+                            ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200 dark:bg-emerald-950/30"
+                            : picked.length >= jumlah
+                              ? "cursor-not-allowed border-zinc-200 opacity-50 dark:border-night-700"
+                              : "cursor-pointer border-zinc-200 hover:border-emerald-300 dark:border-night-700"
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={on}
+                          disabled={!on && picked.length >= jumlah}
                           onChange={() => toggle(t.idpohon)}
-                          className="h-4 w-4 shrink-0 accent-emerald-600"
+                          className="h-4 w-4 shrink-0 accent-emerald-600 disabled:cursor-not-allowed"
                           aria-label={`Pilih ${t.idpohon}`}
                         />
                         <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-emerald-50">
@@ -193,7 +199,7 @@ export default function AlokasiPohonButton({
                 <input type="hidden" name={isGanti ? "kode_pohon" : "pohon_pilihan_admin"} value={picked.join(",")} />
                 <button
                   type="submit"
-                  disabled={!isGanti && picked.length > 0 && picked.length !== jumlah}
+                  disabled={isGanti ? picked.length !== jumlah : picked.length > 0 && picked.length !== jumlah}
                   className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isGanti
