@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
-import { type ApiMitraPesanan } from "@/lib/api";
-import { approvePesananMitra, rejectPesananMitra } from "@/lib/actions/mitra";
+import { apiGet, mapProgramMitra, type ApiMitraPesanan, type ApiProgramMitra } from "@/lib/api";
+import { rupiah, formatProvinsi } from "@/lib/format";
+import { rejectPesananMitra } from "@/lib/actions/mitra";
 import OrderTreesModal from "@/components/mitra/order-trees-modal";
+import AlokasiPohonButton from "@/components/admin/alokasi-pohon-button";
 import type { OrderTreeMini } from "@/lib/api";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
@@ -65,6 +67,13 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
     fetchError = true;
   }
 
+  // Data program → provinsi / masa berlaku / total budget untuk kolom tabel.
+  let programMap = new Map<number, ApiProgramMitra>();
+  try {
+    const prows = await apiGet<Record<string, unknown>[]>("programmitralist");
+    programMap = new Map(prows.map(mapProgramMitra).map((p) => [p.id, p]));
+  } catch {}
+
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const shownFrom = total === 0 ? 0 : (currentPage - 1) * perPage + 1;
   const shownTo = Math.min(total, currentPage * perPage);
@@ -99,8 +108,8 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
     <main className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
       <h1 className="text-2xl font-bold pa-hgrad">Pesanan Pohon Mitra</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Permintaan pemesanan dari mitra. Setujui untuk mengalokasikan pohon tersedia
-        (di desa yang diminta atau di mana pun jika tidak ditentukan) ke mitra.
+        Permintaan pemesanan dari mitra. Setujui &amp; pilih pohon yang tersedia di provinsi yang diminta pada program
+        (alokasi otomatis bila tidak memilih).
       </p>
 
       {sp?.approved && <SuccessPopup paramKey="approved" title="Disetujui">Pesanan disetujui & pohon dialokasikan.</SuccessPopup>}
@@ -149,6 +158,9 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                   <th className="px-4 py-3 font-semibold">Akun</th>
                   <th className="px-4 py-3 font-semibold">Desa</th>
                   <th className="px-4 py-3 font-semibold">Program</th>
+                  <th className="px-4 py-3 font-semibold">Provinsi</th>
+                  <th className="px-4 py-3 font-semibold">Masa Berlaku</th>
+                  <th className="px-4 py-3 font-semibold">Total Budget</th>
                   <th className="px-4 py-3 font-semibold">Jumlah</th>
                   <th className="px-4 py-3 font-semibold">Pohon Dipilih</th>
                   <th className="px-4 py-3 font-semibold">Catatan</th>
@@ -158,12 +170,19 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                 </tr>
               </thead>
               <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-                {rows.map((r) => (
+                {rows.map((r) => {
+                  const prog = r.programId ? programMap.get(Number(r.programId)) : null;
+                  return (
                   <tr key={r.id} className="transition-colors hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                     <td className="px-4 py-3 font-medium">{r.mitra_nama}</td>
                     <td className="px-4 py-3 text-zinc-500">{r.member_nama}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.desa ?? "Semua desa"}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.program_nama ?? "—"}</td>
+                    <td className="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{prog ? formatProvinsi(prog.provinsi) : "—"}</td>
+                    <td className="px-4 py-3 text-xs text-zinc-500">
+                      {prog ? `${prog.tglMulai ?? "—"} → ${prog.tglSelesai ?? "—"}` : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-semibold">{prog?.budget ? rupiah(prog.budget) : "—"}</td>
                     <td className="px-4 py-3 font-semibold">{r.jumlah}</td>
                     <td className="px-4 py-3">
                       {(() => {
@@ -193,10 +212,12 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                       <Link href={`/admin/pesanan-mitra/${r.id}`} className="mr-2 inline-flex rounded-lg border border-emerald-200 px-2 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300">Detail</Link>
                       {r.status === "pending" ? (
                         <>
-                          <form action={approvePesananMitra} className="inline">
-                            <input type="hidden" name="id" value={r.id} />
-                            <button type="submit" className="mr-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">Setujui & Alokasikan</button>
-                          </form>
+                          <AlokasiPohonButton
+                            id={r.id}
+                            jumlah={r.jumlah}
+                            programId={r.programId ? Number(r.programId) : null}
+                            desa={r.desa}
+                          />
                           <form action={rejectPesananMitra} className="inline">
                             <input type="hidden" name="id" value={r.id} />
                             <ConfirmSubmit message={`Tolak pesanan ${r.jumlah} pohon dari ${r.mitra_nama}?`} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400">
@@ -209,7 +230,8 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

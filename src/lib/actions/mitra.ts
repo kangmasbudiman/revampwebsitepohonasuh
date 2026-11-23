@@ -660,15 +660,37 @@ export async function requestPesananMitra(formData: FormData) {
   redirect("/mitra/pesanan?sukses=1");
 }
 
+export async function setPersetujuanProgram(formData: FormData) {
+  await requireAdminLevel();
+  const id = Number(formData.get("id"));
+  const aktif = Number(formData.get("aktif"));
+  if (!id) redirect("/admin/program-mitra?error=Program+tidak+ditemukan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("editprogrammitra", { id, aktif });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/program-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal mengubah persetujuan program.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/program-mitra?error=Gagal+mengubah+persetujuan");
+  }
+
+  revalidatePath("/admin/program-mitra");
+  revalidatePath("/mitra/program");
+  redirect(`/admin/program-mitra?${aktif === 1 ? "disetujui" : "dibatalkan"}=1`);
+}
+
 export async function approvePesananMitra(formData: FormData) {
   await requireAdminLevel();
   const id = Number(formData.get("id"));
+  const pohonPilihanAdmin = String(formData.get("pohon_pilihan_admin") ?? "").trim();
   if (!id) redirect("/admin/pesanan-mitra?error=Pesanan+tidak+ditemukan");
 
   try {
     const res = await apiPost<{ value?: string | number; pesan?: string }>(
       "mitraapprovepesanan",
-      { id, iduser: 1 },
+      { id, iduser: 1, pohon_pilihan_admin: pohonPilihanAdmin || undefined },
     );
     if (Number(res.value) !== 200) {
       redirect(`/admin/pesanan-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal menyetujui.")}`);

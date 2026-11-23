@@ -1,7 +1,7 @@
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import { apiGet, mapMitra, mapProgramMitra, type ApiMitra, type ApiProgramMitra } from "@/lib/api";
-import { tambahProgramMitra, hapusProgramMitra } from "@/lib/actions/mitra";
+import { tambahProgramMitra, hapusProgramMitra, setPersetujuanProgram } from "@/lib/actions/mitra";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 
 export const metadata = { title: "Program Mitra | Pohon Asuh" };
@@ -31,6 +31,8 @@ export default async function AdminProgramMitraPage(props: PageProps<"/admin/pro
 
       {sp?.created && <SuccessPopup paramKey="created" title="Ditambahkan">Program ditambahkan.</SuccessPopup>}
       {sp?.deleted && <SuccessPopup paramKey="deleted" title="Terhapus">Program dihapus.</SuccessPopup>}
+      {sp?.dibatalkan && <SuccessPopup paramKey="dibatalkan" tone="warn" title="Persetujuan Dibatalkan">Program dinonaktifkan — tidak tampil untuk mitra.</SuccessPopup>}
+      {sp?.disetujui && <SuccessPopup paramKey="disetujui" title="Disetujui">Program disetujui kembali.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
       <details className="mt-6 rounded-2xl border border-emerald-100 dark:border-night-700 pa-card p-6 shadow-sm">
@@ -81,10 +83,23 @@ export default async function AdminProgramMitraPage(props: PageProps<"/admin/pro
                   </td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${p.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
-                      {p.aktif ? "Aktif" : "Nonaktif"}
+                      {p.aktif ? "Aktif" : "Persetujuan Dibatalkan"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <form action={setPersetujuanProgram} className="mr-1 inline">
+                      <input type="hidden" name="id" value={p.id} />
+                      <input type="hidden" name="aktif" value={p.aktif ? 0 : 1} />
+                      {p.aktif ? (
+                        <ConfirmSubmit message={`Batalkan persetujuan program "${p.nama}"? Program akan dinonaktifkan.`} className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:border-amber-900/60 dark:text-amber-300">
+                          Batalkan Persetujuan
+                        </ConfirmSubmit>
+                      ) : (
+                        <button type="submit" className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                          Setujui
+                        </button>
+                      )}
+                    </form>
                     <form action={hapusProgramMitra} className="inline">
                       <input type="hidden" name="id" value={p.id} />
                       <ConfirmSubmit message={`Hapus program ${p.nama}?`} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400">

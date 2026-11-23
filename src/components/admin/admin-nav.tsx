@@ -87,6 +87,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/program-mitra", label: "Program Mitra", icon: Sprout },
       { href: "/admin/perpanjangan", label: "Perpanjangan Program", icon: Clock },
       { href: "/admin/pesanan-mitra", label: "Pesanan Pohon", icon: ShoppingCart },
+      { href: "/admin/riwayat-pesanan", label: "Riwayat Pesanan", icon: History },
       { href: "/admin/mitra-requests", label: "Request Hold Mitra", icon: Clock },
       { href: "/admin/adopsi-mitra", label: "Input Data Pengadopsi", icon: Upload },
       { href: "/admin/verifikasi-adopsi-mitra", label: "Verifikasi Adopsi Mitra", icon: BadgeCheck },
