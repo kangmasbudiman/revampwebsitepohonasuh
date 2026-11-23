@@ -8,6 +8,7 @@ import type { ApiProgramMitra } from "@/lib/api";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { hapusProgramMitraSelf } from "@/lib/actions/mitra";
 import ProgramEditModal from "@/components/mitra/program-edit-modal";
+import PerpanjangModal from "@/components/mitra/perpanjang-modal";
 
 // Tabel program mitra — klik tombol "Edit" di baris ini membuka popup
 // ProgramEditModal (popup saja, bukan form inline ?edit=id).
@@ -21,7 +22,9 @@ export default function MitraProgramTable({
   assetOrigin: string;
 }) {
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [perpanjangId, setPerpanjangId] = useState<number | null>(null);
   const editingProg = editingId ? programs.find((p) => p.id === editingId) ?? null : null;
+  const perpanjangProg = perpanjangId ? programs.find((p) => p.id === perpanjangId) ?? null : null;
   const logoSrc = (p: ApiProgramMitra) => (p.logo ? `${assetOrigin}/assets/${p.logo}` : null);
 
   return (
@@ -69,6 +72,16 @@ export default function MitraProgramTable({
                       Masa program habis
                     </span>
                   )}
+                  {p.perpanjanganStatus === "menunggu" && (
+                    <span className="mt-1 inline-block rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-bold text-sky-700">
+                      Perpanjangan menunggu admin
+                    </span>
+                  )}
+                  {p.perpanjanganStatus === "disetujui" && (
+                    <span className="mt-1 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                      Perpanjangan disetujui
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-2 text-[11px] whitespace-nowrap">{formatBudget(p.budget)}</td>
                 <td className="px-4 py-3 text-xs">{formatProvinsi(p.provinsi)}</td>
@@ -102,6 +115,14 @@ export default function MitraProgramTable({
                     >
                       Detail
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => setPerpanjangId(p.id)}
+                      disabled={p.perpanjanganStatus === "menunggu"}
+                      className="rounded-full border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-900/60 dark:text-amber-300"
+                    >
+                      Perpanjang
+                    </button>
                     <button
                       type="button"
                       onClick={() => setEditingId(p.id)}
@@ -141,6 +162,10 @@ export default function MitraProgramTable({
           provinsiList={provinsiList}
           onClose={() => setEditingId(null)}
         />
+      )}
+
+      {perpanjangProg && (
+        <PerpanjangModal program={perpanjangProg} onClose={() => setPerpanjangId(null)} />
       )}
     </>
   );

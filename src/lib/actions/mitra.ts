@@ -564,6 +564,33 @@ export async function ajukanDp(formData: FormData) {
   redirect("/mitra/tagihan?dp=1");
 }
 
+export async function ajukanPerpanjangan(formData: FormData) {
+  const session = await requireUser();
+  const programId = Number(formData.get("program_id"));
+  const tgl = String(formData.get("tgl_selesai_baru") ?? "").trim();
+  const alasan = String(formData.get("alasan") ?? "").trim();
+  if (!programId || !tgl) redirect("/mitra/program?error=Program+dan+tanggal+selesai+wajib");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("ajukanperpanjangan", {
+      idmember: session.userId,
+      program_id: programId,
+      tgl_selesai_baru: tgl,
+      alasan,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/program?error=${encodeURIComponent(res.pesan ?? "Gagal mengajukan perpanjangan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/program?error=Gagal+mengajukan+perpanjangan");
+  }
+
+  revalidatePath("/mitra/program");
+  revalidatePath("/admin/perpanjangan");
+  redirect("/mitra/program?perpanjang=1");
+}
+
 export async function daftarMitra(formData: FormData) {
   const nama = String(formData.get("nama") ?? "").trim();
   const alamat = String(formData.get("alamat") ?? "").trim();
