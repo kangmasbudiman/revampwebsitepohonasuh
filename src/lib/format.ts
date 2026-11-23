@@ -38,6 +38,19 @@ export function formatBudget(v: number | null | undefined): string {
   return `Rp ${n.toLocaleString("id-ID")}`;
 }
 
+// Penanda masa program: "near" bila berakhir dalam ≤14 hari (belum lewat).
+export function infoMasaProgram(tglSelesai?: string | null): { status: "near" | "expired" | "normal"; days: number } {
+  if (!tglSelesai) return { status: "normal", days: 0 };
+  const end = new Date(`${tglSelesai}T00:00:00`);
+  if (Number.isNaN(end.getTime())) return { status: "normal", days: 0 };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.ceil((end.getTime() - today.getTime()) / 86400000);
+  if (days < 0) return { status: "expired", days: Math.abs(days) };
+  if (days <= 14) return { status: "near", days };
+  return { status: "normal", days };
+}
+
 // Durasi program ("N bulan N hari" / "N bulan" / "N hari") dari rentang
 // tanggal (tgl_mulai → tgl_selesai) — format sama seperti auto-durasi form.
 export function durasiDariTanggal(s?: string | null, e?: string | null): string {

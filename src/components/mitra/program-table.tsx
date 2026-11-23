@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { formatBudget, formatProvinsi } from "@/lib/format";
+import { formatBudget, formatProvinsi, infoMasaProgram } from "@/lib/format";
 import type { ApiProgramMitra } from "@/lib/api";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { hapusProgramMitraSelf } from "@/lib/actions/mitra";
@@ -42,14 +42,33 @@ export default function MitraProgramTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-            {programs.map((p, i) => (
-              <tr key={p.id}>
+            {programs.map((p, i) => {
+              const masa = infoMasaProgram(p.tglSelesai);
+              return (
+              <tr
+                key={p.id}
+                className={
+                  masa.status === "near"
+                    ? "bg-amber-50/70 hover:bg-amber-100/70 dark:bg-amber-950/10"
+                    : "hover:bg-emerald-50/50 dark:hover:bg-night-800/40"
+                }
+              >
                 <td className="px-4 py-3 font-mono text-xs">{i + 1}</td>
                 <td className="px-4 py-3 font-mono text-xs">{p.id}</td>
                 <td className="px-4 py-3 font-medium">{p.nama}</td>
                 <td className="px-4 py-3 text-xs text-zinc-500">
                   {p.tglMulai ?? "—"} → {p.tglSelesai ?? "—"}
                   {p.durasi && <span className="block text-zinc-400">{p.durasi}</span>}
+                  {masa.status === "near" && (
+                    <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
+                      ⏳ Segera berakhir · {masa.days} hari
+                    </span>
+                  )}
+                  {masa.status === "expired" && (
+                    <span className="mt-1 inline-block rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-bold text-zinc-700">
+                      Masa program habis
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-2 text-[11px] whitespace-nowrap">{formatBudget(p.budget)}</td>
                 <td className="px-4 py-3 text-xs">{formatProvinsi(p.provinsi)}</td>
@@ -102,7 +121,8 @@ export default function MitraProgramTable({
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {programs.length === 0 && (
               <tr>
                 <td colSpan={9} className="px-4 py-10 text-center text-zinc-500">

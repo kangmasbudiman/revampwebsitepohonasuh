@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { namaDesa, rupiah, tanggal } from "@/lib/format";
+import { namaDesa, rupiah, tanggal, infoMasaProgram } from "@/lib/format";
 import type { ApiProgramMitra, OrderTreeMini } from "@/lib/api";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { hapusPesananMitra } from "@/lib/actions/mitra";
@@ -45,9 +45,17 @@ export default function MitraRiwayatTable({
             {rows.map((r, i) => {
               const prog = progMap.get(r.program_id ?? 0);
               const lbl = statusLabelFor(r, prog);
+              const masa = infoMasaProgram(prog?.tglSelesai);
               const lokasi = r.desa ?? (r.trees && r.trees.length > 0 ? r.trees[0].desa : null);
               return (
-                <tr key={r.id} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
+                <tr
+                  key={r.id}
+                  className={
+                    masa.status === "near"
+                      ? "bg-amber-50/70 hover:bg-amber-100/70 dark:bg-amber-950/10"
+                      : "hover:bg-emerald-50/50 dark:hover:bg-night-800/40"
+                  }
+                >
                   <td className="px-4 py-3 font-mono text-xs">{i + 1}</td>
                   <td className="px-4 py-3 font-mono text-xs">{r.id}</td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{lokasi ? namaDesa(lokasi) : "Semua desa"}</td>
@@ -58,6 +66,16 @@ export default function MitraRiwayatTable({
                   <td className="px-4 py-3 text-xs">{prog?.tglSelesai ? tanggal(prog.tglSelesai) : "—"}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${lbl[1]}`}>{lbl[0]}</span>
+                    {masa.status === "near" && (
+                      <span className="mt-1 block w-fit rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
+                        ⏳ Segera berakhir · {masa.days} hari
+                      </span>
+                    )}
+                    {masa.status === "expired" && (
+                      <span className="mt-1 block w-fit rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-bold text-zinc-700">
+                        Masa program habis
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">{renderTrees(r.trees)}</td>
                   <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.created_at ? tanggal(r.created_at) : "—"}</td>
