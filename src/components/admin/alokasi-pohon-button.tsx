@@ -11,6 +11,7 @@ type Tree = {
   localname?: string;
   species?: string | null;
   desa: string;
+  provinsi?: string | null;
   diameterCm?: number | null;
   heightM?: number | null;
   harga?: number | string | null;
@@ -172,7 +173,10 @@ export default function AlokasiPohonButton({
                               <span className="shrink-0 rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-bold text-white">Sudah terpilih</span>
                             )}
                           </span>
-                          <span className="block font-mono text-[10px] text-zinc-500">{t.idpohon} · {namaDesa(t.desa)}</span>
+                          <span className="block font-mono text-[10px] text-zinc-500">{t.idpohon}</span>
+                          <span className="block truncate text-[10px] text-zinc-500" title={`${namaDesa(t.desa)}${t.provinsi ? `, ${namaDesa(t.provinsi)}` : ""}`}>
+                            📍 {namaDesa(t.desa)}{t.provinsi ? `, ${namaDesa(t.provinsi)}` : ""}
+                          </span>
                           <span className="block font-semibold text-emerald-700">{rupiah(Number(t.harga ?? 0))}</span>
                         </span>
                       </label>
