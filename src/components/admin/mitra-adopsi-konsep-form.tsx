@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { inputAdopsiMitra, inputAdopsiMitraSelf } from "@/lib/actions/mitra";
 import SubmitButton from "@/components/admin/submit-button";
 import { type ProgramTreeMini } from "@/components/program-adopsi-pohon-list";
-import { Trash2, Plus, Search } from "lucide-react";
+import { Trash2, Plus, Search, CheckCircle2 } from "lucide-react";
 import { namaDesa, rupiah } from "@/lib/format";
 
 type Adopter = {
@@ -37,6 +37,8 @@ export default function MitraAdopsiKonsepForm({
   const [treeQuery, setTreeQuery] = useState("");
   const [adopterQuery, setAdopterQuery] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
+  const draftRestoredRef = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const draftKey = `pa-adopsi-draft-${selfMode ? "self" : "admin"}-${mitraId}`;
@@ -46,6 +48,7 @@ export default function MitraAdopsiKonsepForm({
     try {
       const raw = localStorage.getItem(draftKey);
       if (!raw) return;
+      draftRestoredRef.current = true; // jangan hapus pilihan saat programId dipulihkan
       const d = JSON.parse(raw) as {
         mitraId?: number; programId?: number; adopters?: Adopter[];
         chosen?: Record<string, string[]>; draft?: typeof draft; savedAt?: string;
@@ -64,12 +67,21 @@ export default function MitraAdopsiKonsepForm({
     const savedAt = new Date().toLocaleString("id-ID");
     localStorage.setItem(draftKey, JSON.stringify({ mitraId, programId, adopters, chosen, draft, savedAt }));
     setDraftSavedAt(savedAt);
+    setDraftNotice("Draft berhasil disimpan");
   };
 
   const hapusDraft = () => {
     localStorage.removeItem(draftKey);
     setDraftSavedAt(null);
+    setDraftNotice("Draft dihapus");
   };
+
+  // Notifikasi draft otomatis hilang setelah 3 detik.
+  useEffect(() => {
+    if (!draftNotice) return;
+    const t = setTimeout(() => setDraftNotice(null), 3000);
+    return () => clearTimeout(t);
+  }, [draftNotice]);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -78,10 +90,16 @@ export default function MitraAdopsiKonsepForm({
     let cancelled = false;
     (async () => {
       if (!programId) {
-        if (!cancelled) { setTreeList([]); setChosen({}); }
+        if (!cancelled) {
+          setTreeList([]);
+          if (!draftRestoredRef.current) setChosen({});
+        }
         return;
       }
-      if (!cancelled) { setTreeList([]); setChosen({}); }
+      if (!cancelled) {
+        setTreeList([]);
+        if (!draftRestoredRef.current) setChosen({});
+      }
       try {
         const res = await fetch(`/api/program-pohon?program_id=${programId}`, { cache: "no-store" });
         if (!res.ok) return;
@@ -172,7 +190,13 @@ export default function MitraAdopsiKonsepForm({
   }, [treeList, treeQuery]);
 
   return (
-    <form ref={formRef} action={formAction} encType="multipart/form-data" className="space-y-6">
+    <>
+      {draftNotice && (
+        <div className="fixed right-4 top-16 z-[80] flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-lg dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+          <CheckCircle2 className="h-4 w-4" aria-hidden /> {draftNotice}
+        </div>
+      )}
+      <form ref={formRef} action={formAction} encType="multipart/form-data" className="space-y-6">
       <input type="hidden" name="mitra_id" value={mitraId} />
       <input type="hidden" name="program_id" value={programId} />
       <input type="hidden" name="items" value={itemsJson} />
@@ -423,6 +447,7 @@ export default function MitraAdopsiKonsepForm({
         </div>
       </div>
     </form>
+    </>
   );
 }
 
