@@ -1,31 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { requestPesananMitra } from "@/lib/actions/mitra";
 import SubmitButton from "@/components/admin/submit-button";
 import { CalendarDays, MapPin, Sprout, Wallet } from "lucide-react";
 import { namaDesa, formatProvinsi, rupiah, tanggal } from "@/lib/format";
-import type { ApiProgramMitra } from "@/lib/api";
+import type { ApiDesa, ApiProgramMitra } from "@/lib/api";
 
-// Form pemesanan pohon — Mitra pilih program, detail program (provinsi,
-// jumlah pohon, masa program) tampil otomatis, lalu kirim untuk diverifikasi
-// admin. Admin yang memilih pohon tersedia.
+// Form pemesanan pohon — Mitra pilih program dulu, lalu lokasi/desa yang
+// tersedia dibatasi pada provinsi program tersebut. Detail program tampil
+// otomatis; admin yang memilih pohon & memverifikasi pesanan.
 export default function MitraPohonOrderForm({
   desas,
   programs,
-  desaActive = "",
 }: {
-  desas: { id: number; name: string }[];
+  desas: ApiDesa[];
   programs: ApiProgramMitra[];
-  desaActive?: string;
 }) {
-  const router = useRouter();
-  const desa = desaActive; // derived from URL — navigasi memicu re-fetch server-side
   const [programId, setProgramId] = useState<number | null>(null);
+  const [desa, setDesa] = useState("");
 
   const program = programId ? programs.find((p) => p.id === programId) ?? null : null;
-  // Jumlah pohon diambil dari Rincian Anggaran program (fallback untuk data lama).
+  const provinsiList = program
+    ? String(program.provinsi ?? "")
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean)
+    : [];
+  const desaOptions = desas.filter((d) =>
+    provinsiList.includes(String(d.provinsi ?? "").trim().toLowerCase()),
+  );
+
+  // Jumlah pohon diambil dari Rincian Anggaran program (fallback data lama).
   const totalPohon = program
     ? program.budgetDetail.length > 0
       ? program.budgetDetail.reduce((s, r) => s + r.qty, 0)
@@ -36,42 +42,53 @@ export default function MitraPohonOrderForm({
 
   return (
     <form action={requestPesananMitra} className="mt-6 space-y-4">
-      {/* Pilihan lokasi & program */}
+      {/* 1. Pilih program dulu */}
       <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="flex items-center gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300"><MapPin className="h-4 w-4" />Lokasi / Desa (opsional)</span>
-            <select
-              name="desa"
-              value={desa}
-              onChange={(e) => {
-                const v = e.target.value;
-                router.push(`/mitra/pesanan?desa=${encodeURIComponent(v)}`);
-              }}
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
-            >
-              <option value="">Semua lokasi</option>
-              {desas.map((d) => (
-                <option key={d.id} value={d.name}>{namaDesa(d.name)}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Program *</span>
-            <select
-              name="program_id"
-              value={programId ?? ""}
-              onChange={(e) => setProgramId(e.target.value ? Number(e.target.value) : null)}
-              required
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
-            >
-              <option value="">Pilih program...</option>
-              {programs.map((p) => (
-                <option key={p.id} value={p.id}>{p.nama}</option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <label className="block">
+          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Program *</span>
+          <select
+            name="program_id"
+            value={programId ?? ""}
+            onChange={(e) => {
+              setProgramId(e.target.value ? Number(e.target.value) : null);
+              setDesa(""); // reset lokasi saat program diganti
+            }}
+            required
+            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+          >
+            <option value="">Pilih program...</option>
+            {programs.map((p) => (
+              <option key={p.id} value={p.id}>{p.nama}</option>
+            ))}
+          </select>
+        </label>
+
+        {/* 2. Lokasi menyusul, hanya desa di provinsi program */}
+        <label className="mt-3 block">
+          <span className="flex items-center gap-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <MapPin className="h-4 w-4" /> Lokasi / Desa (opsional)
+          </span>
+          <select
+            name="desa"
+            value={desa}
+            onChange={(e) => setDesa(e.target.value)}
+            disabled={!program}
+            className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+          >
+            <option value="">
+              {program ? "Semua lokasi (provinsi program)" : "Pilih program terlebih dahulu"}
+            </option>
+            {desaOptions.map((d) => (
+              <option key={d.id} value={d.name}>
+                {d.label || namaDesa(d.name)} ({namaDesa(d.provinsi)})
+              </option>
+            ))}
+          </select>
+          {program && provinsiList.length === 0 && (
+            <p className="mt-1 text-xs text-amber-600">Program ini belum memiliki provinsi — semua lokasi ditampilkan.</p>
+          )}
+        </label>
+
         <label className="mt-3 block">
           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Catatan (opsional)</span>
           <input
@@ -113,7 +130,6 @@ export default function MitraPohonOrderForm({
       )}
 
       {/* Kirim — jumlah pohon otomatis dari program */}
-      <input type="hidden" name="program_id" value={programId ?? ""} />
       <input type="hidden" name="jumlah" value={totalPohon} />
       <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
         <div className="flex flex-wrap items-center justify-between gap-4">
