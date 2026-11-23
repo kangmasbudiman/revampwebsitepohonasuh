@@ -501,6 +501,29 @@ export async function hapusProgramMitraSelf(formData: FormData) {
   redirect("/mitra/program?deleted=1");
 }
 
+export async function hapusPesananMitra(formData: FormData) {
+  const session = await requireUser();
+  const id = Number(formData.get("id"));
+  if (!id) redirect("/mitra/riwayat-pesanan");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("mitrahapuspesanan", {
+      id,
+      idmember: session.userId,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/riwayat-pesanan?error=${encodeURIComponent(res.pesan ?? "Gagal menghapus pesanan.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/riwayat-pesanan?error=Gagal+menghapus+pesanan");
+  }
+
+  revalidatePath("/mitra/riwayat-pesanan");
+  revalidatePath("/mitra/pesanan");
+  redirect("/mitra/riwayat-pesanan?dihapus=1");
+}
+
 export async function daftarMitra(formData: FormData) {
   const nama = String(formData.get("nama") ?? "").trim();
   const alamat = String(formData.get("alamat") ?? "").trim();

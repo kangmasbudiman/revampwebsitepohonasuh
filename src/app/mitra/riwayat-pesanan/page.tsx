@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/guard";
 import { apiGet, apiPost, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
+import SuccessPopup from "@/components/admin/success-popup";
 import MitraRiwayatTable, { type RiwayatRow } from "@/components/mitra/riwayat-table";
 import { ChevronLeft, ChevronRight, History, SearchX } from "lucide-react";
 
 export const metadata = { title: "Riwayat Pemesanan | Pohon Asuh" };
 
-type Summary = { pending: number; approved: number; rejected: number; cancelled: number; all: number };
+type Summary = { pending: number; approved: number; rejected: number; cancelled: number; dihapus: number; all: number };
 type ListResponse = { data: RiwayatRow[]; total: number; summary?: Summary; page?: number; per_page?: number };
 
 export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/riwayat-pesanan">) {
@@ -36,14 +37,15 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
   }
 
   const status = (typeof sp?.status === "string" ? sp.status : "semua").toLowerCase();
-  const activeStatus = ["semua", "pending", "approved", "rejected", "cancelled"].includes(status) ? status : "semua";
+  const activeStatus = ["semua", "pending", "approved", "rejected", "cancelled", "dihapus"].includes(status) ? status : "semua";
   const q = typeof sp?.q === "string" ? sp.q.trim() : "";
   const page = Number(sp?.page ?? 1) || 1;
+  const dihapus = Boolean(sp?.dihapus);
 
   let rows: RiwayatRow[] = [];
   let total = 0;
   let currentPage = 1;
-  let summary: Summary = { pending: 0, approved: 0, rejected: 0, cancelled: 0, all: 0 };
+  let summary: Summary = { pending: 0, approved: 0, rejected: 0, cancelled: 0, dihapus: 0, all: 0 };
   let fetchError = false;
   try {
     const res = await apiPost<ListResponse>("mitrariwayatpesanan", { idmember: session.userId, status: activeStatus, q, page, per_page: 10 });
@@ -88,12 +90,16 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
         <Link href="/mitra/pesanan" className="rounded-xl border border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300">+ Pesan Pohon Lagi</Link>
       </div>
 
+      {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
+      {dihapus && <SuccessPopup paramKey="dihapus" title="Dihapus">Pemesanan dihapus.</SuccessPopup>}
+
       {/* Statistik singkat */}
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Menunggu</p><p className="mt-0.5 text-2xl font-extrabold text-amber-600">{summary.pending}</p></div>
         <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Disetujui</p><p className="mt-0.5 text-2xl font-extrabold text-emerald-700">{summary.approved}</p></div>
         <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Ditolak</p><p className="mt-0.5 text-2xl font-extrabold text-red-600">{summary.rejected}</p></div>
         <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Dibatalkan</p><p className="mt-0.5 text-2xl font-extrabold text-zinc-600">{summary.cancelled}</p></div>
+        <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Dihapus</p><p className="mt-0.5 text-2xl font-extrabold text-zinc-500">{summary.dihapus}</p></div>
       </div>
 
       {/* Filter + cari */}
@@ -103,6 +109,7 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
         {pill("approved", "Disetujui", summary.approved)}
         {pill("rejected", "Ditolak", summary.rejected)}
         {pill("cancelled", "Dibatalkan", summary.cancelled)}
+        {pill("dihapus", "Dihapus", summary.dihapus)}
       </div>
       <form method="get" className="mt-3 flex flex-wrap items-center gap-2">
         <input type="hidden" name="status" value={activeStatus} />

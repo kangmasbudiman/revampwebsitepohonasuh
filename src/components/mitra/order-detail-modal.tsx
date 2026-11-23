@@ -21,6 +21,7 @@ export const STATUS_LABEL: Record<string, [string, string]> = {
   approved: ["Disetujui", "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"],
   rejected: ["Ditolak", "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300"],
   cancelled: ["Dibatalkan", "bg-zinc-100 text-zinc-600 dark:bg-night-800 dark:text-zinc-400"],
+  dihapus: ["Dihapus", "bg-zinc-200 text-zinc-700 dark:bg-night-700 dark:text-zinc-300"],
   selesai: ["Selesai", "bg-emerald-600 text-white"],
 };
 

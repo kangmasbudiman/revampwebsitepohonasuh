@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { namaDesa, rupiah, tanggal } from "@/lib/format";
 import type { ApiProgramMitra, OrderTreeMini } from "@/lib/api";
+import ConfirmSubmit from "@/components/admin/confirm-submit";
+import { hapusPesananMitra } from "@/lib/actions/mitra";
 import OrderDetailModal, { statusLabelFor, type RiwayatRow } from "@/components/mitra/order-detail-modal";
 
 export type { RiwayatRow };
@@ -67,6 +69,17 @@ export default function MitraRiwayatTable({
                     >
                       Detail
                     </button>
+                    {r.status !== "dihapus" && (
+                      <form action={hapusPesananMitra} className="ml-1 inline">
+                        <input type="hidden" name="id" value={r.id} />
+                        <ConfirmSubmit
+                          message={`Hapus pesanan #${r.id}? Pesanan akan berstatus "Dihapus" dan pohon yang dipesan dikembalikan ke pool.`}
+                          className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40"
+                        >
+                          Hapus
+                        </ConfirmSubmit>
+                      </form>
+                    )}
                   </td>
                 </tr>
               );
