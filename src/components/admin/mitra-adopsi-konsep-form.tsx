@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { inputAdopsiMitra, inputAdopsiMitraSelf } from "@/lib/actions/mitra";
 import SubmitButton from "@/components/admin/submit-button";
 import { type ProgramTreeMini } from "@/components/program-adopsi-pohon-list";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Search } from "lucide-react";
 import { namaDesa, rupiah } from "@/lib/format";
 
 type Adopter = {
@@ -34,6 +34,7 @@ export default function MitraAdopsiKonsepForm({
   const [draft, setDraft] = useState({ nama: "", email: "", dur: 1, tgl_adopt: "", memo: "" });
   const [treeList, setTreeList] = useState<ProgramTreeMini[]>([]);
   const [chosen, setChosen] = useState<Record<string, string[]>>({}); // idpohon -> adopterIds
+  const [treeQuery, setTreeQuery] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -136,6 +137,13 @@ export default function MitraAdopsiKonsepForm({
   const assignedCount = Object.values(chosen).reduce((sum, ids) => sum + (ids?.length ?? 0), 0);
 
   const selectedProgram = programs.find((p) => p.id === programId);
+  const filteredTrees = useMemo(() => {
+    const needle = treeQuery.trim().toLowerCase();
+    if (!needle) return treeList;
+    return treeList.filter((t) =>
+      [t.idpohon, t.localName, t.species ?? "", t.desa ?? ""].join(" ").toLowerCase().includes(needle),
+    );
+  }, [treeList, treeQuery]);
 
   return (
     <form ref={formRef} action={formAction} encType="multipart/form-data" className="space-y-6">
@@ -234,7 +242,7 @@ export default function MitraAdopsiKonsepForm({
             <h3 className="flex items-center gap-2 font-semibold text-emerald-800 dark:text-emerald-200">
               <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white">2</span>Pohon yang Diadopsi
             </h3>
-            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-800">{pilihanPohonCount} pohon dipilih · {assignedCount} ditugaskan</span>
+            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-800">{pilihanPohonCount} pohon dipilih</span>
           </div>
 
           {!programId ? (
@@ -243,6 +251,16 @@ export default function MitraAdopsiKonsepForm({
             <p className="mt-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/30 px-4 py-6 text-center text-xs text-zinc-500">Belum ada pohon tersedia (belum diadopsi) di program ini.</p>
           ) : (
             <>
+              <label className="relative mt-3 block">
+                <Search className="pointer-events-none absolute top-2.5 left-3 h-4 w-4 text-zinc-400" aria-hidden />
+                <input
+                  value={treeQuery}
+                  onChange={(e) => setTreeQuery(e.target.value)}
+                  placeholder="Cari ID pohon / nama / desa…"
+                  className="w-full rounded-xl border border-zinc-200 bg-white py-2 pr-3 pl-9 text-sm outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+                  aria-label="Cari pohon"
+                />
+              </label>
               <p className="mt-2 text-[11px] text-zinc-500">Centang pohon, lalu centang pengadopsinya — bisa lebih dari satu <strong>(1 pohon diadopsi banyak pengadopsi)</strong>. Satu pengadopsi bisa mengadopsi banyak pohon.</p>
               {adopters.length === 0 && (
                 <p className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
@@ -250,7 +268,7 @@ export default function MitraAdopsiKonsepForm({
                 </p>
               )}
               <ul className="mt-3 max-h-[560px] space-y-2 overflow-y-auto pr-1">
-                {treeList.map((t) => {
+                {filteredTrees.map((t) => {
                   const pickedIds = chosen[t.idpohon] ?? [];
                   const picked = pickedIds.length > 0;
                   return (
@@ -270,7 +288,7 @@ export default function MitraAdopsiKonsepForm({
                         <div className="min-w-0 flex-1">
                           <p className="flex flex-wrap items-center gap-1.5">
                             <span className="truncate text-xs font-bold text-emerald-950 dark:text-emerald-100">{t.localName}</span>
-                            <span className="rounded bg-emerald-50 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-emerald-800 dark:bg-night-800 dark:text-emerald-300">{t.idpohon}</span>
+                            <span className="rounded bg-emerald-50 px-2 py-1 font-mono text-[13px] font-bold text-emerald-800 dark:bg-night-800 dark:text-emerald-300">{t.idpohon}</span>
                             <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[8px] font-bold text-amber-900">Dipesan</span>
                           </p>
                           <p className="mt-0.5 text-[10px] text-zinc-500">{namaDesa(t.desa)}{t.diameterCm ? ` · Ø ${t.diameterCm} cm` : ""}{t.heightM ? ` · T ${t.heightM} m` : ""}</p>
@@ -308,6 +326,11 @@ export default function MitraAdopsiKonsepForm({
                   );
                 })}
               </ul>
+              {filteredTrees.length === 0 && (
+                <p className="mt-2 rounded-xl border border-dashed border-emerald-200 px-4 py-8 text-center text-xs text-zinc-500">
+                  Tidak ada pohon cocok dengan “{treeQuery}”.
+                </p>
+              )}
             </>
           )}
         </div>
@@ -316,8 +339,7 @@ export default function MitraAdopsiKonsepForm({
       {/* Submit — lebar penuh */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-night-700">
         <div className="text-xs text-zinc-600 dark:text-zinc-300">
-          <p className="font-semibold text-emerald-900 dark:text-emerald-200">{pilihanPohonCount} pohon · {adopters.length} pengadopsi · {assignedCount} penugasan</p>
-          <p className="mt-0.5 text-[10px] text-zinc-400">Total penugasan (pohon × pengadopsi)</p>
+          <p className="font-semibold text-emerald-900 dark:text-emerald-200">{pilihanPohonCount} pohon · {adopters.length} pengadopsi</p>
           {pilihanPohonCount > 0 && assignedCount === 0 && (
             <p className="mt-0.5 text-[10px] font-semibold text-amber-700">Pohon belum ditugaskan — klik nama pengadopsi di baris pohon</p>
           )}
