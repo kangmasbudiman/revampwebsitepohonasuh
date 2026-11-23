@@ -137,9 +137,12 @@ export default function AlokasiPohonButton({
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {filtered.map((t) => {
                     const on = picked.includes(t.idpohon);
-                    const photo = t.foto_pohon
-                      ? `${assetOrigin}/${String(t.foto_pohon).replace(/^\//, "")}`
-                      : "";
+                    const fotoRaw = t.foto_pohon ? String(t.foto_pohon).trim() : "";
+                    const photo = !fotoRaw
+                      ? ""
+                      : /^https?:\/\//i.test(fotoRaw)
+                        ? fotoRaw
+                        : `${assetOrigin}/assets/${fotoRaw.replace(/^\/?(assets\/)?/, "")}`;
                     return (
                       <label
                         key={t.idpohon}
