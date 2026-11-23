@@ -64,6 +64,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
     title: "Transaksi & Adopsi",
     items: [
       { href: "/admin/verifikasi", label: "Verifikasi Pembayaran", icon: BadgeCheck },
+      { href: "/admin/verifikasi-dp", label: "Verifikasi DP", icon: BadgeDollarSign },
       { href: "/admin/adopsi", label: "Data Adopsi", icon: HeartHandshake },
       { href: "/admin/tagging", label: "Order Tagging", icon: Tag },
       { href: "/admin/sertifikat", label: "Kelola Sertifikat", icon: Award },

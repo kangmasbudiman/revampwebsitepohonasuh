@@ -524,6 +524,46 @@ export async function hapusPesananMitra(formData: FormData) {
   redirect("/mitra/riwayat-pesanan?dihapus=1");
 }
 
+export async function ajukanDp(formData: FormData) {
+  const session = await requireUser();
+  const id = Number(formData.get("pesanan_id"));
+  const jumlah = Number(formData.get("jumlah"));
+  if (!id || !(jumlah > 0)) redirect("/mitra/tagihan?error=Jumlah+DP+tidak+valid");
+
+  let bukti = "";
+  const file = formData.get("bukti");
+  if (file instanceof File && file.size > 0) {
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const up = await apiPostForm<{ value?: string | number; cover?: string }>("uploadcover", fd);
+      if (Number(up.value) === 200 && up.cover) bukti = up.cover;
+    } catch {
+      // upload gagal — tetap lanjut, validasi bukti di bawah
+    }
+  }
+  if (!bukti) redirect("/mitra/tagihan?error=Bukti+transfer+wajib+diisi");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("ajukandp", {
+      idmember: session.userId,
+      id,
+      jumlah,
+      bukti,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/mitra/tagihan?error=${encodeURIComponent(res.pesan ?? "Gagal mengajukan DP.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/mitra/tagihan?error=Gagal+mengajukan+DP");
+  }
+
+  revalidatePath("/mitra/tagihan");
+  revalidatePath("/mitra/riwayat-pesanan");
+  redirect("/mitra/tagihan?dp=1");
+}
+
 export async function daftarMitra(formData: FormData) {
   const nama = String(formData.get("nama") ?? "").trim();
   const alamat = String(formData.get("alamat") ?? "").trim();

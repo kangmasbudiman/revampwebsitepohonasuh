@@ -76,6 +76,19 @@ export default function MitraRiwayatTable({
                         Masa program habis
                       </span>
                     )}
+                    {r.dp_status && (
+                      <span
+                        className={`mt-1 block w-fit rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          r.dp_status === "disetujui"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : r.dp_status === "ditolak"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        DP {r.dp_status === "menunggu" ? "menunggu verifikasi" : r.dp_status === "disetujui" ? "lunas" : "ditolak"}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">{renderTrees(r.trees)}</td>
                   <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.created_at ? tanggal(r.created_at) : "—"}</td>

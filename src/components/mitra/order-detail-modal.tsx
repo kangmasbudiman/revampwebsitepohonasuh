@@ -14,6 +14,8 @@ export type RiwayatRow = {
   status: string;
   created_at: string | null;
   trees?: OrderTreeMini[];
+  dp_status?: string | null;
+  dp_jumlah?: number | null;
 };
 
 export const STATUS_LABEL: Record<string, [string, string]> = {

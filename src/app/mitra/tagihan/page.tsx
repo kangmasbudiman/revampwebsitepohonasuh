@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/guard";
-import { apiPost } from "@/lib/api";
+import { apiPost, apiGet, mapProgramMitra } from "@/lib/api";
+import SuccessPopup from "@/components/admin/success-popup";
+import DpForm from "@/components/mitra/dp-form";
 import { ArrowLeft, Receipt, CheckCircle2, Clock3, TreePine, BadgeCheck, Wallet, BadgeDollarSign, XCircle } from "lucide-react";
 
 export const metadata = { title: "Tagihan Adopsi | Pohon Asuh" };
@@ -17,8 +19,9 @@ type InvoiceItem = {
   created_at: string | null;
 };
 
-export default async function MitraTagihanPage() {
+export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan">) {
   const session = await requireUser();
+  const sp = await props.searchParams;
 
   let mitraId: number | null = null;
   let mitraName = "";
@@ -50,6 +53,34 @@ export default async function MitraTagihanPage() {
     fetchError = true;
   }
 
+  // Data untuk panel DP: pesanan mitra + budget program + riwayat DP.
+  type DpPesanan = { id: number; program_id: number | null; program_nama: string | null; jumlah: number; status: string; dp_status: string | null; budget: number | null };
+  type DpRow = { id: number; pesanan_id: number; jumlah: number | string; bukti: string | null; status: string; created_at: string; program_nama?: string | null };
+  let dpPesanans: DpPesanan[] = [];
+  let dps: DpRow[] = [];
+  try {
+    const [riwayat, prows, dpRes] = await Promise.all([
+      apiPost<{ data?: Record<string, unknown>[] }>("mitrariwayatpesanan", { idmember: session.userId, status: "semua", q: "", page: 1, per_page: 50 }),
+      apiGet<Record<string, unknown>[]>(`programmitralist?mitra_id=${mitraId}`),
+      apiPost<{ data?: DpRow[] }>("daftardp", { idmember: session.userId }),
+    ]);
+    const budgets = new Map(prows.map(mapProgramMitra).map((p) => [p.id, p.budget]));
+    dpPesanans = (Array.isArray(riwayat.data) ? riwayat.data : [])
+      .filter((r) => r.status !== "dihapus")
+      .map((r) => ({
+        id: Number(r.id),
+        program_id: r.program_id ? Number(r.program_id) : null,
+        program_nama: r.program_nama ? String(r.program_nama) : null,
+        jumlah: Number(r.jumlah ?? 0),
+        status: String(r.status ?? ""),
+        dp_status: r.dp_status ? String(r.dp_status) : null,
+        budget: r.program_id ? budgets.get(Number(r.program_id)) ?? null : null,
+      }));
+    dps = Array.isArray(dpRes.data) ? dpRes.data : [];
+  } catch {
+    // panel DP tetap tampil kosong bila API gagal
+  }
+
   const fmtDate = (raw: string | null) => {
     if (!raw) return "—";
     const d = new Date(raw.length === 10 ? raw + "T00:00:00" : raw.replace(" ", "T"));
@@ -70,6 +101,11 @@ export default async function MitraTagihanPage() {
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Mitra: <strong>{mitraName}</strong> · setiap simpan adopsi menerbitkan 1 invoice</p>
         </div>
       </header>
+
+      {sp?.dp === "1" && <SuccessPopup paramKey="dp" title="DP Diajukan">Bukti DP terkirim. Menunggu verifikasi admin.</SuccessPopup>}
+      {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
+
+      <DpForm pesanans={dpPesanans} dps={dps} />
 
       {/* Statistik */}
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
