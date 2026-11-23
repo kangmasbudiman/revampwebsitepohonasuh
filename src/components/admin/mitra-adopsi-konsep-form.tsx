@@ -327,6 +327,19 @@ export default function MitraAdopsiKonsepForm({
                       </div>
                       {picked && (
                         <div className="relative border-t border-emerald-100 bg-emerald-50/50 px-3 py-2 dark:border-night-700 dark:bg-night-800/40">
+                          {pickedIds.length > 0 && (
+                            <div className="mb-1.5 flex flex-wrap gap-1">
+                              {pickedIds.map((aid) => {
+                                const a = adopters.find((x) => x.id === aid);
+                                return a ? (
+                                  <span key={aid} className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{a.nama}</span>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                          {pickedIds.length === 0 && (
+                            <p className="mb-1.5 text-[10px] font-semibold text-amber-700">Belum ada pengadopsi — klik tombol di bawah untuk memilih.</p>
+                          )}
                           <button
                             type="button"
                             onClick={() => {
@@ -338,19 +351,6 @@ export default function MitraAdopsiKonsepForm({
                             👥 Diadopsi oleh: <strong>{pickedIds.length} orang</strong>
                             <span className="text-[9px]">▾</span>
                           </button>
-                          {pickedIds.length > 0 && (
-                            <div className="mt-1.5 flex flex-wrap gap-1">
-                              {pickedIds.map((aid) => {
-                                const a = adopters.find((x) => x.id === aid);
-                                return a ? (
-                                  <span key={aid} className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{a.nama}</span>
-                                ) : null;
-                              })}
-                            </div>
-                          )}
-                          {pickedIds.length === 0 && (
-                            <p className="mt-1 text-[10px] font-semibold text-amber-700">Belum ada pengadopsi — klik tombol di atas untuk memilih.</p>
-                          )}
                           {openAdopterFor === t.idpohon && (
                             <div className="absolute left-3 right-3 top-full z-30 mt-1 overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-xl dark:border-night-700 dark:bg-night-900">
                               <div className="flex items-center justify-between gap-2 border-b border-emerald-100 px-3 py-2 dark:border-night-700">
