@@ -36,6 +36,7 @@ export default function MitraAdopsiKonsepForm({
   const [chosen, setChosen] = useState<Record<string, string[]>>({}); // idpohon -> adopterIds
   const [treeQuery, setTreeQuery] = useState("");
   const [openAdopterFor, setOpenAdopterFor] = useState<string | null>(null);
+  const [adopterQuery, setAdopterQuery] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -321,14 +322,17 @@ export default function MitraAdopsiKonsepForm({
                           <p className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">{rupiah(t.harga ?? 0)}</p>
                         </div>
                         {picked && (
-                          <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white">{pickedIds.length} orang</span>
+                          <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">{pickedIds.length} orang</span>
                         )}
                       </div>
                       {picked && (
                         <div className="relative border-t border-emerald-100 bg-emerald-50/50 px-3 py-2 dark:border-night-700 dark:bg-night-800/40">
                           <button
                             type="button"
-                            onClick={() => setOpenAdopterFor(openAdopterFor === t.idpohon ? null : t.idpohon)}
+                            onClick={() => {
+                              setAdopterQuery("");
+                              setOpenAdopterFor(openAdopterFor === t.idpohon ? null : t.idpohon);
+                            }}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-50 dark:border-night-700 dark:bg-night-900 dark:text-emerald-200"
                           >
                             👥 Diadopsi oleh: <strong>{pickedIds.length} orang</strong>
@@ -348,27 +352,64 @@ export default function MitraAdopsiKonsepForm({
                             <p className="mt-1 text-[10px] font-semibold text-amber-700">Belum ada pengadopsi — klik tombol di atas untuk memilih.</p>
                           )}
                           {openAdopterFor === t.idpohon && (
-                            <div className="absolute bottom-full left-3 z-20 mb-1 max-h-56 w-[min(420px,90%)] overflow-y-auto rounded-xl border border-emerald-200 bg-white p-2 shadow-xl dark:border-night-700 dark:bg-night-900">
-                              {adopters.length === 0 ? (
-                                <p className="px-2 py-3 text-center text-xs text-zinc-500">Tambahkan pengadopsi dulu di kolom kiri.</p>
-                              ) : (
-                                adopters.map((a) => {
-                                  const on = pickedIds.includes(a.id);
-                                  return (
-                                    <label key={a.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-emerald-50 dark:hover:bg-night-800">
-                                      <input
-                                        type="checkbox"
-                                        checked={on}
-                                        onChange={() => toggleAdopterForPohon(t.idpohon, a.id)}
-                                        className="h-4 w-4 accent-emerald-600"
-                                      />
-                                      <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-emerald-950 dark:text-emerald-100">
-                                        {a.nama} <span className="font-normal text-zinc-500">· {a.email}</span>
-                                      </span>
-                                    </label>
-                                  );
-                                })
-                              )}
+                            <div className="absolute left-3 right-3 top-full z-30 mt-1 overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-xl dark:border-night-700 dark:bg-night-900">
+                              <div className="flex items-center justify-between gap-2 border-b border-emerald-100 px-3 py-2 dark:border-night-700">
+                                <p className="text-[11px] font-bold text-emerald-800 dark:text-emerald-200">Pilih pengadopsi · bisa lebih dari satu</p>
+                                <button type="button" onClick={() => setOpenAdopterFor(null)} className="text-xs text-zinc-400 hover:text-zinc-700" aria-label="Tutup">✕</button>
+                              </div>
+                              <div className="px-3 py-2">
+                                <label className="relative block">
+                                  <Search className="pointer-events-none absolute top-2 left-2.5 h-3.5 w-3.5 text-zinc-400" aria-hidden />
+                                  <input
+                                    value={adopterQuery}
+                                    onChange={(e) => setAdopterQuery(e.target.value)}
+                                    placeholder="Cari nama / email pengadopsi…"
+                                    className="w-full rounded-lg border border-zinc-200 bg-white py-1.5 pr-2 pl-8 text-[11px] outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100"
+                                  />
+                                </label>
+                              </div>
+                              <div className="max-h-52 overflow-y-auto px-2 pb-2">
+                                {adopters.length === 0 ? (
+                                  <p className="px-2 py-4 text-center text-xs text-zinc-500">Tambahkan pengadopsi dulu di kolom kiri.</p>
+                                ) : adopters.filter((a) => `${a.nama} ${a.email}`.toLowerCase().includes(adopterQuery.trim().toLowerCase())).length === 0 ? (
+                                  <p className="px-2 py-4 text-center text-xs text-zinc-500">Tidak ada pengadopsi cocok.</p>
+                                ) : (
+                                  adopters
+                                    .filter((a) => `${a.nama} ${a.email}`.toLowerCase().includes(adopterQuery.trim().toLowerCase()))
+                                    .map((a) => {
+                                      const on = pickedIds.includes(a.id);
+                                      const initials = a.nama.split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
+                                      return (
+                                        <label
+                                          key={a.id}
+                                          className={`flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 transition ${
+                                            on ? "bg-emerald-50 dark:bg-emerald-950/30" : "hover:bg-emerald-50/70 dark:hover:bg-night-800"
+                                          }`}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={on}
+                                            onChange={() => toggleAdopterForPohon(t.idpohon, a.id)}
+                                            className="h-4 w-4 shrink-0 accent-emerald-600"
+                                          />
+                                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">
+                                            {initials}
+                                          </span>
+                                          <span className="min-w-0 flex-1">
+                                            <span className="block truncate text-xs font-semibold text-emerald-950 dark:text-emerald-100">{a.nama}</span>
+                                            <span className="block truncate text-[10px] text-zinc-500">{a.email}</span>
+                                          </span>
+                                          {on && <span className="shrink-0 text-[10px] font-bold text-emerald-600">✓</span>}
+                                        </label>
+                                      );
+                                    })
+                                )}
+                              </div>
+                              <div className="border-t border-emerald-100 px-3 py-2 text-right dark:border-night-700">
+                                <button type="button" onClick={() => setOpenAdopterFor(null)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-700">
+                                  Selesai ({pickedIds.length})
+                                </button>
+                              </div>
                             </div>
                           )}
                         </div>
