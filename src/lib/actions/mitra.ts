@@ -660,6 +660,31 @@ export async function requestPesananMitra(formData: FormData) {
   redirect("/mitra/pesanan?sukses=1");
 }
 
+export async function gantiAlokasiPohon(formData: FormData) {
+  await requireAdminLevel();
+  const id = Number(formData.get("id"));
+  const kode = String(formData.get("kode_pohon") ?? "").trim();
+  if (!id || !kode) redirect("/admin/pesanan-mitra?error=Pilih+pohon+dulu");
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("gantialokasipohon", {
+      id,
+      kode_pohon: kode,
+      iduser: 1,
+    });
+    if (Number(res.value) !== 200) {
+      redirect(`/admin/pesanan-mitra?error=${encodeURIComponent(res.pesan ?? "Gagal mengatur pohon.")}`);
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("NEXT_REDIRECT")) throw e;
+    redirect("/admin/pesanan-mitra?error=Gagal+mengatur+pohon");
+  }
+
+  revalidatePath("/admin/pesanan-mitra");
+  revalidatePath("/mitra/riwayat-pesanan");
+  redirect("/admin/pesanan-mitra?alokasi=1");
+}
+
 export async function setPersetujuanProgram(formData: FormData) {
   await requireAdminLevel();
   const id = Number(formData.get("id"));

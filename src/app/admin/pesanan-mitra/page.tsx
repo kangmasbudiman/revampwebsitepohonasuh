@@ -54,11 +54,19 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
     const json = (await res.json()) as ListResponse | PendingRow[];
     if (Array.isArray(json)) {
       // kompatibilitas bila backend masih bal[deprecated]
-      rows = json;
+      rows = json as PendingRow[];
       total = rows.length;
       currentPage = 1;
     } else {
-      rows = json.data ?? [];
+      // Backend mengembalikan snake_case (program_id, created_at) — normalisasi.
+      rows = (json.data ?? []).map((r) => {
+        const raw = r as unknown as { program_id?: number | null; created_at?: string | null };
+        return {
+          ...r,
+          programId: r.programId ?? raw.program_id ?? null,
+          createdAt: r.createdAt ?? raw.created_at ?? null,
+        };
+      });
       total = Number(json.total ?? 0);
       currentPage = Number(json.page ?? 1);
       summary = json.summary ?? summary;
@@ -113,6 +121,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
       </p>
 
       {sp?.approved && <SuccessPopup paramKey="approved" title="Disetujui">Pesanan disetujui & pohon dialokasikan.</SuccessPopup>}
+      {sp?.alokasi && <SuccessPopup paramKey="alokasi" title="Alokasi Diperbarui">Pohon pesanan berhasil diatur ulang.</SuccessPopup>}
       {sp?.rejected && <SuccessPopup paramKey="rejected" title="Ditolak">Pesanan ditolak.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
@@ -151,9 +160,10 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
       ) : (
         <>
           <div className="mt-5 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
-            <table className="w-full min-w-[1080px] text-left text-sm">
+            <table className="w-full min-w-[1200px] text-left text-sm">
               <thead className="pa-thead border-b border-emerald-100 dark:border-night-700">
                 <tr>
+                  <th className="px-4 py-3 font-semibold">No</th>
                   <th className="px-4 py-3 font-semibold">Mitra</th>
                   <th className="px-4 py-3 font-semibold">Akun</th>
                   <th className="px-4 py-3 font-semibold">Desa</th>
@@ -170,10 +180,11 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                 </tr>
               </thead>
               <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
-                {rows.map((r) => {
+                {rows.map((r, i) => {
                   const prog = r.programId ? programMap.get(Number(r.programId)) : null;
                   return (
                   <tr key={r.id} className="transition-colors hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
+                    <td className="px-4 py-3 font-mono text-xs text-zinc-400">{i + 1}</td>
                     <td className="px-4 py-3 font-medium">{r.mitra_nama}</td>
                     <td className="px-4 py-3 text-zinc-500">{r.member_nama}</td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.desa ?? "Semua desa"}</td>
@@ -225,6 +236,14 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                             </ConfirmSubmit>
                           </form>
                         </>
+                      ) : r.status === "approved" ? (
+                        <AlokasiPohonButton
+                          id={r.id}
+                          jumlah={r.jumlah}
+                          programId={r.programId ? Number(r.programId) : null}
+                          desa={r.desa}
+                          mode="ganti"
+                        />
                       ) : (
                         <span className="text-[11px] text-zinc-400">—</span>
                       )}

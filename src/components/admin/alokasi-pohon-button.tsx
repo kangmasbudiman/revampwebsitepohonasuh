@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { approvePesananMitra } from "@/lib/actions/mitra";
+import { approvePesananMitra, gantiAlokasiPohon } from "@/lib/actions/mitra";
 import { namaDesa } from "@/lib/format";
 
 type Tree = {
@@ -19,12 +19,16 @@ export default function AlokasiPohonButton({
   jumlah,
   programId,
   desa,
+  mode = "approve",
 }: {
   id: number;
   jumlah: number;
   programId: number | null;
   desa?: string | null;
+  mode?: "approve" | "ganti";
 }) {
+  const isGanti = mode === "ganti";
+  const action = isGanti ? gantiAlokasiPohon : approvePesananMitra;
   const [open, setOpen] = useState(false);
   const [trees, setTrees] = useState<Tree[]>([]);
   const [provinsi, setProvinsi] = useState<string[]>([]);
@@ -71,7 +75,7 @@ export default function AlokasiPohonButton({
         onClick={() => setOpen(true)}
         className="mr-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
       >
-        Setujui &amp; Alokasikan
+        {isGanti ? "Atur Pohon" : "Setujui & Alokasikan"}
       </button>
 
       {open && (
@@ -79,7 +83,9 @@ export default function AlokasiPohonButton({
           <button type="button" className="absolute inset-0 cursor-default bg-black/55" onClick={() => setOpen(false)} aria-label="Tutup popup" />
           <div className="relative flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-night-900">
             <div className="border-b border-emerald-100 px-5 py-4 dark:border-night-700">
-              <h3 className="text-lg font-extrabold text-emerald-950 dark:text-emerald-100">Pilih Pohon — Pesanan #{id}</h3>
+              <h3 className="text-lg font-extrabold text-emerald-950 dark:text-emerald-100">
+                {isGanti ? "Atur Pohon —" : "Pilih Pohon —"} Pesanan #{id}
+              </h3>
               <p className="mt-1 text-xs text-zinc-500">
                 Pilih <strong>{jumlah}</strong> pohon{provinsi.length > 0 ? ` di provinsi ${provinsi.join(", ")}` : " yang tersedia"}. Terpilih: <strong>{picked.length}/{jumlah}</strong>
               </p>
@@ -110,15 +116,15 @@ export default function AlokasiPohonButton({
 
             <div className="flex items-center justify-between gap-3 border-t border-emerald-100 px-5 py-4 dark:border-night-700">
               <button type="button" onClick={() => setOpen(false)} className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 dark:border-night-700 dark:text-zinc-300">Batal</button>
-              <form action={approvePesananMitra}>
+              <form action={action}>
                 <input type="hidden" name="id" value={id} />
-                <input type="hidden" name="pohon_pilihan_admin" value={picked.join(",")} />
+                <input type="hidden" name={isGanti ? "kode_pohon" : "pohon_pilihan_admin"} value={picked.join(",")} />
                 <button
                   type="submit"
-                  disabled={picked.length > 0 && picked.length !== jumlah}
+                  disabled={!isGanti && picked.length > 0 && picked.length !== jumlah}
                   className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Setujui &amp; Alokasikan{picked.length ? ` (${picked.length})` : " Otomatis"}
+                  {isGanti ? "Simpan Pilihan Pohon" : `Setujui & Alokasikan${picked.length ? ` (${picked.length})` : " Otomatis"}`}
                 </button>
               </form>
             </div>
