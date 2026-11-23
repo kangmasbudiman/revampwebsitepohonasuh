@@ -44,8 +44,8 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
     <main className="mx-auto w-full px-6 py-8 lg:px-8">
       <h1 className="text-2xl font-bold text-emerald-950">Pemesanan Pohon</h1>
       <p className="mt-1 text-sm text-zinc-600">
-        Mitra: <strong>{mitraName}</strong>. Isi lokasi, program &amp; jumlah pohon — admin akan memilih pohon tersedia dan
-        menunggu pemeriksaan &amp; persetujuan.
+        Mitra: <strong>{mitraName}</strong>. Pilih program — detail program (provinsi, jumlah pohon, masa program) tampil
+        otomatis — lalu kirim untuk diverifikasi admin.
       </p>
 
       {sp?.sukses && <SuccessPopup paramKey="sukses" title="Pesanan Terkirim">Permintaan pemesanan terkirim. Admin akan memeriksa & menyetujui.</SuccessPopup>}
@@ -58,7 +58,7 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
       ) : (
         <MitraPohonOrderForm
           desas={desas}
-          programs={programs.map((p) => ({ id: p.id, nama: p.nama }))}
+          programs={programs}
           desaActive={typeof sp?.desa === "string" ? sp.desa.trim() : ""}
         />
       )}
