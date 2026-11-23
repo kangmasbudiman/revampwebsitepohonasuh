@@ -10,9 +10,10 @@ export async function GET(req: NextRequest) {
   }
   const programId = req.nextUrl.searchParams.get("program_id") ?? "";
   const desa = req.nextUrl.searchParams.get("desa") ?? "";
+  const pesananId = req.nextUrl.searchParams.get("pesanan_id") ?? "";
   try {
     const key = process.env.ADMIN_API_KEY ?? "";
-    const qs = `pohontersediaadmin?program_id=${encodeURIComponent(programId)}&desa=${encodeURIComponent(desa)}`;
+    const qs = `pohontersediaadmin?program_id=${encodeURIComponent(programId)}&desa=${encodeURIComponent(desa)}&pesanan_id=${encodeURIComponent(pesananId)}`;
     const data = await apiGet<{ data?: unknown[]; provinsi?: string[] }>(qs, { "X-Admin-Key": key });
     return NextResponse.json(data);
   } catch {

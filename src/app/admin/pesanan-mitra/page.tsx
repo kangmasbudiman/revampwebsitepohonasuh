@@ -38,6 +38,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
   const q = typeof sp?.q === "string" ? sp.q.trim() : "";
   const page = Number(sp?.page ?? 1) || 1;
   const perPage = 10;
+  const ASSET_ORIGIN = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
 
   let rows: PendingRow[] = [];
   let total = 0;
@@ -228,6 +229,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                             jumlah={r.jumlah}
                             programId={r.programId ? Number(r.programId) : null}
                             desa={r.desa}
+                            assetOrigin={ASSET_ORIGIN}
                           />
                           <form action={rejectPesananMitra} className="inline">
                             <input type="hidden" name="id" value={r.id} />
@@ -243,6 +245,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                           programId={r.programId ? Number(r.programId) : null}
                           desa={r.desa}
                           mode="ganti"
+                          assetOrigin={ASSET_ORIGIN}
                         />
                       ) : (
                         <span className="text-[11px] text-zinc-400">—</span>
