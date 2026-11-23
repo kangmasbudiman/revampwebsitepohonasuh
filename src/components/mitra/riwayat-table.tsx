@@ -32,6 +32,7 @@ export default function MitraRiwayatTable({
               <th className="px-4 py-3">Lokasi</th>
               <th className="px-4 py-3">Program</th>
               <th className="px-4 py-3">Jumlah</th>
+              <th className="px-4 py-3">Sisa Pohon</th>
               <th className="px-4 py-3">Budget</th>
               <th className="px-4 py-3">Tgl Mulai</th>
               <th className="px-4 py-3">Tgl Selesai</th>
@@ -61,6 +62,11 @@ export default function MitraRiwayatTable({
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{lokasi ? namaDesa(lokasi) : "Semua desa"}</td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{r.program_nama ?? "—"}</td>
                   <td className="px-4 py-3 font-semibold">{r.jumlah}</td>
+                  <td className="px-4 py-3">
+                    <span className={`rounded-full px-2 py-1 text-[11px] font-bold ${Math.max(0, r.jumlah - Number(r.jumlah_teradopsi ?? 0)) === 0 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                      {Math.max(0, r.jumlah - Number(r.jumlah_teradopsi ?? 0))}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 font-semibold">{prog?.budget ? rupiah(prog.budget) : "—"}</td>
                   <td className="px-4 py-3 text-xs">{prog?.tglMulai ? tanggal(prog.tglMulai) : "—"}</td>
                   <td className="px-4 py-3 text-xs">{prog?.tglSelesai ? tanggal(prog.tglSelesai) : "—"}</td>

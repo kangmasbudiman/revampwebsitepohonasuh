@@ -18,6 +18,7 @@ type PendingRow = ApiMitraPesanan & {
   program_nama: string | null;
   pohon_pilihan?: string | null;
   tree_count?: number;
+  jumlah_teradopsi?: number | null;
 };
 type Summary = { pending: number; approved: number; rejected: number; all: number };
 type ListResponse = { data: PendingRow[]; total: number; page: number; per_page: number; summary?: Summary };
@@ -173,6 +174,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                   <th className="px-4 py-3 font-semibold">Masa Berlaku</th>
                   <th className="px-4 py-3 font-semibold">Total Budget</th>
                   <th className="px-4 py-3 font-semibold">Jumlah</th>
+                  <th className="px-4 py-3 font-semibold">Sisa Pohon</th>
                   <th className="px-4 py-3 font-semibold">Pohon Dipilih</th>
                   <th className="px-4 py-3 font-semibold">Catatan</th>
                   <th className="px-4 py-3 font-semibold">Waktu</th>
@@ -196,6 +198,11 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                     </td>
                     <td className="px-4 py-3 text-xs font-semibold">{prog?.budget ? rupiah(prog.budget) : "—"}</td>
                     <td className="px-4 py-3 font-semibold">{r.jumlah}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-1 text-[11px] font-bold ${Math.max(0, r.jumlah - Number(r.jumlah_teradopsi ?? 0)) === 0 ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                        {Math.max(0, r.jumlah - Number(r.jumlah_teradopsi ?? 0))}
+                      </span>
+                    </td>
                     <td className="px-4 py-3">
                       {(() => {
                         const raw = (r as unknown as { trees?: OrderTreeMini[] }).trees ?? [];

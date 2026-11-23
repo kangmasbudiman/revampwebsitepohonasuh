@@ -14,6 +14,7 @@ export type RiwayatRow = {
   status: string;
   created_at: string | null;
   trees?: OrderTreeMini[];
+  jumlah_teradopsi?: number | null;
   dp_status?: string | null;
   dp_jumlah?: number | null;
 };
