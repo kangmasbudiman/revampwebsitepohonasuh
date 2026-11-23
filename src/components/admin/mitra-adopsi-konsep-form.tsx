@@ -74,6 +74,8 @@ export default function MitraAdopsiKonsepForm({
     localStorage.removeItem(draftKey);
     setDraftSavedAt(null);
     setDraftNotice("Draft dihapus");
+    // Refresh supaya seluruh state form ikut bersih (pohon, pengadopsi, program).
+    window.location.reload();
   };
 
   // Notifikasi draft otomatis hilang setelah 3 detik.
