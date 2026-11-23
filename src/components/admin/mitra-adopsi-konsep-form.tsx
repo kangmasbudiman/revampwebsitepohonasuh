@@ -35,7 +35,41 @@ export default function MitraAdopsiKonsepForm({
   const [treeList, setTreeList] = useState<ProgramTreeMini[]>([]);
   const [chosen, setChosen] = useState<Record<string, string[]>>({}); // idpohon -> adopterIds
   const [treeQuery, setTreeQuery] = useState("");
+  const [openAdopterFor, setOpenAdopterFor] = useState<string | null>(null);
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  const draftKey = `pa-adopsi-draft-${selfMode ? "self" : "admin"}-${mitraId}`;
+
+  // Draft disimpan di browser — otomatis dimuat ulang saat halaman dibuka.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return;
+      const d = JSON.parse(raw) as {
+        mitraId?: number; programId?: number; adopters?: Adopter[];
+        chosen?: Record<string, string[]>; draft?: typeof draft; savedAt?: string;
+      };
+      if (d.mitraId) setMitraId(d.mitraId);
+      if (d.programId) setProgramId(d.programId);
+      if (Array.isArray(d.adopters)) setAdopters(d.adopters);
+      if (d.chosen && typeof d.chosen === "object") setChosen(d.chosen);
+      if (d.draft) setDraft(d.draft);
+      if (d.savedAt) setDraftSavedAt(d.savedAt);
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const simpanDraft = () => {
+    const savedAt = new Date().toLocaleString("id-ID");
+    localStorage.setItem(draftKey, JSON.stringify({ mitraId, programId, adopters, chosen, draft, savedAt }));
+    setDraftSavedAt(savedAt);
+  };
+
+  const hapusDraft = () => {
+    localStorage.removeItem(draftKey);
+    setDraftSavedAt(null);
+  };
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -71,14 +105,6 @@ export default function MitraAdopsiKonsepForm({
     if (nama.length < 3 || !emailOk(email)) return;
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     setAdopters((prev) => [...prev, { id, nama, email, dur: Math.max(1, draft.dur || 1), tgl_adopt: draft.tgl_adopt || today, memo: draft.memo.trim() }]);
-    // Auto-assign pohon yang sudah dicentang tapi belum ditugaskan ke pengadopsi pertama yang ada
-    setChosen((prev) => {
-      const next: Record<string, string[]> = {};
-      for (const [k, v] of Object.entries(prev)) {
-        next[k] = (v ?? []).length > 0 ? (v as string[]) : [id];
-      }
-      return next;
-    });
     setDraft({ nama: "", email: "", dur: 1, tgl_adopt: "", memo: "" });
   };
 
@@ -101,8 +127,8 @@ export default function MitraAdopsiKonsepForm({
         delete next[code];
         return next;
       }
-      // jika kosong → tetap tercentang, mengikat ke pengadopsi pertama bila ada
-      return { ...prev, [code]: adopters[0]?.id ? [adopters[0].id] : [] };
+      // pohon dicentang tanpa pengadopsi — admin yang memilih manual nanti
+      return { ...prev, [code]: [] };
     });
   };
 
@@ -133,7 +159,7 @@ export default function MitraAdopsiKonsepForm({
     return JSON.stringify(list);
   }, [chosen, adopters]);
 
-  const pilihanPohonCount = Object.values(chosen).filter((v) => (v ?? []).length > 0).length;
+  const pilihanPohonCount = Object.keys(chosen).length;
   const assignedCount = Object.values(chosen).reduce((sum, ids) => sum + (ids?.length ?? 0), 0);
 
   const selectedProgram = programs.find((p) => p.id === programId);
@@ -270,7 +296,7 @@ export default function MitraAdopsiKonsepForm({
               <ul className="mt-3 max-h-[560px] space-y-2 overflow-y-auto pr-1">
                 {filteredTrees.map((t) => {
                   const pickedIds = chosen[t.idpohon] ?? [];
-                  const picked = pickedIds.length > 0;
+                  const picked = Object.prototype.hasOwnProperty.call(chosen, t.idpohon);
                   return (
                     <li key={t.idpohon} className={`overflow-hidden rounded-xl border transition ${picked ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-200" : "border-emerald-100 bg-white hover:border-emerald-200 dark:bg-night-900 dark:hover:border-night-600"}`}>
                       <div className="flex items-center gap-2 sm:gap-3 p-2">
@@ -298,28 +324,53 @@ export default function MitraAdopsiKonsepForm({
                           <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white">{pickedIds.length} orang</span>
                         )}
                       </div>
-                      {picked && adopters.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-1.5 border-t border-emerald-100 bg-emerald-50/50 px-3 py-2 dark:border-night-700 dark:bg-night-800/40">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Diadopsi oleh:</span>
-                          {adopters.map((a) => {
-                            const on = (chosen[t.idpohon] ?? []).includes(a.id);
-                            return (
-                              <button
-                                key={a.id}
-                                type="button"
-                                onClick={() => toggleAdopterForPohon(t.idpohon, a.id)}
-                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition ${
-                                  on
-                                    ? "border-emerald-600 bg-emerald-600 text-white"
-                                    : "border-emerald-200 bg-white text-emerald-800 hover:border-emerald-400 hover:bg-emerald-50 dark:border-night-700 dark:bg-night-900 dark:text-emerald-300 dark:hover:bg-night-800"
-                                }`}
-                                aria-pressed={on}
-                              >
-                                {on && <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6l3 3 5-5" /></svg>}
-                                {a.nama}
-                              </button>
-                            );
-                          })}
+                      {picked && (
+                        <div className="relative border-t border-emerald-100 bg-emerald-50/50 px-3 py-2 dark:border-night-700 dark:bg-night-800/40">
+                          <button
+                            type="button"
+                            onClick={() => setOpenAdopterFor(openAdopterFor === t.idpohon ? null : t.idpohon)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-50 dark:border-night-700 dark:bg-night-900 dark:text-emerald-200"
+                          >
+                            👥 Diadopsi oleh: <strong>{pickedIds.length} orang</strong>
+                            <span className="text-[9px]">▾</span>
+                          </button>
+                          {pickedIds.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                              {pickedIds.map((aid) => {
+                                const a = adopters.find((x) => x.id === aid);
+                                return a ? (
+                                  <span key={aid} className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">{a.nama}</span>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                          {pickedIds.length === 0 && (
+                            <p className="mt-1 text-[10px] font-semibold text-amber-700">Belum ada pengadopsi — klik tombol di atas untuk memilih.</p>
+                          )}
+                          {openAdopterFor === t.idpohon && (
+                            <div className="absolute bottom-full left-3 z-20 mb-1 max-h-56 w-[min(420px,90%)] overflow-y-auto rounded-xl border border-emerald-200 bg-white p-2 shadow-xl dark:border-night-700 dark:bg-night-900">
+                              {adopters.length === 0 ? (
+                                <p className="px-2 py-3 text-center text-xs text-zinc-500">Tambahkan pengadopsi dulu di kolom kiri.</p>
+                              ) : (
+                                adopters.map((a) => {
+                                  const on = pickedIds.includes(a.id);
+                                  return (
+                                    <label key={a.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-emerald-50 dark:hover:bg-night-800">
+                                      <input
+                                        type="checkbox"
+                                        checked={on}
+                                        onChange={() => toggleAdopterForPohon(t.idpohon, a.id)}
+                                        className="h-4 w-4 accent-emerald-600"
+                                      />
+                                      <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-emerald-950 dark:text-emerald-100">
+                                        {a.nama} <span className="font-normal text-zinc-500">· {a.email}</span>
+                                      </span>
+                                    </label>
+                                  );
+                                })
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                     </li>
@@ -336,17 +387,39 @@ export default function MitraAdopsiKonsepForm({
         </div>
       </div>
 
-      {/* Submit — lebar penuh */}
+      {/* Draft + Final */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-night-700">
         <div className="text-xs text-zinc-600 dark:text-zinc-300">
           <p className="font-semibold text-emerald-900 dark:text-emerald-200">{pilihanPohonCount} pohon · {adopters.length} pengadopsi</p>
+          <p className="mt-0.5 text-[10px] text-zinc-400">
+            {draftSavedAt ? `Draft tersimpan: ${draftSavedAt}` : "Belum ada draft tersimpan"}
+          </p>
           {pilihanPohonCount > 0 && assignedCount === 0 && (
-            <p className="mt-0.5 text-[10px] font-semibold text-amber-700">Pohon belum ditugaskan — klik nama pengadopsi di baris pohon</p>
+            <p className="mt-0.5 text-[10px] font-semibold text-amber-700">Pohon belum ditugaskan — klik tombol "Diadopsi oleh" di baris pohon</p>
           )}
+          <p className="mt-0.5 text-[10px] text-zinc-400">Final: data dikirim ke admin untuk diverifikasi.</p>
         </div>
-        <SubmitButton pendingLabel="Memproses…" disabled={assignedCount === 0} className="rounded-xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white shadow hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">
-          Simpan {assignedCount} Adopsi
-        </SubmitButton>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={simpanDraft}
+            className="rounded-xl border border-emerald-200 px-4 py-3 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300"
+          >
+            Simpan Draft
+          </button>
+          {draftSavedAt && (
+            <button
+              type="button"
+              onClick={hapusDraft}
+              className="rounded-xl border border-zinc-200 px-4 py-3 text-xs font-semibold text-zinc-500 hover:bg-zinc-50 dark:border-night-700"
+            >
+              Hapus Draft
+            </button>
+          )}
+          <SubmitButton pendingLabel="Mengirim final…" disabled={assignedCount === 0} className="rounded-xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white shadow hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">
+            Finalisir &amp; Kirim {assignedCount} Adopsi
+          </SubmitButton>
+        </div>
       </div>
     </form>
   );
