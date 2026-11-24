@@ -12,6 +12,7 @@ type InvoiceItem = {
   tgl: string;
   jml_pohon: number;
   price: number;
+  program_nama?: string | null;
   status?: string; // yes | no | cancel
   paid?: boolean;
   expired?: boolean;
@@ -145,6 +146,7 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
                     <Link href={`/mitra/bayar-dp/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:border-night-700 dark:bg-night-800 dark:text-emerald-300">Bayar DP</Link>
                   </div>
                 )}
+                <Link href={`/mitra/invoice/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-700 hover:bg-zinc-50 dark:border-night-700 dark:bg-night-900 dark:text-zinc-300">Download Invoice</Link>
               </div>
             ))}
           </div>
@@ -157,7 +159,7 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
                   <th className="px-4 py-3 font-semibold">Invoice</th>
                   <th className="px-4 py-3 font-semibold">Tanggal</th>
                   <th className="px-4 py-3 font-semibold">Pohon</th>
-                  <th className="px-4 py-3 font-semibold">Rincian</th>
+                  <th className="px-4 py-3 font-semibold">Program</th>
                   <th className="px-4 py-3 font-semibold">Total</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Aksi</th>
@@ -169,7 +171,7 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
                     <td className="px-4 py-3 font-mono text-xs text-zinc-700 dark:text-zinc-200">{it.invoice}</td>
                     <td className="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300">{fmtDate(it.created_at)}</td>
                     <td className="px-4 py-3 font-semibold">{it.jml_pohon.toLocaleString("id-ID")}</td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">harga × durasi per pohon</td>
+                    <td className="px-4 py-3 text-xs text-zinc-500">{it.program_nama ?? "—"}</td>
                     <td className="px-4 py-3 font-extrabold text-emerald-900 dark:text-emerald-200">{fmtRp(it.price)}</td>
                     <td className="px-4 py-3">
                       {it.paid ? (
@@ -187,6 +189,7 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
                         <div className="flex flex-wrap items-center gap-2">
                           <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
                           <Link href={`/mitra/bayar-dp/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 dark:border-night-700 dark:bg-night-800 dark:text-emerald-300">Bayar DP</Link>
+                          <Link href={`/mitra/invoice/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 dark:border-night-700 dark:bg-night-900 dark:text-zinc-300">Download Invoice</Link>
                         </div>
                       )}
                     </td>
