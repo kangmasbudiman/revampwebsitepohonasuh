@@ -1,7 +1,9 @@
-import { apiGet, apiAssetUrl } from "@/lib/api";
+import Link from "next/link";
+import { apiGet } from "@/lib/api";
 import { requireAdminLevel } from "@/lib/guard";
 import { rupiah } from "@/lib/format";
 import SuccessPopup from "@/components/admin/success-popup";
+import DpBuktiModal from "@/components/admin/dp-bukti-modal";
 import { verifikasiDp } from "@/lib/actions/dp";
 import { Wallet } from "lucide-react";
 
@@ -29,10 +31,14 @@ export default async function AdminVerifikasiDpPage(props: PageProps<"/admin/ver
   await requireAdminLevel();
   const sp = await props.searchParams;
 
+  const q = typeof sp?.q === "string" ? sp.q.trim() : "";
+  const ASSET_ORIGIN = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
+
   let rows: DpRow[] = [];
   try {
     const key = process.env.ADMIN_API_KEY ?? "";
-    const res = await apiGet<{ data?: DpRow[] }>("daftardpadmin", { "X-Admin-Key": key });
+    const qs = q ? `?q=${encodeURIComponent(q)}` : "";
+    const res = await apiGet<{ data?: DpRow[] }>(`daftardpadmin${qs}`, { "X-Admin-Key": key });
     rows = Array.isArray(res.data) ? res.data : [];
   } catch {
     // tampilkan daftar kosong
@@ -51,7 +57,14 @@ export default async function AdminVerifikasiDpPage(props: PageProps<"/admin/ver
       {sp?.ditolak === "1" && <SuccessPopup paramKey="ditolak" tone="err" title="Ditolak">DP ditolak.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
+      <form method="get" className="mt-4 flex flex-wrap items-center gap-2">
+        <input name="q" defaultValue={q} placeholder="Cari mitra / program / invoice / pesanan…" className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100" />
+        <button type="submit" className="rounded-xl border border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300">Cari</button>
+        {q && <Link href="/admin/verifikasi-dp" className="text-xs text-zinc-500 underline">Reset</Link>}
+        <span className="ml-auto text-xs text-zinc-500">{rows.length} pembayaran DP</span>
+      </form>
+
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
         <table className="w-full min-w-[860px] text-left text-sm">
           <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
             <tr>
@@ -68,7 +81,6 @@ export default async function AdminVerifikasiDpPage(props: PageProps<"/admin/ver
           <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
             {rows.map((r) => {
               const lbl = STATUS[r.status] ?? [r.status, "bg-zinc-100 text-zinc-600"];
-              const buktiUrl = apiAssetUrl(r.bukti);
               return (
                 <tr key={r.id} className={r.status === "menunggu" ? "bg-amber-50/60 dark:bg-amber-950/10" : ""}>
                   <td className="px-4 py-3 font-mono text-xs">{r.id}</td>
@@ -77,7 +89,7 @@ export default async function AdminVerifikasiDpPage(props: PageProps<"/admin/ver
                   <td className="px-4 py-3 font-mono text-xs">#{r.pesanan_id}</td>
                   <td className="px-4 py-3 font-semibold">{rupiah(Number(r.jumlah))}</td>
                   <td className="px-4 py-3">
-                    {buktiUrl ? <a href={buktiUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-emerald-700 hover:underline">Lihat bukti</a> : "—"}
+                    <DpBuktiModal row={r} assetOrigin={ASSET_ORIGIN} />
                   </td>
                   <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${lbl[1]}`}>{lbl[0]}</span></td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
