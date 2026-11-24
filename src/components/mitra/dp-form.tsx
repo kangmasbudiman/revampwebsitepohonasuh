@@ -34,11 +34,13 @@ const DP_STATUS: Record<string, [string, string]> = {
 export default function DpForm({
   pesanans,
   dps,
+  invoice = "",
   title = "Uang Muka (DP)",
   showHistory = true,
 }: {
   pesanans: Pesanan[];
   dps: DpRow[];
+  invoice?: string;
   title?: string;
   showHistory?: boolean;
 }) {
@@ -61,6 +63,7 @@ export default function DpForm({
       </div>
 
       <form action={ajukanDp} className="mt-4 grid gap-3 sm:grid-cols-2">
+        <input type="hidden" name="invoice" value={invoice} />
         <label className="block">
           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Pesanan *</span>
           <select

@@ -528,6 +528,7 @@ export async function ajukanDp(formData: FormData) {
   const session = await requireUser();
   const id = Number(formData.get("pesanan_id"));
   const jumlah = Number(formData.get("jumlah"));
+  const invoice = String(formData.get("invoice") ?? "").trim();
   if (!id || !(jumlah > 0)) redirect("/mitra/tagihan?error=Jumlah+DP+tidak+valid");
 
   let bukti = "";
@@ -550,6 +551,7 @@ export async function ajukanDp(formData: FormData) {
       id,
       jumlah,
       bukti,
+      invoice,
     });
     if (Number(res.value) !== 200) {
       redirect(`/mitra/tagihan?error=${encodeURIComponent(res.pesan ?? "Gagal mengajukan DP.")}`);

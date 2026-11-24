@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
+import { apiGet, apiAssetUrl } from "@/lib/api";
+import { rupiah } from "@/lib/format";
 import { verifikasiAdopsiMitraAction } from "@/lib/actions/mitra";
 import { BadgeCheck, SearchX, Leaf } from "lucide-react";
 import PhotoLightbox from "@/components/admin/photo-lightbox";
@@ -20,6 +22,15 @@ type PendingInvoice = {
   price?: number;
 };
 
+type DpRow = {
+  id: number;
+  invoice: string | null;
+  jumlah: number | string;
+  bukti: string | null;
+  status: string;
+  metode?: string;
+};
+
 export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin/verifikasi-adopsi-mitra">) {
   await requireAdminLevel();
   const sp = await props.searchParams;
@@ -29,6 +40,16 @@ export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin
   let totalInvoice = 0;
   let totalPohon = 0;
   let fetchError: string | null = null;
+  let dpsByInvoice = new Map<string, DpRow[]>();
+  try {
+    const key = process.env.ADMIN_API_KEY ?? "";
+    const dpRes = await apiGet<{ data?: DpRow[] }>("daftardpadmin", { "X-Admin-Key": key });
+    for (const d of dpRes.data ?? []) {
+      if (!d.invoice) continue;
+      const k = String(d.invoice).replace(/^#/, "").toUpperCase();
+      dpsByInvoice.set(k, [...(dpsByInvoice.get(k) ?? []), d]);
+    }
+  } catch {}
   try {
     const base = process.env.API_BASE_URL;
     const key = process.env.ADMIN_API_KEY ?? "";
@@ -99,6 +120,28 @@ export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin
                     {inv.bukti
                       ? <PhotoLightbox src={inv.bukti} alt={`Bukti transfer ${inv.invoice}`} triggerClassName="text-[11px] font-semibold text-emerald-700 underline decoration-emerald-300 hover:text-emerald-800">Lihat bukti transfer</PhotoLightbox>
                       : <span className="text-[11px] text-amber-700">Belum ada bukti (kemungkinan QRIS/Mayar)</span>}
+                      {(() => {
+                        const list = dpsByInvoice.get(inv.invoice.replace(/^#/, "").toUpperCase()) ?? [];
+                        if (list.length === 0) return null;
+                        const d = list[list.length - 1];
+                        const lbl = d.status === "disetujui"
+                          ? ["DP Disetujui", "bg-emerald-100 text-emerald-700"]
+                          : d.status === "ditolak"
+                            ? ["DP Ditolak", "bg-red-100 text-red-700"]
+                            : ["DP Menunggu Verifikasi", "bg-amber-100 text-amber-700"];
+                        const buktiUrl = apiAssetUrl(d.bukti);
+                        return (
+                          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${lbl[1]}`}>{lbl[0]} · {rupiah(Number(d.jumlah))}</span>
+                            {d.metode === "online" ? (
+                              <span className="text-[11px] font-semibold text-emerald-700">via Mayar (otomatis)</span>
+                            ) : buktiUrl ? (
+                              <PhotoLightbox src={buktiUrl} alt={`Bukti DP ${inv.invoice}`} triggerClassName="text-[11px] font-semibold text-emerald-700 underline">Lihat bukti DP</PhotoLightbox>
+                            ) : null}
+                            <Link href="/admin/verifikasi-dp" className="text-[11px] font-semibold text-emerald-700 underline">Kelola DP →</Link>
+                          </div>
+                        );
+                      })()}
                   </div>
                 </div>
                 <form action={verifikasiAdopsiMitraAction}>
