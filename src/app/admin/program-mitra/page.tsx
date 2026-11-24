@@ -67,6 +67,7 @@ export default async function AdminProgramMitraPage(props: PageProps<"/admin/pro
                 <th className="px-4 py-3 font-semibold">Mitra</th>
                 <th className="px-4 py-3 font-semibold">Nama Program</th>
                 <th className="px-4 py-3 font-semibold">Periode / Durasi</th>
+                <th className="px-4 py-3 font-semibold">Sisa Pohon</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 text-right font-semibold">Aksi</th>
               </tr>
@@ -81,6 +82,7 @@ export default async function AdminProgramMitraPage(props: PageProps<"/admin/pro
                     {p.tglMulai ?? "—"} → {p.tglSelesai ?? "—"}
                     {p.durasi && <span className="block text-zinc-400">{p.durasi}</span>}
                   </td>
+                  <td className="px-4 py-3 font-semibold text-emerald-700">{p.sisaPohon ?? 0}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${p.aktif ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
                       {p.aktif ? "Aktif" : "Persetujuan Dibatalkan"}
@@ -110,7 +112,7 @@ export default async function AdminProgramMitraPage(props: PageProps<"/admin/pro
                 </tr>
               ))}
               {programs.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-zinc-500">Belum ada program mitra.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-zinc-500">Belum ada program mitra.</td></tr>
               )}
             </tbody>
           </table>

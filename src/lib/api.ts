@@ -1851,6 +1851,7 @@ export type ApiProgramMitra = {
   aktif: boolean;
   budget: number | null;
   budgetDetail: { harga: number; qty: number }[];
+  sisaPohon: number;
   perpanjanganStatus: string | null;
   provinsi: string | null;
 };
@@ -1885,6 +1886,7 @@ export function mapProgramMitra(r: Record<string, unknown>): ApiProgramMitra {
       }
     })(),
     perpanjanganStatus: r.perpanjangan_status ? String(r.perpanjangan_status) : null,
+    sisaPohon: Number(r.sisa_pohon ?? 0),
     provinsi: r.provinsi ? String(r.provinsi) : null,
   };
 }
