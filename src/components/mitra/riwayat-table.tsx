@@ -4,10 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { namaDesa, rupiah, tanggal, infoMasaProgram } from "@/lib/format";
-import type { ApiProgramMitra, OrderTreeMini } from "@/lib/api";
+import type { ApiProgramMitra } from "@/lib/api";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { hapusPesananMitra } from "@/lib/actions/mitra";
 import OrderDetailModal, { statusLabelFor, type RiwayatRow } from "@/components/mitra/order-detail-modal";
+import RiwayatPohonModal from "@/components/mitra/riwayat-pohon-modal";
 
 export type { RiwayatRow };
 
@@ -99,7 +100,9 @@ export default function MitraRiwayatTable({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">{renderTrees(r.trees)}</td>
+                  <td className="px-4 py-3">
+                    <RiwayatPohonModal trees={r.trees ?? []} adoptedCodes={r.adopted_codes ?? []} />
+                  </td>
                   <td className="px-4 py-3">
                     {(r.adopted_count ?? 0) > 0 ? (
                       <div className="min-w-[160px] rounded-xl border border-emerald-100 bg-emerald-50/70 p-2.5 dark:border-night-700 dark:bg-emerald-950/20">
@@ -169,17 +172,3 @@ export default function MitraRiwayatTable({
   );
 }
 
-// Mini-list pohon di kolom "Pohon" (tanpa modal-in-modal dari OrderTreesModal).
-function renderTrees(trees: OrderTreeMini[] | undefined) {
-  if (!trees || trees.length === 0) return <span className="text-xs text-zinc-400">—</span>;
-  return (
-    <div className="flex flex-wrap gap-1">
-      {trees.slice(0, 6).map((t) => (
-        <span key={t.code} className="rounded-full bg-emerald-50 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-700 dark:bg-night-800 dark:text-emerald-300">
-          {t.code}
-        </span>
-      ))}
-      {trees.length > 6 && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-night-800 dark:text-emerald-300">+{trees.length - 6}</span>}
-    </div>
-  );
-}
