@@ -114,9 +114,9 @@ export default async function MitraBayarDpPage(props: PageProps<"/mitra/bayar-dp
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 dark:border-night-700 dark:bg-night-800/40">
             <OnlinePaymentDp pesanans={pesanans} invoice={conf.invoice} />
           </div>
-          <div className="min-w-0">
-            <DpForm pesanans={pesanans} dps={dps} title="Transfer Bank" />
-          </div>
+        <div className="h-full min-w-0">
+          <DpForm pesanans={pesanans} dps={dps} title="Transfer Bank" />
+        </div>
         </div>
       </div>
     </main>

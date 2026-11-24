@@ -47,7 +47,7 @@ export default function DpForm({
   const saran = pesanan?.budget ? Math.round((pesanan.budget * 0.3) / 1000) * 1000 : 0;
 
   return (
-    <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 shadow-sm dark:border-night-700 dark:bg-emerald-950/20">
+    <div className="h-full rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 shadow-sm dark:border-night-700 dark:bg-emerald-950/20">
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
           <Wallet className="h-5 w-5" aria-hidden />
