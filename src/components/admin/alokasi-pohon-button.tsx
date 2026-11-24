@@ -153,6 +153,23 @@ export default function AlokasiPohonButton({
                   );
                 })}
               </div>
+              {picked.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-2 dark:border-emerald-900/30 dark:bg-emerald-950/20">
+                  <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-200">Terpilih:</span>
+                  {[100000, 150000, 200000].map((price) => {
+                    const n = picked.filter((code) => trees.find((t) => t.idpohon === code && Number(t.harga ?? 0) === price)).length;
+                    if (n === 0) return null;
+                    return (
+                      <span key={price} className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                        Rp {price.toLocaleString("id-ID")}: {n} pohon
+                      </span>
+                    );
+                  })}
+                  <span className="ml-auto text-[11px] font-bold text-emerald-800 dark:text-emerald-200">
+                    Total {picked.length}/{jumlah}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="min-h-[180px] flex-1 overflow-y-auto px-5 py-4">
