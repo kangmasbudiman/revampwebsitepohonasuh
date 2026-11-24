@@ -11,6 +11,7 @@ type Tree = {
   localname?: string;
   species?: string | null;
   desa: string;
+  provinsi?: string | null;
   diameterCm?: number | null;
   heightM?: number | null;
   harga?: number | string | null;
