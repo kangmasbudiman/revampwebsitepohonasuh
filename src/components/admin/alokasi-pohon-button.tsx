@@ -25,10 +25,12 @@ export default function AlokasiPohonButton({
   programId,
   desa,
   mode = "approve",
+  teradopsi = 0,
   assetOrigin = "",
 }: {
   id: number;
   jumlah: number;
+  teradopsi?: number;
   programId: number | null;
   desa?: string | null;
   mode?: "approve" | "ganti";
@@ -93,7 +95,8 @@ export default function AlokasiPohonButton({
     });
   };
 
-  const penuh = picked.length >= jumlah;
+  const kuota = isGanti ? Math.max(0, jumlah - (teradopsi ?? 0)) : jumlah;
+  const penuh = picked.length >= kuota;
 
   const submitLabel = isGanti
     ? "Simpan Pilihan Pohon"
@@ -127,7 +130,7 @@ export default function AlokasiPohonButton({
                 {isGanti ? "Atur Pohon" : "Pilih Pohon"} — Pesanan #{id}
               </h3>
               <p className="mt-1 text-xs text-zinc-500">
-                Pilih {jumlah} pohon{provinsi.length > 0 ? ` di provinsi ${provinsi.join(", ")}` : " yang tersedia"}. Terpilih: <strong>{picked.length}{isGanti ? "" : `/${jumlah}`}</strong>
+                Pilih {kuota} pohon{teradopsi > 0 ? ` (sisa dari ${jumlah})` : ""}{provinsi.length > 0 ? ` di provinsi ${provinsi.join(", ")}` : " yang tersedia"}. Terpilih: <strong>{picked.length}{isGanti ? "" : `/${kuota}`}</strong>
                 {penuh && <span className="ml-1 font-semibold text-amber-600">— kuota penuh, lepas pilihan untuk mengganti</span>}
               </p>
               <label className="relative mt-3 block">
@@ -243,7 +246,7 @@ export default function AlokasiPohonButton({
                   <input type="hidden" name={isGanti ? "kode_pohon" : "pohon_pilihan_admin"} value={picked.join(",")} />
                   <button
                     type="submit"
-                    disabled={isGanti ? picked.length !== jumlah : picked.length > 0 && picked.length !== jumlah}
+                    disabled={isGanti ? picked.length !== kuota : picked.length > 0 && picked.length !== kuota}
                     className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {submitLabel}
