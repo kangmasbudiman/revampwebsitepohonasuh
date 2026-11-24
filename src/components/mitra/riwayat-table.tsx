@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 import { namaDesa, rupiah, tanggal, infoMasaProgram } from "@/lib/format";
 import type { ApiProgramMitra, OrderTreeMini } from "@/lib/api";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
@@ -101,17 +102,24 @@ export default function MitraRiwayatTable({
                   <td className="px-4 py-3">{renderTrees(r.trees)}</td>
                   <td className="px-4 py-3">
                     {(r.adopted_count ?? 0) > 0 ? (
-                      <div className="space-y-1">
-                        <span className="rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white">{r.adopted_count} pohon sukses diadopsi</span>
-                        <div className="flex flex-wrap gap-1">
-                          {(r.adopted_codes ?? []).slice(0, 6).map((c) => (
-                            <span key={c} className="rounded bg-emerald-50 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-emerald-700 dark:bg-night-800 dark:text-emerald-300">{c}</span>
+                      <div className="min-w-[160px] rounded-xl border border-emerald-100 bg-emerald-50/70 p-2.5 dark:border-night-700 dark:bg-emerald-950/20">
+                        <p className="flex items-center gap-1.5 whitespace-nowrap text-[11px] font-bold text-emerald-800 dark:text-emerald-200">
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden />
+                          {r.adopted_count} pohon sukses diadopsi
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {(r.adopted_codes ?? []).slice(0, 3).map((c) => (
+                            <span key={c} className="rounded-md border border-emerald-100 bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-700 dark:border-night-700 dark:bg-night-800 dark:text-emerald-300">{c}</span>
                           ))}
-                          {(r.adopted_codes ?? []).length > 6 && <span className="text-[9px] text-zinc-400">+{r.adopted_codes!.length - 6}</span>}
+                          {(r.adopted_codes ?? []).length > 3 && (
+                            <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">
+                              +{r.adopted_codes!.length - 3}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ) : (
-                      <span className="text-[11px] text-zinc-400">—</span>
+                      <span className="text-[11px] text-zinc-400">Belum ada</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.created_at ? tanggal(r.created_at) : "—"}</td>
