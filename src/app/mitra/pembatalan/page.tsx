@@ -97,7 +97,7 @@ export default async function MitraPembatalanPage(props: PageProps<"/mitra/pemba
                       </span>
                     </span>
                     <span className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-600 dark:text-zinc-400">
-                      <span className="inline-flex items-center gap-1"><TreePine className="h-3.5 w-3.5" aria-hidden />{p.jumlah} pohon</span>
+                      <span className="inline-flex items-center gap-1"><TreePine className="h-3.5 w-3.5" aria-hidden />{p.jumlah} pohon · sisa {Math.max(0, p.jumlah - (p.jumlahTeradopsi ?? 0))}</span>
                       {p.desa && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden />{p.desa}</span>}
                       {p.createdAt && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" aria-hidden />{p.createdAt}</span>}
                     </span>
@@ -146,6 +146,7 @@ export default async function MitraPembatalanPage(props: PageProps<"/mitra/pemba
                 <tr>
                   <th className="px-4 py-3 font-semibold">Program</th>
                   <th className="px-4 py-3 font-semibold">Jumlah</th>
+                  <th className="px-4 py-3 font-semibold">Sisa Pohon</th>
                   <th className="px-4 py-3 font-semibold">Desa</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Waktu</th>
@@ -156,6 +157,7 @@ export default async function MitraPembatalanPage(props: PageProps<"/mitra/pemba
                   <tr key={p.id} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                     <td className="px-4 py-3 font-medium">{namaProgram(p)}</td>
                     <td className="px-4 py-3">{p.jumlah}</td>
+                    <td className="px-4 py-3">{Math.max(0, p.jumlah - (p.jumlahTeradopsi ?? 0))}</td>
                     <td className="px-4 py-3 text-zinc-500">{p.desa ?? "Semua desa"}</td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_BADGE[p.status] ?? STATUS_BADGE.cancelled}`}>{STATUS_LABEL[p.status] ?? p.status}</span></td>
                     <td className="px-4 py-3 text-xs text-zinc-500">{p.createdAt ?? "—"}</td>

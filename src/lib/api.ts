@@ -1908,6 +1908,7 @@ export type ApiMitraPesanan = {
   programNama: string | null;
   desa: string | null;
   jumlah: number;
+  jumlahTeradopsi: number;
   catatan: string | null;
   status: string; // pending/approved/rejected
   createdAt: string | null;
@@ -1933,6 +1934,7 @@ export function mapMitraPesanan(r: Record<string, unknown>): ApiMitraPesanan {
     programNama: r.program_nama ? String(r.program_nama) : null,
     desa: r.desa ? String(r.desa) : null,
     jumlah: Number(r.jumlah) || 0,
+    jumlahTeradopsi: Number(r.jumlah_teradopsi) || 0,
     catatan: r.catatan ? String(r.catatan) : null,
     status: String(r.status ?? "pending"),
     createdAt: r.created_at ? String(r.created_at) : null,
