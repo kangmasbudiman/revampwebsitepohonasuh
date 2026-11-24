@@ -186,11 +186,11 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
                       {it.paid || it.expired ? (
                         <Link href={`/mitra/invoice/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 dark:border-night-700 dark:bg-night-900 dark:text-zinc-300">Download Invoice</Link>
                       ) : (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
-                          <Link href={`/mitra/bayar-dp/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 dark:border-night-700 dark:bg-night-800 dark:text-emerald-300">Bayar DP</Link>
-                          <Link href={`/mitra/invoice/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 dark:border-night-700 dark:bg-night-900 dark:text-zinc-300">Download Invoice</Link>
-                        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
+          <Link href={`/mitra/bayar-dp/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 dark:border-night-700 dark:bg-night-800 dark:text-emerald-300">Bayar DP</Link>
+          <Link href={`/mitra/invoice/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 dark:border-night-700 dark:bg-night-900 dark:text-zinc-300">Download Invoice</Link>
+        </div>
                       )}
                     </td>
                   </tr>

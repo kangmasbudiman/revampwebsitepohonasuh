@@ -92,7 +92,7 @@ export default async function MitraInvoicePage(props: PageProps<"/mitra/invoice/
         <header className="flex items-center justify-between gap-4 border-b-2 border-emerald-600 pb-4">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/logo_icon.png" alt="Pohon Asuh" className="h-14 w-14 rounded-full object-cover" />
+            <img src="/images/logo_icon.png" alt="Pohon Asuh" loading="eager" width={56} height={56} className="h-14 w-14 shrink-0 rounded-full object-cover print:block" />
             <div>
               <h1 className="text-xl font-extrabold text-emerald-900">Pohon Asuh</h1>
               <p className="text-[11px] text-zinc-500">Jalan Konservasi, Indonesia · info@pohonasuh.io</p>
