@@ -106,12 +106,12 @@ export default function DpBuktiModal({ row, assetOrigin }: { row: Row; assetOrig
                   <form action={verifikasiDp}>
                     <input type="hidden" name="id" value={row.id} />
                     <input type="hidden" name="status" value="ditolak" />
-                    <button type="submit" className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400">Tolak</button>
+                    <button type="submit" onClick={() => setOpen(false)} className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400">Tolak</button>
                   </form>
                   <form action={verifikasiDp}>
                     <input type="hidden" name="id" value={row.id} />
                     <input type="hidden" name="status" value="disetujui" />
-                    <button type="submit" className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Setujui DP</button>
+                    <button type="submit" onClick={() => setOpen(false)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Setujui DP</button>
                   </form>
                 </>
               )}
