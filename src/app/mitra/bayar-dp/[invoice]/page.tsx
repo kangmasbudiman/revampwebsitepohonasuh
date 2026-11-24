@@ -5,6 +5,7 @@ import { apiPost, apiGet, mapProgramMitra } from "@/lib/api";
 import { rupiah, tanggal } from "@/lib/format";
 import { ArrowLeft } from "lucide-react";
 import DpForm from "@/components/mitra/dp-form";
+import OnlinePaymentDp from "@/components/mitra/online-payment-dp";
 
 export const metadata = { title: "Pembayaran DP | Pohon Asuh" };
 
@@ -109,8 +110,13 @@ export default async function MitraBayarDpPage(props: PageProps<"/mitra/bayar-dp
           <div><dt className="text-[10px] font-semibold uppercase text-zinc-400">Status</dt><dd className="mt-0.5 font-semibold text-amber-700">{conf.paid ? "Lunas" : conf.expired ? "Kadaluarsa" : "Belum dibayar"}</dd></div>
         </dl>
 
-        <div className="mt-6">
-          <DpForm pesanans={pesanans} dps={dps} />
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 dark:border-night-700 dark:bg-night-800/40">
+            <OnlinePaymentDp pesanans={pesanans} invoice={conf.invoice} />
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-2 dark:border-night-700 dark:bg-night-900">
+            <DpForm pesanans={pesanans} dps={dps} title="Transfer Bank" />
+          </div>
         </div>
       </div>
     </main>

@@ -31,7 +31,17 @@ const DP_STATUS: Record<string, [string, string]> = {
   ditolak: ["Ditolak", "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"],
 };
 
-export default function DpForm({ pesanans, dps }: { pesanans: Pesanan[]; dps: DpRow[] }) {
+export default function DpForm({
+  pesanans,
+  dps,
+  title = "Uang Muka (DP)",
+  showHistory = true,
+}: {
+  pesanans: Pesanan[];
+  dps: DpRow[];
+  title?: string;
+  showHistory?: boolean;
+}) {
   const [selected, setSelected] = useState<number | null>(null);
   const pesanan = pesanans.find((p) => p.id === selected) ?? null;
   const saran = pesanan?.budget ? Math.round((pesanan.budget * 0.3) / 1000) * 1000 : 0;
@@ -43,7 +53,7 @@ export default function DpForm({ pesanans, dps }: { pesanans: Pesanan[]; dps: Dp
           <Wallet className="h-5 w-5" aria-hidden />
         </span>
         <div className="min-w-0">
-          <h2 className="text-base font-bold text-emerald-900 dark:text-emerald-100">Uang Muka (DP)</h2>
+          <h2 className="text-base font-bold text-emerald-900 dark:text-emerald-100">{title}</h2>
           <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
             Ajukan DP untuk pesanan pohon. Nominal atau 30% dari budget program — bukti transfer akan diverifikasi admin.
           </p>
@@ -99,6 +109,7 @@ export default function DpForm({ pesanans, dps }: { pesanans: Pesanan[]; dps: Dp
       </form>
 
       {/* Riwayat DP */}
+      {showHistory && (
       <div className="mt-5 overflow-hidden rounded-xl border border-emerald-100 bg-white dark:border-night-700 dark:bg-night-900">
         <p className="flex items-center gap-1.5 border-b border-emerald-100 px-4 py-3 text-xs font-bold text-emerald-800 dark:border-night-700 dark:text-emerald-200">
           <ReceiptText className="h-4 w-4" aria-hidden /> Riwayat Pembayaran DP
@@ -134,6 +145,7 @@ export default function DpForm({ pesanans, dps }: { pesanans: Pesanan[]; dps: Dp
           </table>
         )}
       </div>
+      )}
     </div>
   );
 }

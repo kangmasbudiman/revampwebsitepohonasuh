@@ -591,6 +591,31 @@ export async function ajukanPerpanjangan(formData: FormData) {
   redirect("/mitra/program?perpanjang=1");
 }
 
+export type DpOnlineState = { error?: string; link?: string };
+
+// Buat tagihan Mayar untuk DP online — webhook hanya mengubah status DP,
+// tidak pernah menerbitkan sertifikat.
+export async function bayarDpOnline(_prev: DpOnlineState, formData: FormData): Promise<DpOnlineState> {
+  const session = await requireUser();
+  const id = Number(formData.get("pesanan_id"));
+  const jumlah = Number(formData.get("jumlah"));
+  const invoice = String(formData.get("invoice") ?? "").trim();
+  if (!id || !(jumlah > 0)) return { error: "Pilih pesanan dan nominal DP dulu." };
+
+  try {
+    const res = await apiPost<{ value?: string | number; link?: string; pesan?: string }>(
+      "bayardponline",
+      { idmember: session.userId, id, jumlah, invoice },
+    );
+    if (Number(res.value) !== 200) {
+      return { error: res.pesan ?? "Gagal membuat tagihan DP online." };
+    }
+    return { link: res.link ?? "" };
+  } catch {
+    return { error: "Gagal menghubungi server. Coba lagi." };
+  }
+}
+
 export async function daftarMitra(formData: FormData) {
   const nama = String(formData.get("nama") ?? "").trim();
   const alamat = String(formData.get("alamat") ?? "").trim();
