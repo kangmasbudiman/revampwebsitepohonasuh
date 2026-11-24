@@ -129,6 +129,16 @@ export function assetUrl(file?: string | null): string | null {
   return `${ASSET_ORIGIN}/${f.replace(/^\//, "")}`;
 }
 
+// URL bukti transfer: uploadcover menyimpan filename polos di folder /assets.
+export function buktiUrl(file?: string | null): string | null {
+  if (!file) return null;
+  const f = String(file).trim();
+  if (!f) return null;
+  if (/^https?:\/\//i.test(f)) return f;
+  if (f.includes("/")) return assetUrl(f);
+  return `${ASSET_ORIGIN}/assets/${f.replace(/^\//, "")}`;
+}
+
 // Foto utama pohon: baris tanpa foto otomatis memakai gambar default
 // dari aset backend (konsisten dengan fallback aplikasi mobile).
 export function treePhotoUrl(file?: string | null): string {

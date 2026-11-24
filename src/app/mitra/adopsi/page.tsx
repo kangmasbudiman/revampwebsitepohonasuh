@@ -43,7 +43,12 @@ export default async function MitraAdopsiPage(props: PageProps<"/mitra/adopsi">)
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
 
       <div className="mt-6">
-        <MitraAdopsiKonsepForm mitras={[{ id: mitraId!, nama: mitraName }]} programs={programs} selfMode />
+        <MitraAdopsiKonsepForm
+          mitras={[{ id: mitraId!, nama: mitraName }]}
+          programs={programs}
+          defaultProgramId={Number(sp?.program_id ?? 0) || 0}
+          selfMode
+        />
       </div>
     </main>
   );

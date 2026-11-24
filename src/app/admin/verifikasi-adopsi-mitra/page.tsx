@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdminLevel } from "@/lib/guard";
 import SuccessPopup from "@/components/admin/success-popup";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
-import { apiGet, apiAssetUrl } from "@/lib/api";
+import { apiGet, buktiUrl } from "@/lib/api";
 import { rupiah } from "@/lib/format";
 import { verifikasiAdopsiMitraAction } from "@/lib/actions/mitra";
 import { BadgeCheck, SearchX, Leaf } from "lucide-react";
@@ -116,32 +116,38 @@ export default async function VerifikasiAdopsiMitraPage(props: PageProps<"/admin
                   )}
                   <div>
                     <p className="text-sm font-bold text-emerald-950 dark:text-emerald-100">{inv.mitra}</p>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Invoice <span className="font-mono">{inv.invoice}</span> · {inv.tgl ?? "—"} · {inv.jumlah} pohon</p>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Invoice <span className="font-mono">{inv.invoice}</span> · {inv.tgl ?? "—"} · {inv.jumlah} pohon · <strong className="text-emerald-800">{rupiah(inv.price ?? 0)}</strong></p>
                     {inv.bukti
                       ? <PhotoLightbox src={inv.bukti} alt={`Bukti transfer ${inv.invoice}`} triggerClassName="text-[11px] font-semibold text-emerald-700 underline decoration-emerald-300 hover:text-emerald-800">Lihat bukti transfer</PhotoLightbox>
                       : <span className="text-[11px] text-amber-700">Belum ada bukti (kemungkinan QRIS/Mayar)</span>}
-                      {(() => {
-                        const list = dpsByInvoice.get(inv.invoice.replace(/^#/, "").toUpperCase()) ?? [];
-                        if (list.length === 0) return null;
-                        const d = list[list.length - 1];
-                        const lbl = d.status === "disetujui"
-                          ? ["DP Disetujui", "bg-emerald-100 text-emerald-700"]
-                          : d.status === "ditolak"
-                            ? ["DP Ditolak", "bg-red-100 text-red-700"]
-                            : ["DP Menunggu Verifikasi", "bg-amber-100 text-amber-700"];
-                        const buktiUrl = apiAssetUrl(d.bukti);
-                        return (
-                          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${lbl[1]}`}>{lbl[0]} · {rupiah(Number(d.jumlah))}</span>
-                            {d.metode === "online" ? (
-                              <span className="text-[11px] font-semibold text-emerald-700">via Mayar (otomatis)</span>
-                            ) : buktiUrl ? (
-                              <PhotoLightbox src={buktiUrl} alt={`Bukti DP ${inv.invoice}`} triggerClassName="text-[11px] font-semibold text-emerald-700 underline">Lihat bukti DP</PhotoLightbox>
-                            ) : null}
-                            <Link href="/admin/verifikasi-dp" className="text-[11px] font-semibold text-emerald-700 underline">Kelola DP →</Link>
-                          </div>
-                        );
-                      })()}
+                        {(() => {
+                          const list = dpsByInvoice.get(inv.invoice.replace(/^#/, "").toUpperCase()) ?? [];
+                          if (list.length === 0) return null;
+                          return (
+                            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                              {list.map((d, n) => {
+                                const lbl = d.status === "disetujui"
+                                  ? ["Disetujui", "bg-emerald-100 text-emerald-700"]
+                                  : d.status === "ditolak"
+                                    ? ["Ditolak", "bg-red-100 text-red-700"]
+                                    : ["Menunggu", "bg-amber-100 text-amber-700"];
+                                const link = buktiUrl(d.bukti);
+                                return (
+                                  <span key={d.id} className="inline-flex flex-wrap items-center gap-1.5 rounded-lg border border-emerald-100 bg-white px-2 py-1 dark:border-night-700">
+                                    <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-200">DP {n + 1}</span>
+                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${lbl[1]}`}>{lbl[0]} · {rupiah(Number(d.jumlah))}</span>
+                                    {d.metode === "online" ? (
+                                      <span className="text-[10px] font-semibold text-emerald-700">via Mayar</span>
+                                    ) : link ? (
+                                      <PhotoLightbox src={link} alt={`Bukti DP ${n + 1} ${inv.invoice}`} triggerClassName="text-[10px] font-semibold text-emerald-700 underline">Lihat bukti DP {n + 1}</PhotoLightbox>
+                                    ) : null}
+                                  </span>
+                                );
+                              })}
+                              <Link href="/admin/verifikasi-dp" className="text-[11px] font-semibold text-emerald-700 underline">Kelola DP →</Link>
+                            </div>
+                          );
+                        })()}
                   </div>
                 </div>
                 <form action={verifikasiAdopsiMitraAction}>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Eye, X } from "lucide-react";
 import { rupiah } from "@/lib/format";
+import { buktiUrl } from "@/lib/api";
 import { verifikasiDp } from "@/lib/actions/dp";
 
 type Row = {
@@ -34,7 +35,7 @@ export default function DpBuktiModal({ row, assetOrigin }: { row: Row; assetOrig
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean)
-        .map((s) => (/^https?:\/\//i.test(s) ? s : `${assetOrigin}/assets/${s.replace(/^\/?(assets\/)?/, "")}`))
+        .map((s) => buktiUrl(s) ?? s)
     : [];
   const lbl = STATUS[row.status] ?? [row.status, "bg-zinc-100 text-zinc-600"];
 

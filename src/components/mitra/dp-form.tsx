@@ -5,7 +5,7 @@ import { ajukanDp } from "@/lib/actions/mitra";
 import SubmitButton from "@/components/admin/submit-button";
 import { Wallet, ReceiptText } from "lucide-react";
 import { rupiah } from "@/lib/format";
-import { apiAssetUrl } from "@/lib/api";
+import { buktiUrl } from "@/lib/api";
 
 type Pesanan = {
   id: number;
@@ -133,7 +133,7 @@ export default function DpForm({
             <tbody className="divide-y divide-emerald-50 dark:divide-night-800">
               {dps.map((d) => {
                 const lbl = DP_STATUS[d.status] ?? [d.status, "bg-zinc-100 text-zinc-600"];
-                const url = apiAssetUrl(d.bukti);
+                const url = buktiUrl(d.bukti);
                 return (
                   <tr key={d.id}>
                     <td className="px-4 py-2 font-mono text-xs">{d.id}</td>

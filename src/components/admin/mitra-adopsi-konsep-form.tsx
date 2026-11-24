@@ -22,14 +22,16 @@ export default function MitraAdopsiKonsepForm({
   mitras,
   programs = [],
   selfMode = false,
+  defaultProgramId = 0,
 }: {
   mitras: { id: number; nama: string }[];
   programs?: { id: number; nama: string; mitraId: number }[];
   selfMode?: boolean;
+  defaultProgramId?: number;
 }) {
   const formAction = selfMode ? inputAdopsiMitraSelf : inputAdopsiMitra;
   const [mitraId, setMitraId] = useState(mitras[0]?.id ?? 0);
-  const [programId, setProgramId] = useState(0);
+  const [programId, setProgramId] = useState(defaultProgramId);
   const [adopters, setAdopters] = useState<Adopter[]>([]);
   const [draft, setDraft] = useState({ nama: "", email: "", dur: 1, tgl_adopt: "", memo: "" });
   const [treeList, setTreeList] = useState<ProgramTreeMini[]>([]);

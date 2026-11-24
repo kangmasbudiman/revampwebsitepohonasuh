@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { namaDesa, rupiah, tanggal, infoMasaProgram } from "@/lib/format";
 import type { ApiProgramMitra, OrderTreeMini } from "@/lib/api";
 import ConfirmSubmit from "@/components/admin/confirm-submit";
@@ -38,6 +39,7 @@ export default function MitraRiwayatTable({
               <th className="px-4 py-3">Tgl Selesai</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Pohon</th>
+              <th className="px-4 py-3">Pohon Diadopsi</th>
               <th className="px-4 py-3 text-right">Waktu</th>
               <th className="px-4 py-3 text-right font-semibold">Aksi</th>
             </tr>
@@ -97,6 +99,21 @@ export default function MitraRiwayatTable({
                     )}
                   </td>
                   <td className="px-4 py-3">{renderTrees(r.trees)}</td>
+                  <td className="px-4 py-3">
+                    {(r.adopted_count ?? 0) > 0 ? (
+                      <div className="space-y-1">
+                        <span className="rounded-full bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white">{r.adopted_count} pohon sukses diadopsi</span>
+                        <div className="flex flex-wrap gap-1">
+                          {(r.adopted_codes ?? []).slice(0, 6).map((c) => (
+                            <span key={c} className="rounded bg-emerald-50 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-emerald-700 dark:bg-night-800 dark:text-emerald-300">{c}</span>
+                          ))}
+                          {(r.adopted_codes ?? []).length > 6 && <span className="text-[9px] text-zinc-400">+{r.adopted_codes!.length - 6}</span>}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-zinc-400">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.created_at ? tanggal(r.created_at) : "—"}</td>
                   <td className="px-4 py-3 text-right">
                     <button
@@ -106,6 +123,14 @@ export default function MitraRiwayatTable({
                     >
                       Detail
                     </button>
+                    {r.program_id ? (
+                      <Link
+                        href={`/mitra/adopsi?program_id=${r.program_id}`}
+                        className="ml-1 inline-block rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-100 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-300"
+                      >
+                        Data Pengadopsi
+                      </Link>
+                    ) : null}
                     {r.status !== "dihapus" && (
                       <form action={hapusPesananMitra} className="ml-1 inline">
                         <input type="hidden" name="id" value={r.id} />
