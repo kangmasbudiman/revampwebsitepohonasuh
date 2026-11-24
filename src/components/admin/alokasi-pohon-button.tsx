@@ -232,7 +232,7 @@ export default function AlokasiPohonButton({
                 >
                   {isGanti
                     ? "Simpan Pilihan Pohon"
-                    : `Setujui & Alokasikan${picked.length ? ` (${picked.length})` : " Otomatis"}`}
+                    : picked.length ? `Setujui & Alokasikan (${picked.length})` : "Setujui & Alokasikan Otomatis"}
                 </button>
               </form>
             </div>
