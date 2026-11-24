@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/guard";
-import { apiPost, apiGet, mapProgramMitra } from "@/lib/api";
+import { apiPost } from "@/lib/api";
 import SuccessPopup from "@/components/admin/success-popup";
-import DpForm from "@/components/mitra/dp-form";
 import { ArrowLeft, Receipt, CheckCircle2, Clock3, TreePine, BadgeCheck, Wallet, BadgeDollarSign, XCircle } from "lucide-react";
 
 export const metadata = { title: "Tagihan Adopsi | Pohon Asuh" };
@@ -53,34 +52,6 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
     fetchError = true;
   }
 
-  // Data untuk panel DP: pesanan mitra + budget program + riwayat DP.
-  type DpPesanan = { id: number; program_id: number | null; program_nama: string | null; jumlah: number; status: string; dp_status: string | null; budget: number | null };
-  type DpRow = { id: number; pesanan_id: number; jumlah: number | string; bukti: string | null; status: string; created_at: string; program_nama?: string | null };
-  let dpPesanans: DpPesanan[] = [];
-  let dps: DpRow[] = [];
-  try {
-    const [riwayat, prows, dpRes] = await Promise.all([
-      apiPost<{ data?: Record<string, unknown>[] }>("mitrariwayatpesanan", { idmember: session.userId, status: "semua", q: "", page: 1, per_page: 50 }),
-      apiGet<Record<string, unknown>[]>(`programmitralist?mitra_id=${mitraId}`),
-      apiPost<{ data?: DpRow[] }>("daftardp", { idmember: session.userId }),
-    ]);
-    const budgets = new Map(prows.map(mapProgramMitra).map((p) => [p.id, p.budget]));
-    dpPesanans = (Array.isArray(riwayat.data) ? riwayat.data : [])
-      .filter((r) => r.status !== "dihapus")
-      .map((r) => ({
-        id: Number(r.id),
-        program_id: r.program_id ? Number(r.program_id) : null,
-        program_nama: r.program_nama ? String(r.program_nama) : null,
-        jumlah: Number(r.jumlah ?? 0),
-        status: String(r.status ?? ""),
-        dp_status: r.dp_status ? String(r.dp_status) : null,
-        budget: r.program_id ? budgets.get(Number(r.program_id)) ?? null : null,
-      }));
-    dps = Array.isArray(dpRes.data) ? dpRes.data : [];
-  } catch {
-    // panel DP tetap tampil kosong bila API gagal
-  }
-
   const fmtDate = (raw: string | null) => {
     if (!raw) return "—";
     const d = new Date(raw.length === 10 ? raw + "T00:00:00" : raw.replace(" ", "T"));
@@ -104,8 +75,6 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
 
       {sp?.dp === "1" && <SuccessPopup paramKey="dp" title="DP Diajukan">Bukti DP terkirim. Menunggu verifikasi admin.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
-
-      <DpForm pesanans={dpPesanans} dps={dps} />
 
       {/* Statistik */}
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -171,7 +140,10 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
                   <span className="text-base font-extrabold text-emerald-900 dark:text-emerald-200">{fmtRp(it.price)}</span>
                 </div>
                 {!it.paid && !it.expired && (
-                  <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
+                    <Link href={`/mitra/bayar-dp/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:border-night-700 dark:bg-night-800 dark:text-emerald-300">Bayar DP</Link>
+                  </div>
                 )}
               </div>
             ))}
@@ -212,7 +184,10 @@ export default async function MitraTagihanPage(props: PageProps<"/mitra/tagihan"
                       {it.paid || it.expired ? (
                         <span className="text-[11px] text-zinc-400">—</span>
                       ) : (
-                        <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link href={`/mitra/bayar/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-emerald-700">Bayar Sekarang</Link>
+                          <Link href={`/mitra/bayar-dp/${encodeURIComponent(it.invoice.replace(/^#/, ""))}`} className="inline-flex rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 dark:border-night-700 dark:bg-night-800 dark:text-emerald-300">Bayar DP</Link>
+                        </div>
                       )}
                     </td>
                   </tr>
