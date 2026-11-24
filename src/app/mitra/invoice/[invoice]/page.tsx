@@ -53,7 +53,22 @@ export default async function MitraInvoicePage(props: PageProps<"/mitra/invoice/
   } catch {
     conf = null;
   }
-  if (!conf) notFound();
+  if (!conf) {
+    return (
+      <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+        <Link href="/mitra/tagihan" className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-800 hover:underline">
+          <ArrowLeft className="h-4 w-4" aria-hidden /> Kembali ke Tagihan Saya
+        </Link>
+        <div className="mt-6 rounded-2xl border border-red-100 bg-red-50/60 p-8 text-center dark:border-red-900/60 dark:bg-red-950/30">
+          <p className="text-lg font-bold text-red-800 dark:text-red-200">Invoice tidak ditemukan</p>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            Invoice <span className="font-mono font-semibold">{invoice}</span> tidak ditemukan di data tagihan Anda.
+            Bila yakin ini kesalahan, hubungi admin.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   const uniqueTrees = new Map<string, { tree: ApiAdopsiPohon; adopters: string[]; totalPrice: number }>();
   for (const t of trees) {
