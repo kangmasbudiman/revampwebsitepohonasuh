@@ -44,6 +44,7 @@ export default function AlokasiPohonButton({
   const [loading, setLoading] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [priceFilter, setPriceFilter] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -75,14 +76,16 @@ export default function AlokasiPohonButton({
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (!needle) return trees;
-    return trees.filter((t) =>
+    let list = trees;
+    if (priceFilter !== null) list = list.filter((t) => Number(t.harga ?? 0) === priceFilter);
+    if (needle) list = list.filter((t) =>
       [t.idpohon, t.localName ?? t.localname ?? "", t.species ?? "", t.desa ?? ""]
         .join(" ")
         .toLowerCase()
         .includes(needle),
     );
-  }, [trees, query]);
+    return list;
+  }, [trees, query, priceFilter]);
 
   const toggle = (code: string) => {
     setPicked((prev) => {
@@ -124,6 +127,19 @@ export default function AlokasiPohonButton({
                   aria-label="Cari pohon"
                 />
               </label>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <button type="button" onClick={() => setPriceFilter(null)} className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${priceFilter === null ? "border-emerald-500 bg-emerald-500 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-emerald-50 dark:border-night-700 dark:bg-night-900 dark:text-zinc-300"}`}>
+                  Semua
+                </button>
+                {[100000, 150000, 200000].map((price) => {
+                  const count = trees.filter((t) => Number(t.harga ?? 0) === price).length;
+                  return (
+                    <button key={price} type="button" onClick={() => setPriceFilter(price)} className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${priceFilter === price ? "border-emerald-500 bg-emerald-500 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:bg-emerald-50 dark:border-night-700 dark:bg-night-900 dark:text-zinc-300"}`}>
+                      Rp {price.toLocaleString("id-ID")} ({count})
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="min-h-[180px] flex-1 overflow-y-auto px-5 py-4">
@@ -193,7 +209,19 @@ export default function AlokasiPohonButton({
             </div>
 
             <div className="flex items-center justify-between gap-3 border-t border-emerald-100 px-5 py-4 dark:border-night-700">
-              <button type="button" onClick={() => setOpen(false)} className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 dark:border-night-700 dark:text-zinc-300">Batal</button>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {picked.length > 0 && [100000, 150000, 200000].map((price) => {
+                  const n = picked.filter((code) => trees.find((t) => t.idpohon === code && Number(t.harga ?? 0) === price)).length;
+                  if (n === 0) return null;
+                  return (
+                    <span key={price} className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-night-800 dark:text-emerald-300">
+                      Rp {price.toLocaleString("id-ID")}: {n} pohon
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setOpen(false)} className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 dark:border-night-700 dark:text-zinc-300">Batal</button>
               <form action={action}>
                 <input type="hidden" name="id" value={id} />
                 <input type="hidden" name={isGanti ? "kode_pohon" : "pohon_pilihan_admin"} value={picked.join(",")} />
