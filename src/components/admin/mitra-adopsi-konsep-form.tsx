@@ -40,6 +40,7 @@ export default function MitraAdopsiKonsepForm({
   const [adopterQuery, setAdopterQuery] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
+  const [adopterError, setAdopterError] = useState<string | null>(null);
   const draftRestoredRef = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -125,6 +126,11 @@ export default function MitraAdopsiKonsepForm({
     const nama = draft.nama.trim();
     const email = draft.email.trim().toLowerCase();
     if (nama.length < 3 || !emailOk(email)) return;
+    if (adopters.some((a) => a.email === email)) {
+      setAdopterError(`Email ${email} sudah ada di daftar pengadopsi — tidak boleh ditambahkan dua kali.`);
+      return;
+    }
+    setAdopterError(null);
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     setAdopters((prev) => [...prev, { id, nama, email, dur: Math.max(1, draft.dur || 1), tgl_adopt: draft.tgl_adopt || today, memo: draft.memo.trim() }]);
     setDraft({ nama: "", email: "", dur: 1, tgl_adopt: "", memo: "" });
@@ -200,7 +206,13 @@ export default function MitraAdopsiKonsepForm({
           <CheckCircle2 className="h-4 w-4" aria-hidden /> {draftNotice}
         </div>
       )}
-      <form ref={formRef} action={formAction} encType="multipart/form-data" className="space-y-6">
+      <form
+        ref={formRef}
+        action={formAction}
+        onSubmit={() => { if (typeof window !== "undefined") localStorage.removeItem(draftKey); }}
+        encType="multipart/form-data"
+        className="space-y-6"
+      >
       <input type="hidden" name="mitra_id" value={mitraId} />
       <input type="hidden" name="program_id" value={programId} />
       <input type="hidden" name="items" value={itemsJson} />
@@ -270,6 +282,9 @@ export default function MitraAdopsiKonsepForm({
             <button type="button" onClick={addAdopter} disabled={!draft.nama.trim() || !emailOk(draft.email)} className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-night-700 dark:text-emerald-300">
               <Plus className="h-4 w-4" aria-hidden />Tambah Pengadopsi
             </button>
+            {adopterError && (
+              <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-950/40 dark:text-red-300">{adopterError}</p>
+            )}
 
             {adopters.length > 0 && (
               <ul className="mt-3 space-y-2">
