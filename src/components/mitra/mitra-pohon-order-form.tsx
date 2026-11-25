@@ -13,9 +13,11 @@ import type { ApiDesa, ApiProgramMitra } from "@/lib/api";
 export default function MitraPohonOrderForm({
   desas,
   programs,
+  existingOrders = [],
 }: {
   desas: ApiDesa[];
   programs: ApiProgramMitra[];
+  existingOrders?: { programId: number | null; jumlah: number; jumlahTeradopsi: number; status: string }[];
 }) {
   const [programId, setProgramId] = useState<number | null>(null);
   const [desa, setDesa] = useState("");
@@ -39,6 +41,13 @@ export default function MitraPohonOrderForm({
         ? Math.max(1, Math.round(program.budget / 200000))
         : 0
     : 0;
+
+  const ordersForProgram = program
+    ? existingOrders.filter((o) => o.programId === program.id)
+    : [];
+  const sudahDipesan = ordersForProgram.reduce((s, o) => s + o.jumlah, 0);
+  const sudahDiadopsi = ordersForProgram.reduce((s, o) => s + o.jumlahTeradopsi, 0);
+  const sisa = Math.max(0, totalPohon - sudahDipesan);
 
   return (
     <form action={requestPesananMitra} className="mt-6 space-y-4">
@@ -113,6 +122,9 @@ export default function MitraPohonOrderForm({
             <div className="rounded-xl border border-emerald-100 bg-white p-3 dark:border-night-700 dark:bg-night-900">
               <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400"><Sprout className="h-3.5 w-3.5" /> Jumlah Pohon</p>
               <p className="mt-1 text-sm font-bold text-emerald-700">{totalPohon}</p>
+              <p className="mt-0.5 text-[10px] text-zinc-500">
+                Sudah dipesan: {sudahDipesan} · Sudah diadopsi: {sudahDiadopsi} · Sisa: {sisa}
+              </p>
             </div>
             <div className="rounded-xl border border-emerald-100 bg-white p-3 dark:border-night-700 dark:bg-night-900">
               <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400"><CalendarDays className="h-3.5 w-3.5" /> Masa Program</p>
@@ -129,23 +141,25 @@ export default function MitraPohonOrderForm({
         </div>
       )}
 
-      {/* Kirim — jumlah pohon otomatis dari program */}
-      <input type="hidden" name="jumlah" value={totalPohon} />
+      {/* Kirim — jumlah pohon otomatis dari sisa program */}
+      <input type="hidden" name="jumlah" value={sisa > 0 ? sisa : 0} />
       <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Jumlah pohon</span>
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Jumlah pohon yang akan dipesan</span>
             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-              Otomatis mengikuti Rincian Anggaran program — admin akan memilih pohon tersedia.
+              {sisa > 0
+                ? `Otomatis dari sisa program (${sisa} pohon) — admin akan memilih pohon tersedia.`
+                : "Sisa pohon program 0 — tidak bisa memesan lagi."}
             </p>
           </div>
           <span className="rounded-xl bg-emerald-100 px-3 py-1.5 text-sm font-bold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">
-            {totalPohon || "—"}
+            {sisa || "—"}
           </span>
         </div>
         <SubmitButton
           pendingLabel="Mengirim pesanan…"
-          disabled={!program || totalPohon < 1}
+          disabled={!program || sisa < 1}
           className="rounded-xl bg-emerald-600 px-6 py-3.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Kirim Permintaan Pemesanan

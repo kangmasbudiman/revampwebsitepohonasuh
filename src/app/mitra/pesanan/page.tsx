@@ -14,6 +14,7 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
   let aktif = 1;
   let programs: ApiProgramMitra[] = [];
   let desas: ApiDesa[] = [];
+  let existingOrders: { programId: number | null; jumlah: number; jumlahTeradopsi: number; status: string }[] = [];
 
   try {
     const info = await apiPost<{
@@ -34,6 +35,17 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
   } catch {
     desas = [];
   }
+
+  try {
+    const rows = await apiPost<Record<string, unknown>[]>("mitramypesanan", { idmember: session.userId });
+    const arr = Array.isArray(rows) ? rows : [];
+    existingOrders = arr.map((r) => ({
+      programId: r.program_id ? Number(r.program_id) : null,
+      jumlah: Number(r.jumlah ?? 0),
+      jumlahTeradopsi: Number(r.jumlah_teradopsi ?? 0),
+      status: String(r.status ?? ""),
+    }));
+  } catch {}
 
   if (!mitraId) {
     const { redirect } = await import("next/navigation");
@@ -56,7 +68,11 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
           Akun Anda menunggu aktivasi admin — belum bisa mengajukan pesanan.
         </div>
       ) : (
-        <MitraPohonOrderForm desas={desas} programs={programs} />
+        <MitraPohonOrderForm
+          desas={desas}
+          programs={programs}
+          existingOrders={existingOrders}
+        />
       )}
 
       <p className="mt-6 text-center text-xs text-zinc-400">Pantau semua permintaan pohon Anda di menu <a href="/mitra/riwayat-pesanan" className="font-semibold text-emerald-700 hover:underline">Riwayat Pemesanan</a>.</p>
