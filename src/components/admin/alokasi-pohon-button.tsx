@@ -97,6 +97,10 @@ export default function AlokasiPohonButton({
 
   const kuota = isGanti ? Math.max(0, jumlah - (teradopsi ?? 0)) : jumlah;
   const penuh = picked.length >= kuota;
+  const totalNominal = picked.reduce(
+    (sum, code) => sum + Number(trees.find((t) => t.idpohon === code)?.harga ?? 0),
+    0,
+  );
 
   const submitLabel = isGanti
     ? "Simpan Pilihan Pohon"
@@ -170,8 +174,13 @@ export default function AlokasiPohonButton({
                       </span>
                     );
                   })}
-                  <span className="ml-auto text-[11px] font-bold text-emerald-800 dark:text-emerald-200">
-                    Total {picked.length}/{jumlah}
+                  <span className="ml-auto flex items-center gap-2">
+                    <span className="rounded-lg bg-emerald-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                      {rupiah(totalNominal)}
+                    </span>
+                    <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-200">
+                      Total {picked.length}/{jumlah}
+                    </span>
                   </span>
                 </div>
               )}
@@ -240,6 +249,11 @@ export default function AlokasiPohonButton({
                     </span>
                   );
                 })}
+                {picked.length > 0 && (
+                  <span className="ml-auto rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white">
+                    Total {rupiah(totalNominal)}
+                  </span>
+                )}
               </div>
               <div className="flex items-center justify-between gap-3">
                 <button type="button" onClick={() => setOpen(false)} className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-600 dark:border-night-700 dark:text-zinc-300">Batal</button>
