@@ -43,7 +43,9 @@ export default function MitraPohonOrderForm({
     : 0;
 
   const ordersForProgram = program
-    ? existingOrders.filter((o) => o.programId === program.id)
+    ? existingOrders.filter(
+        (o) => o.programId === program.id && (o.status === "pending" || o.status === "approved"),
+      )
     : [];
   const sudahDipesan = ordersForProgram.reduce((s, o) => s + o.jumlah, 0);
   const sudahDiadopsi = ordersForProgram.reduce((s, o) => s + o.jumlahTeradopsi, 0);
@@ -137,6 +139,21 @@ export default function MitraPohonOrderForm({
               <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400"><Wallet className="h-3.5 w-3.5" /> Total Budget</p>
               <p className="mt-1 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{rupiah(program.budget ?? 0)}</p>
             </div>
+            {ordersForProgram.length > 0 && (
+              <div className="mt-3 rounded-xl border border-emerald-100 bg-white p-3 dark:border-night-700 dark:bg-night-900">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Pesanan sebelumnya untuk program ini</p>
+                <ul className="mt-2 space-y-1.5">
+                  {ordersForProgram.map((o, i) => (
+                    <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
+                      <span className="font-mono font-semibold text-emerald-700">#{i + 1}</span>
+                      <span>{o.status === "approved" ? "Disetujui" : o.status === "pending" ? "Menunggu" : o.status === "rejected" ? "Ditolak" : o.status === "cancelled" ? "Dibatalkan" : o.status}</span>
+                      <span>{o.jumlah} pohon</span>
+                      <span className="text-zinc-400">· sisa {Math.max(0, o.jumlah - o.jumlahTeradopsi)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       )}
