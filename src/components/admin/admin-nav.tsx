@@ -138,6 +138,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/role", label: "Kelola Role & Hak Akses", icon: ShieldCheck },
       { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
       { href: "/admin/backup", label: "Backup Database", icon: DatabaseBackup },
+      { href: "/admin/audit-log", label: "Audit Log", icon: ShieldCheck },
     ],
   },
 ];
@@ -163,6 +164,7 @@ const MITRA_HREFS = new Set([
   "/mitra/laporan",
   "/mitra/sertifikat",
   "/mitra/pengaturan",
+  "/mitra/audit-log",
 ]);
 const MITRA_ITEMS: Item[] = [
   { href: "/mitra", label: "Dashboard", icon: LayoutDashboard },
@@ -176,6 +178,7 @@ const MITRA_ITEMS: Item[] = [
   { href: "/mitra/laporan", label: "Laporan", icon: ClipboardCheck },
   { href: "/mitra/sertifikat", label: "Sertifikat", icon: Award },
   { href: "/mitra/pengaturan", label: "Pengaturan", icon: Settings },
+  { href: "/mitra/audit-log", label: "Riwayat Aktivitas", icon: ShieldCheck },
 ];
 const ALL_ITEMS: Item[] = [...GROUPS.flatMap((g) => g.items), ...MITRA_ITEMS];
 
