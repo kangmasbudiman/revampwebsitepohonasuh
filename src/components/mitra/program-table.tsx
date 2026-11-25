@@ -9,6 +9,7 @@ import ConfirmSubmit from "@/components/admin/confirm-submit";
 import { hapusProgramMitraSelf } from "@/lib/actions/mitra";
 import ProgramEditModal from "@/components/mitra/program-edit-modal";
 import PerpanjangModal from "@/components/mitra/perpanjang-modal";
+import BatalAdopsiButton from "@/components/mitra/batal-adopsi-button";
 
 // Tabel program mitra — klik tombol "Edit" di baris ini membuka popup
 // ProgramEditModal (popup saja, bukan form inline ?edit=id).
@@ -16,10 +17,12 @@ export default function MitraProgramTable({
   programs,
   provinsiList,
   assetOrigin,
+  batalInvoices,
 }: {
   programs: ApiProgramMitra[];
   provinsiList: string[];
   assetOrigin: string;
+  batalInvoices?: Map<number, { id: number; invoice: string; price: number }[]>;
 }) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [perpanjangId, setPerpanjangId] = useState<number | null>(null);
@@ -130,6 +133,10 @@ export default function MitraProgramTable({
                     >
                       Edit
                     </button>
+                    <BatalAdopsiButton
+                      invoices={batalInvoices?.get(p.id) ?? []}
+                      programNama={p.nama}
+                    />
                     <form action={hapusProgramMitraSelf} className="ml-1 inline">
                       <input type="hidden" name="id" value={p.id} />
                       <ConfirmSubmit

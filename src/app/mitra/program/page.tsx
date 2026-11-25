@@ -23,6 +23,7 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
   let mitraName = "";
   let programs: ApiProgramMitra[] = [];
   let provinsiList: string[] = [];
+  let unpaidByProgram = new Map<number, { id: number; invoice: string; price: number }[]>();
 
   try {
     const info = await apiPost<MitraInfoRes>("mitramyinfo", { idmember: session.userId });
@@ -37,6 +38,26 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
   } catch {
     // bukan mitra
   }
+  try {
+    const [invRes, adRes] = await Promise.all([
+      apiPost<{ data?: { id: number; invoice: string; price: number; status: string; paid?: boolean; expired?: boolean }[] }>("mitramyinvoice", { idmember: session.userId }),
+      apiPost<Record<string, unknown>[]>("mitramyadopsi", { idmember: session.userId }),
+    ]);
+    const invoices = Array.isArray(invRes.data) ? invRes.data : [];
+    const adoptions = Array.isArray(adRes) ? adRes : [];
+    const invoiceByNo = new Map(invoices.map((i) => [String(i.invoice).replace(/^#/, ""), i]));
+    for (const a of adoptions) {
+      const pid = a.program_id ? Number(a.program_id) : 0;
+      if (!pid) continue;
+      const inv = invoiceByNo.get(String(a.invoice ?? "").replace(/^#/, ""));
+      if (!inv || inv.paid || inv.expired || String(inv.status) !== "no") continue;
+      const arr = unpaidByProgram.get(pid) ?? [];
+      if (!arr.some((x) => x.id === inv.id)) {
+        arr.push({ id: inv.id, invoice: inv.invoice, price: inv.price });
+      }
+      unpaidByProgram.set(pid, arr);
+    }
+  } catch {}
   if (!mitraId) {
     const { redirect } = await import("next/navigation");
     redirect("/dashboard");
@@ -130,7 +151,12 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
       )}
 
       {/* Tabel program — klik tombol Edit ⇒ popup ProgramEditModal */}
-      <MitraProgramTable programs={programs} provinsiList={provinsiList} assetOrigin={ASSET_ORIGIN} />
+      <MitraProgramTable
+        programs={programs}
+        provinsiList={provinsiList}
+        assetOrigin={ASSET_ORIGIN}
+        batalInvoices={unpaidByProgram}
+      />
     </main>
   );
 }
