@@ -14,7 +14,7 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
   let aktif = 1;
   let programs: ApiProgramMitra[] = [];
   let desas: ApiDesa[] = [];
-  let existingOrders: { programId: number | null; jumlah: number; jumlahTeradopsi: number; status: string }[] = [];
+  let existingOrders: { id: number; programId: number | null; jumlah: number; jumlahTeradopsi: number; status: string }[] = [];
 
   try {
     const info = await apiPost<{
@@ -40,6 +40,7 @@ export default async function MitraPesananPage(props: PageProps<"/mitra/pesanan"
     const rows = await apiPost<Record<string, unknown>[]>("mitramypesanan", { idmember: session.userId });
     const arr = Array.isArray(rows) ? rows : [];
     existingOrders = arr.map((r) => ({
+      id: Number(r.id),
       programId: r.program_id ? Number(r.program_id) : null,
       jumlah: Number(r.jumlah ?? 0),
       jumlahTeradopsi: Number(r.jumlah_teradopsi ?? 0),

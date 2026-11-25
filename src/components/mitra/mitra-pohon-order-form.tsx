@@ -17,7 +17,7 @@ export default function MitraPohonOrderForm({
 }: {
   desas: ApiDesa[];
   programs: ApiProgramMitra[];
-  existingOrders?: { programId: number | null; jumlah: number; jumlahTeradopsi: number; status: string }[];
+  existingOrders?: { id: number; programId: number | null; jumlah: number; jumlahTeradopsi: number; status: string }[];
 }) {
   const [programId, setProgramId] = useState<number | null>(null);
   const [desa, setDesa] = useState("");
@@ -144,9 +144,9 @@ export default function MitraPohonOrderForm({
               <div className="mt-3 rounded-xl border border-emerald-100 bg-white p-3 dark:border-night-700 dark:bg-night-900">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Pesanan sebelumnya untuk program ini</p>
                 <ul className="mt-2 space-y-1.5">
-                  {ordersForProgram.map((o, i) => (
-                    <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
-                      <span className="font-mono font-semibold text-emerald-700">#{i + 1}</span>
+                  {ordersForProgram.map((o) => (
+                    <li key={o.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-300">
+                      <span className="font-mono font-semibold text-emerald-700">#{o.id}</span>
                       <span>{o.status === "approved" ? "Disetujui" : o.status === "pending" ? "Menunggu" : o.status === "rejected" ? "Ditolak" : o.status === "cancelled" ? "Dibatalkan" : o.status}</span>
                       <span>{o.jumlah} pohon</span>
                       <span className="text-zinc-400">· sisa {Math.max(0, o.jumlah - o.jumlahTeradopsi)}</span>
