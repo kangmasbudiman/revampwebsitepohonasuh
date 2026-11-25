@@ -37,7 +37,7 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
   }
 
   const status = (typeof sp?.status === "string" ? sp.status : "semua").toLowerCase();
-  const activeStatus = ["semua", "pending", "approved", "rejected", "cancelled", "dihapus"].includes(status) ? status : "semua";
+  const activeStatus = ["semua", "pending", "approved", "rejected", "cancelled"].includes(status) ? status : "semua";
   const q = typeof sp?.q === "string" ? sp.q.trim() : "";
   const page = Number(sp?.page ?? 1) || 1;
   const dihapus = Boolean(sp?.dihapus);
@@ -99,7 +99,6 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
         <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Disetujui</p><p className="mt-0.5 text-2xl font-extrabold text-emerald-700">{summary.approved}</p></div>
         <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Ditolak</p><p className="mt-0.5 text-2xl font-extrabold text-red-600">{summary.rejected}</p></div>
         <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Dibatalkan</p><p className="mt-0.5 text-2xl font-extrabold text-zinc-600">{summary.cancelled}</p></div>
-        <div className="rounded-2xl border border-emerald-100 pa-card p-4 dark:border-night-700"><p className="text-[11px] text-zinc-500">Dihapus</p><p className="mt-0.5 text-2xl font-extrabold text-zinc-500">{summary.dihapus}</p></div>
       </div>
 
       {/* Filter + cari */}
@@ -109,7 +108,6 @@ export default async function MitraRiwayatPesananPage(props: PageProps<"/mitra/r
         {pill("approved", "Disetujui", summary.approved)}
         {pill("rejected", "Ditolak", summary.rejected)}
         {pill("cancelled", "Dibatalkan", summary.cancelled)}
-        {pill("dihapus", "Dihapus", summary.dihapus)}
       </div>
       <form method="get" className="mt-3 flex flex-wrap items-center gap-2">
         <input type="hidden" name="status" value={activeStatus} />
