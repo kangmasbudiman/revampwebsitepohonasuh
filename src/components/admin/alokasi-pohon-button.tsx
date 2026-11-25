@@ -25,12 +25,14 @@ export default function AlokasiPohonButton({
   programId,
   desa,
   mode = "approve",
+  budget = 0,
   teradopsi = 0,
   assetOrigin = "",
 }: {
   id: number;
   jumlah: number;
   teradopsi?: number;
+  budget?: number;
   programId: number | null;
   desa?: string | null;
   mode?: "approve" | "ganti";
@@ -101,6 +103,12 @@ export default function AlokasiPohonButton({
     (sum, code) => sum + Number(trees.find((t) => t.idpohon === code)?.harga ?? 0),
     0,
   );
+  const overBudget = budget > 0 && totalNominal > budget;
+  const melebihiJika = (code: string) => {
+    if (budget <= 0 || picked.includes(code)) return false;
+    const t = trees.find((x) => x.idpohon === code);
+    return totalNominal + Number(t?.harga ?? 0) > budget;
+  };
 
   const submitLabel = isGanti
     ? "Simpan Pilihan Pohon"
@@ -139,6 +147,12 @@ export default function AlokasiPohonButton({
                 {provinsi.length > 0 ? ` · provinsi ${provinsi.join(", ")}` : ""}. Terpilih: <strong>{picked.length}/{kuota}</strong>
                 {penuh && <span className="ml-1 font-semibold text-amber-600">— kuota penuh, lepas pilihan untuk mengganti</span>}
               </p>
+              {budget > 0 && (
+                <p className={`mt-1 text-xs font-semibold ${overBudget ? "text-red-600" : "text-emerald-700"}`}>
+                  Budget program: {rupiah(budget)} · Total pilihan: {rupiah(totalNominal)}
+                  {overBudget ? " — melebihi budget!" : ""}
+                </p>
+              )}
               <label className="relative mt-3 block">
                 <Search className="pointer-events-none absolute top-2.5 left-3 h-4 w-4 text-zinc-400" aria-hidden />
                 <input
@@ -208,7 +222,7 @@ export default function AlokasiPohonButton({
                         <input
                           type="checkbox"
                           checked={on}
-                          disabled={!on && penuh}
+                          disabled={!on && (penuh || melebihiJika(t.idpohon))}
                           onChange={() => toggle(t.idpohon)}
                           className="h-4 w-4 shrink-0 accent-emerald-600 disabled:cursor-not-allowed"
                           aria-label={`Pilih ${t.idpohon}`}
@@ -262,7 +276,7 @@ export default function AlokasiPohonButton({
                   <input type="hidden" name={isGanti ? "kode_pohon" : "pohon_pilihan_admin"} value={picked.join(",")} />
                   <button
                     type="submit"
-                    disabled={isGanti ? picked.length !== kuota : picked.length > kuota}
+                    disabled={overBudget || (isGanti ? picked.length !== kuota : picked.length > kuota)}
                     className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {submitLabel}

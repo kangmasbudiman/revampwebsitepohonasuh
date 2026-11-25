@@ -236,6 +236,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                             jumlah={r.jumlah}
                             programId={r.programId ? Number(r.programId) : null}
                             desa={r.desa}
+                            budget={Number(prog?.budget ?? 0)}
                             assetOrigin={ASSET_ORIGIN}
                           />
                           <form action={rejectPesananMitra} className="inline">
@@ -252,6 +253,7 @@ export default async function AdminPesananMitraPage(props: PageProps<"/admin/pes
                           programId={r.programId ? Number(r.programId) : null}
                           desa={r.desa}
                           mode="ganti"
+                          budget={Number(prog?.budget ?? 0)}
                           assetOrigin={ASSET_ORIGIN}
                         />
                       ) : (
