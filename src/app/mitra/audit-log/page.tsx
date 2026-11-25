@@ -10,6 +10,7 @@ type Row = {
   endpoint: string;
   status: number;
   created_at: string;
+  aksi?: string;
 };
 
 export default async function MitraAuditLogPage() {
@@ -34,8 +35,7 @@ export default async function MitraAuditLogPage() {
           <thead className="pa-thead border-b border-emerald-100 text-xs uppercase tracking-wide dark:border-night-700">
             <tr>
               <th className="px-4 py-3">Waktu</th>
-              <th className="px-4 py-3">Aksi</th>
-              <th className="px-4 py-3">Halaman / Endpoint</th>
+              <th className="px-4 py-3">Aktivitas</th>
               <th className="px-4 py-3">Status</th>
             </tr>
           </thead>
@@ -43,12 +43,11 @@ export default async function MitraAuditLogPage() {
             {rows.map((r) => (
               <tr key={r.id} className="hover:bg-emerald-50/50 dark:hover:bg-night-800/40">
                 <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "—"}</td>
-                <td className="px-4 py-3 font-mono text-xs font-semibold text-emerald-700">{r.method}</td>
-                <td className="px-4 py-3 font-mono text-xs text-zinc-600 dark:text-zinc-300">{r.endpoint}</td>
+                <td className="px-4 py-3 font-medium text-zinc-800 dark:text-zinc-100">{r.aksi ?? "Melakukan aktivitas"}</td>
                 <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${Number(r.status) < 400 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.status}</span></td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={4} className="px-4 py-10 text-center text-zinc-500">Belum ada aktivitas.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={3} className="px-4 py-10 text-center text-zinc-500">Belum ada aktivitas.</td></tr>}
           </tbody>
         </table>
       </div>

@@ -15,6 +15,7 @@ type Row = {
   ip: string | null;
   status: number;
   created_at: string;
+  aksi?: string;
 };
 
 export default async function AdminAuditLogPage(props: PageProps<"/admin/audit-log">) {
@@ -81,8 +82,7 @@ export default async function AdminAuditLogPage(props: PageProps<"/admin/audit-l
                   <th className="px-4 py-3">Waktu</th>
                   <th className="px-4 py-3">User</th>
                   <th className="px-4 py-3">Role</th>
-                  <th className="px-4 py-3">Aksi</th>
-                  <th className="px-4 py-3">Endpoint</th>
+                  <th className="px-4 py-3">Aktivitas</th>
                   <th className="px-4 py-3">IP</th>
                   <th className="px-4 py-3">Status</th>
                 </tr>
@@ -93,13 +93,12 @@ export default async function AdminAuditLogPage(props: PageProps<"/admin/audit-l
                     <td className="px-4 py-3 text-xs text-zinc-500 whitespace-nowrap">{r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "—"}</td>
                     <td className="px-4 py-3 font-medium">{r.user_name ?? "sistem"} {r.user_id ? <span className="font-mono text-[10px] text-zinc-400">#{r.user_id}</span> : null}</td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${r.role === "admin" ? "bg-emerald-100 text-emerald-700" : r.role === "mitra" ? "bg-sky-100 text-sky-700" : "bg-zinc-100 text-zinc-600"}`}>{r.role}</span></td>
-                    <td className="px-4 py-3 font-mono text-xs font-semibold text-emerald-700">{r.method}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-zinc-600 dark:text-zinc-300">{r.endpoint}</td>
+                    <td className="px-4 py-3 font-medium text-zinc-800 dark:text-zinc-100">{r.aksi ?? "Melakukan aktivitas"}</td>
                     <td className="px-4 py-3 font-mono text-[11px] text-zinc-500">{r.ip ?? "—"}</td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${Number(r.status) < 400 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.status}</span></td>
                   </tr>
                 ))}
-                {rows.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center text-zinc-500">Belum ada aktivitas.</td></tr>}
+                {rows.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-zinc-500">Belum ada aktivitas.</td></tr>}
               </tbody>
             </table>
           </div>
