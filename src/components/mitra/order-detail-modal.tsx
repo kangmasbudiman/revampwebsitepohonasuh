@@ -97,6 +97,11 @@ export default function OrderDetailModal({ order, program, onClose }: Props) {
                     {t.species && <span className="ml-1 italic text-xs text-zinc-500">({t.species})</span>}
                     <span className="ml-1 text-xs text-zinc-500">📍 {t.desa ? namaDesa(t.desa) : "—"}</span>
                     {t.diameterCm != null && <span className="ml-1 text-xs text-zinc-500">Ø {t.diameterCm} cm</span>}
+                    {t.adopters && t.adopters.length > 0 && (
+                      <span className="mt-0.5 block text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                        Diadopsi oleh: {t.adopters.join(", ")}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

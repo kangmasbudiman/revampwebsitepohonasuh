@@ -1900,6 +1900,7 @@ export type OrderTreeMini = {
   diameterCm: number | null;
   heightM: number | null;
   photoUrl: string | null;
+  adopters?: string[];
 };
 
 export type ApiMitraPesanan = {

@@ -102,6 +102,11 @@ export default function RiwayatPohonModal({
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-xs font-bold text-emerald-950 dark:text-emerald-100">{t.localName ?? "Pohon"}</span>
                           <span className="block font-mono text-[10px] text-zinc-500">{t.code} · {namaDesa(t.desa ?? "")}</span>
+                          {t.adopters && t.adopters.length > 0 && (
+                            <span className="mt-0.5 block text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+                              Diadopsi: {t.adopters.join(", ")}
+                            </span>
+                          )}
                         </span>
                         <span className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${isAdopted ? "bg-emerald-600 text-white" : "bg-amber-100 text-amber-700"}`}>
                           {isAdopted ? "Sudah diadopsi" : "Dipesan"}
