@@ -32,11 +32,17 @@ export default async function MitraProgramPage(props: PageProps<"/mitra/program"
       mitraName = String(info.mitra?.nama);
       const prows = await apiGet<Record<string, unknown>[]>(`programmitralist?mitra_id=${mitraId}`);
       programs = prows.map(mapProgramMitra);
-      const provRows = await apiGet<string[]>("provinsilist");
-      provinsiList = (Array.isArray(provRows) ? provRows : []).map((s) => String(s).trim()).filter(Boolean);
     }
   } catch {
     // bukan mitra
+  }
+  // Provinsi diambil terpisah supaya gagalnya endpoint lain tidak membuat
+  // dropdown provinsi tampak kosong.
+  try {
+    const provRows = await apiGet<string[]>("provinsilist");
+    provinsiList = (Array.isArray(provRows) ? provRows : []).map((s) => String(s).trim()).filter(Boolean);
+  } catch {
+    provinsiList = [];
   }
   try {
     const [invRes, adRes] = await Promise.all([
