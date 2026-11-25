@@ -276,7 +276,7 @@ export default function AlokasiPohonButton({
                   <input type="hidden" name={isGanti ? "kode_pohon" : "pohon_pilihan_admin"} value={picked.join(",")} />
                   <button
                     type="submit"
-                    disabled={overBudget || (isGanti ? picked.length !== kuota : picked.length > kuota)}
+                    disabled={overBudget || picked.length < 1 || picked.length > kuota}
                     className="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-bold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {submitLabel}
