@@ -130,7 +130,9 @@ export default function AlokasiPohonButton({
                 {isGanti ? "Atur Pohon" : "Pilih Pohon"} — Pesanan #{id}
               </h3>
               <p className="mt-1 text-xs text-zinc-500">
-                Pilih {kuota} pohon{teradopsi > 0 ? ` (sisa dari ${jumlah})` : ""}{provinsi.length > 0 ? ` di provinsi ${provinsi.join(", ")}` : " yang tersedia"}. Terpilih: <strong>{picked.length}{isGanti ? "" : `/${kuota}`}</strong>
+                Kuota pilih: <strong>{kuota} pohon</strong>
+                {teradopsi > 0 ? ` (sisa dari ${jumlah}, sudah ${teradopsi} diadopsi)` : ""}
+                {provinsi.length > 0 ? ` · provinsi ${provinsi.join(", ")}` : ""}. Terpilih: <strong>{picked.length}/{kuota}</strong>
                 {penuh && <span className="ml-1 font-semibold text-amber-600">— kuota penuh, lepas pilihan untuk mengganti</span>}
               </p>
               <label className="relative mt-3 block">
