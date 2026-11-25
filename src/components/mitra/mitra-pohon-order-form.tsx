@@ -49,7 +49,8 @@ export default function MitraPohonOrderForm({
     : [];
   const sudahDipesan = ordersForProgram.reduce((s, o) => s + o.jumlah, 0);
   const sudahDiadopsi = ordersForProgram.reduce((s, o) => s + o.jumlahTeradopsi, 0);
-  const sisa = Math.max(0, totalPohon - sudahDipesan);
+  // Sisa yang bisa dipesan = total pohon program − pohon yang sudah diadopsi.
+  const sisa = Math.max(0, totalPohon - sudahDiadopsi);
 
   return (
     <form action={requestPesananMitra} className="mt-6 space-y-4">
