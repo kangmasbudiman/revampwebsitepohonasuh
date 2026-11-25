@@ -395,6 +395,7 @@ export async function tambahProgramMitraSelf(formData: FormData) {
       "tambahprogrammitra",
       {
         mitra_id: mitraId,
+        idmember: session.userId,
         nama,
         deskripsi: String(formData.get("deskripsi") ?? "").trim(),
         logo,
