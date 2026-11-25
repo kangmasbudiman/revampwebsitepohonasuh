@@ -218,9 +218,9 @@ export default function MitraAdopsiKonsepForm({
       <input type="hidden" name="items" value={itemsJson} />
 
       {/* 2 kolom — gaya "Petugas & Desa | Order Tagging" */}
-      <div className="grid gap-6 xl:grid-cols-5">
+      <div className="grid gap-6 xl:grid-cols-4">
         {/* KOLOM KIRI — mitra + program + data pengadopsi */}
-        <div className="space-y-6 xl:col-span-2">
+        <div className="space-y-6 xl:col-span-1">
           {/* Mitra (mode admin) */}
           {!selfMode && (
             <div className="rounded-2xl border border-emerald-100 pa-card p-5 shadow-sm dark:border-night-700">
