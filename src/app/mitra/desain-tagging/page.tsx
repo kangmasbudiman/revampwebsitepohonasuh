@@ -1,8 +1,9 @@
 import { requireUser } from "@/lib/guard";
-import { apiPost, apiGet, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
+import { apiPost, apiGet, assetUrl, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
 import { setTaggingProgramMitra, setTemplateTaggingMitra } from "@/lib/actions/mitra";
 import SuccessPopup from "@/components/admin/success-popup";
-import { CalendarDays, Image as ImageIcon, Layers3, UploadCloud } from "lucide-react";
+import TaggingUploadForm from "@/components/mitra/tagging-upload-form";
+import { CalendarDays, Image as ImageIcon, Layers3 } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = { title: "Desain Tagging | Pohon Asuh" };
@@ -92,6 +93,20 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
                   </span>
                 </p>
 
+                {isCustom && assetUrl(p.taggingTemplate) && (
+                  <div className="mt-4 overflow-hidden rounded-xl border border-emerald-100 bg-zinc-50 dark:border-night-700 dark:bg-night-950">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={assetUrl(p.taggingTemplate)!}
+                      alt="Pratinjau desain tagging tersimpan"
+                      className="h-36 w-full object-contain"
+                    />
+                    <p className="border-t border-emerald-50 px-3 py-2 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:border-night-800 dark:text-zinc-500">
+                      Pratinjau desain tersimpan
+                    </p>
+                  </div>
+                )}
+
                 <div className="mt-5 space-y-5 border-t border-emerald-50 pt-5 dark:border-night-800">
                   {/* Template standar */}
                   <form action={setTemplateTaggingMitra}>
@@ -120,31 +135,7 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
                   </form>
 
                   {/* Custom desain */}
-                  <form action={setTaggingProgramMitra}>
-                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      <UploadCloud className="h-3.5 w-3.5" /> Desain Sendiri
-                    </div>
-                    <input type="hidden" name="program_id" value={p.id} />
-                    <label className="mt-3 block cursor-pointer rounded-xl border border-dashed border-emerald-200 bg-emerald-50/40 px-3 py-3 transition hover:border-emerald-400 hover:bg-emerald-50 dark:border-night-700 dark:bg-night-950/40 dark:hover:border-emerald-600">
-                      <span className="sr-only">Pilih file desain</span>
-                      <input
-                        type="file"
-                        name="file"
-                        accept="image/*"
-                        required
-                        className="w-full text-xs text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700 dark:text-zinc-300 dark:file:bg-emerald-600 dark:file:text-white dark:hover:file:bg-emerald-700"
-                      />
-                    </label>
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                      <p className="text-[11px] text-zinc-400 dark:text-zinc-500">Format gambar (PNG/JPG/WebP).</p>
-                      <button
-                        type="submit"
-                        className="shrink-0 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800"
-                      >
-                        Upload Desain
-                      </button>
-                    </div>
-                  </form>
+                  <TaggingUploadForm programId={p.id} action={setTaggingProgramMitra} />
                 </div>
               </article>
             );
