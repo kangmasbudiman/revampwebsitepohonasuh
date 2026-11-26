@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/guard";
-import { apiPost, apiGet, assetUrl, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
+import { apiPost, apiGet, taggingTemplateUrl, mapProgramMitra, type ApiProgramMitra } from "@/lib/api";
 import { setTaggingProgramMitra, setTemplateTaggingMitra } from "@/lib/actions/mitra";
 import SuccessPopup from "@/components/admin/success-popup";
 import TaggingUploadForm from "@/components/mitra/tagging-upload-form";
@@ -93,17 +93,29 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
                   </span>
                 </p>
 
-                {isCustom && assetUrl(p.taggingTemplate) && (
+                {isCustom && taggingTemplateUrl(p.taggingTemplate) && (
                   <div className="mt-4 overflow-hidden rounded-xl border border-emerald-100 bg-zinc-50 dark:border-night-700 dark:bg-night-950">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={assetUrl(p.taggingTemplate)!}
+                      src={taggingTemplateUrl(p.taggingTemplate)!}
                       alt="Pratinjau desain tagging tersimpan"
                       className="h-36 w-full object-contain"
                     />
-                    <p className="border-t border-emerald-50 px-3 py-2 text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:border-night-800 dark:text-zinc-500">
-                      Pratinjau desain tersimpan
-                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-emerald-50 px-3 py-2 dark:border-night-800">
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                        Pratinjau desain tersimpan
+                      </p>
+                      <form action={setTemplateTaggingMitra}>
+                        <input type="hidden" name="program_id" value={p.id} />
+                        <input type="hidden" name="template" value={p.taggingTemplate ?? ""} />
+                        <button
+                          type="submit"
+                          className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-700"
+                        >
+                          Aktifkan desain ini
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 )}
 

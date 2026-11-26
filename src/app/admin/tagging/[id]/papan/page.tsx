@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/guard";
-import { apiPost, apiGet, mapOrderRows, mapMitra, mapProgramMitra, type ApiOrderRow } from "@/lib/api";
+import { apiPost, apiGet, mapOrderRows, mapMitra, mapProgramMitra, taggingTemplateUrl, type ApiOrderRow } from "@/lib/api";
 import { namaDesa, sebutanDesa } from "@/lib/format";
 import PapanTaging from "@/components/admin/papan-taging";
 
@@ -103,7 +103,7 @@ export default async function PapanTagingPage({
       </div>
 
       <div className="mt-6 print:mt-0">
-        <PapanTaging order={order} backgroundUrl={templateToUse} />
+        <PapanTaging order={order} backgroundUrl={taggingTemplateUrl(templateToUse) ?? undefined} />
       </div>
     </main>
   );

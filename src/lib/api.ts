@@ -139,6 +139,16 @@ export function buktiUrl(file?: string | null): string | null {
   return `${ASSET_ORIGIN}/assets/${f.replace(/^\//, "")}`;
 }
 
+// Template tagging: uploadcover menyimpan filename polos di /assets backend,
+// sedangkan template bawaan disimpan sebagai path lokal /images/... .
+export function taggingTemplateUrl(file?: string | null): string | null {
+  if (!file) return null;
+  const f = String(file).trim();
+  if (!f || f === "-" || f === "null") return null;
+  if (f.startsWith("/images/")) return f;
+  return buktiUrl(f);
+}
+
 // Foto utama pohon: baris tanpa foto otomatis memakai gambar default
 // dari aset backend (konsisten dengan fallback aplikasi mobile).
 export function treePhotoUrl(file?: string | null): string {
