@@ -13,8 +13,6 @@ import MemberBell from "@/components/member-bell";
 import LangToggle from "@/components/lang-toggle";
 import { useI18n } from "@/components/i18n-provider";
 
-// Menu "Data Pohon": klik label → halaman default (pohon tersedia); klik
-// chevron → submenu filter Available / Adopted.
 // Menu "Data Pohon": hover langsung membuka dropdown (sama seperti menu
 // Informasi). Klik chevron juga berfungsi untuk layar sentuh/keyboard.
 function NavPohonMenu({
@@ -31,29 +29,47 @@ function NavPohonMenu({
   overlay: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const dropdownCls = `${open ? "visible translate-y-0 opacity-100" : "invisible translate-y-1 opacity-0"} absolute left-1/2 top-full z-50 -translate-x-1/2 pt-2 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100`;
+  const [dismissed, setDismissed] = useState(false);
+
+  // Klik menu langsung menutup dropdown — termasuk saat masih di-hover.
+  // Flag dismissed menahan efek hover sampai mouse keluar dari area menu.
+  const tutup = () => {
+    setOpen(false);
+    setDismissed(true);
+  };
+  const hoverCls = dismissed
+    ? ""
+    : "group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100";
+  const dropdownCls = `${open ? "visible translate-y-0 opacity-100" : "invisible translate-y-1 opacity-0"} ${hoverCls} absolute left-1/2 top-full z-50 -translate-x-1/2 pt-2 transition-all duration-200`;
 
   return (
     <div
       className="group relative flex items-center"
-      onMouseLeave={() => setOpen(false)}
+      onMouseLeave={() => {
+        setOpen(false);
+        setDismissed(false);
+      }}
     >
-      <Link href="/pohon" className={`${linkCls} ${active ? linkActive : ""} whitespace-nowrap`}>
+      <Link
+        href="/pohon"
+        onClick={tutup}
+        className={`${linkCls} ${active ? linkActive : ""} whitespace-nowrap`}
+      >
         {label}
       </Link>
       <button
         type="button"
-        aria-label="Buka menu status pohon"
+        aria-label="Tutup menu status pohon"
         aria-expanded={open}
         data-testid="nav-pohon-dropdown"
-        onClick={() => setOpen((v) => !v)}
+        onClick={tutup}
         className={`-ml-1 rounded p-0.5 transition-colors ${
           overlay ? "text-white/70 hover:text-white" : "text-emerald-700 hover:text-emerald-900"
         }`}
       >
         <ChevronDown
           className={`h-3.5 w-3.5 transition-transform duration-300 ${
-            open ? "rotate-180" : "group-hover:rotate-180"
+            !dismissed ? "group-hover:rotate-180" : ""
           }`}
         />
       </button>
@@ -61,7 +77,7 @@ function NavPohonMenu({
         <div className="w-44 overflow-hidden rounded-2xl border border-emerald-100 bg-white p-2 shadow-xl shadow-emerald-900/10">
           <Link
             href="/pohon"
-            onClick={() => setOpen(false)}
+            onClick={tutup}
             data-testid="nav-pohon-available"
             className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
           >
@@ -69,7 +85,7 @@ function NavPohonMenu({
           </Link>
           <Link
             href="/pohon?status=adopted"
-            onClick={() => setOpen(false)}
+            onClick={tutup}
             data-testid="nav-pohon-adopted"
             className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
           >
@@ -78,7 +94,7 @@ function NavPohonMenu({
           <div className="my-1 h-px bg-emerald-50" />
           <Link
             href="/spesies"
-            onClick={() => setOpen(false)}
+            onClick={tutup}
             data-testid="nav-spesies"
             className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
           >
@@ -86,7 +102,7 @@ function NavPohonMenu({
           </Link>
           <Link
             href="/lokasi"
-            onClick={() => setOpen(false)}
+            onClick={tutup}
             data-testid="nav-lokasi"
             className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
           >
