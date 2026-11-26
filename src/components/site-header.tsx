@@ -15,6 +15,8 @@ import { useI18n } from "@/components/i18n-provider";
 
 // Menu "Data Pohon": klik label → halaman default (pohon tersedia); klik
 // chevron → submenu filter Available / Adopted.
+// Menu "Data Pohon": hover langsung membuka dropdown (sama seperti menu
+// Informasi). Klik chevron juga berfungsi untuk layar sentuh/keyboard.
 function NavPohonMenu({
   label,
   linkCls,
@@ -29,8 +31,13 @@ function NavPohonMenu({
   overlay: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const dropdownCls = `${open ? "visible translate-y-0 opacity-100" : "invisible translate-y-1 opacity-0"} absolute left-1/2 top-full z-50 -translate-x-1/2 pt-2 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100`;
+
   return (
-    <div className="relative flex items-center">
+    <div
+      className="group relative flex items-center"
+      onMouseLeave={() => setOpen(false)}
+    >
       <Link href="/pohon" className={`${linkCls} ${active ? linkActive : ""} whitespace-nowrap`}>
         {label}
       </Link>
@@ -45,57 +52,48 @@ function NavPohonMenu({
         }`}
       >
         <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+          className={`h-3.5 w-3.5 transition-transform duration-300 ${
+            open ? "rotate-180" : "group-hover:rotate-180"
+          }`}
         />
       </button>
-      {open && (
-        <>
-          <button
-            type="button"
-            aria-hidden
-            tabIndex={-1}
-            className="fixed inset-0 z-40 cursor-default"
+      <div className={dropdownCls}>
+        <div className="w-44 overflow-hidden rounded-2xl border border-emerald-100 bg-white p-2 shadow-xl shadow-emerald-900/10">
+          <Link
+            href="/pohon"
             onClick={() => setOpen(false)}
-          />
-          <div className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-2">
-            <div className="w-44 overflow-hidden rounded-2xl border border-emerald-100 bg-white p-2 shadow-xl shadow-emerald-900/10">
-              <Link
-                href="/pohon"
-                onClick={() => setOpen(false)}
-                data-testid="nav-pohon-available"
-                className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
-              >
-                Available
-              </Link>
-              <Link
-                href="/pohon?status=adopted"
-                onClick={() => setOpen(false)}
-                data-testid="nav-pohon-adopted"
-                className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
-              >
-                Adopted
-              </Link>
-              <div className="my-1 h-px bg-emerald-50" />
-              <Link
-                href="/spesies"
-                onClick={() => setOpen(false)}
-                data-testid="nav-spesies"
-                className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
-              >
-                Spesies
-              </Link>
-              <Link
-                href="/lokasi"
-                onClick={() => setOpen(false)}
-                data-testid="nav-lokasi"
-                className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
-              >
-                Lokasi
-              </Link>
-            </div>
-          </div>
-        </>
-      )}
+            data-testid="nav-pohon-available"
+            className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+          >
+            Available
+          </Link>
+          <Link
+            href="/pohon?status=adopted"
+            onClick={() => setOpen(false)}
+            data-testid="nav-pohon-adopted"
+            className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+          >
+            Adopted
+          </Link>
+          <div className="my-1 h-px bg-emerald-50" />
+          <Link
+            href="/spesies"
+            onClick={() => setOpen(false)}
+            data-testid="nav-spesies"
+            className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+          >
+            Spesies
+          </Link>
+          <Link
+            href="/lokasi"
+            onClick={() => setOpen(false)}
+            data-testid="nav-lokasi"
+            className="block rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+          >
+            Lokasi
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
