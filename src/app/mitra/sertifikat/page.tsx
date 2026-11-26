@@ -50,7 +50,7 @@ export default async function MitraSertifikatPage() {
         Daftar adopsi mitra Anda beserta sertifikat yang sudah terbit.
       </p>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm dark:border-night-700">
+      <div className="mt-6 hidden overflow-x-auto rounded-2xl border border-emerald-100 pa-card shadow-sm md:block dark:border-night-700">
         <table className="w-full text-left text-sm">
           <thead className="pa-thead border-b border-emerald-100 dark:border-night-700">
             <tr>
@@ -110,6 +110,65 @@ export default async function MitraSertifikatPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Tampilan kartu untuk layar kecil */}
+      <div className="mt-4 space-y-3 md:hidden">
+        {grouped.map((r) => (
+          <div key={r.key} className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm pa-card dark:border-night-700">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 break-all font-mono text-xs font-medium text-emerald-900 dark:text-emerald-300">
+                {r.idpohon.length ? r.idpohon.join(", ") : "—"}
+              </div>
+              {r.idpohon.length > 1 && (
+                <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                  {r.idpohon.length} pohon
+                </span>
+              )}
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+              {[
+                ["Pengadopsi", r.nama],
+                ["Lokasi", namaDesa(r.desa)],
+                ["Tgl Adopt", r.tglAdopt],
+                ["Certnum", r.certnum || "—"],
+              ].map(([label, nilai]) => (
+                <div key={label} className="min-w-0">
+                  <dt className="text-[10px] uppercase tracking-wide text-zinc-400 dark:text-zinc-500">{label}</dt>
+                  <dd className="mt-0.5 truncate font-medium text-zinc-800 dark:text-zinc-200" title={nilai}>{nilai}</dd>
+                </div>
+              ))}
+            </dl>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {r.certnum ? (
+                <>
+                  <Link
+                    href={certUrl(r.certnum)}
+                    target="_blank"
+                    className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-center text-xs font-semibold text-white hover:bg-emerald-700"
+                  >
+                    Lihat Sertifikat
+                  </Link>
+                  <a
+                    href={`${certUrl(r.certnum)}?autoprint=1`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-night-700 dark:text-emerald-300 dark:hover:bg-night-800"
+                  >
+                    <Download className="h-3.5 w-3.5" aria-hidden /> Download
+                  </a>
+                </>
+              ) : (
+                <span className="text-xs text-zinc-400">Belum terbit</span>
+              )}
+            </div>
+          </div>
+        ))}
+        {grouped.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-emerald-200 p-8 text-center text-sm text-zinc-500 dark:border-night-700">
+            Belum ada adopsi mitra.
+          </div>
+        )}
       </div>
     </main>
   );
