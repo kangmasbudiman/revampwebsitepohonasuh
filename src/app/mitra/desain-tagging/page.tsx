@@ -57,11 +57,20 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
             </form>
 
             {/* Custom Desain */}
-            <form action={setTaggingProgramMitra} className="mt-3 space-y-2 border-t border-emerald-50 pt-3">
-              <p className="text-xs font-medium text-zinc-700">Custom Desain</p>
+            <form action={setTaggingProgramMitra} className="mt-4 space-y-3 border-t border-emerald-50 pt-4 dark:border-night-800">
+              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Custom Desain</p>
               <input type="hidden" name="program_id" value={p.id} />
-              <input type="file" name="file" accept="image/*" required className="w-full text-sm" />
-              <button type="submit" className="rounded-lg bg-teal-700 px-3 py-2 text-xs font-semibold text-white hover:bg-teal-800">
+              <input
+                type="file"
+                name="file"
+                accept="image/*"
+                required
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-700 dark:border-night-700 dark:bg-night-950 dark:text-zinc-100 dark:file:bg-emerald-600 dark:file:text-white dark:hover:file:bg-emerald-700"
+              />
+              <button
+                type="submit"
+                className="mt-3 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800"
+              >
                 Upload Desain
               </button>
             </form>
