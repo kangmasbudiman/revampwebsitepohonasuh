@@ -3,7 +3,7 @@ import { apiPost, apiGet, taggingTemplateUrl, mapProgramMitra, type ApiProgramMi
 import { setTaggingProgramMitra, setTemplateTaggingMitra } from "@/lib/actions/mitra";
 import SuccessPopup from "@/components/admin/success-popup";
 import TaggingUploadForm from "@/components/mitra/tagging-upload-form";
-import { CalendarDays, Image as ImageIcon, Layers3 } from "lucide-react";
+import { CalendarDays, Check, Image as ImageIcon, Layers3 } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = { title: "Desain Tagging | Pohon Asuh" };
@@ -82,7 +82,8 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
                         : "bg-zinc-100 text-zinc-600 dark:bg-night-800 dark:text-zinc-400"
                     }`}
                   >
-                    {isCustom ? "Custom" : "Standar"}
+                    <Check className="h-3 w-3" aria-hidden />
+                    {isCustom ? "Custom · Aktif" : "Standar · Aktif"}
                   </span>
                 </div>
 
@@ -105,34 +106,37 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
                       <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
                         Pratinjau desain tersimpan
                       </p>
-                      <form action={setTemplateTaggingMitra}>
-                        <input type="hidden" name="program_id" value={p.id} />
-                        <input type="hidden" name="template" value={p.taggingTemplate ?? ""} />
-                        <button
-                          type="submit"
-                          className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-700"
-                        >
-                          Aktifkan desain ini
-                        </button>
-                      </form>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                        <Check className="h-3 w-3" aria-hidden /> Sedang aktif
+                      </span>
                     </div>
                   </div>
                 )}
 
                 <div className="mt-5 space-y-5 border-t border-emerald-50 pt-5 dark:border-night-800">
-                  {/* Template standar */}
+                  {/* Pilih / aktifkan template */}
                   <form action={setTemplateTaggingMitra}>
-                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                      <Layers3 className="h-3.5 w-3.5" /> Template Bawaan
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                        <Layers3 className="h-3.5 w-3.5" /> Pilih Template Tagging
+                      </div>
+                      <span className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                        Aktif: {isCustom ? "Desain Custom" : "Template Standar"}
+                      </span>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <input type="hidden" name="program_id" value={p.id} />
                       <select
                         name="template"
-                        defaultValue={TEMPLATE_STANDAR}
+                        defaultValue={p.taggingTemplate ?? TEMPLATE_STANDAR}
                         className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-700 focus:border-emerald-500 focus:outline-none dark:border-night-700 dark:bg-night-950 dark:text-zinc-200"
                       >
-                        <option value={TEMPLATE_STANDAR}>Template Standar</option>
+                        <option value={TEMPLATE_STANDAR}>
+                          Template Standar{!isCustom ? " (aktif)" : ""}
+                        </option>
+                        {isCustom && (
+                          <option value={p.taggingTemplate ?? ""}>Desain Custom (aktif)</option>
+                        )}
                       </select>
                       <button
                         type="submit"
@@ -142,7 +146,8 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
                       </button>
                     </div>
                     <p className="mt-2 text-[11px] text-zinc-400 dark:text-zinc-500">
-                      Kembalikan tagging program ke desain bawaan.
+                      Pilih template, lalu klik <strong>Gunakan Template</strong> untuk mengaktifkannya.
+                      Template yang sedang dipakai ditandai <em>(aktif)</em>.
                     </p>
                   </form>
 
