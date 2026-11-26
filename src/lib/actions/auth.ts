@@ -1,14 +1,25 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createSession, destroySession } from "@/lib/auth";
+import {
+  createSession,
+  destroySession,
+  createPending2fa,
+  getPending2fa,
+  clearPending2fa,
+} from "@/lib/auth";
 import { apiPost } from "@/lib/api";
+import { issueCaptcha, verifyCaptcha } from "@/lib/captcha";
+import { clearGuard, formatLockMessage, lockRemaining, recordFailure } from "@/lib/login-guard";
 
 export type AuthState = {
   error?: string;
   success?: boolean;
   emaile?: string;
   unverified?: boolean;
+  captcha?: string;
+  twoFactor?: boolean;
+  otpSent?: boolean;
 };
 
 // loginuser Laravel memakai satu field untuk email ATAU no HP dan
@@ -66,12 +77,38 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
   return { success: true, emaile: email };
 }
 
+function redirectSetelahLogin(session: {
+  role: string;
+  level?: number;
+  mitraId?: number;
+}, next: string): never {
+  if (next.startsWith("/") && !next.startsWith("//")) redirect(next);
+  if (session.mitraId) redirect("/mitra");
+  redirect(session.level === 2 ? "/admin/tagging" : (session.level ?? 0) >= 1 ? "/admin" : "/dashboard");
+}
+
 export async function login(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const next = String(formData.get("next") ?? "");
+  const captchaInput = String(formData.get("captcha") ?? "").trim();
 
-  if (!email || !password) return { error: "Email dan kata sandi wajib diisi." };
+  if (!email || !password) {
+    return { error: "Email dan kata sandi wajib diisi.", captcha: await issueCaptcha() };
+  }
+
+  const sisa = await lockRemaining();
+  if (sisa > 0) {
+    return { error: formatLockMessage(sisa), captcha: await issueCaptcha() };
+  }
+
+  if (!(await verifyCaptcha(captchaInput))) {
+    const r = await recordFailure();
+    return {
+      error: r.locked ? formatLockMessage(r.remaining) : "Captcha salah. Periksa kembali teks pada gambar.",
+      captcha: await issueCaptcha(),
+    };
+  }
 
   const res = await masuk(email, password);
   if (res && String(res.value) === "201") {
@@ -82,23 +119,87 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
     };
   }
   if (!res || String(res.value) !== "200" || !res.id) {
-    return { error: "Email atau kata sandi salah." };
+    const r = await recordFailure();
+    return {
+      error: r.locked ? formatLockMessage(r.remaining) : "Email atau kata sandi salah.",
+      captcha: await issueCaptcha(),
+    };
   }
 
   const admin = Number(res.admin) || 0;
   const mitraId = res.mitra_id ? Number(res.mitra_id) : undefined;
-  await createSession({
+  const session = {
     userId: Number(res.id),
     name: String(res.name ?? ""),
     role: admin >= 1 ? "ADMIN" : "DONOR",
     level: admin >= 1 ? admin : undefined,
-    hak: admin >= 1 && Array.isArray(res.hak) ? res.hak : Array.isArray(res.hak) ? res.hak : undefined,
+    hak: Array.isArray(res.hak) ? res.hak : undefined,
     mitraId,
     photo: res.foto || null,
-  });
-  if (next.startsWith("/") && !next.startsWith("//")) redirect(next);
-  if (mitraId) redirect("/mitra");
-  redirect(admin === 2 ? "/admin/tagging" : admin >= 1 ? "/admin" : "/dashboard");
+  };
+
+  // Admin & akun mitra wajib melewati 2FA (OTP email). Donor cukup captcha.
+  if (admin >= 1 || mitraId) {
+    const emaile = String(res.email ?? email).trim().toLowerCase();
+    try {
+      const otp = await apiPost<{ value?: string | number; pesan?: string }>("kirimotplogin", { emaile });
+      if (Number(otp.value) !== 1) {
+        return { error: otp.pesan ?? "Gagal mengirim kode OTP.", captcha: await issueCaptcha() };
+      }
+    } catch {
+      return { error: "Gagal menghubungi server saat mengirim kode OTP.", captcha: await issueCaptcha() };
+    }
+    await createPending2fa({ session, email: emaile, next });
+    await clearGuard();
+    return { twoFactor: true, emaile, otpSent: true };
+  }
+
+  await clearGuard();
+  await createSession(session);
+  redirectSetelahLogin(session, next);
+}
+
+export async function verify2fa(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const pending = await getPending2fa();
+  if (!pending) {
+    return { twoFactor: false, error: "Sesi verifikasi berakhir. Silakan masuk lagi." };
+  }
+
+  const mode = String(formData.get("mode") ?? "verify");
+  if (mode === "resend") {
+    try {
+      const otp = await apiPost<{ value?: string | number; pesan?: string }>("kirimotplogin", {
+        emaile: pending.email,
+      });
+      if (Number(otp.value) !== 1) {
+        return { twoFactor: true, emaile: pending.email, error: otp.pesan ?? "Gagal mengirim ulang kode." };
+      }
+      return { twoFactor: true, emaile: pending.email, otpSent: true };
+    } catch {
+      return { twoFactor: true, emaile: pending.email, error: "Gagal menghubungi server. Coba lagi." };
+    }
+  }
+
+  const kode = String(formData.get("kode") ?? "").trim();
+  if (!/^\d{6}$/.test(kode)) {
+    return { twoFactor: true, emaile: pending.email, error: "Kode OTP harus 6 angka." };
+  }
+
+  try {
+    const res = await apiPost<{ value?: string | number; pesan?: string }>("verifikasiotplogin", {
+      emaile: pending.email,
+      kode,
+    });
+    if (Number(res.value) !== 1) {
+      return { twoFactor: true, emaile: pending.email, error: res.pesan ?? "Kode OTP salah atau kedaluwarsa." };
+    }
+  } catch {
+    return { twoFactor: true, emaile: pending.email, error: "Gagal menghubungi server. Coba lagi." };
+  }
+
+  await clearPending2fa();
+  await createSession(pending.session);
+  redirectSetelahLogin(pending.session, pending.next);
 }
 
 export async function kirimUlangVerifikasi(

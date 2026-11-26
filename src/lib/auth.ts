@@ -5,6 +5,9 @@ import { cache } from "react";
 const COOKIE_NAME = "pa_session";
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
 
+export type Pending2fa = { session: Session; email: string; next: string };
+const PENDING_COOKIE = "pa_2fa_pending";
+
 export type Session = {
   userId: number;
   name: string;
@@ -39,6 +42,43 @@ export async function createSession(session: Session) {
 export async function destroySession() {
   const store = await cookies();
   store.delete(COOKIE_NAME);
+}
+
+// Tiket sementara setelah kata sandi benar tapi OTP 2FA belum diverifikasi.
+export async function createPending2fa(pending: Pending2fa) {
+  const token = await new SignJWT(pending)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("5m")
+    .sign(secret);
+  (await cookies()).set(PENDING_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 5 * 60,
+  });
+}
+
+export async function getPending2fa(): Promise<Pending2fa | null> {
+  const token = (await cookies()).get(PENDING_COOKIE)?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    const session = payload.session as Session | undefined;
+    if (!session || typeof session.userId !== "number") return null;
+    return {
+      session,
+      email: typeof payload.email === "string" ? payload.email : "",
+      next: typeof payload.next === "string" ? payload.next : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function clearPending2fa() {
+  (await cookies()).delete(PENDING_COOKIE);
 }
 
 export const getSession = cache(async (): Promise<Session | null> => {
