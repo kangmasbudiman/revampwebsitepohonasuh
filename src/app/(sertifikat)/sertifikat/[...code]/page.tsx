@@ -4,7 +4,7 @@ import { Fragment } from "react";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Plus_Jakarta_Sans, Nunito, Barlow_Semi_Condensed } from "next/font/google";
-import { apiGet, mapTemplatesertifikatList, type ApiTemplateSertifikat } from "@/lib/api";
+import { apiGet, mapMitra, mapProgramMitra, mapTemplatesertifikatList, taggingTemplateUrl, type ApiTemplateSertifikat } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { getDict } from "@/lib/i18n";
 import { sebutanDesa } from "@/lib/format";
@@ -50,6 +50,8 @@ type ApiSertifikat = {
   nama_terkunci?: boolean; // nama tagging sudah masuk antrian (proses >= 2)
   memo?: string | null;
   pengasuh?: number | string | null;
+  mitra_id?: number | string | null;
+  program_id?: number | string | null;
   jml_pohon?: number | string | null;
   invoice?: string | null;
   idpohon?: string | null;
@@ -151,6 +153,35 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
     templates.find((tpl) => tpl.id === tplParam) ??
     templates.find((tpl) => tpl.utama) ??
     null;
+
+  // Desain upload mitra dipakai sebagai latar sertifikat (program lebih
+  // spesifik dari mitra). Template standar papan tagging tidak dipakai di sini.
+  const TEMPLATE_PAPAN_STANDAR = "/images/papan-taging.png";
+  let taggingBackground: string | null = null;
+  try {
+    const mitraId = s.mitra_id ? Number(s.mitra_id) : 0;
+    if (mitraId) {
+      const programs = (await apiGet<Record<string, unknown>[]>(`programmitralist?mitra_id=${mitraId}`)).map(mapProgramMitra);
+      const program = programs.find((x) => x.id === Number(s.program_id));
+      if (program?.taggingTemplate && program.taggingTemplate !== TEMPLATE_PAPAN_STANDAR) {
+        taggingBackground = taggingTemplateUrl(program.taggingTemplate);
+      }
+      if (!taggingBackground) {
+        const mitras = (await apiGet<Record<string, unknown>[]>("mitralist")).map(mapMitra);
+        const mitra = mitras.find((x) => x.id === mitraId);
+        if (mitra?.taggingTemplate && mitra.taggingTemplate !== TEMPLATE_PAPAN_STANDAR) {
+          taggingBackground = taggingTemplateUrl(mitra.taggingTemplate);
+        }
+      }
+    }
+  } catch {
+    // fallback ke template bawaan
+  }
+  // Pilihan eksplisit (?tpl) tetap paling utama, lalu desain mitra, lalu
+  // template utama/bawaan.
+  const tplDiminta = templates.find((tpl) => tpl.id === tplParam) ?? null;
+  const backgroundSrc =
+    tplDiminta?.imageUrl ?? taggingBackground ?? terpilih?.imageUrl ?? "/images/sertifikat/bg.png";
 
   const jml = Number(s.jml_pohon) || 1;
   const desaTampil = s.desa_label || s.desa || "";
@@ -304,7 +335,7 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
         className={`pa-sertifikat relative mx-auto aspect-[828/585.6] w-full overflow-hidden rounded-lg bg-[#f5f5e3] shadow-xl [container-type:inline-size] print:w-[296mm] print:rounded-none print:shadow-none ${certSans.variable} ${certNunito.variable} ${certTitle.variable}`}
       >
         <Image
-          src={terpilih?.imageUrl ?? "/images/sertifikat/bg.png"}
+          src={backgroundSrc}
           alt=""
           fill
           priority

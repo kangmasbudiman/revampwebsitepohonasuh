@@ -152,7 +152,11 @@ export default async function MitraDesainTaggingPage(props: PageProps<"/mitra/de
                   </form>
 
                   {/* Custom desain */}
-                  <TaggingUploadForm programId={p.id} action={setTaggingProgramMitra} />
+                  <TaggingUploadForm
+                    programId={p.id}
+                    action={setTaggingProgramMitra}
+                    savedTemplateUrl={isCustom ? taggingTemplateUrl(p.taggingTemplate) : null}
+                  />
                 </div>
               </article>
             );
