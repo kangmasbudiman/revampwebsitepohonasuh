@@ -78,8 +78,12 @@ export async function apiFetchBinary(
   return res.arrayBuffer();
 }
 
-export async function apiPostForm<T>(path: string, formData: FormData): Promise<T> {
-  return fetchJson<T>(`${BASE}/${path}`, { method: "POST", body: formData });
+export async function apiPostForm<T>(
+  path: string,
+  formData: FormData,
+  headers?: Record<string, string>,
+): Promise<T> {
+  return fetchJson<T>(`${BASE}/${path}`, { method: "POST", headers, body: formData });
 }
 
 // Varian yang tidak melempar pada status non-2xx: endpoint validasi (mis.
@@ -1807,6 +1811,25 @@ export function mapPembayaranRows(res: {
 }
 
 // Baris tabel mitra → ApiMitra.
+export type ApiTaggingTemplate = {
+  id: number;
+  nama: string;
+  file: string;
+  aktif: boolean;
+  imageUrl: string | null;
+};
+
+export function mapTaggingTemplate(r: Record<string, unknown>): ApiTaggingTemplate {
+  const file = r.file ? String(r.file) : "";
+  return {
+    id: Number(r.id),
+    nama: String(r.nama ?? ""),
+    file,
+    aktif: Number(r.aktif ?? 0) === 1,
+    imageUrl: buktiUrl(file),
+  };
+}
+
 export type ApiMitra = {
   id: number;
   nama: string;

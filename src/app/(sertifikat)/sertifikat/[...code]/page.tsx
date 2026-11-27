@@ -4,7 +4,7 @@ import { Fragment } from "react";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Plus_Jakarta_Sans, Nunito, Barlow_Semi_Condensed } from "next/font/google";
-import { apiGet, mapMitra, mapProgramMitra, mapTemplatesertifikatList, taggingTemplateUrl, type ApiTemplateSertifikat } from "@/lib/api";
+import { apiGet, mapMitra, mapProgramMitra, mapTaggingTemplate, mapTemplatesertifikatList, taggingTemplateUrl, type ApiTemplateSertifikat } from "@/lib/api";
 import { getSession } from "@/lib/auth";
 import { getDict } from "@/lib/i18n";
 import { sebutanDesa } from "@/lib/format";
@@ -174,6 +174,14 @@ export default async function CertificatePage(props: PageProps<"/sertifikat/[...
         }
       }
     }
+  } catch {
+    // fallback ke template bawaan
+  }
+  // Pengadopsi biasa: desain global yang diaktifkan admin.
+  try {
+    const aktif = await apiGet<Record<string, unknown> | null>("taggingtemplateaktif");
+    const globalDesign = aktif ? mapTaggingTemplate(aktif).imageUrl : null;
+    if (!taggingBackground && globalDesign) taggingBackground = globalDesign;
   } catch {
     // fallback ke template bawaan
   }

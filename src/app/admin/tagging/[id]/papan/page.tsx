@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { requireAdmin } from "@/lib/guard";
-import { apiPost, apiGet, mapOrderRows, mapMitra, mapProgramMitra, taggingTemplateUrl, type ApiOrderRow } from "@/lib/api";
+import { apiPost, apiGet, mapOrderRows, mapMitra, mapProgramMitra, mapTaggingTemplate, taggingTemplateUrl, type ApiOrderRow } from "@/lib/api";
 import { namaDesa, sebutanDesa } from "@/lib/format";
 import PapanTaging from "@/components/admin/papan-taging";
 
@@ -31,22 +31,36 @@ export default async function PapanTagingPage({
   const order = orders.find((o) => o.id === Number(id));
   if (!order) notFound();
 
-  let mitraTaggingTemplate: string | null = null;
+  const STANDAR = "/images/papan-taging.png";
+  let templateToUse: string | null = null;
+
+  // Desain global admin dipakai untuk pengadopsi biasa (tanpa mitra).
+  try {
+    const aktif = await apiGet<Record<string, unknown> | null>("taggingtemplateaktif");
+    const globalDesign = aktif ? mapTaggingTemplate(aktif).imageUrl : null;
+    if (!order.mitraId && globalDesign) templateToUse = globalDesign;
+  } catch {
+    // fallback desain standar
+  }
+
   if (order.mitraId) {
     try {
       const mitras = (await apiGet<Record<string, unknown>[]>("mitralist")).map(mapMitra);
       const m = mitras.find((x) => x.id === order.mitraId);
-      mitraTaggingTemplate = m?.taggingTemplate ?? null;
+      if (m?.taggingTemplate && m.taggingTemplate !== STANDAR) {
+        templateToUse = taggingTemplateUrl(m.taggingTemplate);
+      }
     } catch {
       // fallback desain standar
     }
   }
-  let templateToUse = mitraTaggingTemplate;
   if (order.programId) {
     try {
       const programs = (await apiGet<Record<string, unknown>[]>(`programmitralist?mitra_id=${order.mitraId}`)).map(mapProgramMitra);
       const p = programs.find((x) => x.id === order.programId);
-      if (p?.taggingTemplate) templateToUse = p.taggingTemplate;
+      if (p?.taggingTemplate && p.taggingTemplate !== STANDAR) {
+        templateToUse = taggingTemplateUrl(p.taggingTemplate);
+      }
     } catch {
       // fallback ke template mitra
     }
