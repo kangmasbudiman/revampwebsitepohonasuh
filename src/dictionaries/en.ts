@@ -34,6 +34,7 @@ export const dict: Dict = {
     profile: "Profile",
     dashboard: "Dashboard",
     adminPanel: "Admin Panel",
+    mitraPanel: "Partner Panel",
     administrator: "Administrator",
     donor: "Adopter",
     openMenu: "Open menu",

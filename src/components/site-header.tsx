@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ChevronDown, LayoutDashboard, Leaf, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { ChevronDown, Handshake, LayoutDashboard, Leaf, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import type { Session } from "@/lib/auth";
 import Avatar from "@/components/avatar";
@@ -157,9 +157,11 @@ export default function SiteHeader({ session }: { session: Session | null }) {
     : `${linkBase} text-emerald-900/75 hover:text-emerald-900 after:bg-emerald-500`;
   const linkActive = overlay ? "text-white after:w-full" : "text-emerald-700 after:w-full";
 
-  const dashboardHref = session?.role === "ADMIN" ? "/admin" : "/dashboard";
-  const dashboardLabel = session?.role === "ADMIN" ? dict.nav.adminPanel : dict.nav.dashboard;
-  const DashboardIcon = session?.role === "ADMIN" ? ShieldCheck : LayoutDashboard;
+  const isAdmin = session?.role === "ADMIN";
+  const isMitra = !!session?.mitraId && !isAdmin;
+  const dashboardHref = isAdmin ? "/admin" : isMitra ? "/mitra" : "/dashboard";
+  const dashboardLabel = isAdmin ? dict.nav.adminPanel : isMitra ? dict.nav.mitraPanel : dict.nav.dashboard;
+  const DashboardIcon = isAdmin ? ShieldCheck : isMitra ? Handshake : LayoutDashboard;
 
   return (
     <header
@@ -275,17 +277,26 @@ export default function SiteHeader({ session }: { session: Session | null }) {
                   <div className="px-3 pb-2 pt-2">
                     <p className="truncate text-sm font-semibold text-emerald-950">{session.name}</p>
                     <p className="text-xs text-zinc-400">
-                      {session.role === "ADMIN" ? dict.nav.administrator : dict.nav.donor}
+                      {isAdmin ? dict.nav.administrator : isMitra ? dict.nav.mitraPanel : dict.nav.donor}
                     </p>
                   </div>
                   <div className="my-1 h-px bg-emerald-50" />
-                  {session.role === "ADMIN" && (
+                  {isAdmin && (
                     <Link
                       href="/admin"
                       className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
                     >
                       <ShieldCheck className="h-4 w-4 text-emerald-600" />
                       {dict.nav.adminPanel}
+                    </Link>
+                  )}
+                  {isMitra && (
+                    <Link
+                      href="/mitra"
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
+                    >
+                      <Handshake className="h-4 w-4 text-emerald-600" />
+                      {dict.nav.mitraPanel}
                     </Link>
                   )}
                   <Link
