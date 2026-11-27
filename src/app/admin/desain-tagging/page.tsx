@@ -21,6 +21,8 @@ export default async function AdminDesainTaggingPage(props: PageProps<"/admin/de
     designs = [];
   }
 
+  const aktif = designs.find((d) => d.aktif) ?? null;
+
   return (
     <main className="w-full px-6 py-8 lg:px-8">
       <div className="flex items-start gap-4">
@@ -40,6 +42,43 @@ export default async function AdminDesainTaggingPage(props: PageProps<"/admin/de
       {sp?.activated && <SuccessPopup paramKey="activated" title="Diaktifkan">Desain tagging sekarang dipakai pengadopsi biasa.</SuccessPopup>}
       {sp?.deleted && <SuccessPopup paramKey="deleted" title="Dihapus">Desain tagging berhasil dihapus.</SuccessPopup>}
       {sp?.error && <SuccessPopup paramKey="error" tone="err" title="Gagal" buttonLabel="Tutup">{String(sp.error)}</SuccessPopup>}
+
+      {/* Desain yang sedang aktif */}
+      <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 shadow-sm dark:border-night-700 dark:bg-night-950/40">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-emerald-950 dark:text-white">Desain Sedang Dipakai</h2>
+              {aktif && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                  <Check className="h-3 w-3" /> Aktif
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+              {aktif
+                ? "Desain ini dipakai untuk papan tagging & sertifikat pengadopsi biasa."
+                : "Belum ada desain aktif — sistem memakai template bawaan."}
+            </p>
+          </div>
+          {aktif && (
+            <p className="font-mono text-[11px] text-emerald-700 dark:text-emerald-300">{aktif.file}</p>
+          )}
+        </div>
+        {aktif?.imageUrl ? (
+          <div className="mt-4 overflow-hidden rounded-xl border border-emerald-100 bg-white dark:border-night-700 dark:bg-night-950">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={aktif.imageUrl} alt={aktif.nama || "Desain aktif"} className="mx-auto h-64 w-full object-contain" />
+            <div className="border-t border-emerald-50 px-4 py-2 text-xs font-medium text-zinc-700 dark:border-night-800 dark:text-zinc-300">
+              {aktif.nama || "(tanpa nama)"}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-xl border border-dashed border-emerald-200 bg-white/60 p-8 text-center text-xs text-zinc-500 dark:border-night-700 dark:bg-night-950">
+            Template bawaan Pohon Asuh
+          </div>
+        )}
+      </section>
 
       <div className="mt-7 grid gap-5 lg:grid-cols-3">
         {/* Upload */}
