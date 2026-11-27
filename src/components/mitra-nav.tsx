@@ -8,19 +8,20 @@ import { useState } from "react";
 import LangToggle from "@/components/lang-toggle";
 import type { Session } from "@/lib/auth";
 import { logout } from "@/lib/actions/auth";
-
-const NAV_LINKS = [
-  { href: "/kerjasama-mitra#mengapa", label: "Mengapa Mitra" },
-  { href: "/kerjasama-mitra#siapa", label: "Siapa yang Bisa" },
-  { href: "/kerjasama-mitra#cara", label: "Cara Kerja" },
-  { href: "/kerjasama-mitra#faq", label: "FAQ" },
-];
+import { useI18n } from "@/components/i18n-provider";
 
 export default function MitraNav({ session = null }: { session?: Session | null }) {
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { dict } = useI18n();
   const isMitraActive = pathname === "/kerjasama-mitra";
+  const NAV_LINKS = [
+    { href: "/kerjasama-mitra#mengapa", label: dict.mitra.nav.why },
+    { href: "/kerjasama-mitra#siapa", label: dict.mitra.nav.who },
+    { href: "/kerjasama-mitra#cara", label: dict.mitra.nav.how },
+    { href: "/kerjasama-mitra#faq", label: dict.nav.faq },
+  ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-emerald-100 bg-white/80 backdrop-blur">
@@ -60,11 +61,11 @@ export default function MitraNav({ session = null }: { session?: Session | null 
                   <button className="fixed inset-0 z-10 cursor-default bg-transparent" onClick={() => setOpen(false)} aria-label="Tutup menu" />
                   <div className="absolute right-0 top-full z-20 mt-2 w-56 overflow-hidden rounded-2xl border border-emerald-100 bg-white p-2 shadow-xl shadow-emerald-900/10">
                     <Link href="/mitra" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-700 transition hover:bg-emerald-50">
-                      <LayoutDashboard className="h-4 w-4 text-emerald-700" aria-hidden /> Dashboard Mitra
+                      <LayoutDashboard className="h-4 w-4 text-emerald-700" aria-hidden /> {dict.mitra.nav.dashboard}
                     </Link>
                     <form action={logout}>
                       <button type="submit" className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-700 transition hover:bg-red-50 hover:text-red-700">
-                        <LogOut className="h-4 w-4" aria-hidden /> Keluar
+                        <LogOut className="h-4 w-4" aria-hidden /> {dict.nav.logout}
                       </button>
                     </form>
                   </div>
@@ -73,13 +74,13 @@ export default function MitraNav({ session = null }: { session?: Session | null 
             </div>
           ) : (
             <Link href="/masuk" className="hidden text-sm font-semibold text-emerald-900 transition hover:text-emerald-700 sm:inline">
-              Masuk
+              {dict.nav.login}
             </Link>
           )}
           {!session && (
           <Link href="/daftar-mitra" className="group hidden md:flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105">
             <Leaf className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" aria-hidden />
-            Daftar
+            {dict.nav.register}
           </Link>
           )}
           <button
@@ -123,7 +124,7 @@ export default function MitraNav({ session = null }: { session?: Session | null 
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
                   >
                     <LayoutDashboard className="h-4 w-4" aria-hidden />
-                    Dashboard Mitra
+                    {dict.mitra.nav.dashboard}
                   </Link>
                   <form action={logout} className="flex-1">
                     <button
@@ -131,7 +132,7 @@ export default function MitraNav({ session = null }: { session?: Session | null 
                       className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-3 py-2.5 text-center text-sm font-medium text-red-600"
                     >
                       <LogOut className="h-4 w-4" aria-hidden />
-                      Keluar
+                      {dict.nav.logout}
                     </button>
                   </form>
                 </div>
@@ -142,14 +143,14 @@ export default function MitraNav({ session = null }: { session?: Session | null 
                     onClick={() => setMobileOpen(false)}
                     className="flex-1 rounded-xl border border-emerald-200 px-3 py-2.5 text-center text-sm font-medium text-emerald-800"
                   >
-                    Masuk
+                    {dict.nav.login}
                   </Link>
                   <Link
                     href="/daftar-mitra"
                     onClick={() => setMobileOpen(false)}
                     className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
                   >
-                    Daftar
+                    {dict.nav.register}
                   </Link>
                 </div>
               )}

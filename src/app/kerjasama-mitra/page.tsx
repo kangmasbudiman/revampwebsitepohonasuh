@@ -119,11 +119,11 @@ export default async function KerjasamaMitraPage() {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.siapa.title}</h2>
           <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {[
-              { label: "Perusahaan", icon: <Building2 className="h-12 w-12 text-zinc-700" /> },
-              { label: "Organisasi/NGO", icon: <Handshake className="h-12 w-12 text-zinc-700" /> },
-              { label: "Komunitas", icon: <Users className="h-12 w-12 text-zinc-700" /> },
-              { label: "Lembaga Pendidikan", icon: <FileText className="h-12 w-12 text-zinc-700" /> },
-              { label: "Institusi", icon: <BadgeCheck className="h-12 w-12 text-zinc-700" /> },
+              { label: dict.mitra.siapa.item1, icon: <Building2 className="h-12 w-12 text-zinc-700" /> },
+              { label: dict.mitra.siapa.item2, icon: <Handshake className="h-12 w-12 text-zinc-700" /> },
+              { label: dict.mitra.siapa.item3, icon: <Users className="h-12 w-12 text-zinc-700" /> },
+              { label: dict.mitra.siapa.item4, icon: <FileText className="h-12 w-12 text-zinc-700" /> },
+              { label: dict.mitra.siapa.item5, icon: <BadgeCheck className="h-12 w-12 text-zinc-700" /> },
             ].map((c, i) => (
               <div key={i} className="flex flex-col items-center gap-2 rounded-3xl border border-zinc-100 bg-zinc-50 p-6">
                 <span className="flex h-16 w-16 items-center justify-center">{c.icon}</span>
@@ -172,12 +172,12 @@ export default async function KerjasamaMitraPage() {
           <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.cara.title}</h2>
           <div className="mt-10 flex flex-wrap justify-center gap-4 lg:flex-nowrap lg:gap-0 lg:justify-between">
             {[
-              { n: "1", label: "Daftar Menjadi Mitra" },
-              { n: "2", label: "Verifikasi Akun" },
-              { n: "3", label: "Buat Program Adopsi" },
-              { n: "4", label: "Pilih & Adopsi Pohon" },
-              { n: "5", label: "Personalisasi Tagging" },
-              { n: "6", label: "Pantau Dampak Program" },
+              { n: "1", label: dict.mitra.cara.step1 },
+              { n: "2", label: dict.mitra.cara.step2 },
+              { n: "3", label: dict.mitra.cara.step3 },
+              { n: "4", label: dict.mitra.cara.step4 },
+              { n: "5", label: dict.mitra.cara.step5 },
+              { n: "6", label: dict.mitra.cara.step6 },
             ].map((step, i) => (
               <div key={i} className="flex flex-col items-center gap-2 w-36 text-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-lg font-extrabold text-white">
@@ -211,12 +211,12 @@ export default async function KerjasamaMitraPage() {
               <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-700">{dict.mitra.mitraKami.eyebrow}</p>
               <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.mitraKami.title}</h2>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                {dict.mitra.mitraKami.desc} <span className="font-semibold text-emerald-800">Klik logo untuk melihat profil lembaga.</span>
+                {dict.mitra.mitraKami.desc}
               </p>
             </div>
             {!session && (
             <Link href="/daftar-mitra" className="hidden sm:inline-flex items-center gap-2 rounded-full border border-emerald-200 px-5 py-2.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">
-              Gabung Sekarang <ArrowRight className="h-4 w-4" aria-hidden />
+              {dict.mitra.mitraKami.cta} <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
             )}
           </div>
@@ -244,15 +244,15 @@ export default async function KerjasamaMitraPage() {
                     </span>
                   )}
                   <span className="text-center text-[11px] sm:text-xs font-semibold leading-tight text-zinc-800 line-clamp-2">{m.nama}</span>
-                  <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-emerald-700 opacity-0 transition group-hover:opacity-100">Lihat Profil →</span>
+                  <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-emerald-700 opacity-0 transition group-hover:opacity-100">{dict.mitra.mitraKami.lihatProfil}</span>
                 </Link>
               ))}
             </div>
           ) : (
             <div className="mt-10 rounded-3xl border border-dashed border-emerald-200 bg-emerald-50/50 p-10 sm:p-14 text-center">
               <Building2 className="mx-auto h-12 w-12 sm:h-14 sm:w-14 text-emerald-300" aria-hidden />
-              <h3 className="mt-4 text-lg sm:text-xl font-extrabold text-emerald-900">Jadilah Yang Pertama</h3>
-              <p className="mt-2 max-w-md mx-auto text-sm text-emerald-800/80">Belum ada lembaga mitra yang tampil di sini. Bergabunglah dan jadilah inspirasi bagi lembaga lainnya.</p>
+              <h3 className="mt-4 text-lg sm:text-xl font-extrabold text-emerald-900">{dict.mitra.mitraKami.emptyTitle}</h3>
+              <p className="mt-2 max-w-md mx-auto text-sm text-emerald-800/80">{dict.mitra.mitraKami.emptyDesc}</p>
               {!session && (
               <Link href="/daftar-mitra" className="mt-6 hidden sm:inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-700">
                 Daftar Menjadi Mitra <ArrowRight className="h-4 w-4" aria-hidden />
@@ -302,7 +302,7 @@ export default async function KerjasamaMitraPage() {
           )}
         </div>
       </section>
-      <MitraFooter />
+      <MitraFooter dict={dict} />
       </main>
     </I18nProvider>
   );

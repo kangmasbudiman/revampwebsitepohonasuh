@@ -56,6 +56,7 @@ export const dict: Dict = {
     phone: "Phone",
     terms: "Terms & Conditions",
     privacy: "Privacy Policy",
+    partnership: "Partnership",
   },
   home: {
     slide1Title: "Adopt a Tree, Protect the Forest, Support Indigenous Communities",
@@ -1022,6 +1023,13 @@ export const dict: Dict = {
       "A tree adoption program protecting customary and village forests together with local communities in Indonesia.",
   },
   mitra: {
+    nav: {
+      why: "Why Partner",
+      who: "Who Can Join",
+      how: "How It Works",
+      faq: "FAQ",
+      dashboard: "Partner Dashboard",
+    },
     hero: {
       badge: "Become a Pohon Asuh Partner",
       title: "Together Protecting Trees, Forests, and Life",
@@ -1076,6 +1084,15 @@ export const dict: Dict = {
       title: "Organizations That Have Joined",
       desc: "Organizations, communities, and institutions that together protect the forest. Click a logo to view the profile.",
       cta: "Join Now",
+      lihatProfil: "View Profile →",
+      emptyTitle: "Be the First",
+      emptyDesc: "No partner organizations are listed here yet. Join us and inspire other institutions.",
+    },
+    kolaborasi: {
+      desc: "Collaboration Activity",
+      card1Title: "Together Protecting Forests for the Future",
+      card2Title: "Partner Tree Adoption Program",
+      card3Title: "Collaboration for Sustainable Forests",
     },
     faq: {
       title: "Frequently Asked Questions (FAQ)",

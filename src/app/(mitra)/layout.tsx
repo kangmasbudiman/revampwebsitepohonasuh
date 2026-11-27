@@ -13,7 +13,7 @@ export default async function MitraLayout({ children }: LayoutProps<"/">) {
       <div className="flex min-h-dvh flex-col bg-white font-sans text-zinc-900">
         <MitraNav session={session} />
         <div className="flex flex-1 flex-col">{children}</div>
-        <MitraFooter />
+        <MitraFooter dict={dict} />
       </div>
     </I18nProvider>
   );

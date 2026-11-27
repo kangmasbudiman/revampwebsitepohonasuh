@@ -57,6 +57,7 @@ export const dict = {
     phone: "Telp",
     terms: "Syarat & Ketentuan",
     privacy: "Kebijakan Privasi",
+    partnership: "Kemitraan",
   },
   home: {
     slide1Title: "Adopsi Pohon, Jaga Hutan, Dukung Masyarakat Adat",
@@ -1022,6 +1023,13 @@ export const dict = {
       "Program adopsi pohon untuk melindungi hutan adat dan hutan desa bersama masyarakat lokal di Indonesia.",
   },
   mitra: {
+    nav: {
+      why: "Mengapa Mitra",
+      who: "Siapa yang Bisa",
+      how: "Cara Kerja",
+      faq: "FAQ",
+      dashboard: "Dashboard Mitra",
+    },
     hero: {
       badge: "Menjadi Mitra Pohon Asuh",
       title: "Bersama Menjaga Pohon, Hutan, dan Kehidupan",
@@ -1076,6 +1084,15 @@ export const dict = {
       title: "Lembaga yang Sudah Bergabung",
       desc: "Organisasi, komunitas, dan institusi yang bersama-sama menjaga hutan. Klik logo untuk melihat profil lembaga.",
       cta: "Gabung Sekarang",
+      lihatProfil: "Lihat Profil →",
+      emptyTitle: "Jadilah Yang Pertama",
+      emptyDesc: "Belum ada lembaga mitra yang tampil di sini. Bergabunglah dan jadilah inspirasi bagi lembaga lainnya.",
+    },
+    kolaborasi: {
+      desc: "Kegiatan Kolaborasi",
+      card1Title: "Bersama Menjaga Hutan untuk Masa Depan",
+      card2Title: "Program Adopsi Pohon oleh Mitra",
+      card3Title: "Kolaborasi untuk Hutan Lestari",
     },
     faq: {
       title: "Pertanyaan yang Sering Diajukan (FAQ)",

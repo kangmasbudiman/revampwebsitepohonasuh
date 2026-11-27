@@ -2,8 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { apiGet, mapSosmedList, type ApiSosmed } from "@/lib/api";
 import SosmedIcon from "@/components/sosmed-icon";
+import type { Dict } from "@/lib/i18n";
 
-export default async function MitraFooter() {
+export default async function MitraFooter({ dict }: { dict: Dict }) {
   let sosmed: ApiSosmed[] = [];
   try {
     sosmed = mapSosmedList(await apiGet<Record<string, unknown>[]>("getsosmed"));
@@ -24,11 +25,11 @@ export default async function MitraFooter() {
           <Image src="/images/logo_putih.png" alt="Pohon Asuh — Save The Tree and Donate Now" width={220} height={62} className="h-14 sm:h-16 w-auto object-contain" priority />
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
-          <Link href="/">Beranda</Link>
-          <Link href="/tentang">Tentang Kami</Link>
-          <Link href="/lokasi">Lokasi Pohon</Link>
-          <Link href="/cerita-dampak">Cerita Dampak</Link>
-          <Link href="/kerjasama-mitra">Kemitraan</Link>
+          <Link href="/">{dict.nav.home}</Link>
+          <Link href="/tentang">{dict.footer.tentang}</Link>
+          <Link href="/lokasi">{dict.footer.forestLocation}</Link>
+          <Link href="/cerita-dampak">{dict.footer.impactStories}</Link>
+          <Link href="/kerjasama-mitra">{dict.footer.partnership}</Link>
           <span className="hidden sm:inline text-emerald-700">|</span>
           <span className="hidden sm:inline">pohonasuh.org</span>
         </div>
