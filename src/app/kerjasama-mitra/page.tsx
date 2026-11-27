@@ -5,6 +5,7 @@ import MitraNav from "@/components/mitra-nav";
 import { getSession } from "@/lib/auth";
 import { I18nProvider } from "@/components/i18n-provider";
 import { getDict, getLocale } from "@/lib/i18n";
+import { apiGet, buktiUrl, mapMitraFaq } from "@/lib/api";
 import MitraFooter from "@/components/mitra-footer";
 
 export const metadata = {
@@ -20,6 +21,32 @@ export default async function KerjasamaMitraPage() {
   const assetOrigin = (process.env.API_BASE_URL ?? "").replace(/\/api\/?$/, "");
   const session = await getSession();
   const [locale, dict] = await Promise.all([getLocale(), getDict()]);
+
+  // Hero & FAQ bisa di-custom admin; fallback ke bawaan bila kosong.
+  let heroImage = "/images/hero-mitra.jpg";
+  let faqCustom: ReturnType<typeof mapMitraFaq>[] = [];
+  try {
+    const detail = await apiGet<{
+      settings?: Record<string, string>;
+      faqs?: Record<string, unknown>[];
+    }>("mitralandingdetail");
+    const file = String(detail?.settings?.hero_image ?? "");
+    if (file) heroImage = buktiUrl(file) ?? heroImage;
+    faqCustom = (detail?.faqs ?? []).map(mapMitraFaq);
+  } catch {
+    // fallback ke aset & dictionary bawaan
+  }
+  const faqItems = faqCustom.length
+    ? faqCustom.map((f) => ({
+        q: locale === "en" ? f.pertanyaanEn || f.pertanyaanId : f.pertanyaanId,
+        a: locale === "en" ? f.jawabanEn || f.jawabanId : f.jawabanId,
+      }))
+    : [
+        { q: dict.mitra.faq.q1, a: dict.mitra.faq.a1 },
+        { q: dict.mitra.faq.q2, a: dict.mitra.faq.a2 },
+        { q: dict.mitra.faq.q3, a: dict.mitra.faq.a3 },
+        { q: dict.mitra.faq.q4, a: dict.mitra.faq.a4 },
+      ];
   try {
     const res = await fetch(`${process.env.API_BASE_URL}/organisasitampil`, { cache: "no-store" });
     if (res.ok) {
@@ -43,7 +70,7 @@ export default async function KerjasamaMitraPage() {
       {/* ── HERO ── */}
       <section className="relative isolate bg-emerald-950 text-white">
         {/* background image */}
-        <Image src="/images/hero-mitra.jpg" alt="Raksasa kayu besar di hutan" fill priority sizes="100vw" className="object-cover opacity-80" />
+        <Image src={heroImage} alt="Raksasa kayu besar di hutan" fill priority sizes="100vw" className="object-cover opacity-80" />
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-950/60 to-emerald-950/10" />
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 sm:py-24 lg:py-32">
@@ -268,12 +295,7 @@ export default async function KerjasamaMitraPage() {
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.faq.title}</h2>
           <div className="mt-8 divide-y divide-zinc-100 rounded-2xl border border-zinc-100">
-            {[
-              { q: dict.mitra.faq.q1, a: dict.mitra.faq.a1 },
-              { q: dict.mitra.faq.q2, a: dict.mitra.faq.a2 },
-              { q: dict.mitra.faq.q3, a: dict.mitra.faq.a3 },
-              { q: dict.mitra.faq.q4, a: dict.mitra.faq.a4 },
-            ].map((f, i) => (
+            {faqItems.map((f, i) => (
               <details key={i} className="px-5 py-4 group">
                 <summary className="cursor-pointer font-semibold text-emerald-900 flex items-center justify-between gap-4">
                   {f.q}

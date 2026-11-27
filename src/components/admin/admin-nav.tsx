@@ -122,6 +122,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { href: "/admin/slider", label: "Kelola Slider", icon: Images },
       { href: "/admin/tentang", label: "Tentang Pohon Asuh", icon: Info },
       { href: "/admin/faq", label: "Kelola FAQ", icon: CircleHelp },
+      { href: "/admin/landing-mitra", label: "Landing Mitra", icon: Handshake },
     ],
   },
   {

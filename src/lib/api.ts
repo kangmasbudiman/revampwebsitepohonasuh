@@ -1811,6 +1811,28 @@ export function mapPembayaranRows(res: {
 }
 
 // Baris tabel mitra → ApiMitra.
+export type ApiMitraFaq = {
+  id: number;
+  pertanyaanId: string;
+  jawabanId: string;
+  pertanyaanEn: string;
+  jawabanEn: string;
+  urutan: number;
+  aktif: boolean;
+};
+
+export function mapMitraFaq(r: Record<string, unknown>): ApiMitraFaq {
+  return {
+    id: Number(r.id),
+    pertanyaanId: String(r.pertanyaan_id ?? ""),
+    jawabanId: String(r.jawaban_id ?? ""),
+    pertanyaanEn: String(r.pertanyaan_en ?? ""),
+    jawabanEn: String(r.jawaban_en ?? ""),
+    urutan: Number(r.urutan ?? 0),
+    aktif: Number(r.aktif ?? 1) === 1,
+  };
+}
+
 export type ApiTaggingTemplate = {
   id: number;
   nama: string;
