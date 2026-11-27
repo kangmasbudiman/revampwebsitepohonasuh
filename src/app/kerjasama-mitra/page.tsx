@@ -82,7 +82,7 @@ export default async function KerjasamaMitraPage() {
             </p>
 
             <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
-              {!session && (
+              {!session?.mitraId && (
               <Link href="/daftar-mitra" className="hidden sm:inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 sm:px-10 py-3.5 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-900/40 hover:scale-[1.03] hover:bg-emerald-400">
                 {dict.mitra.hero.cta} <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -234,7 +234,7 @@ export default async function KerjasamaMitraPage() {
                 {dict.mitra.mitraKami.desc}
               </p>
             </div>
-            {!session && (
+            {!session?.mitraId && (
             <Link href="/daftar-mitra" className="hidden sm:inline-flex items-center gap-2 rounded-full border border-emerald-200 px-5 py-2.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition">
               {dict.mitra.mitraKami.cta} <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
@@ -273,7 +273,7 @@ export default async function KerjasamaMitraPage() {
               <Building2 className="mx-auto h-12 w-12 sm:h-14 sm:w-14 text-emerald-300" aria-hidden />
               <h3 className="mt-4 text-lg sm:text-xl font-extrabold text-emerald-900">{dict.mitra.mitraKami.emptyTitle}</h3>
               <p className="mt-2 max-w-md mx-auto text-sm text-emerald-800/80">{dict.mitra.mitraKami.emptyDesc}</p>
-              {!session && (
+              {!session?.mitraId && (
               <Link href="/daftar-mitra" className="mt-6 hidden sm:inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-700">
                 Daftar Menjadi Mitra <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
@@ -313,7 +313,7 @@ export default async function KerjasamaMitraPage() {
             <h2 className="text-2xl sm:text-4xl font-extrabold leading-snug">{dict.mitra.funnelCta.title}</h2>
             <p className="mt-2 max-w-lg text-sm text-emerald-100">{dict.mitra.funnelCta.desc}</p>
           </div>
-          {!session && (
+          {!session?.mitraId && (
           <Link href="/daftar-mitra" className="hidden sm:inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-emerald-500 px-8 sm:px-10 py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-900/40 hover:scale-[1.03] hover:bg-emerald-400">
             {dict.mitra.funnelCta.cta} <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

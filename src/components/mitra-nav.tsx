@@ -77,7 +77,7 @@ export default function MitraNav({ session = null }: { session?: Session | null 
               {dict.nav.login}
             </Link>
           )}
-          {!session && (
+          {!session?.mitraId && (
           <Link href="/daftar-mitra" className="group hidden md:flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105">
             <Leaf className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" aria-hidden />
             {dict.nav.register}
@@ -118,14 +118,25 @@ export default function MitraNav({ session = null }: { session?: Session | null 
               </div>
               {session ? (
                 <div className="flex items-center gap-2">
-                  <Link
-                    href="/mitra"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
-                  >
-                    <LayoutDashboard className="h-4 w-4" aria-hidden />
-                    {dict.mitra.nav.dashboard}
-                  </Link>
+                  {session.mitraId ? (
+                    <Link
+                      href="/mitra"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
+                    >
+                      <LayoutDashboard className="h-4 w-4" aria-hidden />
+                      {dict.mitra.nav.dashboard}
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/daftar-mitra"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-3 py-2.5 text-center text-sm font-semibold text-white shadow"
+                    >
+                      <Leaf className="h-4 w-4" aria-hidden />
+                      {dict.nav.register}
+                    </Link>
+                  )}
                   <form action={logout} className="flex-1">
                     <button
                       type="submit"
