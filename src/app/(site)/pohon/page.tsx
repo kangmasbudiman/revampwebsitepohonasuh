@@ -3,6 +3,8 @@ import { apiGet, apiPost, mapDesa, mapTrees, type ApiDesa, type ApiTree } from "
 import { labelLokasi, rupiah } from "@/lib/format";
 import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
+import TreeViewToggle from "@/components/tree-view-toggle";
+import TreeListView from "@/components/tree-list-view";
 
 export async function generateMetadata() {
   return { title: (await getDict()).pages.pohon.title };
@@ -37,6 +39,11 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
   // Tampilan default (tanpa param) tetap pohon tersedia; submenu header
   // "Adopted" memakai ?status=adopted.
   const status = searchParams.status === "adopted" ? "adopted" : "available";
+  const view = searchParams.view === "list" ? "list" : "grid";
+  const sortParam = typeof searchParams.sort === "string" ? searchParams.sort : "newest";
+  const sort = ["price-asc", "price-desc", "diameter-desc"].includes(sortParam)
+    ? sortParam
+    : "newest";
 
   let desaList: ApiDesa[] = [];
   let trees: ApiTree[] = [];
@@ -89,6 +96,8 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
     if (o.harga) sp.set("harga", String(o.harga));
     if (o.diameter) sp.set("diameter", o.diameter);
     if (o.page && o.page > 1) sp.set("page", String(o.page));
+    if (view !== "grid") sp.set("view", view);
+    if (sort !== "newest") sp.set("sort", sort);
     const s = sp.toString();
     return s ? `/pohon?${s}` : "/pohon";
   };
@@ -104,6 +113,9 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
   const unggulan = trees.filter((t) => t.highlight === 1);
   const biasa = trees.filter((t) => t.highlight !== 1);
   const ordered = [...unggulan, ...(aktif ? biasa : acakHarian(biasa))];
+  if (sort === "price-asc") ordered.sort((a, b) => a.priceIdr - b.priceIdr);
+  if (sort === "price-desc") ordered.sort((a, b) => b.priceIdr - a.priceIdr);
+  if (sort === "diameter-desc") ordered.sort((a, b) => (b.diameterCm ?? 0) - (a.diameterCm ?? 0));
 
   const total = ordered.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
@@ -169,26 +181,65 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
         </p>
       ) : (
         <>
-          <p className="mt-6 text-sm text-zinc-500">
-            {(status === "adopted" ? d.adoptedCount : d.availableCount).replaceAll(
-              "{n}",
-              String(total),
-            )}
-          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-zinc-500">
+              {(status === "adopted" ? d.adoptedCount : d.availableCount).replaceAll(
+                "{n}",
+                String(total),
+              )}
+            </p>
+            <TreeViewToggle
+              view={view}
+              sort={sort}
+              params={{
+                lokasi,
+                harga: harga ? String(harga) : undefined,
+                diameter: diameter || undefined,
+                status: status === "adopted" ? "adopted" : undefined,
+                page: page > 1 ? String(page) : undefined,
+                view: view !== "grid" ? view : undefined,
+                sort: sort !== "newest" ? sort : undefined,
+              }}
+              labels={{
+                view: d.view,
+                grid: d.grid,
+                list: d.list,
+                sort: d.sort,
+                sortNewest: d.sortNewest,
+                sortPriceAsc: d.sortPriceAsc,
+                sortPriceDesc: d.sortPriceDesc,
+                sortDiameter: d.sortDiameter,
+              }}
+            />
+          </div>
 
-          <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {pageTrees.map((tree, i) => (
-              <TreeCard
-                key={`${tree.code}-${i}`}
-                tree={{
-                  ...tree,
-                  location: { name: tree.desa, label: labelByNama.get(tree.desa) ?? null },
-                }}
-              />
-            ))}
+          <div key={view} className="pa-fade-in mt-4">
+            {view === "list" ? (
+              <TreeListView trees={pageTrees.map((tree) => ({
+                ...tree,
+                location: { name: tree.desa, label: labelByNama.get(tree.desa) ?? null },
+              }))} startNo={(page - 1) * PER_PAGE + 1} />
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {pageTrees.map((tree, i) => (
+                  <TreeCard
+                    key={`${tree.code}-${i}`}
+                    tree={{
+                      ...tree,
+                      location: { name: tree.desa, label: labelByNama.get(tree.desa) ?? null },
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
           {total === 0 && (
-            <p className="mt-10 text-center text-zinc-500">{d.empty}</p>
+            <div className="mt-10 text-center">
+              <p className="text-zinc-500">{d.emptyFiltered}</p>
+              <Link href={qs({})} className="mt-3 inline-flex rounded-xl border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50">
+                {d.resetFilter}
+              </Link>
+            </div>
           )}
 
           {totalPages > 1 && (

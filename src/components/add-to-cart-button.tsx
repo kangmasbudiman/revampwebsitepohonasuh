@@ -9,9 +9,11 @@ import { useI18n } from "@/components/i18n-provider";
 export default function AddToCartButton({
   item,
   variant = "full",
+  label,
 }: {
   item: CartItem;
-  variant?: "full" | "icon";
+  variant?: "full" | "icon" | "solid";
+  label?: string;
 }) {
   const { dict } = useI18n();
   const t = dict.cart;
@@ -35,6 +37,25 @@ export default function AddToCartButton({
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2000);
   };
+
+  if (variant === "solid") {
+    const teks = label ?? t.addToCart;
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        aria-label={inCart ? t.removeTitle : teks}
+        className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
+          inCart
+            ? "bg-orange-500 text-white hover:bg-orange-600"
+            : "bg-emerald-600 text-white hover:bg-emerald-700"
+        }`}
+      >
+        {inCart ? <ShoppingCartMinus className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+        {inCart ? t.removeTitle : teks}
+      </button>
+    );
+  }
 
   if (variant === "icon") {
     return (
