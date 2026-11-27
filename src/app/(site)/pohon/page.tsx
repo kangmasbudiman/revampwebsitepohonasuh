@@ -43,9 +43,8 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
   const status = searchParams.status === "adopted" ? "adopted" : "available";
   const view = searchParams.view === "list" ? "list" : "grid";
   const sortParam = typeof searchParams.sort === "string" ? searchParams.sort : "newest";
-  const sort = ["price-asc", "price-desc", "diameter-desc"].includes(sortParam)
-    ? sortParam
-    : "newest";
+  const SORT_VALUES = ["newest", "oldest", "most-adopted", "least-adopted", "price-asc", "price-desc", "diameter-asc", "diameter-desc", "name-asc", "name-desc"];
+  const sort = SORT_VALUES.includes(sortParam) ? sortParam : "newest";
 
   let desaList: ApiDesa[] = [];
   let trees: ApiTree[] = [];
@@ -116,9 +115,15 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
   const unggulan = trees.filter((t) => t.highlight === 1);
   const biasa = trees.filter((t) => t.highlight !== 1);
   const ordered = [...unggulan, ...(aktif ? biasa : acakHarian(biasa))];
+  if (sort === "oldest") ordered.reverse();
+  if (sort === "most-adopted") ordered.sort((a, b) => (b.highlight ?? 0) - (a.highlight ?? 0));
+  if (sort === "least-adopted") ordered.sort((a, b) => (a.highlight ?? 0) - (b.highlight ?? 0));
   if (sort === "price-asc") ordered.sort((a, b) => a.priceIdr - b.priceIdr);
   if (sort === "price-desc") ordered.sort((a, b) => b.priceIdr - a.priceIdr);
+  if (sort === "diameter-asc") ordered.sort((a, b) => (a.diameterCm ?? 0) - (b.diameterCm ?? 0));
   if (sort === "diameter-desc") ordered.sort((a, b) => (b.diameterCm ?? 0) - (a.diameterCm ?? 0));
+  if (sort === "name-asc") ordered.sort((a, b) => a.localName.localeCompare(b.localName));
+  if (sort === "name-desc") ordered.sort((a, b) => b.localName.localeCompare(a.localName));
 
   const total = ordered.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
@@ -204,9 +209,15 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
                 list: d.list,
                 sort: d.sort,
                 sortNewest: d.sortNewest,
+                sortOldest: d.sortOldest,
+                sortMostAdopted: d.sortMostAdopted,
+                sortLeastAdopted: d.sortLeastAdopted,
                 sortPriceAsc: d.sortPriceAsc,
                 sortPriceDesc: d.sortPriceDesc,
-                sortDiameter: d.sortDiameter,
+                sortDiameterAsc: d.sortDiameterAsc,
+                sortDiameterDesc: d.sortDiameterDesc,
+                sortNameAsc: d.sortNameAsc,
+                sortNameDesc: d.sortNameDesc,
               }}
             />
           </div>
