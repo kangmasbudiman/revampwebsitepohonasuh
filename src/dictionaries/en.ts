@@ -1097,6 +1097,7 @@ export const dict: Dict = {
     faq: {
       title: "Frequently Asked Questions (FAQ)",
       q1: "Who can become a Pohon Asuh partner?",
+      empty: "No FAQ yet. Please add one via Admin → Website Content → Mitra Landing.",
       a1: "Anyone: companies, organizations, communities, educational institutions, government institutions, and village institutions.",
       q2: "Can a partner create more than one program?",
       a2: "Yes. One partner account can manage several programs, each with its own period, adopters, and tagging design.",

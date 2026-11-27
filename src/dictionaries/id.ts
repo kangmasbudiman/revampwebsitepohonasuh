@@ -1096,6 +1096,7 @@ export const dict = {
     },
     faq: {
       title: "Pertanyaan yang Sering Diajukan (FAQ)",
+      empty: "Belum ada FAQ. Silakan tambahkan melalui menu Admin → Konten Website → Landing Mitra.",
       q1: "Siapa yang dapat menjadi Mitra Pohon Asuh?",
       a1: "Siapa saja: perusahaan, organisasi, komunitas, lembaga pendidikan, institusi pemerintah, dan lembaga desa.",
       q2: "Apakah Mitra dapat membuat lebih dari satu program?",

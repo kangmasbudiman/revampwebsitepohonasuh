@@ -22,7 +22,7 @@ export default async function KerjasamaMitraPage() {
   const session = await getSession();
   const [locale, dict] = await Promise.all([getLocale(), getDict()]);
 
-  // Hero & FAQ bisa di-custom admin; fallback ke bawaan bila kosong.
+  // Hero & FAQ diambil dari database yang diisi admin (FAQ tidak hardcode).
   let heroImage = "/images/hero-mitra.jpg";
   let faqCustom: ReturnType<typeof mapMitraFaq>[] = [];
   try {
@@ -34,19 +34,12 @@ export default async function KerjasamaMitraPage() {
     if (file) heroImage = buktiUrl(file) ?? heroImage;
     faqCustom = (detail?.faqs ?? []).map(mapMitraFaq);
   } catch {
-    // fallback ke aset & dictionary bawaan
+    // fallback aset hero; FAQ tetap menunggu data admin
   }
-  const faqItems = faqCustom.length
-    ? faqCustom.map((f) => ({
-        q: locale === "en" ? f.pertanyaanEn || f.pertanyaanId : f.pertanyaanId,
-        a: locale === "en" ? f.jawabanEn || f.jawabanId : f.jawabanId,
-      }))
-    : [
-        { q: dict.mitra.faq.q1, a: dict.mitra.faq.a1 },
-        { q: dict.mitra.faq.q2, a: dict.mitra.faq.a2 },
-        { q: dict.mitra.faq.q3, a: dict.mitra.faq.a3 },
-        { q: dict.mitra.faq.q4, a: dict.mitra.faq.a4 },
-      ];
+  const faqItems = faqCustom.map((f) => ({
+    q: locale === "en" ? f.pertanyaanEn || f.pertanyaanId : f.pertanyaanId,
+    a: locale === "en" ? f.jawabanEn || f.jawabanId : f.jawabanId,
+  }));
   try {
     const res = await fetch(`${process.env.API_BASE_URL}/organisasitampil`, { cache: "no-store" });
     if (res.ok) {
@@ -295,6 +288,9 @@ export default async function KerjasamaMitraPage() {
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <h2 className="text-center text-2xl sm:text-3xl font-extrabold text-emerald-950">{dict.mitra.faq.title}</h2>
           <div className="mt-8 divide-y divide-zinc-100 rounded-2xl border border-zinc-100">
+            {faqItems.length === 0 && (
+              <p className="px-5 py-6 text-center text-sm text-zinc-500">{dict.mitra.faq.empty}</p>
+            )}
             {faqItems.map((f, i) => (
               <details key={i} className="px-5 py-4 group">
                 <summary className="cursor-pointer font-semibold text-emerald-900 flex items-center justify-between gap-4">
