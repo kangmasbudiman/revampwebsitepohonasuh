@@ -5,6 +5,7 @@ import { getDict } from "@/lib/i18n";
 import TreeCard from "@/components/tree-card";
 import TreeViewToggle from "@/components/tree-view-toggle";
 import TreeListView from "@/components/tree-list-view";
+import TreeFilterCard from "@/components/tree-filter-card";
 
 export async function generateMetadata() {
   return { title: (await getDict()).pages.pohon.title };
@@ -33,6 +34,7 @@ function acakHarian<T>(items: T[]): T[] {
 export default async function TreeListPage(props: PageProps<"/pohon">) {
   const searchParams = await props.searchParams;
   const lokasi = typeof searchParams.lokasi === "string" ? searchParams.lokasi : undefined;
+  const provinsi = typeof searchParams.provinsi === "string" ? searchParams.provinsi : "";
   const harga = Number(searchParams.harga) || 0;
   const diameter = typeof searchParams.diameter === "string" ? searchParams.diameter : "";
   const page = Math.max(1, Number(searchParams.page) || 1);
@@ -66,6 +68,10 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
         : await apiPost<Record<string, unknown>[]>("filtertrees", { adopted: "available" });
     }
     trees = mapTrees(rows).filter((t) => byNama.get(t.desa) !== false);
+    if (provinsi) {
+      const provByNama = new Map(semua.map((x) => [x.name, x.provinsi]));
+      trees = trees.filter((t) => provByNama.get(t.desa) === provinsi);
+    }
   } catch {
     error = true;
   }
@@ -89,9 +95,10 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
     );
   }
 
-  const qs = (o: { lokasi?: string; harga?: number; diameter?: string; page?: number }) => {
+  const qs = (o: { provinsi?: string; lokasi?: string; harga?: number; diameter?: string; page?: number }) => {
     const sp = new URLSearchParams();
     if (status === "adopted") sp.set("status", "adopted");
+    if (o.provinsi) sp.set("provinsi", o.provinsi);
     if (o.lokasi) sp.set("lokasi", o.lokasi);
     if (o.harga) sp.set("harga", String(o.harga));
     if (o.diameter) sp.set("diameter", o.diameter);
@@ -101,10 +108,6 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
     const s = sp.toString();
     return s ? `/pohon?${s}` : "/pohon";
   };
-  const pillCls = (on: boolean) =>
-    `rounded-full px-4 py-1.5 text-sm font-medium ${
-      on ? "bg-emerald-600 text-white" : "border border-emerald-200 text-emerald-800 hover:bg-emerald-50"
-    }`;
   const labelByNama = new Map(desaList.map((d) => [d.name, d.label]));
 
   // Pohon unggulan (pilihan admin, highlight=1 via setPohonterbaik) selalu
@@ -127,50 +130,45 @@ export default async function TreeListPage(props: PageProps<"/pohon">) {
       <h1 className="text-3xl font-bold text-emerald-950">{d.title}</h1>
       <p className="mt-2 text-zinc-600">{status === "adopted" ? d.introAdopted : d.intro}</p>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        <Link href={qs({ harga, diameter })} className={pillCls(!lokasi)}>
-          {d.allLocations}
-        </Link>
-        {desaList.map((desa) => (
-          <Link
-            key={desa.slug}
-            href={qs({ lokasi: desa.slug, harga, diameter })}
-            className={pillCls(lokasi === desa.slug)}
-          >
-            {labelLokasi(desa)}
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Link href={qs({ lokasi, diameter })} className={pillCls(!harga)}>
-          {d.allPrices}
-        </Link>
-        {hargaList.map((h) => (
-          <Link
-            key={h}
-            href={qs({ lokasi, harga: h, diameter })}
-            className={pillCls(harga === h)}
-          >
-            {rupiah(h)}
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Link href={qs({ lokasi, harga })} className={pillCls(!diameter)}>
-          {d.allDiameters}
-        </Link>
-        {RENTANG_DIAMETER.map((r) => (
-          <Link
-            key={r.v}
-            href={qs({ lokasi, harga, diameter: r.v })}
-            className={pillCls(diameter === r.v)}
-          >
-            {r.label}
-          </Link>
-        ))}
-      </div>
+      <TreeFilterCard
+        provinsi={provinsi}
+        lokasi={lokasi ?? ""}
+        harga={harga}
+        diameter={diameter}
+        provinsiList={[...new Set(desaList.map((x) => x.provinsi).filter(Boolean))].sort() as string[]}
+        desaList={desaList.map((x) => ({ slug: x.slug, nama: labelLokasi(x), provinsi: x.provinsi }))}
+        hargaList={hargaList}
+        rentangDiameter={RENTANG_DIAMETER}
+        params={{
+          provinsi: provinsi || undefined,
+          lokasi,
+          harga: harga ? String(harga) : undefined,
+          diameter: diameter || undefined,
+          status: status === "adopted" ? "adopted" : undefined,
+          page: page > 1 ? String(page) : undefined,
+          view: view !== "grid" ? view : undefined,
+          sort: sort !== "newest" ? sort : undefined,
+        }}
+        labels={{
+          title: d.filterTitle,
+          provinsi: d.filterProvinsi,
+          provinsiHint: d.filterProvinsiHint,
+          pilihProvinsi: d.filterPilihProvinsi,
+          provinsiCount: d.filterProvinsiCount,
+          desa: d.filterDesa,
+          desaHint: d.filterDesaHint,
+          pilihDesa: d.filterPilihDesa,
+          desaDisabled: d.filterDesaDisabled,
+          desaHelp: d.filterDesaHelp,
+          price: d.filterPrice,
+          priceHint: d.filterPriceHint,
+          diameter: d.filterDiameter,
+          diameterHint: d.filterDiameterHint,
+          allPrices: d.allPrices,
+          allDiameters: d.allDiameters,
+          reset: d.resetFilter,
+        }}
+      />
 
       {error ? (
         <p className="mt-10 text-center text-zinc-500">
