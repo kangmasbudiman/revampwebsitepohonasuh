@@ -1069,7 +1069,7 @@ export const dict: Dict = {
       who: "Who Can Join",
       how: "How It Works",
       faq: "FAQ",
-      dashboard: "Partner Dashboard",
+      dashboard: "Dashboard",
     },
     hero: {
       badge: "Become a Pohon Asuh Partner",

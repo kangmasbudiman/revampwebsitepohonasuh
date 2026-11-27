@@ -1069,7 +1069,7 @@ export const dict = {
       who: "Siapa yang Bisa",
       how: "Cara Kerja",
       faq: "FAQ",
-      dashboard: "Dashboard Mitra",
+      dashboard: "Dashboard",
     },
     hero: {
       badge: "Menjadi Mitra Pohon Asuh",
