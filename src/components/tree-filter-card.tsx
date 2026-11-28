@@ -39,7 +39,7 @@ type Props = {
 const selectCls =
   "w-full appearance-none rounded-xl border border-emerald-200 bg-white px-4 py-2.5 pr-10 text-sm font-medium text-emerald-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 dark:border-night-700 dark:bg-night-950 dark:text-zinc-200";
 const pillCls = (on: boolean) =>
-  `rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
+  `rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition-colors sm:px-5 sm:text-sm ${
     on
       ? "bg-emerald-700 text-white"
       : "border border-emerald-300 bg-white text-emerald-700 hover:bg-emerald-50 dark:bg-night-950"

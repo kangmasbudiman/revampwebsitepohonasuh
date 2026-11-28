@@ -115,7 +115,7 @@ export default function TreeViewToggle({ view, sort, params, labels }: Props) {
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-3">
-      <div className="flex items-center gap-2" ref={rootRef}>
+      <div className="flex min-w-0 flex-wrap items-center gap-2" ref={rootRef}>
         <span className="text-sm font-semibold text-emerald-950">{labels.sort}</span>
         <div className="relative">
           <button
@@ -123,7 +123,7 @@ export default function TreeViewToggle({ view, sort, params, labels }: Props) {
             aria-haspopup="listbox"
             aria-expanded={buka}
             onClick={() => setBuka((v) => !v)}
-            className="inline-flex min-w-56 items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-950 outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            className="inline-flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-950 outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 sm:w-auto sm:min-w-56"
           >
             <span className="inline-flex items-center gap-2">
               {PilihIcon ? (
@@ -143,7 +143,7 @@ export default function TreeViewToggle({ view, sort, params, labels }: Props) {
             <div
               role="listbox"
               aria-label={labels.sort}
-              className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl border border-emerald-200 bg-white p-1.5 shadow-xl shadow-emerald-900/10"
+              className="absolute right-0 top-full z-50 mt-2 w-full min-w-64 overflow-hidden rounded-2xl border border-emerald-200 bg-white p-1.5 shadow-xl shadow-emerald-900/10 sm:w-72"
             >
               {opsiSort.map((o) => {
                 const aktif = sort === o.value;
@@ -179,7 +179,7 @@ export default function TreeViewToggle({ view, sort, params, labels }: Props) {
       <div
         role="radiogroup"
         aria-label={labels.view}
-        className="inline-flex items-center rounded-xl border border-emerald-200 bg-white p-1"
+        className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-200 bg-white p-1 sm:w-auto"
       >
         {opsiView.map(({ key, label, Icon }) => {
           const aktif = view === key;
